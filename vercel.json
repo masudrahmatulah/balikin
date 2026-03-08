@@ -1,0 +1,44 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["sin1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(self)"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/[[...catchAll]]"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "@app-url",
+    "DATABASE_URL": "@database-url",
+    "BETTER_AUTH_SECRET": "@better-auth-secret",
+    "NEXT_PUBLIC_BETTER_AUTH_URL": "@better-auth-url",
+    "BETTER_AUTH_URL": "@better-auth-url"
+  }
+}
