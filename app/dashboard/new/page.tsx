@@ -4,16 +4,35 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createTag } from '@/app/actions/tag';
 import { getSession } from '@/lib/session';
-import { ArrowLeft, QrCode } from 'lucide-react';
+import { ArrowLeft, QrCode, AlertCircle, Crown } from 'lucide-react';
 import Link from 'next/link';
+import { db } from '@/db';
+import { tags } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { FREE_TAG_LIMIT } from '@/lib/constants';
 
 export default async function NewTagPage() {
   const session = await getSession();
 
   if (!session?.user?.id) {
     redirect('/sign-in');
+  }
+
+  // Check if user has reached their free tier limit
+  const userTags = await db.query.tags.findMany({
+    where: eq(tags.ownerId, session.user.id),
+  });
+
+  const hasPremiumTag = userTags.some(tag => tag.tier === 'premium');
+  const freeTagCount = userTags.filter(tag => tag.tier === 'free' || !tag.tier).length;
+  const isAtLimit = !hasPremiumTag && freeTagCount >= FREE_TAG_LIMIT;
+
+  // Redirect to dashboard if limit reached
+  if (isAtLimit) {
+    redirect('/dashboard?limit=1');
   }
 
   return (

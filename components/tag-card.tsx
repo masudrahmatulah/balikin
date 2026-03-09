@@ -9,9 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { QrCode, MapPin, MessageCircle, Pencil, Trash2, Check, X, Gift } from 'lucide-react';
+import { QrCode, MapPin, MessageCircle, Pencil, Trash2, Check, X, Gift, Crown } from 'lucide-react';
 import { updateTagStatus, updateTag, deleteTag } from '@/app/actions/tag';
 import { useRouter } from 'next/navigation';
+import { VerifiedBadge } from '@/components/verified-badge';
+import { FREE_TAG_LIMIT } from '@/lib/constants';
 
 interface TagCardProps {
   id: string;
@@ -21,6 +23,8 @@ interface TagCardProps {
   contactWhatsapp: string | null;
   customMessage: string | null;
   rewardNote: string | null;
+  tier?: string | null;
+  isVerified?: boolean | null;
   createdAt: Date | null;
   scanCount?: number;
 }
@@ -33,6 +37,8 @@ export function TagCard({
   contactWhatsapp,
   customMessage,
   rewardNote,
+  tier,
+  isVerified,
   createdAt,
   scanCount = 0,
 }: TagCardProps) {
@@ -159,8 +165,13 @@ export function TagCard({
               <QrCode className="h-5 w-5" />
               {name}
             </CardTitle>
-            <CardDescription className="flex items-center gap-2 mt-1">
-              /p/{slug}
+            <CardDescription className="flex items-center gap-2 mt-1 flex-wrap">
+              <span>/p/{slug}</span>
+              <VerifiedBadge
+                tier={tier as 'free' | 'premium' | null}
+                isVerified={isVerified}
+                size="sm"
+              />
             </CardDescription>
           </div>
           <Badge variant={isLost ? 'destructive' : 'success'}>
@@ -208,6 +219,31 @@ export function TagCard({
         {scanCount > 0 && (
           <div className="text-xs text-gray-500">
             {scanCount} scan tercatat
+          </div>
+        )}
+
+        {/* Upsell for Free Tier */}
+        {tier === 'free' && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-3 border border-amber-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">Upgrade ke Premium</p>
+                    <p className="text-xs text-amber-700">Gantungan kunci fisik Rp35rb</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                  onClick={() => window.open('https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20upgrade%20tag%20ke%20Premium', '_blank')}
+                >
+                  Upgrade
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
