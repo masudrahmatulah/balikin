@@ -4,10 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createTag } from '@/app/actions/tag';
 import { getSession } from '@/lib/session';
-import { ArrowLeft, QrCode, AlertCircle, Crown } from 'lucide-react';
+import { ArrowLeft, QrCode } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
@@ -40,7 +39,7 @@ export default async function NewTagPage() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Kembali ke Dashboard
             </Button>
@@ -49,16 +48,16 @@ export default async function NewTagPage() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <QrCode className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <CardTitle>Buat Tag Baru</CardTitle>
+                <CardTitle>Buat Digital Tag Baru</CardTitle>
                 <CardDescription>
-                  Buat QR code untuk barang Anda
+                  Buat QR digital untuk wallpaper lockscreen, cetak mandiri, atau profil kontak darurat.
                 </CardDescription>
               </div>
             </div>
@@ -90,17 +89,17 @@ export default async function NewTagPage() {
               redirect(`/dashboard/tag/${result.slug}`);
             }} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nama Tag *</Label>
+                <Label htmlFor="name">Nama Barang *</Label>
                 <Input
                   id="name"
                   name="name"
-                  placeholder="Contoh: Kunci Motor, Tas Sekolah, Dompet"
+                  placeholder="Contoh: Dompet Kulit, HP Android, Tas Sekolah"
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="contactWhatsapp">Nomor WhatsApp *</Label>
+                <Label htmlFor="contactWhatsapp">Nomor WhatsApp Kontak *</Label>
                 <Input
                   id="contactWhatsapp"
                   name="contactWhatsapp"
@@ -109,36 +108,36 @@ export default async function NewTagPage() {
                   pattern="[0-9]+"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Gunakan format internasional tanpa + atau 0 di depan (contoh: 628123456789)
+                  Kontak ini dipakai penemu untuk menghubungi Anda. Gunakan format internasional tanpa + atau 0 di depan.
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="customMessage">Pesan Personal (opsional)</Label>
+                <Label htmlFor="customMessage">Pesan Sapaan (opsional)</Label>
                 <Textarea
                   id="customMessage"
                   name="customMessage"
-                  placeholder="Contoh: Ini adalah kunci motor saya yang sangat penting. Jika Anda menemukannya, mohon hubungi saya."
+                  placeholder="Contoh: Halo, ini dompet milik Budi. Jika Anda menemukannya, mohon hubungi saya."
                   rows={3}
                 />
               </div>
 
               <div>
-                <Label htmlFor="rewardNote">Imbalan (opsional)</Label>
+                <Label htmlFor="rewardNote">Imbalan saat Hilang (opsional)</Label>
                 <Input
                   id="rewardNote"
                   name="rewardNote"
                   placeholder="Contoh: Rp 50.000, Makan siang, dll"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Imbalan akan ditampilkan saat status barang hilang
+                  Field ini opsional dan hanya ditampilkan saat status barang berubah menjadi hilang.
                 </p>
               </div>
 
               <div className="pt-4">
                 <Button type="submit" className="w-full">
                   <QrCode className="mr-2 h-4 w-4" />
-                  Buat Tag
+                  Buat Digital Tag
                 </Button>
               </div>
             </form>

@@ -8,6 +8,15 @@ export const runtime = 'nodejs';
 // Routes that don't require authentication
 const publicRoutes = [
   '/',
+  '/about',
+  '/how-it-works',
+  '/pricing',
+  '/faq',
+  '/contact',
+  '/stickers',
+  '/privacy-policy',
+  '/terms',
+  '/upgrade',
   '/sign-in',
   '/sign-up',
   '/verify-otp',
@@ -19,7 +28,9 @@ const protectedRoutes = [
   '/dashboard',
   '/dashboard/new',
   '/dashboard/tag/[slug]',
+  '/dashboard/sticker-orders/[orderId]',
   '/claim/[tagId]', // Claim flow requires auth
+  '/stickers/checkout',
 ];
 
 // Routes that require admin role

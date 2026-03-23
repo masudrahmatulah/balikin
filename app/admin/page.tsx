@@ -6,6 +6,8 @@ import { desc, eq, count } from "drizzle-orm";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { ClientsTable } from "@/components/admin/clients-table";
 import { CreateTagModal } from "@/components/admin/create-tag-modal";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -105,7 +107,7 @@ export default async function AdminPage() {
 
         {/* Clients Section */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <div className="flex flex-col gap-4 border-b border-slate-200 p-6 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
                 Daftar Klien
@@ -114,7 +116,12 @@ export default async function AdminPage() {
                 Kelola klien dan buat tag QR Code untuk mereka
               </p>
             </div>
-            <CreateTagModal users={usersWithTagCount} />
+            <div className="flex flex-wrap gap-3">
+              <Link href="/admin/sticker-orders">
+                <Button variant="outline">Sticker Orders</Button>
+              </Link>
+              <CreateTagModal users={usersWithTagCount} />
+            </div>
           </div>
           <ClientsTable users={usersWithTagCount} />
         </div>

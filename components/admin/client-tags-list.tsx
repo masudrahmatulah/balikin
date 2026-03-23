@@ -215,8 +215,8 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h3 className="break-words text-lg font-medium text-slate-900 dark:text-white">
                         {tag.name}
                       </h3>
                       <span
@@ -229,7 +229,7 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                         {tag.status === "lost" ? "Hilang" : "Normal"}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
                       Slug: <code className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">
                         {tag.slug}
                       </code>
@@ -254,11 +254,11 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full items-center gap-2 sm:w-auto">
                     <button
                       onClick={() => generateQR(tag)}
                       disabled={isGenerating}
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white font-medium transition-colors hover:bg-blue-700 disabled:opacity-50 sm:w-auto"
                     >
                       {isGenerating && selectedTag?.id === tag.id ? (
                         <>
@@ -288,10 +288,10 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
       {/* QR Modal */}
       {selectedTag && qrDataUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-slate-800">
             <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                <h3 className="pr-3 text-lg font-semibold text-slate-900 dark:text-white sm:text-xl">
                   QR Code untuk {selectedTag.name}
                 </h3>
                 <button
@@ -310,8 +310,8 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
 
             <div className="p-6">
               {/* QR Preview */}
-              <div className="bg-white p-6 rounded-xl border-2 border-slate-200 dark:border-slate-600 flex justify-center mb-6">
-                <img src={qrDataUrl} alt="QR Code" className="w-64 h-64" />
+              <div className="mb-6 flex justify-center rounded-xl border-2 border-slate-200 bg-white p-4 dark:border-slate-600 sm:p-6">
+                <img src={qrDataUrl} alt="QR Code" className="h-auto w-full max-w-[256px]" />
               </div>
 
               {/* Tag Info */}
@@ -319,16 +319,16 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Scan QR ini untuk melihat profil barang
                 </p>
-                <code className="text-xs text-slate-500">
+                <code className="break-all text-xs text-slate-500">
                   /p/{selectedTag.slug}
                 </code>
               </div>
 
               {/* Download Options */}
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <button
                   onClick={() => downloadQR("png")}
-                  className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-white font-medium transition-colors hover:bg-blue-700"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -337,7 +337,7 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                 </button>
                 <button
                   onClick={() => downloadQR("svg")}
-                  className="flex items-center justify-center px-4 py-3 bg-slate-800 dark:bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors"
+                  className="flex items-center justify-center rounded-lg bg-slate-800 px-4 py-3 text-white font-medium transition-colors hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

@@ -27,18 +27,5 @@
         }
       ]
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/[[...catchAll]]"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_APP_URL": "@app-url",
-    "DATABASE_URL": "@database-url",
-    "BETTER_AUTH_SECRET": "@better-auth-secret",
-    "NEXT_PUBLIC_BETTER_AUTH_URL": "@better-auth-url",
-    "BETTER_AUTH_URL": "@better-auth-url"
-  }
+  ]
 }

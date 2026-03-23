@@ -1,19 +1,29 @@
+import type { Metadata } from 'next';
 import { AuthForm } from '@/components/auth-form';
-import { Mail } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+import { buildMetadata } from '@/lib/seo';
+import Link from 'next/link';
+
+export const metadata: Metadata = buildMetadata({
+  title: 'Masuk',
+  description: 'Masuk ke akun Balikin.',
+  path: '/sign-in',
+  noIndex: true,
+});
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 dark:from-gray-900 dark:to-gray-800 sm:flex sm:items-center sm:justify-center">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div className="rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800 sm:p-8">
           {/* Logo / Header */}
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Mail className="h-8 w-8 text-primary" />
+              <MessageCircle className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold">Masuk ke Balikin</h1>
-            <p className="text-sm text-muted-foreground mt-2">
-              Masukkan email Anda untuk menerima kode OTP
+            <h1 className="text-2xl font-bold break-words">Masuk ke Balikin</h1>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Masukkan nomor WhatsApp atau email Anda untuk menerima kode OTP
             </p>
           </div>
 
@@ -22,17 +32,17 @@ export default function SignInPage() {
 
           {/* Back to Home */}
           <div className="mt-6 text-center">
-            <a
+            <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               &larr; Kembali ke Beranda
-            </a>
+            </Link>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
           &copy; {new Date().getFullYear()} Balikin. Smart Lost & Found QR Tag.
         </p>
       </div>

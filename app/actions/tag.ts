@@ -1,13 +1,14 @@
 'use server';
 
 import { db } from '@/db';
-import { tags } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { stickerOrders, tagBundles, tags } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { FREE_TAG_LIMIT } from '@/lib/constants';
+import { ProductType } from '@/lib/product';
 
 export interface CreateTagInput {
   name: string;
@@ -15,7 +16,12 @@ export interface CreateTagInput {
   customMessage?: string;
   rewardNote?: string;
   tier?: 'free' | 'premium';
+  productType?: ProductType;
   isVerified?: boolean;
+  emailAlertsEnabled?: boolean;
+  whatsappAlertsEnabled?: boolean;
+  bundleId?: string;
+  claimedAt?: Date;
 }
 
 export async function createTag(data: CreateTagInput) {
@@ -42,6 +48,14 @@ export async function createTag(data: CreateTagInput) {
   }
 
   const slug = nanoid(12);
+  const productType = data.productType || 'free';
+  const isPremium = productType !== 'free' || data.tier === 'premium';
+  const emailAlertsEnabled = isPremium
+    ? (data.emailAlertsEnabled ?? false)
+    : true;
+  const whatsappAlertsEnabled = isPremium
+    ? (data.whatsappAlertsEnabled ?? true)
+    : false;
 
   await db.insert(tags).values({
     name: data.name,
@@ -51,8 +65,13 @@ export async function createTag(data: CreateTagInput) {
     customMessage: data.customMessage || null,
     rewardNote: data.rewardNote || null,
     status: 'normal',
-    tier: data.tier || 'free',
-    isVerified: data.isVerified || false,
+    tier: data.tier || (isPremium ? 'premium' : 'free'),
+    productType,
+    isVerified: data.isVerified ?? (productType === 'sticker'),
+    emailAlertsEnabled,
+    whatsappAlertsEnabled,
+    bundleId: data.bundleId || null,
+    claimedAt: data.claimedAt || null,
   });
 
   return { slug };
@@ -100,7 +119,7 @@ export async function updateTagTier(tagId: string, tier: 'free' | 'premium') {
   }
 
   await db.update(tags)
-    .set({ tier })
+    .set({ tier, productType: tier === 'premium' ? 'acrylic' : 'free' })
     .where(eq(tags.id, tagId));
 
   return { success: true };
@@ -147,14 +166,26 @@ export async function updateTag(tagId: string, data: Partial<CreateTagInput> & {
     throw new Error('Unauthorized');
   }
 
+  const nextProductType = data.productType ?? (tag.productType as ProductType | undefined) ?? (tag.tier === 'premium' ? 'acrylic' : 'free');
+  const nextTier = data.tier ?? (nextProductType === 'free' ? 'free' : 'premium');
+  const isPremium = nextTier === 'premium';
+  const nextEmailAlertsEnabled = isPremium
+    ? (data.emailAlertsEnabled ?? tag.emailAlertsEnabled ?? false)
+    : true;
+  const requestedWhatsAppAlertsEnabled = data.whatsappAlertsEnabled ?? tag.whatsappAlertsEnabled ?? isPremium;
+  const nextWhatsAppAlertsEnabled = isPremium ? requestedWhatsAppAlertsEnabled : false;
+
   await db.update(tags)
     .set({
       name: data.name,
       contactWhatsapp: data.contactWhatsapp,
       customMessage: data.customMessage || null,
       rewardNote: data.rewardNote || null,
-      tier: data.tier,
+      tier: nextTier,
+      productType: nextProductType,
       isVerified: data.isVerified,
+      emailAlertsEnabled: nextEmailAlertsEnabled,
+      whatsappAlertsEnabled: nextWhatsAppAlertsEnabled,
     })
     .where(eq(tags.id, tagId));
 
@@ -204,8 +235,74 @@ export async function claimTag(tagId: string) {
     throw new Error('Tag already owned by another user');
   }
 
+  if (tag.productType === 'sticker') {
+    redirect(`/claim/${tagId}?step=name`);
+  }
+
   await db.update(tags)
-    .set({ ownerId: session.user.id })
+    .set({ ownerId: session.user.id, claimedAt: new Date() })
+    .where(eq(tags.id, tagId));
+
+  redirect('/dashboard');
+}
+
+export async function claimStickerTag(tagId: string, name: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user?.id) {
+    redirect('/sign-in');
+  }
+
+  const tag = await db.query.tags.findFirst({
+    where: eq(tags.id, tagId),
+  });
+
+  if (!tag) {
+    throw new Error('Tag not found');
+  }
+
+  if (tag.ownerId && tag.ownerId !== session.user.id) {
+    throw new Error('Tag already owned by another user');
+  }
+
+  if (tag.productType !== 'sticker' || !tag.bundleId) {
+    throw new Error('Tag ini bukan bagian dari sticker pack');
+  }
+
+  const bundle = await db.query.tagBundles.findFirst({
+    where: eq(tagBundles.id, tag.bundleId),
+  });
+
+  if (!bundle) {
+    throw new Error('Bundle sticker tidak ditemukan');
+  }
+
+  const order = await db.query.stickerOrders.findFirst({
+    where: eq(stickerOrders.id, bundle.orderId),
+  });
+
+  if (!order) {
+    throw new Error('Order sticker tidak ditemukan');
+  }
+
+  if (order.userId !== session.user.id) {
+    throw new Error('Sticker pack ini terhubung ke akun lain');
+  }
+
+  await db.update(tags)
+    .set({
+      ownerId: session.user.id,
+      name: name.trim(),
+      claimedAt: new Date(),
+      contactWhatsapp: tag.contactWhatsapp || order.phone,
+      status: 'normal',
+      productType: 'sticker',
+      tier: 'premium',
+      isVerified: true,
+      whatsappAlertsEnabled: true,
+    })
     .where(eq(tags.id, tagId));
 
   redirect('/dashboard');

@@ -18,15 +18,15 @@ export function ClaimCTA({ tagId, tagName }: ClaimCTAProps) {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-auto z-50">
-      <div className="bg-white rounded-lg shadow-lg border p-4 flex items-center gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 rounded-lg border bg-white p-4 shadow-lg sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2">
           <Tag className="h-5 w-5 text-blue-600" />
-          <div>
-            <div className="text-sm font-medium">{tagName}</div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-medium">{tagName}</div>
             <div className="text-xs text-gray-500">Belum diklaim</div>
           </div>
         </div>
-        <Button onClick={handleClaim} size="sm">
+        <Button onClick={handleClaim} size="sm" className="w-full sm:w-auto">
           Klaim Tag Ini
         </Button>
       </div>

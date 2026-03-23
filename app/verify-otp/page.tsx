@@ -2,11 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient } from '@/lib/auth-client';
+import { authClient, isWhatsAppIdentifier } from '@/lib/auth-client';
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
   const maybeError = error as { message?: string; status?: number; statusCode?: number } | null;
@@ -23,9 +23,12 @@ function getAuthErrorMessage(error: unknown, fallback: string) {
 function VerifyOTPContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
-  const mode = searchParams.get('mode') || 'sign-in';
+
+  const identifier = searchParams.get('identifier') || '';
+  const display = searchParams.get('display') || identifier;
   const name = searchParams.get('name') || '';
+
+  const isWhatsApp = isWhatsAppIdentifier(identifier);
 
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,17 +51,17 @@ function VerifyOTPContent() {
   };
 
   const handleResendOTP = async () => {
-    if (!email || countdown > 0) return;
+    if (!identifier || countdown > 0) return;
 
     setResendLoading(true);
     setError(null);
 
     try {
+      // Use Better Auth's unified OTP mechanism for both email and WhatsApp
       const result = await authClient.emailOtp.sendVerificationOtp({
-        email,
+        email: identifier,
         type: 'sign-in',
       });
-
       if (result?.error) {
         throw new Error(getAuthErrorMessage(result.error, 'Gagal mengirim ulang kode OTP'));
       }
@@ -82,9 +85,9 @@ function VerifyOTPContent() {
     setError(null);
 
     try {
-      // Sign in with email OTP
+      // Sign in with email OTP (works for both email and WhatsApp)
       const result = await authClient.signIn.emailOtp({
-        email,
+        email: identifier,
         otp,
         ...(name ? { name } : {}),
       });
@@ -105,21 +108,25 @@ function VerifyOTPContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 dark:from-gray-900 dark:to-gray-800 sm:flex sm:items-center sm:justify-center">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div className="rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <svg className="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+            <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${
+              isWhatsApp ? 'bg-green-100 dark:bg-green-900/20' : 'bg-primary/10'
+            }`}>
+              {isWhatsApp ? (
+                <Phone className="h-8 w-8 text-green-600 dark:text-green-400" />
+              ) : (
+                <Mail className="h-8 w-8 text-primary" />
+              )}
             </div>
-            <h1 className="text-2xl font-bold">Verifikasi Kode OTP</h1>
-            <p className="text-sm text-muted-foreground mt-2">
+            <h1 className="text-2xl font-bold break-words">Verifikasi Kode OTP</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
               Masukkan 6 digit kode yang dikirim ke
             </p>
-            <p className="text-sm font-medium mt-1">{email}</p>
+            <p className="mt-1 break-all text-sm font-medium">{display}</p>
           </div>
 
           {/* Error Message */}
@@ -144,13 +151,13 @@ function VerifyOTPContent() {
                   value={otp}
                   onChange={(e) => handleOtpChange(e.target.value)}
                   maxLength={6}
-                  className="text-center text-2xl tracking-widest w-full max-w-[200px] h-14 text-lg"
+                  className="h-14 w-full max-w-[220px] text-center text-lg tracking-[0.45em] sm:max-w-[200px]"
                   disabled={isLoading}
                   autoFocus
                 />
               </div>
               <p className="text-xs text-center text-muted-foreground">
-                Masukkan 6 digit kode dari email
+                Masukkan 6 digit kode dari {isWhatsApp ? 'WhatsApp' : 'email'}
               </p>
             </div>
 
@@ -190,17 +197,19 @@ function VerifyOTPContent() {
           </div>
 
           {/* Development Mode - Show OTP */}
-          <div className="mt-6 p-4 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-            <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-              Development Mode:
-            </p>
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
-              Cek terminal/server logs untuk kode OTP.
-            </p>
-            <code className="text-xs block mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/40 rounded">
-              OTP for {email}: XXXXXX
-            </code>
-          </div>
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-6 p-4 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                Development Mode:
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                Cek terminal/server logs untuk kode OTP.
+              </p>
+              <code className="mt-2 block break-all rounded bg-yellow-100 p-2 text-xs dark:bg-yellow-900/40">
+                OTP for {display}: XXXXXX
+              </code>
+            </div>
+          )}
 
           {/* Back to Sign In */}
           <div className="mt-6 text-center">
@@ -216,7 +225,7 @@ function VerifyOTPContent() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
           &copy; {new Date().getFullYear()} Balikin. Smart Lost & Found QR Tag.
         </p>
       </div>
