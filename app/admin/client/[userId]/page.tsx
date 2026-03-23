@@ -43,11 +43,11 @@ export default async function ClientDetailPage({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <AdminHeader session={session} />
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto max-w-7xl px-4 py-8">
         {/* Back Button */}
         <Link
           href="/admin"
-          className="inline-flex items-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-6 transition-colors"
+          className="mb-6 inline-flex items-center text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -56,18 +56,18 @@ export default async function ClientDetailPage({
         </Link>
 
         {/* Client Header */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-8">
+        <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-2xl font-bold text-white">
                 {client.name?.[0] || client.email[0].toUpperCase()}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              <div className="min-w-0">
+                <h1 className="break-words text-2xl font-bold text-slate-900 dark:text-white">
                   {client.name || "Tanpa Nama"}
                 </h1>
-                <p className="text-slate-600 dark:text-slate-400">{client.email}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <p className="break-all text-slate-600 dark:text-slate-400">{client.email}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       client.role === "admin"

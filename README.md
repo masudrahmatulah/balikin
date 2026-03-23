@@ -78,6 +78,21 @@ npm run db:push
 npm run db:studio
 ```
 
+For an existing Supabase database that was already used before the sticker/acrylic rollout, do not rerun the full baseline schema blindly. Apply the incremental SQL files in order from the `drizzle/` folder:
+
+```sql
+-- 1. Scan alert preferences
+drizzle/0005_scan_alert_preferences.sql
+
+-- 2. Sticker bundle + bundle_id/product_type columns
+drizzle/0006_sticker_vinyl_mvp.sql
+
+-- 3. Priority WhatsApp notification logs
+drizzle/0007_priority_whatsapp_notification.sql
+```
+
+These three files are written to be safe for an existing database and should be run in Supabase SQL Editor in that exact order.
+
 ### 4. Run Development Server
 
 ```bash

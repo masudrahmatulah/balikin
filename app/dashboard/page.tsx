@@ -4,17 +4,60 @@ import { tags, scanLogs } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
 import { TagCard } from '@/components/tag-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { QrCode, Plus, LogOut, Crown, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  QrCode,
+  Plus,
+  AlertCircle,
+  ShieldCheck,
+  TriangleAlert,
+  ScanLine,
+  Sparkles,
+  ArrowRight,
+  Crown,
+} from 'lucide-react';
 import Link from 'next/link';
 import { getSession } from '@/lib/session';
 import { UpsellBanner } from '@/components/upsell-banner';
 import { FREE_TAG_LIMIT } from '@/lib/constants';
-import { Suspense } from 'react';
+import { Suspense, type ReactNode } from 'react';
+import { SignOutButton } from '@/components/sign-out-button';
 
 interface DashboardPageProps {
   searchParams: Promise<{ limit?: string }>;
+}
+
+function DashboardStatCard({
+  title,
+  value,
+  description,
+  icon,
+  accentClass,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: ReactNode;
+  accentClass: string;
+}) {
+  return (
+    <Card className="border-white/60 bg-white/85 shadow-lg shadow-slate-200/60 backdrop-blur-sm">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-slate-500">{title}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{value}</p>
+            <p className="mt-2 text-sm text-slate-600">{description}</p>
+          </div>
+          <div className={`rounded-2xl p-3 ${accentClass}`}>
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
@@ -40,6 +83,7 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
       return {
         ...tag,
         scanCount: scanResult[0]?.count || 0,
+        ownerEmail: session.user.email ?? null,
       };
     })
   );
@@ -52,85 +96,284 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
   const isFreeUser = !hasPremiumTag && freeTagCount > 0;
   const canCreateMore = freeTagCount < FREE_TAG_LIMIT || hasPremiumTag;
   const isAtLimit = !hasPremiumTag && freeTagCount >= FREE_TAG_LIMIT;
-
-  const handleSignOut = async () => {
-    'use server';
-    redirect('/sign-out');
-  };
+  const lostTagCount = userTags.filter(tag => tag.status === 'lost').length;
+  const totalScans = tagsWithScanCount.reduce((sum, tag) => sum + tag.scanCount, 0);
+  const packageLabel = hasPremiumTag ? 'Premium Owner' : 'Digital Tag Free';
+  const userEmail = session.user.email ?? 'Pengguna Balikin';
+  const greetingName = userEmail.split('@')[0]?.replace(/[._-]/g, ' ') || 'Pengguna';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_35%),linear-gradient(180deg,_#f8fbff_0%,_#eef5ff_45%,_#f8fafc_100%)]">
+      <header className="sticky top-0 z-20 border-b border-white/70 bg-white/80 backdrop-blur-xl">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2">
-            <QrCode className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold">Balikin Dashboard</h1>
+            <div className="rounded-2xl bg-blue-600 p-2 text-white shadow-lg shadow-blue-600/30">
+              <QrCode className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Owner Control Center</p>
+              <h1 className="text-lg font-semibold text-slate-950">Balikin Dashboard</h1>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              {session.user.email}
+            <span className="hidden text-sm text-slate-600 md:inline">
+              {userEmail}
             </span>
-            <form action={handleSignOut}>
-              <Button variant="ghost" size="sm" type="submit">
-                <LogOut className="mr-2 h-4 w-4" />
-                Keluar
-              </Button>
-            </form>
+            <SignOutButton />
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Upsell Banner for Free Users */}
-        {isFreeUser && <UpsellBanner variant="dashboard" />}
+      <div className="container mx-auto max-w-6xl px-4 py-8 md:py-10">
+        <section className="relative overflow-hidden rounded-[28px] border border-blue-200/70 bg-[linear-gradient(135deg,_rgba(29,78,216,0.98),_rgba(14,116,144,0.94)_55%,_rgba(15,23,42,0.96))] px-6 py-7 text-white shadow-2xl shadow-blue-950/15 md:px-8 md:py-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.24),_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(125,211,252,0.26),_transparent_22%)]" />
+          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <Badge className="mb-4 border border-white/20 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
+                <Sparkles className="mr-2 h-3.5 w-3.5" />
+                Pusat kontrol tag Anda
+              </Badge>
+              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
+                Halo, {greetingName}. Semua tag penting Anda terpantau dari sini.
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100 md:text-base">
+                Pantau status aman atau hilang, lihat performa scan, dan ambil tindakan penting dalam beberapa klik tanpa kehilangan rasa percaya diri pada brand Balikin.
+              </p>
+            </div>
 
-        {/* Limit Reached Alert */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Card className="border-white/15 bg-white/10 text-white shadow-none backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <p className="text-xs uppercase tracking-[0.24em] text-blue-100/80">Paket Anda</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    {hasPremiumTag ? <Crown className="h-4 w-4 text-amber-300" /> : <ShieldCheck className="h-4 w-4 text-cyan-200" />}
+                    <p className="text-lg font-semibold">{packageLabel}</p>
+                  </div>
+                  <p className="mt-1 text-sm text-blue-100">
+                    {hasPremiumTag ? 'Akses lebih fleksibel dan tampil lebih meyakinkan.' : `Saat ini ${freeTagCount}/${FREE_TAG_LIMIT} slot digital gratis sudah terpakai untuk DIY wallpaper, cetak mandiri, dan kontak darurat.`}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-white/15 bg-white/10 text-white shadow-none backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <p className="text-xs uppercase tracking-[0.24em] text-blue-100/80">Status prioritas</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <TriangleAlert className={`h-4 w-4 ${lostTagCount > 0 ? 'text-rose-300' : 'text-emerald-300'}`} />
+                    <p className="text-lg font-semibold">
+                      {lostTagCount > 0 ? `${lostTagCount} tag butuh perhatian` : 'Semua tag dalam kondisi aman'}
+                    </p>
+                  </div>
+                  <p className="mt-1 text-sm text-blue-100">
+                    {lostTagCount > 0 ? 'Mode hilang aktif dan perlu dipantau lebih dekat.' : 'Belum ada tag yang masuk mode hilang.'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <DashboardStatCard
+            title="Total Tag"
+            value={String(userTags.length)}
+            description={userTags.length === 0 ? 'Siap mulai dengan digital tag pertama Anda.' : 'Jumlah digital tag aktif di akun Anda.'}
+            icon={<QrCode className="h-5 w-5 text-blue-700" />}
+            accentClass="bg-blue-100 text-blue-700"
+          />
+          <DashboardStatCard
+            title="Tag Hilang"
+            value={String(lostTagCount)}
+            description={lostTagCount > 0 ? 'Butuh tindak lanjut dan pemantauan cepat.' : 'Belum ada status hilang yang aktif.'}
+            icon={<TriangleAlert className="h-5 w-5 text-rose-700" />}
+            accentClass="bg-rose-100 text-rose-700"
+          />
+          <DashboardStatCard
+            title="Total Scan"
+            value={String(totalScans)}
+            description={totalScans > 0 ? 'Semua interaksi scan dari seluruh tag Anda.' : 'Belum ada scan yang tercatat sejauh ini.'}
+            icon={<ScanLine className="h-5 w-5 text-cyan-700" />}
+            accentClass="bg-cyan-100 text-cyan-700"
+          />
+          <DashboardStatCard
+            title="Paket Akun"
+            value={hasPremiumTag ? 'Premium' : 'Free'}
+            description={hasPremiumTag ? 'Tag premium aktif dan siap tampil lebih meyakinkan.' : 'Paket free cocok untuk digital tag DIY, wallpaper, dan cetak mandiri.'}
+            icon={hasPremiumTag ? <Crown className="h-5 w-5 text-amber-700" /> : <ShieldCheck className="h-5 w-5 text-violet-700" />}
+            accentClass={hasPremiumTag ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'}
+          />
+        </section>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+          <Card className="border-slate-200/80 bg-white/85 shadow-lg shadow-slate-200/60">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-slate-950">Aksi Cepat</CardTitle>
+              <CardDescription>
+                Semua hal penting untuk mengelola tag Anda tanpa berputar-putar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 pt-0 sm:grid-cols-2">
+              <Link href="/dashboard/new" className={canCreateMore ? '' : 'pointer-events-none'}>
+                <Card className={`h-full border transition-all ${canCreateMore ? 'border-blue-200 bg-blue-50/80 hover:-translate-y-0.5 hover:shadow-md' : 'border-slate-200 bg-slate-100/80 opacity-70'}`}>
+                  <CardContent className="flex h-full items-start gap-4 p-5">
+                    <div className="rounded-2xl bg-blue-600 p-3 text-white shadow-lg shadow-blue-600/25">
+                      <Plus className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-950">Tambah Tag Baru</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        Buat digital tag baru untuk wallpaper lockscreen atau cetak mandiri.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href={hasPremiumTag ? '/upgrade' : '/stickers/checkout'}>
+                <Card className="h-full border-amber-200 bg-gradient-to-br from-amber-50 to-white transition-all hover:-translate-y-0.5 hover:shadow-md">
+                  <CardContent className="flex h-full items-start gap-4 p-5">
+                    <div className="rounded-2xl bg-amber-500 p-3 text-white shadow-lg shadow-amber-500/25">
+                      <Crown className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-slate-950">
+                          {hasPremiumTag ? 'Kelola Upgrade Premium' : 'Pesan Sticker Vinyl'}
+                        </p>
+                        <ArrowRight className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {hasPremiumTag ? 'Lihat detail layanan premium dan pengembangan berikutnya.' : 'Pesan sticker vinyl pack isi 6 sebagai jembatan paling pas sebelum upgrade ke akrilik premium.'}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200/80 bg-white/85 shadow-lg shadow-slate-200/60">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-slate-950">Ringkasan Slot</CardTitle>
+              <CardDescription>
+                Biar batas paket dan prioritas tetap gampang terbaca.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-0">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between text-sm text-slate-600">
+                  <span>Digital tag gratis terpakai</span>
+                  <span className="font-semibold text-slate-950">{freeTagCount}/{FREE_TAG_LIMIT}</span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full ${isAtLimit ? 'bg-amber-500' : 'bg-blue-600'}`}
+                    style={{ width: `${Math.min((freeTagCount / FREE_TAG_LIMIT) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-sm font-medium text-slate-900">
+                  {lostTagCount > 0 ? 'Prioritaskan digital tag yang sedang hilang.' : 'Semua digital tag berada dalam kondisi yang terkendali.'}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  {lostTagCount > 0 ? 'Pastikan channel notifikasi dan kontak Anda tetap aktif agar setiap scan penting cepat terlihat.' : 'Anda bisa fokus menambah digital tag baru atau menyiapkan upgrade ke stiker / gantungan premium saat dibutuhkan.'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="mt-6 grid gap-4 lg:grid-cols-2">
+          <Card className="border-slate-200/80 bg-white/85 shadow-lg shadow-slate-200/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-slate-950">Aturan Notifikasi per Paket</CardTitle>
+              <CardDescription>
+                Pengiriman alert scan hanya aktif saat tag berada di mode hilang.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-950">Free</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Alert scan dikirim via email akun Anda. Cocok untuk digital tag DIY tanpa notifikasi WhatsApp.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm font-semibold text-slate-950">Sticker / Acrylic</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Alert scan dikirim via WhatsApp secara default, dan email tambahan bisa Anda aktifkan per tag.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200/80 bg-white/85 shadow-lg shadow-slate-200/60">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-slate-950">Catatan Penting</CardTitle>
+              <CardDescription>
+                Supaya alert tetap relevan dan tidak membanjiri Anda.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                Balikin menerapkan jeda alert 15 menit per tag. Scan berulang dalam periode ini tetap tercatat, tetapi notifikasi tidak dikirim ulang.
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                Email alert dikirim ke <span className="font-medium text-slate-900">{userEmail}</span>. Untuk sticker vinyl dan acrylic, nomor WhatsApp di setiap tag harus terisi agar alert instan dapat dikirim.
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {isFreeUser && (
+          <section className="mt-6">
+            <UpsellBanner variant="dashboard" />
+          </section>
+        )}
+
         {(isAtLimit || limitReached) && (
-          <Alert className="mb-6 border-amber-200 bg-amber-50">
+          <Alert className="mt-6 border-amber-200 bg-amber-50/95 shadow-sm">
             <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">Limit Free User Tercapai</AlertTitle>
-            <AlertDescription className="text-amber-700">
-              Anda telah mencapai batas {FREE_TAG_LIMIT} tag untuk pengguna gratis.
-              Upgrade ke Premium untuk membuat tag tanpa batas dan dapatkan gantungan kunci fisik.
+            <AlertTitle className="text-amber-900">Limit free user tercapai</AlertTitle>
+            <AlertDescription className="text-amber-800">
+              Anda sudah memakai {FREE_TAG_LIMIT} slot digital gratis. Upgrade ke Premium untuk mendapatkan lebih banyak tag, bahan fisik yang lebih tahan air, dan pengalaman yang lebih meyakinkan.
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Quick Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Tag Saya</h2>
-            <p className="text-gray-600">
-              {userTags.length} tag terdaftar
-              {isFreeUser && (
-                <span className="text-amber-600 ml-2">
-                  ({freeTagCount}/{FREE_TAG_LIMIT} gratis)
-                </span>
-              )}
-            </p>
-          </div>
-          <Link href="/dashboard/new">
-            <Button disabled={!canCreateMore}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Tag
-            </Button>
-          </Link>
-        </div>
-
-        {/* Tags List */}
-        {tagsWithScanCount.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <QrCode className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Belum ada tag
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Mulai dengan membuat tag pertama Anda
+        <section className="mt-8">
+          <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h3 className="text-2xl font-semibold tracking-tight text-slate-950">Tag Saya</h3>
+              <p className="text-sm text-slate-600 md:text-base">
+                {userTags.length === 0 ? 'Belum ada digital tag aktif di akun Anda.' : `${userTags.length} digital tag siap dipantau, diubah statusnya, dan diunduh sebagai aset DIY.`}
               </p>
+            </div>
+            <Link href="/dashboard/new">
+              <Button disabled={!canCreateMore} className="shadow-lg shadow-blue-600/20">
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Tag
+              </Button>
+            </Link>
+          </div>
+
+        {tagsWithScanCount.length === 0 ? (
+          <Card className="overflow-hidden border-white/70 bg-white/90 shadow-xl shadow-slate-200/70">
+            <CardContent className="relative px-6 py-14 text-center">
+              <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.16),_transparent_60%)]" />
+              <div className="relative">
+                <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[26px] bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-xl shadow-blue-600/30">
+                  <QrCode className="h-10 w-10" />
+                </div>
+                <h3 className="text-2xl font-semibold text-slate-950">
+                  Mulai dengan digital tag pertama Anda
+                </h3>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600 md:text-base">
+                  Gunakan untuk wallpaper lockscreen, cetak mandiri, atau profil kontak darurat. Saat butuh hasil yang lebih tahan air dan profesional, Anda bisa upgrade ke sticker vinyl pack atau versi akrilik premium.
+                </p>
+              </div>
               <Link href="/dashboard/new">
-                <Button>
+                <Button className="mt-7 shadow-lg shadow-blue-600/20">
                   <Plus className="mr-2 h-4 w-4" />
                   Buat Tag Baru
                 </Button>
@@ -138,12 +381,13 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-1">
+          <div className="grid gap-5 lg:grid-cols-2">
             {tagsWithScanCount.map((tag) => (
               <TagCard key={tag.id} {...tag} />
             ))}
           </div>
         )}
+        </section>
       </div>
     </div>
   );
@@ -154,133 +398,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const limitReached = params.limit === '1';
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50">Loading...</div>}>
       <DashboardContent limitReached={limitReached} />
     </Suspense>
-  );
-}
-
-  const userTags = await db.query.tags.findMany({
-    where: eq(tags.ownerId, session.user.id),
-    orderBy: (tags, { desc }) => [desc(tags.createdAt)],
-  });
-
-  // Get scan count for each tag
-  const tagsWithScanCount = await Promise.all(
-    userTags.map(async (tag) => {
-      const scanResult = await db
-        .select({ count: count() })
-        .from(scanLogs)
-        .where(eq(scanLogs.tagId, tag.id));
-
-      return {
-        ...tag,
-        scanCount: scanResult[0]?.count || 0,
-      };
-    })
-  );
-
-  // Check if user has any premium tags
-  const hasPremiumTag = userTags.some(tag => tag.tier === 'premium');
-
-  // Count free tags
-  const freeTagCount = userTags.filter(tag => tag.tier === 'free' || !tag.tier).length;
-  const isFreeUser = !hasPremiumTag && freeTagCount > 0;
-  const canCreateMore = freeTagCount < FREE_TAG_LIMIT || hasPremiumTag;
-  const isAtLimit = !hasPremiumTag && freeTagCount >= FREE_TAG_LIMIT;
-
-  const handleSignOut = async () => {
-    'use server';
-    redirect('/sign-out');
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <QrCode className="h-6 w-6 text-blue-600" />
-            <h1 className="text-xl font-bold">Balikin Dashboard</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              {session.user.email}
-            </span>
-            <form action={handleSignOut}>
-              <Button variant="ghost" size="sm" type="submit">
-                <LogOut className="mr-2 h-4 w-4" />
-                Keluar
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Upsell Banner for Free Users */}
-        {isFreeUser && <UpsellBanner variant="dashboard" />}
-
-        {/* Limit Reached Alert */}
-        {isAtLimit && (
-          <Alert className="mb-6 border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-800">Limit Free User Tercapai</AlertTitle>
-            <AlertDescription className="text-amber-700">
-              Anda telah mencapai batas {FREE_TAG_LIMIT} tag untuk pengguna gratis.
-              Upgrade ke Premium untuk membuat tag tanpa batas dan dapatkan gantungan kunci fisik.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Quick Actions */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Tag Saya</h2>
-            <p className="text-gray-600">
-              {userTags.length} tag terdaftar
-              {isFreeUser && (
-                <span className="text-amber-600 ml-2">
-                  ({freeTagCount}/{FREE_TAG_LIMIT} gratis)
-                </span>
-              )}
-            </p>
-          </div>
-          <Link href="/dashboard/new">
-            <Button disabled={!canCreateMore}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Tag
-            </Button>
-          </Link>
-        </div>
-
-        {/* Tags List */}
-        {tagsWithScanCount.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <QrCode className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Belum ada tag
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Mulai dengan membuat tag pertama Anda
-              </p>
-              <Link href="/dashboard/new">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Buat Tag Baru
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-1">
-            {tagsWithScanCount.map((tag) => (
-              <TagCard key={tag.id} {...tag} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
   );
 }

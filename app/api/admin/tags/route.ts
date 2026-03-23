@@ -15,10 +15,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { ownerId, name, slug, contactWhatsapp, customMessage, rewardNote } = body;
+    const { ownerId, name, slug, contactWhatsapp, customMessage, rewardNote, tier, productType, bundleId } = body;
+    const resolvedProductType = productType || (tier === "premium" ? "acrylic" : "free");
+    const isPremium = resolvedProductType !== "free" || tier === "premium";
 
     // Validate required fields
-    if (!ownerId || !name || !slug) {
+    if (!name || !slug) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
     // Create tag
     const newTag = await db.insert(tags).values({
       ownerId,
+      bundleId: bundleId || null,
       name,
       slug,
       contactWhatsapp: contactWhatsapp || null,
@@ -47,6 +50,11 @@ export async function POST(request: NextRequest) {
       rewardNote: rewardNote || null,
       appId: "balikin_id",
       status: "normal",
+      tier: isPremium ? "premium" : "free",
+      productType: resolvedProductType,
+      isVerified: resolvedProductType === "sticker",
+      emailAlertsEnabled: isPremium ? false : true,
+      whatsappAlertsEnabled: isPremium ? true : false,
     }).returning();
 
     return NextResponse.json({ tag: newTag[0] }, { status: 201 });

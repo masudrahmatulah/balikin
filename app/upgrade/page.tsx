@@ -1,10 +1,10 @@
+import type { Metadata } from 'next';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Crown,
   ShieldCheck,
-  Gift,
   QrCode,
   Check,
   X,
@@ -18,6 +18,14 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildMetadata({
+  title: 'Upgrade Premium',
+  description: 'Upgrade ke Balikin Premium untuk mendapatkan gantungan kunci QR code fisik dan fitur tambahan.',
+  path: '/upgrade',
+  keywords: ['upgrade balikin premium', 'gantungan kunci qr code premium'],
+});
 
 const PREMIUM_PRICE = 35000;
 const WHATSAPP_NUMBER = '6281234567890';
@@ -26,12 +34,14 @@ const freeFeatures = [
   { text: 'Maksimal 2 Tag Digital', included: true },
   { text: 'QR Code Generator', included: true },
   { text: 'Scan Logging dengan Lokasi', included: true },
+  { text: 'Alert Scan via Email', included: true },
   { text: 'Mode Hilang dengan Info Imbalan', included: true },
   { text: 'Update Data Real-time', included: true },
   { text: 'Dashboard User-Friendly', included: true },
   { text: 'Gantungan Kunci Fisik Premium', included: false },
   { text: 'Verified Owner Badge', included: false },
   { text: 'Notifikasi WhatsApp Instan', included: false },
+  { text: 'Email Alert Opsional', included: false },
   { text: 'GPS Tracking Presisi', included: false },
   { text: 'Unlimited Tags', included: false },
 ];
@@ -50,7 +60,12 @@ const premiumFeatures = [
   {
     icon: <Bell className="h-6 w-6" />,
     title: 'Notifikasi WhatsApp Instan',
-    description: 'Dapatkan alert langsung via WhatsApp saat tag Anda di-scan.',
+    description: 'Semua tag premium mendapat alert WhatsApp instan saat tag di-scan dalam mode hilang.',
+  },
+  {
+    icon: <Bell className="h-6 w-6" />,
+    title: 'Email Alert Opsional',
+    description: 'Tambahkan notifikasi email jika Anda ingin salinan alert scan selain WhatsApp.',
   },
   {
     icon: <MapPin className="h-6 w-6" />,
@@ -69,6 +84,18 @@ const premiumFeatures = [
   },
 ];
 
+const stickerBenefits = [
+  'Jalur WhatsApp standar yang cepat dan ringan',
+  'Riwayat scan fokus 30 hari terakhir',
+  'Cocok untuk helm, laptop, koper, dan barang harian',
+];
+
+const acrylicBenefits = [
+  'Priority WhatsApp alert untuk mode hilang',
+  'Fallback otomatis ke jalur standar jika kanal utama gagal',
+  'Riwayat scan seumur hidup dan pengalaman premium yang lebih eksklusif',
+];
+
 const physicalSpecs = [
   { label: 'Material', value: 'Akrilik 3mm / Vinyl Premium' },
   { label: 'Ukuran', value: '4cm x 6cm' },
@@ -78,23 +105,20 @@ const physicalSpecs = [
 ];
 
 export default function UpgradePage() {
-  const handleOrderViaWhatsApp = () => {
-    const message = `Halo, saya ingin upgrade tag ke Premium. Mohon infonya tentang produk fisik dan cara pembayaran.`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
-  };
+  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Halo, saya ingin upgrade tag ke Premium. Mohon infonya tentang produk fisik dan cara pembayaran.')}`;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
       {/* Header */}
       <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/" className="flex items-center gap-2">
             <QrCode className="h-6 w-6 text-blue-600" />
             <span className="text-xl font-bold">Balikin</span>
           </Link>
-          <div className="flex gap-4">
+          <div className="flex w-full gap-3 sm:w-auto sm:justify-end">
             <Link href="/dashboard">
-              <Button variant="ghost">Dashboard</Button>
+              <Button variant="ghost" className="w-full sm:w-auto">Dashboard</Button>
             </Link>
           </div>
         </div>
@@ -107,11 +131,11 @@ export default function UpgradePage() {
             <Crown className="mr-2 h-4 w-4" />
             Premium Upgrade
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
             Upgrade ke <span className="text-blue-600">Balikin Premium</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Dapatkan gantungan kunci fisik berkualitas premium dan lengkapi proteksi barang Anda.
+          <p className="mx-auto max-w-2xl text-lg text-gray-600 sm:text-xl">
+            Dapatkan gantungan fisik premium dengan alert scan yang lebih meyakinkan, termasuk jalur prioritas khusus untuk Akrilik Premium.
           </p>
         </div>
 
@@ -183,13 +207,11 @@ export default function UpgradePage() {
                   </li>
                 ))}
               </ul>
-              <Button
-                className="w-full mt-6 bg-green-600 hover:bg-green-700"
-                size="lg"
-                onClick={handleOrderViaWhatsApp}
-              >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Pesan Sekarang
+              <Button className="w-full mt-6 bg-green-600 hover:bg-green-700" size="lg" asChild>
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Pesan Sekarang
+                </a>
               </Button>
             </CardContent>
           </Card>
@@ -215,6 +237,44 @@ export default function UpgradePage() {
           </div>
         </div>
 
+        <div className="mb-16 grid gap-6 md:grid-cols-2">
+          <Card className="border-2 border-slate-200">
+            <CardHeader>
+              <CardTitle className="text-xl">Sticker Vinyl Premium</CardTitle>
+              <CardDescription>Untuk perlindungan fisik praktis di barang harian.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {stickerBenefits.map((benefit) => (
+                <div key={benefit} className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-600" />
+                  <span>{benefit}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 via-white to-yellow-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                Akrilik Premium (Ultimate)
+                <Crown className="h-5 w-5 text-amber-500" />
+              </CardTitle>
+              <CardDescription>Untuk proteksi tingkat tinggi dengan pengalaman yang lebih eksklusif.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {acrylicBenefits.map((benefit) => (
+                <div key={benefit} className="flex items-start gap-3 text-sm text-amber-900">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                  <span>{benefit}</span>
+                </div>
+              ))}
+              <div className="rounded-xl border border-amber-200 bg-white/80 p-3 text-sm text-amber-900">
+                Priority alert berarti sistem mencoba kanal WhatsApp prioritas lebih dulu, lalu pindah ke jalur standar bila diperlukan. Tidak ada klaim SLA milidetik di sisi UI.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Physical Product Specs */}
         <Card className="mb-16 bg-gradient-to-br from-gray-50 to-blue-50 border-2">
           <CardHeader>
@@ -235,9 +295,9 @@ export default function UpgradePage() {
                 </h4>
                 <div className="space-y-3">
                   {physicalSpecs.map((spec, i) => (
-                    <div key={i} className="flex justify-between border-b pb-2">
+                    <div key={i} className="flex flex-col gap-1 border-b pb-2 sm:flex-row sm:items-start sm:justify-between">
                       <span className="text-gray-600">{spec.label}</span>
-                      <span className="font-medium">{spec.value}</span>
+                      <span className="font-medium sm:text-right">{spec.value}</span>
                     </div>
                   ))}
                 </div>
@@ -292,14 +352,16 @@ export default function UpgradePage() {
                 size="lg"
                 variant="secondary"
                 className="bg-white text-blue-700 hover:bg-gray-100"
-                onClick={handleOrderViaWhatsApp}
+                asChild
               >
-                <MessageCircle className="mr-2 h-5 w-5" />
-                Pesan via WhatsApp
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Pesan via WhatsApp
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </a>
               </Button>
               <Link href="/dashboard">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="w-full border-white text-white hover:bg-white/10 sm:w-auto">
                   Kembali ke Dashboard
                 </Button>
               </Link>
