@@ -150,7 +150,7 @@ export async function generateStickerBundle(orderId: string) {
   const packTags = Array.from({ length: STICKER_PACK_SIZE }).map((_, index) => ({
     slug: nanoid(12),
     bundleId: bundle.id,
-    ownerId: null,
+    ownerId: order.userId,
     name: `Sticker Pack #${index + 1}`,
     contactWhatsapp: order.phone,
     customMessage: 'Scan saya jika menemukan barang ini.',
