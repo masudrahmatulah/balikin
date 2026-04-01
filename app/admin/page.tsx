@@ -120,6 +120,9 @@ export default async function AdminPage() {
               <Link href="/admin/sticker-orders">
                 <Button variant="outline">Sticker Orders</Button>
               </Link>
+              <Link href="/admin/layout-editor">
+                <Button variant="outline">Layout Editor</Button>
+              </Link>
               <CreateTagModal users={usersWithTagCount} />
             </div>
           </div>

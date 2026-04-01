@@ -5,7 +5,8 @@ import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { verifyStickerOrder, updateStickerOrderStatus, generateStickerBundle } from '@/app/actions/sticker-order';
+import { verifyStickerOrder, updateStickerOrderStatus } from '@/app/actions/sticker-order';
+import { GenerateBundleButton } from '@/components/admin/generate-bundle-button';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,12 +83,7 @@ export default async function AdminStickerOrdersPage() {
                     )}
 
                     {order.paymentStatus === 'paid' && order.bundles.length === 0 && (
-                      <form action={async () => {
-                        'use server';
-                        await generateStickerBundle(order.id);
-                      }}>
-                        <Button type="submit" size="sm" variant="outline">Generate Bundle 6 QR</Button>
-                      </form>
+                      <GenerateBundleButton orderId={order.id} />
                     )}
 
                     {order.status === 'in_production' && (
