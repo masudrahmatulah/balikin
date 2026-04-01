@@ -9,6 +9,8 @@ import { AdminHeader } from '@/components/admin/admin-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PrintBundleButton } from '@/components/admin/print-bundle-button';
+import { getShapeLabel, getSizeLabel } from '@/lib/sticker-template';
 
 export default async function AdminStickerOrderDetailPage({
   params,
@@ -83,11 +85,23 @@ export default async function AdminStickerOrderDetailPage({
             </CardContent>
           </Card>
         ) : (
-          bundlesWithQr.map((bundle) => (
+          bundlesWithQr.map((bundle, bundleIndex) => (
             <Card key={bundle.id} className="mb-6">
               <CardHeader>
-                <CardTitle>Bundle {bundle.id}</CardTitle>
-                <CardDescription>{bundle.itemCount} sticker • {bundle.status}</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Bundle {bundle.id.slice(0, 8)}...</CardTitle>
+                    <CardDescription>
+                      {bundle.itemCount} sticker • {getShapeLabel(bundle.stickerShape as any)} • {getSizeLabel(bundle.stickerSize as any)} • {bundle.status}
+                    </CardDescription>
+                  </div>
+                  <PrintBundleButton
+                    bundleId={bundle.id}
+                    bundleIndex={bundleIndex + 1}
+                    stickerShape={bundle.stickerShape as any}
+                    stickerSize={bundle.stickerSize as any}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

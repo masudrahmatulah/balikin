@@ -13,6 +13,7 @@ import {
   STICKER_PAYMENT_METHOD,
 } from '@/lib/constants';
 import { isAdmin } from '@/lib/admin';
+import { type StickerShape, type StickerSize } from '@/lib/sticker-template';
 
 interface CreateStickerOrderInput {
   recipientName: string;
@@ -111,7 +112,11 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
     .where(eq(stickerOrders.id, orderId));
 }
 
-export async function generateStickerBundle(orderId: string) {
+export async function generateStickerBundle(
+  orderId: string,
+  stickerShape: StickerShape = 'circle',
+  stickerSize: StickerSize = 'medium'
+) {
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized');
@@ -145,6 +150,8 @@ export async function generateStickerBundle(orderId: string) {
     productType: 'sticker',
     itemCount: STICKER_PACK_SIZE,
     status: 'ready_for_fulfillment',
+    stickerShape,
+    stickerSize,
   }).returning();
 
   const packTags = Array.from({ length: STICKER_PACK_SIZE }).map((_, index) => ({

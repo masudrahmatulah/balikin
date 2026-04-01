@@ -84,6 +84,9 @@ export const tagBundles = pgTable('tag_bundles', {
   productType: text('product_type').default('sticker').notNull(),
   itemCount: integer('item_count').default(6).notNull(),
   status: text('status').default('ready_for_fulfillment').notNull(),
+  // Sticker template configuration
+  stickerShape: text('sticker_shape').default('circle').notNull(), // 'circle' | 'square' | 'rectangle'
+  stickerSize: text('sticker_size').default('medium').notNull(),   // 'small' | 'medium' | 'large'
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
