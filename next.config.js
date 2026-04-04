@@ -13,11 +13,6 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
-  // Force webpack to resolve .tsx and .ts extensions
-  webpack: (config, { isServer }) => {
-    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
-    return config;
-  },
 };
 
 module.exports = nextConfig;
