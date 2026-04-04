@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(balikin-masudrahmatmy-id.vercel.app)",
+      "WebFetch(vercel.com)",
+      "Bash(git push *)",
+      "WebFetch(balikin.masudrahmat.my.id)",
+      "WebFetch(raw.githubusercontent.com)",
+      "Bash(git commit *)",
+      "WebFetch(api.github.com)",
+      "Bash(git add *)",
+      "Bash(git *)",
+      "Bash(npm run *)",
+      "Bash(file *)"
+    ]
+  },
+  "$version": 3
+}
