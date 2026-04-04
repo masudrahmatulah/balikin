@@ -3,10 +3,21 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Mail, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient, isWhatsAppIdentifier, sendVerificationOTP, verifyOTPAndSignIn } from '@/lib/auth-client';
+
+// Inline button component to avoid import issues
+function Button({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode }) {
+  return (
+    <button
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 ${className || ''}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
   const maybeError = error as { message?: string; status?: number; statusCode?: number } | null;
