@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(balikin-masudrahmatmy-id.vercel.app)"
+    ]
+  }
+}
