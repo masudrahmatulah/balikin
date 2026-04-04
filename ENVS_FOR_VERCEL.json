@@ -1,10 +1,10 @@
 {
   "DATABASE_URL": "postgresql://postgres:Kandangan01***@db.piqyqhzxjayakiucfubu.supabase.co:5432/postgres",
-  "NEXT_PUBLIC_APP_URL": "https://balikin.vercel.app",
+  "NEXT_PUBLIC_APP_URL": "https://balikin-nu.vercel.app",
   "NODE_ENV": "production",
   "BETTER_AUTH_SECRET": "ZJx+9Ro2u9TXPXHqryH7N9LkfFyJ7aJZlXkJ48UstGI=",
-  "BETTER_AUTH_URL": "https://balikin.vercel.app",
-  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin.vercel.app",
+  "BETTER_AUTH_URL": "https://balikin-nu.vercel.app",
+  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin-nu.vercel.app",
   "RESEND_API_KEY": "re_re_aECFg5pX_47BJHpL22y22399nqY3e6g1x",
   "FONNTE_API_TOKEN": "bd4wyhuNRsmvKHJa1uG8",
   "FONNTE_DEVICE_ID": "087883956811",
