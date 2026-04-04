@@ -13,14 +13,10 @@ const nextConfig = {
       bodySizeLimit: "2mb",
     },
   },
-  // Re untuk better auth API routes
-  async rewrites() {
-    return [
-      {
-        source: "/api/auth/:path*",
-        destination: "/api/[[...catchAll]]/:path*",
-      },
-    ];
+  // Force webpack to resolve .tsx and .ts extensions
+  webpack: (config, { isServer }) => {
+    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
+    return config;
   },
 };
 
