@@ -1,0 +1,139 @@
+# ==============================================
+# COPY PASTE KE VERCEL ENVIRONMENT VARIABLES
+# ==============================================
+#
+# Cara penggunaan:
+# 1. Buka Vercel Dashboard → Project → Settings → Environment Variables
+# 2. Copy satu per satu variable di bawah ini
+# 3. Paste di kolom "Name" dan "Value" di Vercel
+# 4. Klik "Add" untuk setiap variable
+#
+# ===========================================
+
+# DATABASE (Wajib - dari Supabase)
+Name: DATABASE_URL
+Value: postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres
+Environments: Production, Preview, Development
+
+---
+
+# APP URL (Wajib)
+Name: NEXT_PUBLIC_APP_URL
+Value: https://balikin.vercel.app
+Environments: Production, Preview, Development
+
+---
+
+# Node Environment (Wajib)
+Name: NODE_ENV
+Value: production
+Environments: Production
+
+---
+
+# Auth Secret (Wajib - Generate dengan: openssl rand -base64 32)
+Name: BETTER_AUTH_SECRET
+Value: YOUR_SECRET_KEY_MIN_32_CHARACTERS_LONG
+Environments: Production, Preview, Development
+
+---
+
+# Auth URL (Wajib - Sesuaikan dengan domain)
+Name: BETTER_AUTH_URL
+Value: https://balikin.vercel.app
+Environments: Production, Preview, Development
+
+---
+
+# Public Auth URL (Wajib - Sesuaikan dengan domain)
+Name: NEXT_PUBLIC_BETTER_AUTH_URL
+Value: https://balikin.vercel.app
+Environments: Production, Preview, Development
+
+---
+
+# Resend API Key (Untuk email OTP)
+Name: RESEND_API_KEY
+Value: re_your_resend_api_key_here
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte API Token (WhatsApp standard)
+Name: FONNTE_API_TOKEN
+Value: your_fonnte_api_token
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte Device ID (WhatsApp standard)
+Name: FONNTE_DEVICE_ID
+Value: 08xxxxxxxxxx
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte Base URL (WhatsApp standard)
+Name: FONNTE_BASE_URL
+Value: https://api.fonnte.com
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte Priority API Token (WhatsApp premium)
+Name: FONNTE_PRIORITY_API_TOKEN
+Value: your_priority_api_token
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte Priority Device ID (WhatsApp premium)
+Name: FONNTE_PRIORITY_DEVICE_ID
+Value: 08xxxxxxxxxx
+Environments: Production, Preview, Development
+
+---
+
+# Fonnte Priority Base URL (WhatsApp premium)
+Name: FONNTE_PRIORITY_BASE_URL
+Value: https://api.fonnte.com
+Environments: Production, Preview, Development
+
+---
+
+# WhatsApp Order Number
+Name: WHATSAPP_ORDER_NUMBER
+Value: 6282255905612
+Environments: Production, Preview, Development
+
+---
+
+# WhatsApp Provider Standard
+Name: WHATSAPP_PROVIDER_STANDARD
+Value: fonnte_standard
+Environments: Production, Preview, Development
+
+---
+
+# WhatsApp Provider Priority
+Name: WHATSAPP_PROVIDER_PRIORITY
+Value: fonnte_priority
+Environments: Production, Preview, Development
+
+# ==============================================
+# CATATAN PENTING:
+# ==============================================
+#
+# 1. Ganti YOUR_PASSWORD dengan password database Supabase Anda
+# 2. Ganti YOUR_PROJECT dengan project ID Supabase Anda
+# 3. Ganti YOUR_SECRET_KEY dengan secret key yang di-generate (min 32 karakter)
+# 4. Ganti https://balikin.vercel.app dengan domain produksi Anda
+# 5. Ganti re_your_resend_api_key_here dengan API key dari Resend.com
+# 6. Ganti your_fonnte_api_token dengan token dari Fonnte.com
+# 7. Ganti 08xxxxxxxxxx dengan device ID Fonnte Anda
+# 8. Ganti 6282255905612 dengan nomor WhatsApp order Anda
+#
+# ==============================================
+# GENERATE SECRET KEY:
+# openssl rand -base64 32
+# ==============================================
