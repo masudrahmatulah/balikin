@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Package,
   Sticker,
@@ -10,7 +10,11 @@ import {
   Shield,
   Droplets,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
 } from 'lucide-react';
+import { useState } from 'react';
 
 export interface Product {
   name: string;
@@ -21,6 +25,8 @@ export interface Product {
   badge: string;
   badgeColor: string;
   highlight: string;
+  comingSoon?: boolean;
+  images?: string[];
 }
 
 interface ProductShowcaseProps {
@@ -28,6 +34,9 @@ interface ProductShowcaseProps {
 }
 
 export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
+  const [currentImageIndices, setCurrentImageIndices] = useState<Record<number, number>>({});
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+
   const products: Product[] = [
     {
       name: 'Gantungan Akrilik Premium',
@@ -45,6 +54,12 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badge: 'Best Seller',
       badgeColor: 'bg-blue-600',
       highlight: 'Kualitas premium, tahan lama',
+      images: [
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop', // Main product shot
+        'https://images.unsplash.com/photo-1616091216791-a5360b5fc78a?w=400&h=300&fit=crop', // Close-up QR code
+        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop', // Use case - keys
+        'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=300&fit=crop', // Use case - bag
+      ],
     },
     {
       name: 'Stiker Vinyl Waterproof',
@@ -62,6 +77,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badge: 'Populer',
       badgeColor: 'bg-green-600',
       highlight: 'Flexible & universal',
+      comingSoon: true,
     },
     {
       name: 'Digital Tag (Free)',
@@ -134,27 +150,116 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                   }`}
                 >
                   <CardContent className="p-6">
-                    {/* Icon */}
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      className="flex justify-center mb-4"
-                    >
-                      <div
-                        className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl ${
-                          index === 0
-                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-600/30'
-                            : index === 1
-                            ? 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-600/30'
-                            : 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-600/30'
-                        }`}
-                      >
-                        <Icon className="h-10 w-10 text-white" />
+                    {/* Product Image Gallery (only for products with images) */}
+                    {product.images && product.images.length > 0 && (
+                      <div className="mb-4">
+                        <div className="relative rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                          {/* Main Image */}
+                          <div
+                            className="relative aspect-[4/3] cursor-pointer group"
+                            onClick={() => setZoomedImage(product.images![currentImageIndices[index] || 0])}
+                          >
+                            <img
+                              src={product.images[currentImageIndices[index] || 0]}
+                              alt={`${product.name} - Image ${currentImageIndices[index] || 0 + 1}`}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                              <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </div>
+                          </div>
+
+                          {/* Navigation Arrows */}
+                          {product.images.length > 1 && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCurrentImageIndices((prev) => ({
+                                    ...prev,
+                                    [index]: ((prev[index] || 0) - 1 + product.images!.length) % product.images!.length,
+                                  }));
+                                }}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                              >
+                                <ChevronLeft className="h-4 w-4 text-gray-700" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCurrentImageIndices((prev) => ({
+                                    ...prev,
+                                    [index]: ((prev[index] || 0) + 1) % product.images!.length,
+                                  }));
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                              >
+                                <ChevronRight className="h-4 w-4 text-gray-700" />
+                              </button>
+                            </>
+                          )}
+
+                          {/* Image Counter */}
+                          {product.images.length > 1 && (
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+                              {currentImageIndices[index] || 0 + 1} / {product.images.length}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Thumbnail Strip */}
+                        {product.images.length > 1 && (
+                          <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+                            {product.images.map((image, imgIndex) => (
+                              <button
+                                key={imgIndex}
+                                onClick={() =>
+                                  setCurrentImageIndices((prev) => ({ ...prev, [index]: imgIndex }))
+                                }
+                                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                                  (currentImageIndices[index] || 0) === imgIndex
+                                    ? 'border-blue-500 scale-105'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <img
+                                  src={image}
+                                  alt={`${product.name} thumbnail ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </motion.div>
+                    )}
+
+                    {/* Icon (show only if no images) */}
+                    {!product.images && (
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="flex justify-center mb-4"
+                      >
+                        <div
+                          className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl ${
+                            index === 0
+                              ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-600/30'
+                              : index === 1
+                              ? 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-600/30'
+                              : 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-600/30'
+                          }`}
+                        >
+                          <Icon className="h-10 w-10 text-white" />
+                        </div>
+                      </motion.div>
+                    )}
 
                     {/* Title */}
                     <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
                       {product.name}
+                      {product.comingSoon && (
+                        <span className="text-gray-400 text-sm ml-2">(Coming Soon)</span>
+                      )}
                     </h3>
 
                     {/* Highlight */}
@@ -202,7 +307,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`w-full mt-6 py-3 rounded-lg font-semibold text-white transition-all ${
+                      disabled={product.comingSoon}
+                      className={`w-full mt-6 py-3 rounded-lg font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                         index === 0
                           ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
                           : index === 1
@@ -223,7 +329,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                         }
                       }}
                     >
-                      {index === 2 ? 'Buat Gratis Sekarang' : 'Pesan via WhatsApp'}
+                      {product.comingSoon ? 'Coming Soon' : index === 2 ? 'Buat Gratis Sekarang' : 'Pesan via WhatsApp'}
                     </motion.button>
                   </CardContent>
                 </Card>
@@ -244,6 +350,37 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
             <span className="font-medium">Garansi kualitas - QR code teruji & mudah scan</span>
           </div>
         </motion.div>
+
+        {/* Zoom Modal */}
+        <AnimatePresence>
+          {zoomedImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setZoomedImage(null)}
+              className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-pointer"
+            >
+              <motion.img
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.8 }}
+                src={zoomedImage}
+                alt="Zoomed product image"
+                className="max-w-4xl max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <button
+                onClick={() => setZoomedImage(null)}
+                className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all duration-200"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

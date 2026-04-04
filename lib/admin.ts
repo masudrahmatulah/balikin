@@ -2,36 +2,62 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { cache } from "react";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { user, session as sessionTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 
 /**
  * Get the current session with admin role check
+ * Updated to work with manual auth implementation
  */
 export const getAdminSession = cache(async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  // Read session cookie directly
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get("better-auth.session_token")?.value;
 
-  if (!session) {
+  if (!sessionToken) {
     return null;
   }
 
-  // Fetch user with role from database
-  const userWithRole = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
-  });
+  // Find session from database
+  const sessionRecord = await db
+    .select({
+      session: sessionTable,
+      user: user,
+    })
+    .from(sessionTable)
+    .innerJoin(user, eq(sessionTable.userId, user.id))
+    .where(eq(sessionTable.token, sessionToken))
+    .limit(1);
 
-  if (!userWithRole || userWithRole.role !== "admin") {
+  if (!sessionRecord.length) {
+    return null;
+  }
+
+  const sessionData = sessionRecord[0];
+
+  // Check if session is expired
+  if (new Date(sessionData.session.expiresAt) < new Date()) {
+    await db.delete(sessionTable).where(eq(sessionTable.token, sessionToken));
+    return null;
+  }
+
+  // Check if user has admin role
+  if (!sessionData.user || sessionData.user.role !== "admin") {
     return null;
   }
 
   return {
-    ...session,
     user: {
-      ...session.user,
-      role: userWithRole.role as "admin",
+      id: sessionData.user.id,
+      email: sessionData.user.email,
+      name: sessionData.user.name,
+      role: sessionData.user.role as "admin",
     },
+    session: {
+      token: sessionData.session.token,
+      expiresAt: sessionData.session.expiresAt,
+    }
   };
 });
 

@@ -3,10 +3,24 @@
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Session } from "@/lib/auth";
+
+interface AdminUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: string;
+}
+
+interface AdminSession {
+  user: AdminUser;
+  session?: {
+    token: string;
+    expiresAt: Date;
+  };
+}
 
 interface AdminHeaderProps {
-  session: Session & { user: { role: string } };
+  session: AdminSession | any;
 }
 
 export function AdminHeader({ session }: AdminHeaderProps) {
@@ -54,6 +68,12 @@ export function AdminHeader({ session }: AdminHeaderProps) {
                 className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 Orders
+              </Link>
+              <Link
+                href="/admin/qr-stok"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                QR Stok
               </Link>
               <Link
                 href="/admin/layout-editor"
