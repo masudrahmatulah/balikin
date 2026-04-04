@@ -1,6 +1,6 @@
-╔════════════════════════════════════════════════════════════════╗
+╔══════════════════════════════════════════════════════════════════╗
 ║                 🚀 BALIKIN - QUICK DEPLOY CARD                   ║
-╚════════════════════════════════════════════════════════════════╝
+╚══════════════════════════════════════════════════════════════════╝
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ 📋 STATUS SISTEM                                              │
@@ -12,6 +12,7 @@
 ✅ Git Push: COMPLETED
 ✅ Vercel Config: READY
 ✅ Environment Files: READY
+✅ Custom Domain: balikin.masudrahmat.my.id ✨
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ 🔗 USEFUL LINKS                                               │
@@ -19,46 +20,48 @@
 
 GitHub: https://github.com/masudrahmatulah/balikin
 Vercel: https://vercel.com/dashboard
+Production: https://balikin.masudrahmat.my.id ⭐
 Deployment Guide: DEPLOYMENT_GUIDE.md
 Env Setup: VERCEL_ENV_SETUP.txt
 PWA Icons: public/README.md
 
 ┌─────────────────────────────────────────────────────────────────┐
+│ 🔑 PRODUCTION DOMAIN                                           │
+└─────────────────────────────────────────────────────────────────┘
+
+🌐 balikin.masudrahmat.my.id (Custom Domain)
+🔄 Auto-deploys from GitHub push
+
+┌─────────────────────────────────────────────────────────────────┐
 │ ⚡ QUICK DEPLOY (3 MINUTES)                                   │
 └─────────────────────────────────────────────────────────────────┘
 
-1️⃣ Buka Vercel → Add New Project → Import from GitHub
+1️⃣ UPDATE Environment Variables in Vercel:
+   - Settings → Environment Variables
+   - EDIT 3 variables:
+     ✅ NEXT_PUBLIC_APP_URL → https://balikin.masudrahmat.my.id
+     ✅ BETTER_AUTH_URL → https://balikin.masudrahmat.my.id
+     ✅ NEXT_PUBLIC_BETTER_AUTH_URL → https://balikin.masudrahmat.my.id
 
-2️⃣ Pilih repo: masudrahmatulah/balikin
+2️⃣ Click DEPLOY (Vercel will auto-deploy from GitHub)
 
-3️⃣ Add Environment Variables (copy dari VERCEL_ENV_SETUP.txt):
-   - DATABASE_URL
-   - BETTER_AUTH_SECRET
-   - BETTER_AUTH_URL
-   - NEXT_PUBLIC_BETTER_AUTH_URL
-   - RESEND_API_KEY
-   - FONNTE_API_TOKEN
-   - dll (lihat file lengkap)
-
-4️⃣ Click DEPLOY
-
-5️⃣ Selesai! 🎉
+3️⃣ Wait 2-3 minutes → SUCCESS! 🎉
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ 🔑 GET API KEYS                                               │
 └─────────────────────────────────────────────────────────────────┘
 
-🗄️ SUPABASE (Database):
+🗄️ SUPABASE (Database)
    https://supabase.com/dashboard → Project → Settings → Database
 
-🔐 BETTER_AUTH_SECRET:
+🔐 BETTER_AUTH_SECRET
    Command: openssl rand -base64 32
    Or: https://generate-secret.vercel.app/32
 
-📧 RESEND (Email):
+📧 RESEND (Email)
    https://resend.com/api-keys
 
-💬 FONNTE (WhatsApp):
+💬 FONNTE (WhatsApp)
    https://fonnte.com
 
 ┌─────────────────────────────────────────────────────────────────┐
@@ -85,7 +88,7 @@ Required sizes:
 
 Setelah deploy:
 
-[ ] Buka production URL
+[ ] Buka: https://balikin.masudrahmat.my.id
 [ ] Test sign-in/sign-up
 [ ] Test dashboard
 [ ] Test mobile responsive (iPhone SE, Android)
@@ -105,8 +108,8 @@ Setelah deploy:
 → Run: npm run build (lokal)
 
 ❌ AUTH FAILS
-→ Check: BETTER_AUTH_SECRET sama di semua environment
-→ Check: BETTER_AUTH_URL sesuai domain
+→ Check: 3 domain variables all use: balikin.masudrahmat.my.id
+→ Check: Variables ada di Production, Preview, Development
 
 ❌ DATABASE FAILS
 → Check: DATABASE_URL format benar
@@ -124,6 +127,7 @@ Setelah deploy:
 ✅ .env.example              - Template dengan penjelasan
 ✅ VERCEL_ENV_SETUP.txt      - Copy paste guide
 ✅ DEPLOYMENT_GUIDE.md       - Panduan lengkap
+✅ QUICK_DEPLOY.txt          - Quick reference card (ini!)
 ✅ public/README.md          - PWA icons guide
 ✅ public/manifest.json      - PWA manifest
 ✅ public/sw.js              - Service worker
@@ -133,13 +137,13 @@ Setelah deploy:
 │ 🎯 NEXT STEPS                                                │
 └─────────────────────────────────────────────────────────────────┘
 
-1. DEPLOY ke Vercel
-2. ADD environment variables
-3. TEST semua functionality
-4. GENERATE PWA icons
-5. PUSH icons ke GitHub
-6. REDEPLOY
-7. ANNOUNCE to users! 🎉
+1. ✅ UPDATE environment variables di Vercel (lihat di atas)
+2. ✅ DEPLOY ke Vercel (otomatis dari GitHub)
+3. ✅ TEST semua functionality
+4. ⚠️  GENERATE PWA icons (lihat public/README.md)
+5. ✅ PUSH icons ke GitHub
+6. ✅ REDEPLOY
+7. ✅ ANNOUNCE to users! 🎉
 
 ┌─────────────────────────────────────────────────────────────────┐
 │ 📞 NEED HELP?                                                 │
@@ -150,7 +154,7 @@ Next.js Deploy: https://nextjs.org/docs/deployment
 PWA Guide: public/README.md
 
 ═══════════════════════════════════════════════════════════════════
-Created: 2026-04-04
-Project: Balikin - Smart Lost & Found QR Tags
+Custom Domain: balikin.masudrahmat.my.id ✨
 Status: Ready for Deployment ✅
+Updated: 2026-04-04
 ═══════════════════════════════════════════════════════════════════

@@ -4,7 +4,7 @@
 
 ### Step 1: Get Your Environment Variables Ready
 
-**Your Vercel Domain:** `balikin-nu.vercel.app`
+**Your Custom Domain:** `balikin.masudrahmat.my.id`
 
 Copy the values below (already configured with actual values):
 
@@ -12,14 +12,14 @@ Copy the values below (already configured with actual values):
 # Database (from Supabase)
 DATABASE_URL=postgresql://postgres:Kandangan01***@db.piqyqhzxjayakiucfubu.supabase.co:5432/postgres
 
-# App URL (IMPORTANT: Use your actual Vercel domain!)
-NEXT_PUBLIC_APP_URL=https://balikin-nu.vercel.app
+# App URL (IMPORTANT: Use your custom domain!)
+NEXT_PUBLIC_APP_URL=https://balikin.masudrahmat.my.id
 NODE_ENV=production
 
 # Auth (generate secret: openssl rand -base64 32)
 BETTER_AUTH_SECRET=ZJx+9Ro2u9TXPXHqryH7N9LkfFyJ7aJZlXkJ48UstGI=
-BETTER_AUTH_URL=https://balikin-nu.vercel.app
-NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin-nu.vercel.app
+BETTER_AUTH_URL=https://balikin.masudrahmat.my.id
+NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin.masudrahmat.my.id
 
 # Email (from Resend.com)
 RESEND_API_KEY=re_re_aECFg5pX_47BJHpL22y22399nqY3e6g1x
@@ -82,11 +82,11 @@ WHATSAPP_PROVIDER_PRIORITY=fonnte_priority
 | Name | Value | Environment |
 |------|-------|-------------|
 | `DATABASE_URL` | `postgresql://postgres:Kandangan01***@db.piqyqhzxjayakiucfubu.supabase.co:5432/postgres` | Production, Preview, Development |
-| `NEXT_PUBLIC_APP_URL` | `https://balikin-nu.vercel.app` | All |
+| `NEXT_PUBLIC_APP_URL` | `https://balikin.masudrahmat.my.id` | All |
 | `NODE_ENV` | `production` | All |
 | `BETTER_AUTH_SECRET` | `ZJx+9Ro2u9TXPXHqryH7N9LkfFyJ7aJZlXkJ48UstGI=` | All |
-| `BETTER_AUTH_URL` | `https://balikin-nu.vercel.app` | All |
-| `NEXT_PUBLIC_BETTER_AUTH_URL` | `https://balikin-nu.vercel.app` | All |
+| `BETTER_AUTH_URL` | `https://balikin.masudrahmat.my.id` | All |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | `https://balikin.masudrahmat.my.id` | All |
 | `RESEND_API_KEY` | `re_re_aECFg5pX_47BJHpL22y22399nqY3e6g1x` | All |
 | `FONNTE_API_TOKEN` | `bd4wyhuNRsmvKHJa1uG8` | All |
 | `FONNTE_DEVICE_ID` | `087883956811` | All |
@@ -152,9 +152,9 @@ Or use: https://generate-secret.vercel.app/32
 - [ ] All environment variables set in Vercel
 - [ ] DATABASE_URL is correct (test with Supabase)
 - [ ] BETTER_AUTH_SECRET is strong (min 32 chars)
-- [ ] **BETTER_AUTH_URL matches your domain: `balikin-nu.vercel.app`**
-- [ ] **NEXT_PUBLIC_APP_URL matches your domain: `balikin-nu.vercel.app`**
-- [ ] **NEXT_PUBLIC_BETTER_AUTH_URL matches your domain: `balikin-nu.vercel.app`**
+- [ ] **BETTER_AUTH_URL matches your custom domain: `balikin.masudrahmat.my.id`**
+- [ ] **NEXT_PUBLIC_APP_URL matches your custom domain: `balikin.masudrahmat.my.id`**
+- [ ] **NEXT_PUBLIC_BETTER_AUTH_URL matches your custom domain: `balikin.masudrahmat.my.id`**
 - [ ] WhatsApp API tokens are valid
 - [ ] PWA icons added to `/public/icons/`
 - [ ] Build succeeds locally (`npm run build`)
@@ -173,7 +173,7 @@ After deployment:
 - [ ] Test dashboard access
 
 ### 2. PWA Features
-- [ ] Check manifest.json: `https://balikin-nu.vercel.app/manifest.json`
+- [ ] Check manifest.json: `https://balikin.masudrahmat.my.id/manifest.json`
 - [ ] Check service worker: Browser DevTools → Application → Service Workers
 - [ ] Test install prompt (Chrome Android)
 - [ ] Test "Add to Home Screen" (Safari iOS)

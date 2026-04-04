@@ -1,14 +1,12 @@
 # ==============================================
 # COPY PASTE KE VERCEL ENVIRONMENT VARIABLES
 # ==============================================
-# Domain: balikin-nu.vercel.app
+# Custom Domain: balikin.masudrahmat.my.id
 #
 # Cara penggunaan:
 # 1. Buka Vercel Dashboard → Project → Settings → Environment Variables
-# 2. Copy satu per satu variable di bawah ini
-# 3. Paste di kolom "Name" dan "Value" di Vercel
-# 4. Klik "Add" untuk setiap variable
-# 5. Pilih Environment: Production, Preview, Development
+# 2. Edit setiap variable yang sudah ada, ganti dengan nilai baru di bawah ini
+# 3. Klik "Save" untuk setiap variable yang di-update
 #
 # ===========================================
 
@@ -19,9 +17,9 @@ Environments: Production, Preview, Development
 
 ---
 
-# APP URL (Wajib - DOMAIN YANG BENAR!)
+# APP URL (Wajib - CUSTOM DOMAIN!)
 Name: NEXT_PUBLIC_APP_URL
-Value: https://balikin-nu.vercel.app
+Value: https://balikin.masudrahmat.my.id
 Environments: Production, Preview, Development
 
 ---
@@ -40,16 +38,16 @@ Environments: Production, Preview, Development
 
 ---
 
-# Auth URL (Wajib - DOMAIN YANG BENAR!)
+# Auth URL (Wajib - CUSTOM DOMAIN!)
 Name: BETTER_AUTH_URL
-Value: https://balikin-nu.vercel.app
+Value: https://balikin.masudrahmat.my.id
 Environments: Production, Preview, Development
 
 ---
 
-# Public Auth URL (Wajib - DOMAIN YANG BENAR!)
+# Public Auth URL (Wajib - CUSTOM DOMAIN!)
 Name: NEXT_PUBLIC_BETTER_AUTH_URL
-Value: https://balikin-nu.vercel.app
+Value: https://balikin.masudrahmat.my.id
 Environments: Production, Preview, Development
 
 ---
@@ -123,23 +121,24 @@ Value: fonnte_priority
 Environments: Production, Preview, Development
 
 # ==============================================
-# ⚠️ PENTING!
+# ⚠️ PENTING! CUSTOM DOMAIN
 # ==============================================
 #
-# DOMAIN PRODUKSI ANDA: balikin-nu.vercel.app
+# DOMAIN PRODUKSI ANDA: balikin.masudrahmat.my.id
 #
-# 3 Variables ini HARUS menggunakan domain yang sama:
-# ✅ NEXT_PUBLIC_APP_URL = https://balikin-nu.vercel.app
-# ✅ BETTER_AUTH_URL = https://balikin-nu.vercel.app
-# ✅ NEXT_PUBLIC_BETTER_AUTH_URL = https://balikin-nu.vercel.app
+# 3 Variables ini HARUS di-UPDATE ke domain baru:
+# ✅ NEXT_PUBLIC_APP_URL = https://balikin.masudrahmat.my.id
+# ✅ BETTER_AUTH_URL = https://balikin.masudrahmat.my.id
+# ✅ NEXT_PUBLIC_BETTER_AUTH_URL = https://balikin.masudrahmat.my.id
 #
 # ==============================================
-# 🚀 SETELAH DITAMBAHKAN:
+# 🚀 UPDATE INSTRUCTION:
 # ==============================================
 #
-# 1. Klik "Redeploy" di Vercel Dashboard
-# 2. Tunggu 2-3 menit
-# 3. Production deployment akan SUCCES!
-# 4. Test: https://balikin-nu.vercel.app
+# 1. Buka Vercel Dashboard → Settings → Environment Variables
+# 2. EDIT 3 variables di atas (jangan add baru, tapi UPDATE yang sudah ada)
+# 3. Ganti nilai dari balikin-nu.vercel.app ke balikin.masudrahmat.my.id
+# 4. Klik "Save" untuk setiap variable
+# 5. Klik "Redeploy" untuk deployment baru
 #
 # ==============================================
