@@ -286,7 +286,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       </div>
 
       {/* Claim CTA for unclaimed tags */}
-      {isUnclaimed && <ClaimCTA tagId={tag.id} tagName={tag.name} />}
+      {isUnclaimed && <ClaimCTA tagId={tag.id} tagName={tag.name} productType={tag.productType} />}
     </div>
   );
 }

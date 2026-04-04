@@ -6,7 +6,7 @@ import { Loader2, ArrowLeft, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient, isWhatsAppIdentifier } from '@/lib/auth-client';
+import { authClient, isWhatsAppIdentifier, sendVerificationOTP, verifyOTPAndSignIn } from '@/lib/auth-client';
 
 function getAuthErrorMessage(error: unknown, fallback: string) {
   const maybeError = error as { message?: string; status?: number; statusCode?: number } | null;
@@ -57,17 +57,17 @@ function VerifyOTPContent() {
     setError(null);
 
     try {
-      // Use Better Auth's unified OTP mechanism for both email and WhatsApp
-      const result = await authClient.emailOtp.sendVerificationOtp({
+      // Use manual OTP function
+      const result = await sendVerificationOTP({
         email: identifier,
         type: 'sign-in',
       });
-      if (result?.error) {
-        throw new Error(getAuthErrorMessage(result.error, 'Gagal mengirim ulang kode OTP'));
+      if (result.error) {
+        throw new Error(result.error || 'Gagal mengirim ulang kode OTP');
       }
       setCountdown(60); // 60 seconds cooldown
     } catch (err: unknown) {
-      const errorMessage = getAuthErrorMessage(err, 'Gagal mengirim ulang kode');
+      const errorMessage = err instanceof Error ? err.message : 'Gagal mengirim ulang kode';
       setError(errorMessage);
     } finally {
       setResendLoading(false);
@@ -85,22 +85,26 @@ function VerifyOTPContent() {
     setError(null);
 
     try {
-      // Sign in with email OTP (works for both email and WhatsApp)
-      const result = await authClient.signIn.emailOtp({
+      // Use manual verify and sign-in function
+      const result = await verifyOTPAndSignIn({
         email: identifier,
         otp,
-        ...(name ? { name } : {}),
+        callbackURL: searchParams.get('redirect') || undefined
       });
 
       if (result.error) {
-        setError(getAuthErrorMessage(result.error, 'Kode OTP tidak valid atau telah kadaluarsa'));
-      } else if (result.data) {
-        // Success - redirect to dashboard
+        setError(result.error || 'Kode OTP tidak valid atau telah kadaluarsa');
+      } else if (result.redirect) {
+        // Success - redirect to dashboard or callback URL
+        router.push(result.redirect);
+        router.refresh();
+      } else {
+        // Fallback
         router.push('/dashboard');
         router.refresh();
       }
     } catch (err: unknown) {
-      const errorMessage = getAuthErrorMessage(err, 'Terjadi kesalahan. Silakan coba lagi.');
+      const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);

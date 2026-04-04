@@ -1,16 +1,18 @@
 import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+
 // Main auth client (Email OTP)
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: BASE_URL,
   plugins: [emailOTPClient()],
 });
 
 // WhatsApp auth client (separate instance with different endpoint prefix)
 // The backend uses a separate "whatsapp" prefix for this
 export const whatsappAuthClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+  baseURL: BASE_URL,
   plugins: [emailOTPClient()],
 });
 
@@ -49,4 +51,40 @@ export function extractPhoneNumber(email: string): string {
     return email.replace('@wa.dev', '');
   }
   return email;
+}
+
+// Manual OTP functions using our custom endpoints
+export async function sendVerificationOTP({ email, type }: { email: string; type: string }) {
+  const response = await fetch(`${BASE_URL}/api/auth/email-otp/send-verification-otp`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, type }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to send OTP');
+  }
+
+  return response.json();
+}
+
+export async function verifyOTPAndSignIn({ email, otp, callbackURL }: { email: string; otp: string; callbackURL?: string }) {
+  const response = await fetch(`${BASE_URL}/api/auth/sign-in/email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, otp, callbackURL }),
+    credentials: 'include', // Important for cookies!
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to sign in');
+  }
+
+  return response.json();
 }

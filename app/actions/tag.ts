@@ -215,9 +215,38 @@ export async function deleteTag(tagId: string) {
 }
 
 export async function claimTag(tagId: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  // Try Better Auth first, then manual session
+  let session;
+  try {
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch {
+    // Fallback to manual session reading
+    const { cookies } = await import('next/headers');
+    const { session: sessionTable, user } = await import('@/db/schema');
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("better-auth.session_token")?.value;
+
+    if (sessionToken) {
+      const sessionRecord = await db
+        .select({
+          session: sessionTable,
+          user: user,
+        })
+        .from(sessionTable)
+        .innerJoin(user, eq(sessionTable.userId, user.id))
+        .where(eq(sessionTable.token, sessionToken))
+        .limit(1);
+
+      if (sessionRecord.length && new Date(sessionRecord[0].session.expiresAt) > new Date()) {
+        session = {
+          user: sessionRecord[0].user,
+          session: sessionRecord[0].session,
+        };
+      }
+    }
+  }
 
   if (!session?.user?.id) {
     redirect('/sign-in');
@@ -247,9 +276,38 @@ export async function claimTag(tagId: string) {
 }
 
 export async function claimStickerTag(tagId: string, name: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  // Try Better Auth first, then manual session reading
+  let session;
+  try {
+    session = await auth.api.getSession({
+      headers: await headers(),
+    });
+  } catch {
+    // Fallback to manual session reading
+    const { cookies } = await import('next/headers');
+    const { session: sessionTable, user } = await import('@/db/schema');
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get("better-auth.session_token")?.value;
+
+    if (sessionToken) {
+      const sessionRecord = await db
+        .select({
+          session: sessionTable,
+          user: user,
+        })
+        .from(sessionTable)
+        .innerJoin(user, eq(sessionTable.userId, user.id))
+        .where(eq(sessionTable.token, sessionToken))
+        .limit(1);
+
+      if (sessionRecord.length && new Date(sessionRecord[0].session.expiresAt) > new Date()) {
+        session = {
+          user: sessionRecord[0].user,
+          session: sessionRecord[0].session,
+        };
+      }
+    }
+  }
 
   if (!session?.user?.id) {
     redirect('/sign-in');

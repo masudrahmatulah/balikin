@@ -174,41 +174,62 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Tag className="h-8 w-8 text-blue-600" />
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
+            tag.productType === 'acrylic' ? 'bg-amber-100' : 'bg-blue-100'
+          }`}>
+            <Tag className={`h-8 w-8 ${tag.productType === 'acrylic' ? 'text-amber-600' : 'text-blue-600'}`} />
           </div>
-          <CardTitle>{tag.productType === 'sticker' ? 'Aktivasi Sticker Vinyl' : 'Klaim Tag Ini'}</CardTitle>
+          <CardTitle>
+            {tag.productType === 'sticker' ? 'Aktivasi Sticker Vinyl' :
+             tag.productType === 'acrylic' ? 'Klaim Gantungan Akrilik Premium' :
+             'Klaim Tag Ini'}
+          </CardTitle>
           <CardDescription>
-            Masuk atau daftar untuk menghubungkan tag ini ke akun Anda.
+            {tag.productType === 'acrylic'
+              ? 'Selamat! Anda orang pertama yang scan QR ini. Masuk untuk mendaftar dan menjadi pemilik permanen dengan akses premium.'
+              : 'Masuk atau daftar untuk menghubungkan tag ini ke akun Anda.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
-            <p>Setelah login, tag ini akan terhubung ke akun Anda dan Anda dapat:</p>
-            <ul className="mt-2 space-y-1 break-words list-disc list-inside">
-              <li>Mengubah status barang hilang/normal</li>
-              <li>Melihat riwayat lokasi scan</li>
-              <li>Mengedit informasi kontak</li>
-            </ul>
-          </div>
+          {tag.productType === 'acrylic' ? (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm leading-6 text-amber-900">
+              <p className="font-semibold mb-2">🎉 Selamat! Anda adalah pemilik pertama!</p>
+              <p>Gantungan akrilik premium ini belum memiliki pemilik. Setelah login, Anda akan:</p>
+              <ul className="mt-2 space-y-1 break-words list-disc list-inside">
+                <li>Menjadi pemilik permanen dengan akses penuh</li>
+                <li>Bisa mengubah status hilang/normal</li>
+                <li>Mendapat notifikasi WhatsApp saat barang ditemukan</li>
+                <li>Melihat riwayat lokasi scan lengkap</li>
+              </ul>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
+              <p>Setelah login, tag ini akan terhubung ke akun Anda dan Anda dapat:</p>
+              <ul className="mt-2 space-y-1 break-words list-disc list-inside">
+                <li>Mengubah status barang hilang/normal</li>
+                <li>Melihat riwayat lokasi scan</li>
+                <li>Mengedit informasi kontak</li>
+              </ul>
+            </div>
+          )}
 
           <form action="/api/auth/sign-in/email" method="POST" className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
+                Email atau WhatsApp
               </label>
               <input
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 required
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="nama@email.com"
+                placeholder="nama@email.com atau 628123456789@wa.dev"
               />
             </div>
             <input type="hidden" name="callbackURL" value={`/claim/${tagId}`} />
-            <Button type="submit" className="w-full">
-              Kirim Kode OTP
+            <Button type="submit" className={`w-full ${tag.productType === 'acrylic' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}>
+              {tag.productType === 'acrylic' ? 'Klaim & Aktivasi Premium' : 'Kirim Kode OTP'}
             </Button>
           </form>
 

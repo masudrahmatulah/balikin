@@ -6,7 +6,7 @@ import { Loader2, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient, formatWhatsAppEmail } from '@/lib/auth-client';
+import { formatWhatsAppEmail, sendVerificationOTP, verifyOTPAndSignIn } from '@/lib/auth-client';
 
 interface AuthFormProps {
   mode?: 'sign-in' | 'sign-up';
@@ -38,25 +38,25 @@ export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
       let displayIdentifier: string;
 
       if (authMethod === 'whatsapp') {
-        // Use Better Auth's unified OTP mechanism for WhatsApp
+        // Use manual OTP function for WhatsApp
         identifier = formatWhatsAppEmail(whatsapp);
         displayIdentifier = whatsapp;
 
-        const result = await authClient.emailOtp.sendVerificationOtp({
+        const result = await sendVerificationOTP({
           email: identifier,
           type: 'sign-in',
         });
-        if (result?.error) {
-          throw new Error(result.error.message || 'Gagal mengirim kode OTP.');
+        if (result.error) {
+          throw new Error(result.error || 'Gagal mengirim kode OTP.');
         }
       } else {
-        // Use Better Auth flow for Email
-        const result = await authClient.emailOtp.sendVerificationOtp({
+        // Use manual OTP function for Email
+        const result = await sendVerificationOTP({
           email: email,
           type: 'sign-in',
         });
-        if (result?.error) {
-          throw new Error(result.error.message || 'Gagal mengirim kode OTP.');
+        if (result.error) {
+          throw new Error(result.error || 'Gagal mengirim kode OTP.');
         }
         identifier = email;
         displayIdentifier = email;

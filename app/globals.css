@@ -245,3 +245,228 @@
 .animate-count-up {
   animation: count-up 0.5s ease-out forwards;
 }
+
+/* Print-specific styles for QR Stock bulk printing */
+@media print {
+  /* Hide elements with no-print class */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup - minimal margins with special handling for first page */
+  @page {
+    margin: 0mm 5mm 10mm 5mm;
+    size: A4 portrait;
+  }
+
+  @page :first {
+    margin-top: 0mm;
+  }
+
+  /* Critical: Reset html and body for print */
+  html, body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* When print modal is open, hide everything except the modal */
+  body.printing-mode > *:not(.print-modal-overlay) {
+  /* Hide elements with no-print class */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup - minimal margins with special handling for first page */
+  @page {
+    margin: 0mm 5mm 10mm 5mm;
+    size: A4 portrait;
+  }
+
+  @page :first {
+    margin-top: 0mm;
+  }
+
+  /* Critical: Reset html and body for print */
+  html, body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* When print modal is open, hide everything except the modal */
+  body.printing-mode > *:not(.print-modal-overlay) {
+    display: none !important;
+  }
+
+  /* Position modal for print - remove positioning issues */
+  body.printing-mode .print-modal-overlay {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: white !important;
+    z-index: 999999 !important;
+  }
+
+  body.printing-mode .print-modal-overlay > div {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* Hide modal header and footer */
+  body.printing-mode .print-modal-overlay > div > div:first-child,
+  body.printing-mode .print-modal-overlay > div > div:last-child {
+    display: none !important;
+  }
+
+  /* Fix content area */
+  body.printing-mode .print-modal-overlay > div > div:nth-child(2) {
+    display: block !important;
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  body.printing-mode .print-modal-overlay > div > div:nth-child(2) > div {
+    overflow: visible !important;
+    background: white !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* A4 page setup for QR printing */
+  .a4-print-container {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    padding: 5mm 8mm 10mm 8mm !important;
+    margin: 0 auto !important;
+    background: white !important;
+    box-shadow: none !important;
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  /* QR grid for A4 printing */
+  .qr-print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6mm !important;
+    page-break-inside: avoid;
+  }
+
+  /* Individual QR card for print */
+  .qr-print-card {
+    page-break-inside: avoid !important;
+    border: 1px solid #000 !important;
+    border-radius: 4px !important;
+    padding: 4mm !important;
+    text-align: center !important;
+    break-inside: avoid !important;
+    display: block !important;
+  }
+
+  /* QR image in print */
+  .qr-print-image {
+    width: 24mm !important;
+    height: 24mm !important;
+    margin: 0 auto 2mm !important;
+    display: block !important;
+  }
+
+  /* Ensure images print correctly */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+    display: block !important;
+  }
+
+  /* ========================================
+     QR Layout Editor Print Styles
+     ======================================== */
+
+  /* Layout editor print mode - hide UI elements */
+  body.printing-layout-mode .no-print {
+    display: none !important;
+  }
+
+  /* Show only canvas container */
+  body.printing-layout-mode > *:not(.container) {
+    display: none !important;
+  }
+
+  body.printing-layout-mode .container {
+    display: block !important;
+  }
+
+  body.printing-layout-mode main {
+    display: block !important;
+  }
+
+  /* Remove container styling */
+  body.printing-layout-mode .container {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body.printing-layout-mode main {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Canvas styling for print */
+  body.printing-layout-mode .bg-slate-200,
+  body.printing-layout-mode .dark\\:bg-slate-800 {
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  body.printing-layout-mode .bg-white {
+    box-shadow: none !important;
+    margin: 0 auto !important;
+  }
+
+  /* QR elements in print */
+  body.printing-layout-mode .border-slate-900 {
+    border-color: #000 !important;
+  }
+
+  body.printing-layout-mode .border-slate-300 {
+    border-color: #ccc !important;
+  }
+
+  /* Hide grid background in print */
+  body.printing-layout-mode .absolute.inset-0 {
+    display: none !important;
+  }
+
+  /* Page setup for layout editor */
+  body.printing-layout-mode {
+    background: white !important;
+  }
+}
+}
