@@ -1,33 +1,22 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
-import { db } from '@/db';
-import { tags } from '@/db/schema';
-import { desc } from 'drizzle-orm';
-import { AdminHeader } from '@/components/admin/admin-header';
-import { LayoutEditorClient } from './layout-editor-client';
 
+// TODO: Fix layout editor - temporarily disabled due to build issues
 export default async function LayoutEditorPage() {
   const session = await getAdminSession();
   if (!session) {
     redirect('/sign-in?redirect=/admin/layout-editor');
   }
 
-  // Fetch all tags for the editor
-  const allTags = await db.query.tags.findMany({
-    orderBy: [desc(tags.createdAt)],
-    limit: 100,
-  });
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <AdminHeader session={session} />
       <main className="container mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Layout Editor Sticker</h1>
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Atur posisi sticker secara visual sebelum dicetak ke PDF.
+              Coming Soon - Fitur ini sedang dalam perbaikan.
             </p>
           </div>
           <div className="flex gap-2">
@@ -41,8 +30,6 @@ export default async function LayoutEditorPage() {
             </Link>
           </div>
         </div>
-
-        <LayoutEditorClient availableTags={allTags} />
       </main>
     </div>
   );
