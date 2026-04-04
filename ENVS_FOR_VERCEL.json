@@ -1,10 +1,10 @@
 {
   "DATABASE_URL": "postgresql://postgres:REDACTED@db.REDACTED.supabase.co:5432/postgres",
-  "NEXT_PUBLIC_APP_URL": "https://balikin-nu.vercel.app",
+  "NEXT_PUBLIC_APP_URL": "https://balikin.masudrahmat.my.id",
   "NODE_ENV": "production",
   "BETTER_AUTH_SECRET": "REDACTED=",
-  "BETTER_AUTH_URL": "https://balikin-nu.vercel.app",
-  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin-nu.vercel.app",
+  "BETTER_AUTH_URL": "https://balikin.masudrahmat.my.id",
+  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin.masudrahmat.my.id",
   "RESEND_API_KEY": "REDACTED",
   "FONNTE_API_TOKEN": "REDACTED",
   "FONNTE_DEVICE_ID": "087883956811",
