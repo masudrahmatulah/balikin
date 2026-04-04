@@ -169,6 +169,8 @@ export function TagCard({
               id="edit-name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
+              inputMode="text"
+              autoComplete="off"
             />
           </div>
           <div>
@@ -178,6 +180,8 @@ export function TagCard({
               value={editWhatsapp}
               onChange={(e) => setEditWhatsapp(e.target.value)}
               placeholder="628123456789"
+              inputMode="tel"
+              autoComplete="tel"
             />
           </div>
           <div>
@@ -188,6 +192,7 @@ export function TagCard({
               onChange={(e) => setEditMessage(e.target.value)}
               placeholder="Contoh: Kunci motor ini sangat penting bagi saya..."
               rows={3}
+              className="text-base"
             />
           </div>
           <div>
@@ -197,6 +202,8 @@ export function TagCard({
               value={editReward}
               onChange={(e) => setEditReward(e.target.value)}
               placeholder="Contoh: Rp 50.000"
+              inputMode="text"
+              autoComplete="off"
             />
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
