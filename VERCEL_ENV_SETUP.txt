@@ -1,6 +1,7 @@
 # ==============================================
 # COPY PASTE KE VERCEL ENVIRONMENT VARIABLES
 # ==============================================
+# Domain: balikin-nu.vercel.app
 #
 # Cara penggunaan:
 # 1. Buka Vercel Dashboard → Project → Settings → Environment Variables
@@ -18,9 +19,9 @@ Environments: Production, Preview, Development
 
 ---
 
-# APP URL (Wajib - Sesuaikan dengan domain Vercel Anda)
+# APP URL (Wajib - DOMAIN YANG BENAR!)
 Name: NEXT_PUBLIC_APP_URL
-Value: https://balikin.vercel.app
+Value: https://balikin-nu.vercel.app
 Environments: Production, Preview, Development
 
 ---
@@ -39,16 +40,16 @@ Environments: Production, Preview, Development
 
 ---
 
-# Auth URL (Wajib - GANTI dengan domain produksi Anda)
+# Auth URL (Wajib - DOMAIN YANG BENAR!)
 Name: BETTER_AUTH_URL
-Value: https://balikin.vercel.app
+Value: https://balikin-nu.vercel.app
 Environments: Production, Preview, Development
 
 ---
 
-# Public Auth URL (Wajib - GANTI dengan domain produksi Anda)
+# Public Auth URL (Wajib - DOMAIN YANG BENAR!)
 Name: NEXT_PUBLIC_BETTER_AUTH_URL
-Value: https://balikin.vercel.app
+Value: https://balikin-nu.vercel.app
 Environments: Production, Preview, Development
 
 ---
@@ -122,20 +123,15 @@ Value: fonnte_priority
 Environments: Production, Preview, Development
 
 # ==============================================
-# ⚠️ PENTING: SESUAIKAN DOMAIN
+# ⚠️ PENTING!
 # ==============================================
 #
-# Jika domain Vercel Anda BUKAN "balikin.vercel.app",
-# ganti semua URL di atas dengan domain produksi Anda:
+# DOMAIN PRODUKSI ANDA: balikin-nu.vercel.app
 #
-# - NEXT_PUBLIC_APP_URL
-# - BETTER_AUTH_URL
-# - NEXT_PUBLIC_BETTER_AUTH_URL
-#
-# Contoh domain Vercel:
-# - balikin.vercel.app (default)
-# - project-balikin.vercel.app
-# - balikin.id (custom domain)
+# 3 Variables ini HARUS menggunakan domain yang sama:
+# ✅ NEXT_PUBLIC_APP_URL = https://balikin-nu.vercel.app
+# ✅ BETTER_AUTH_URL = https://balikin-nu.vercel.app
+# ✅ NEXT_PUBLIC_BETTER_AUTH_URL = https://balikin-nu.vercel.app
 #
 # ==============================================
 # 🚀 SETELAH DITAMBAHKAN:
@@ -143,6 +139,7 @@ Environments: Production, Preview, Development
 #
 # 1. Klik "Redeploy" di Vercel Dashboard
 # 2. Tunggu 2-3 menit
-# 3. Test production URL
+# 3. Production deployment akan SUCCES!
+# 4. Test: https://balikin-nu.vercel.app
 #
 # ==============================================
