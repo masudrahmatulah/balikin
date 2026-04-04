@@ -4,30 +4,32 @@
 
 ### Step 1: Get Your Environment Variables Ready
 
-Copy the values below and replace with your actual values:
+**Your Vercel Domain:** `balikin-nu.vercel.app`
+
+Copy the values below (already configured with actual values):
 
 ```bash
 # Database (from Supabase)
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres:Kandangan01***@db.piqyqhzxjayakiucfubu.supabase.co:5432/postgres
 
-# App URL
-NEXT_PUBLIC_APP_URL=https://balikin.vercel.app
+# App URL (IMPORTANT: Use your actual Vercel domain!)
+NEXT_PUBLIC_APP_URL=https://balikin-nu.vercel.app
 NODE_ENV=production
 
 # Auth (generate secret: openssl rand -base64 32)
-BETTER_AUTH_SECRET=YOUR_SECRET_KEY_HERE
-BETTER_AUTH_URL=https://balikin.vercel.app
-NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin.vercel.app
+BETTER_AUTH_SECRET=ZJx+9Ro2u9TXPXHqryH7N9LkfFyJ7aJZlXkJ48UstGI=
+BETTER_AUTH_URL=https://balikin-nu.vercel.app
+NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin-nu.vercel.app
 
 # Email (from Resend.com)
-RESEND_API_KEY=re_your_resend_api_key
+RESEND_API_KEY=re_re_aECFg5pX_47BJHpL22y22399nqY3e6g1x
 
 # WhatsApp (from Fonnte.com)
-FONNTE_API_TOKEN=your_token
-FONNTE_DEVICE_ID=your_device_id
+FONNTE_API_TOKEN=bd4wyhuNRsmvKHJa1uG8
+FONNTE_DEVICE_ID=087883956811
 FONNTE_BASE_URL=https://api.fonnte.com
-FONNTE_PRIORITY_API_TOKEN=your_priority_token
-FONNTE_PRIORITY_DEVICE_ID=your_priority_device_id
+FONNTE_PRIORITY_API_TOKEN=bd4wyhuNRsmvKHJa1uG8
+FONNTE_PRIORITY_DEVICE_ID=087883956811
 FONNTE_PRIORITY_BASE_URL=https://api.fonnte.com
 WHATSAPP_ORDER_NUMBER=6282255905612
 WHATSAPP_PROVIDER_STANDARD=fonnte_standard
@@ -79,15 +81,15 @@ WHATSAPP_PROVIDER_PRIORITY=fonnte_priority
 
 | Name | Value | Environment |
 |------|-------|-------------|
-| `DATABASE_URL` | Your Supabase URL | Production, Preview, Development |
-| `NEXT_PUBLIC_APP_URL` | `https://balikin.vercel.app` | All |
+| `DATABASE_URL` | `postgresql://postgres:Kandangan01***@db.piqyqhzxjayakiucfubu.supabase.co:5432/postgres` | Production, Preview, Development |
+| `NEXT_PUBLIC_APP_URL` | `https://balikin-nu.vercel.app` | All |
 | `NODE_ENV` | `production` | All |
-| `BETTER_AUTH_SECRET` | Your secret key | All |
-| `BETTER_AUTH_URL` | `https://balikin.vercel.app` | All |
-| `NEXT_PUBLIC_BETTER_AUTH_URL` | `https://balikin.vercel.app` | All |
-| `RESEND_API_KEY` | Your Resend key | All |
-| `FONNTE_API_TOKEN` | Your Fonnte token | All |
-| `FONNTE_DEVICE_ID` | Your device ID | All |
+| `BETTER_AUTH_SECRET` | `ZJx+9Ro2u9TXPXHqryH7N9LkfFyJ7aJZlXkJ48UstGI=` | All |
+| `BETTER_AUTH_URL` | `https://balikin-nu.vercel.app` | All |
+| `NEXT_PUBLIC_BETTER_AUTH_URL` | `https://balikin-nu.vercel.app` | All |
+| `RESEND_API_KEY` | `re_re_aECFg5pX_47BJHpL22y22399nqY3e6g1x` | All |
+| `FONNTE_API_TOKEN` | `bd4wyhuNRsmvKHJa1uG8` | All |
+| `FONNTE_DEVICE_ID` | `087883956811` | All |
 | `WHATSAPP_ORDER_NUMBER` | `6282255905612` | All |
 
 ### Via Vercel CLI:
@@ -150,7 +152,9 @@ Or use: https://generate-secret.vercel.app/32
 - [ ] All environment variables set in Vercel
 - [ ] DATABASE_URL is correct (test with Supabase)
 - [ ] BETTER_AUTH_SECRET is strong (min 32 chars)
-- [ ] BETTER_AUTH_URL matches your domain
+- [ ] **BETTER_AUTH_URL matches your domain: `balikin-nu.vercel.app`**
+- [ ] **NEXT_PUBLIC_APP_URL matches your domain: `balikin-nu.vercel.app`**
+- [ ] **NEXT_PUBLIC_BETTER_AUTH_URL matches your domain: `balikin-nu.vercel.app`**
 - [ ] WhatsApp API tokens are valid
 - [ ] PWA icons added to `/public/icons/`
 - [ ] Build succeeds locally (`npm run build`)
@@ -169,7 +173,7 @@ After deployment:
 - [ ] Test dashboard access
 
 ### 2. PWA Features
-- [ ] Check manifest.json: `https://your-domain.vercel.app/manifest.json`
+- [ ] Check manifest.json: `https://balikin-nu.vercel.app/manifest.json`
 - [ ] Check service worker: Browser DevTools → Application → Service Workers
 - [ ] Test install prompt (Chrome Android)
 - [ ] Test "Add to Home Screen" (Safari iOS)
