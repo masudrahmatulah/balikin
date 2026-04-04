@@ -1,8 +1,21 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Tag, Award } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+// Inline button component to avoid import issues
+function Button({ onClick, size, className, children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { size?: string }) {
+  const sizeClasses = size === 'sm' ? 'h-9 px-3 text-xs' : 'h-10 px-4 py-2';
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${sizeClasses} ${className || ''}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 
 interface ClaimCTAProps {
   tagId: string;
