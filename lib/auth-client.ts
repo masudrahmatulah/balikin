@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+const BASE_URL = (process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000").replace(/\/$/, '');
 
 // Main auth client (Email OTP)
 export const authClient = createAuthClient({
