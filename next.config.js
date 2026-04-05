@@ -8,11 +8,7 @@ const nextConfig = {
     // Disable TypeScript type checking during builds for faster build time
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "2mb",
-    },
-  },
+  serverExternalPackages: [],
 };
 
 module.exports = nextConfig;
