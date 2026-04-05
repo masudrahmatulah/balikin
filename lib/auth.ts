@@ -32,27 +32,49 @@ async function sendOTP({
   otp: string;
   type: string;
 }) {
+  const startTime = Date.now();
+
   if (isWhatsAppIdentifier(email)) {
     // Route to WhatsApp OTP
     const phoneNumber = extractPhoneNumber(email);
+    console.log('[AUTH SERVICE] 📱 Sending WhatsApp OTP:', {
+      phoneNumber,
+      type,
+      timestamp: new Date().toISOString(),
+    });
+
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[WHATSAPP AUTH OTP] type=${type} phone=${phoneNumber} otp=${otp}`);
     }
+
     await sendWhatsAppOTP({
       phoneNumber,
       otp,
       type: type as 'sign-in' | 'email-verification' | 'forget-password',
     });
+
+    const duration = Date.now() - startTime;
+    console.log('[AUTH SERVICE] ✅ WhatsApp OTP sent successfully:', { duration: `${duration}ms` });
   } else {
     // Route to Email OTP
+    console.log('[AUTH SERVICE] 📧 Sending Email OTP:', {
+      email,
+      type,
+      timestamp: new Date().toISOString(),
+    });
+
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[EMAIL AUTH OTP] type=${type} email=${email} otp=${otp}`);
     }
+
     await sendOTPEmail({
       email,
       otp,
       type: type as 'sign-in' | 'email-verification' | 'forget-password',
     });
+
+    const duration = Date.now() - startTime;
+    console.log('[AUTH SERVICE] ✅ Email OTP sent successfully:', { duration: `${duration}ms` });
   }
 }
 

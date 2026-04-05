@@ -12,7 +12,12 @@
       "Bash(git *)",
       "Bash(npm run *)",
       "Bash(file *)",
-      "Bash(cp *)"
+      "Bash(cp *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(python3 *)",
+      "Bash(node *)",
+      "Bash(rm *)"
     ]
   },
   "$version": 3

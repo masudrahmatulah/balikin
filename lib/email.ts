@@ -45,9 +45,19 @@ function formatScanTime(value: Date | string | null): string {
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
   const { NODE_ENV, RESEND_API_KEY, EMAIL_FROM } = process.env;
 
+  // Enhanced logging for debugging
+  console.log('[EMAIL SERVICE] 📧 Attempting to send email:', {
+    to,
+    subject,
+    hasApiKey: !!RESEND_API_KEY,
+    emailFrom: EMAIL_FROM || 'Balikin <noreply@balikin.id>',
+    nodeEnv: NODE_ENV,
+    timestamp: new Date().toISOString(),
+  });
+
   if (NODE_ENV !== 'production' || !RESEND_API_KEY) {
     console.log('============================================================');
-    console.log('[EMAIL SERVICE]');
+    console.log('[EMAIL SERVICE] 🧪 DEV MODE - Email not sent (showing preview)');
     console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(html);
@@ -56,23 +66,36 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<vo
   }
 
   const from = EMAIL_FROM || 'Balikin <noreply@balikin.id>';
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      html,
-    }),
-  });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Resend request failed: ${response.status} ${text}`);
+  try {
+    console.log('[EMAIL SERVICE] 🚀 Sending via Resend API...');
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    console.log('[EMAIL SERVICE] 📊 Resend response status:', response.status);
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('[EMAIL SERVICE] ❌ Resend error details:', text);
+      throw new Error(`Resend request failed: ${response.status} ${text}`);
+    }
+
+    const result = await response.json();
+    console.log('[EMAIL SERVICE] ✅ Email sent successfully:', result);
+  } catch (error) {
+    console.error('[EMAIL SERVICE] 💥 Error sending email:', error);
+    throw error;
   }
 }
 
