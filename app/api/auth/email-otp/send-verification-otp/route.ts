@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendWhatsAppOTP } from "@/lib/whatsapp";
+import { sendOTPEmail } from "@/lib/email";
 import { db } from "@/db";
 import { verification } from "@/db/schema";
 import { eq } from "drizzle-orm";
