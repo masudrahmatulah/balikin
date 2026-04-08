@@ -5,13 +5,25 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Mail, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authClient, isWhatsAppIdentifier, sendVerificationOTP, verifyOTPAndSignIn } from '@/lib/auth-client';
+import { authClient, isWhatsAppIdentifier } from '@/lib/auth-client';
 
 // Inline button component to avoid import issues
-function Button({ children, className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode }) {
+function Button({ children, className, variant = 'default', size = 'default', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children?: React.ReactNode; variant?: 'default' | 'ghost' | 'destructive'; size?: 'default' | 'sm' | 'lg' }) {
+  const variantClasses = {
+    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
+    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+  };
+
+  const sizeClasses = {
+    default: 'h-10 px-4 py-2',
+    sm: 'h-9 rounded-md px-3',
+    lg: 'h-11 rounded-md px-8',
+  };
+
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 ${className || ''}`}
+      className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className || ''}`}
       {...props}
     >
       {children}
@@ -68,14 +80,18 @@ function VerifyOTPContent() {
     setError(null);
 
     try {
-      // Use manual OTP function
-      const result = await sendVerificationOTP({
+      // Use better-auth's emailOtp method
+      const { emailOtp } = authClient;
+
+      const result = await emailOtp.sendVerificationOtp({
         email: identifier,
         type: 'sign-in',
       });
+
       if (result.error) {
-        throw new Error(result.error || 'Gagal mengirim ulang kode OTP');
+        throw new Error(result.error.message || 'Gagal mengirim ulang kode OTP');
       }
+
       setCountdown(60); // 60 seconds cooldown
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal mengirim ulang kode';
@@ -96,28 +112,44 @@ function VerifyOTPContent() {
     setError(null);
 
     try {
-      // Use manual verify and sign-in function
-      const result = await verifyOTPAndSignIn({
+      // Use better-auth's signIn.emailOtp method
+      const { signIn } = authClient;
+      const redirectUrl = searchParams.get('redirect') || '/dashboard';
+
+      const result = await signIn.emailOtp({
         email: identifier,
-        otp,
-        callbackURL: searchParams.get('redirect') || undefined
+        otp: otp,
+        callbackURL: redirectUrl,
       });
 
+      // Handle synchronous error response
       if (result.error) {
-        setError(result.error || 'Kode OTP tidak valid atau telah kadaluarsa');
-      } else if (result.redirect) {
-        // Success - redirect to dashboard or callback URL
-        router.push(result.redirect);
-        router.refresh();
-      } else {
-        // Fallback
-        router.push('/dashboard');
-        router.refresh();
+        setError(result.error.message || 'Kode OTP tidak valid atau telah kadaluarsa');
+        setIsLoading(false);
+        return;
       }
+
+      // If successful, wait for session to be established and redirect
+      // better-auth v2 uses session cookie, so we need to wait a bit
+      await new Promise<void>(resolve => setTimeout(resolve, 800));
+
+      // Verify session was established by checking better-auth session
+      const sessionCheck = await fetch('/api/auth/get-session');
+      if (sessionCheck.ok) {
+        const sessionData = await sessionCheck.json();
+        if (sessionData.user) {
+          // Session is valid, redirect to dashboard
+          window.location.href = redirectUrl; // Use window.location for full reload to ensure cookies are set
+          return;
+        }
+      }
+
+      // If session check fails, still try to redirect (might be cookie timing issue)
+      // Use window.location for full page reload to ensure session cookie is properly set
+      window.location.href = redirectUrl;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
       setError(errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };
