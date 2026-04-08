@@ -1,12 +1,27 @@
 import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
-const BASE_URL = (process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000").replace(/\/$/, '');
+// Dynamic base URL that works with localhost, devtunnel, and production
+// Uses environment variable in production, but falls back to current origin for development
+const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    // Client-side: use current origin (works with devtunnel, localhost, etc.)
+    return window.location.origin.replace(/\/$/, '');
+  }
+  // Server-side: use environment variable or localhost
+  return (process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000").replace(/\/$/, '');
+};
+
+const BASE_URL = getBaseURL();
 
 // Main auth client (Email OTP)
 export const authClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
+  fetchOptions: {
+    // Include credentials for all requests
+    credentials: 'include',
+  },
 });
 
 // WhatsApp auth client (separate instance with different endpoint prefix)
@@ -14,10 +29,20 @@ export const authClient = createAuthClient({
 export const whatsappAuthClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
+  fetchOptions: {
+    // Include credentials for all requests
+    credentials: 'include',
+  },
 });
 
 // Extract hooks and methods from main auth client
-export const { signIn, signUp, signOut, useSession } = authClient;
+export const {
+  signIn,
+  signUp,
+  signOut,
+  useSession,
+  emailOtp  // Email OTP specific methods
+} = authClient;
 
 // Helper to format phone number with "@wa.dev" suffix for WhatsApp auth
 // Using @wa.dev suffix instead of wa: prefix to pass Zod email validation
@@ -51,40 +76,4 @@ export function extractPhoneNumber(email: string): string {
     return email.replace('@wa.dev', '');
   }
   return email;
-}
-
-// Manual OTP functions using our custom endpoints
-export async function sendVerificationOTP({ email, type }: { email: string; type: string }) {
-  const response = await fetch(`${BASE_URL}/api/auth/email-otp/send-verification-otp`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, type }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to send OTP');
-  }
-
-  return response.json();
-}
-
-export async function verifyOTPAndSignIn({ email, otp, callbackURL }: { email: string; otp: string; callbackURL?: string }) {
-  const response = await fetch(`${BASE_URL}/api/auth/sign-in/email`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, otp, callbackURL }),
-    credentials: 'include', // Important for cookies!
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to sign in');
-  }
-
-  return response.json();
 }

@@ -191,7 +191,7 @@ async function sendFonnteMessage(
   label: string,
   config: WhatsAppProviderConfig,
 ): Promise<WhatsAppSendResult> {
-  const { NODE_ENV } = process.env;
+  const { NODE_ENV, FORCE_SEND_WHATSAPP } = process.env;
   const formattedPhone = formatIndonesianPhoneNumber(phoneNumber);
   const token = config.token;
 
@@ -199,7 +199,10 @@ async function sendFonnteMessage(
     throw new Error(`${config.provider} token is required in production`);
   }
 
-  if (NODE_ENV !== 'production' || !token || config.provider === 'mock') {
+  // Check if we should send real WhatsApp (production mode or force send)
+  const shouldSendRealWhatsApp = NODE_ENV === 'production' || FORCE_SEND_WHATSAPP === 'true';
+
+  if (!shouldSendRealWhatsApp || !token || config.provider === 'mock') {
     console.log('============================================================');
     console.log(`[WHATSAPP ${label}]`);
     console.log(`Channel: ${config.channel}`);
@@ -207,6 +210,9 @@ async function sendFonnteMessage(
     console.log(`Phone: ${formattedPhone}`);
     console.log(message);
     console.log('============================================================');
+    console.log('');
+    console.log('💡 TIP: Set FORCE_SEND_WHATSAPP=true di .env.local untuk kirim WhatsApp asli di development');
+    console.log('');
 
     return {
       success: true,
@@ -237,6 +243,8 @@ async function sendFonnteMessage(
   if (!result.status) {
     throw new Error(result.message || `Gagal mengirim WhatsApp ${label.toLowerCase()}`);
   }
+
+  console.log(`[WHATSAPP ${label}] ✅ Message sent successfully via Fonnte`);
 
   return {
     success: true,

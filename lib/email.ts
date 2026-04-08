@@ -43,7 +43,7 @@ function formatScanTime(value: Date | string | null): string {
  * Uses Resend HTTP API in production, otherwise logs to the console.
  */
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
-  const { NODE_ENV, RESEND_API_KEY, EMAIL_FROM } = process.env;
+  const { NODE_ENV, RESEND_API_KEY, EMAIL_FROM, FORCE_SEND_EMAIL } = process.env;
 
   // Enhanced logging for debugging
   console.log('[EMAIL SERVICE] 📧 Attempting to send email:', {
@@ -52,16 +52,23 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<vo
     hasApiKey: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM || 'Balikin <noreply@balikin.id>',
     nodeEnv: NODE_ENV,
+    forceSend: !!FORCE_SEND_EMAIL,
     timestamp: new Date().toISOString(),
   });
 
-  if (NODE_ENV !== 'production' || !RESEND_API_KEY) {
+  // Check if we should send real email (production mode or force send)
+  const shouldSendRealEmail = NODE_ENV === 'production' || FORCE_SEND_EMAIL === 'true';
+
+  if (!shouldSendRealEmail || !RESEND_API_KEY) {
     console.log('============================================================');
     console.log('[EMAIL SERVICE] 🧪 DEV MODE - Email not sent (showing preview)');
     console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(html);
     console.log('============================================================');
+    console.log('');
+    console.log('💡 TIP: Set FORCE_SEND_EMAIL=true di .env.local untuk kirim email asli di development');
+    console.log('');
     return;
   }
 

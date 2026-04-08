@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balikin Logo Preview - Design Options</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .logo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .logo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(37, 99, 235, 0.15);
+        }
+
+        .logo-card h3 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-card .badge {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .logo-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .logo-preview.dark {
+            background: #1e3a8a;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .description {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .size-showcase {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+        }
+
+        .size-showcase h3 {
+            width: 100%;
+            color: #1e3a8a;
+            margin-bottom: 10px;
+        }
+
+        .svg-code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin-top: 30px;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            color: #1e3a8a;
+            font-size: 1.5rem;
+            margin: 40px 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-radius: 2px;
+        }
+
+        /* Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Balikin Logo Design Preview</h1>
+        <p class="subtitle">QR + Arrow Return Concept dengan Modern Gradient</p>
+
+        <!-- Main Logo Options -->
+        <h2 class="section-title">Opsi Desain Logo</h2>
+        <div class="logo-grid">
+            <!-- Option 1: QR with Return Arrow -->
+            <div class="logo-card">
+                <h3>Opsi 1 <span class="badge">REKOMENDASI</span></h3>
+                <div class="logo-preview">
+                    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2563eb"/>
+                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- QR Pattern Background -->
+                        <rect x="10" y="10" width="30" height="30" rx="6" fill="url(#grad1)" opacity="0.3"/>
+                        <rect x="80" y="10" width="30" height="30" rx="6" fill="url(#grad1)" opacity="0.3"/>
+                        <rect x="10" y="80" width="30" height="30" rx="6" fill="url(#grad1)" opacity="0.3"/>
+
+                        <!-- QR Dots -->
+                        <circle cx="25" cy="25" r="5" fill="url(#grad1)"/>
+                        <circle cx="95" cy="25" r="5" fill="url(#grad1)"/>
+                        <circle cx="25" cy="95" r="5" fill="url(#grad1)"/>
+                        <circle cx="60" cy="60" r="8" fill="url(#grad1)" opacity="0.5"/>
+                        <circle cx="45" cy="45" r="4" fill="url(#grad1)" opacity="0.7"/>
+                        <circle cx="75" cy="45" r="4" fill="url(#grad1)" opacity="0.7"/>
+                        <circle cx="45" cy="75" r="4" fill="url(#grad1)" opacity="0.7"/>
+                        <circle cx="75" cy="75" r="4" fill="url(#grad1)" opacity="0.7"/>
+
+                        <!-- Return Arrow -->
+                        <path d="M85 85 Q60 85 50 70 Q40 55 45 40 Q50 25 35 35" stroke="url(#grad1)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <polygon points="25,25 40,35 35,50" fill="url(#grad1)"/>
+                    </svg>
+                </div>
+                <p class="description">QR pattern dengan return arrow yang melengkung. Simbolisasi "kembali" dengan elegan.</p>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: linear-gradient(135deg, #2563eb, #7c3aed)">Gradient</div>
+                    <div class="color-swatch" style="background: #2563eb">#2563eb</div>
+                    <div class="color-swatch" style="background: #7c3aed">#7c3aed</div>
+                </div>
+            </div>
+
+            <!-- Option 2: Circular Badge -->
+            <div class="logo-card">
+                <h3>Opsi 2 <span class="badge">Badge</span></h3>
+                <div class="logo-preview">
+                    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2563eb"/>
+                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Circle Background -->
+                        <circle cx="60" cy="60" r="50" fill="url(#grad2)" opacity="0.1"/>
+                        <circle cx="60" cy="60" r="45" fill="none" stroke="url(#grad2)" stroke-width="3"/>
+
+                        <!-- QR Elements in Circle -->
+                        <rect x="35" y="35" width="12" height="12" rx="3" fill="url(#grad1)"/>
+                        <rect x="73" y="35" width="12" height="12" rx="3" fill="url(#grad1)"/>
+                        <rect x="35" y="73" width="12" height="12" rx="3" fill="url(#grad1)"/>
+
+                        <!-- Circular Arrow -->
+                        <path d="M85 60 A 25 25 0 1 1 60 35" stroke="url(#grad2)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                        <polygon points="50,30 60,35 55,48" fill="url(#grad2)"/>
+
+                        <!-- Center B Letter -->
+                        <text x="60" y="68" text-anchor="middle" font-size="20" font-weight="bold" fill="url(#grad2)">B</text>
+                    </svg>
+                </div>
+                <p class="description">Circular badge dengan huruf "B" dan circular arrow. Cocok untuk app icon dan favicon.</p>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: linear-gradient(135deg, #2563eb, #7c3aed)">Gradient</div>
+                </div>
+            </div>
+
+            <!-- Option 3: Minimalist -->
+            <div class="logo-card">
+                <h3>Opsi 3 <span class="badge">Minimalis</span></h3>
+                <div class="logo-preview">
+                    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2563eb"/>
+                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- 3x3 QR Grid Minimalis -->
+                        <rect x="20" y="20" width="20" height="20" rx="4" fill="url(#grad3)"/>
+                        <rect x="50" y="20" width="20" height="20" rx="4" fill="url(#grad3)" opacity="0.6"/>
+                        <rect x="80" y="20" width="20" height="20" rx="4" fill="url(#grad3)"/>
+
+                        <rect x="20" y="50" width="20" height="20" rx="4" fill="url(#grad3)" opacity="0.6"/>
+                        <!-- Center arrow -->
+                        <rect x="50" y="50" width="20" height="20" rx="4" fill="url(#grad3)"/>
+                        <rect x="80" y="50" width="20" height="20" rx="4" fill="url(#grad3)" opacity="0.6"/>
+
+                        <rect x="20" y="80" width="20" height="20" rx="4" fill="url(#grad3)"/>
+                        <rect x="50" y="80" width="20" height="20" rx="4" fill="url(#grad3)" opacity="0.6"/>
+                        <rect x="80" y="80" width="20" height="20" rx="4" fill="url(#grad3)"/>
+
+                        <!-- White Arrow Overlay -->
+                        <path d="M55 45 L55 55 L65 55 L65 65 L75 55 L65 45 L65 55" fill="white" opacity="0.9"/>
+                    </svg>
+                </div>
+                <p class="description">Grid 3x3 minimalis dengan arrow sebagai center focal. Simple dan recognizable.</p>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: #2563eb">#2563eb</div>
+                    <div class="color-swatch" style="background: #7c3aed">#7c3aed</div>
+                </div>
+            </div>
+
+            <!-- Option 4: Wordmark -->
+            <div class="logo-card">
+                <h3>Opsi 4 <span class="badge">Wordmark</span></h3>
+                <div class="logo-preview">
+                    <svg width="150" height="60" viewBox="0 0 150 60" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#2563eb"/>
+                                <stop offset="100%" style="stop-color:#7c3aed"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Mini Icon -->
+                        <rect x="0" y="10" width="16" height="16" rx="4" fill="url(#grad4)"/>
+                        <rect x="20" y="10" width="16" height="16" rx="4" fill="url(#grad4)" opacity="0.7"/>
+                        <rect x="10" y="30" width="16" height="16" rx="4" fill="url(#grad4)"/>
+                        <path d="M25 15 L35 20 L30 30" stroke="white" stroke-width="2" fill="none"/>
+
+                        <!-- Text Balikin -->
+                        <text x="45" y="42" font-size="32" font-weight="800" fill="url(#grad4)">Balikin</text>
+                    </svg>
+                </div>
+                <p class="description">Horizontal logo dengan icon mini + teks. Cocok untuk header website.</p>
+                <div class="color-palette">
+                    <div class="color-swatch" style="background: linear-gradient(90deg, #2563eb, #7c3aed)">Gradient</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark Background Versions -->
+        <h2 class="section-title">Versi Dark Background</h2>
+        <div class="logo-grid">
+            <div class="logo-card">
+                <h3>White Inverted</h3>
+                <div class="logo-preview dark">
+                    <svg width="100" height="100" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="30" height="30" rx="6" fill="white" opacity="0.3"/>
+                        <rect x="80" y="10" width="30" height="30" rx="6" fill="white" opacity="0.3"/>
+                        <rect x="10" y="80" width="30" height="30" rx="6" fill="white" opacity="0.3"/>
+
+                        <circle cx="25" cy="25" r="5" fill="white"/>
+                        <circle cx="95" cy="25" r="5" fill="white"/>
+                        <circle cx="25" cy="95" r="5" fill="white"/>
+                        <circle cx="60" cy="60" r="8" fill="white" opacity="0.5"/>
+                        <circle cx="45" cy="45" r="4" fill="white" opacity="0.7"/>
+                        <circle cx="75" cy="45" r="4" fill="white" opacity="0.7"/>
+                        <circle cx="45" cy="75" r="4" fill="white" opacity="0.7"/>
+                        <circle cx="75" cy="75" r="4" fill="white" opacity="0.7"/>
+
+                        <path d="M85 85 Q60 85 50 70 Q40 55 45 40 Q50 25 35 35" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <polygon points="25,25 40,35 35,50" fill="white"/>
+                    </svg>
+                </div>
+                <p class="description">Versi putih untuk dark background. Gradient diganti dengan solid white + opacity.</p>
+            </div>
+        </div>
+
+        <!-- Size Showcase -->
+        <h2 class="section-title">Ukuran & Penggunaan</h2>
+        <div class="size-showcase">
+            <svg width="16" height="16" viewBox="0 0 120 120">
+                <circle cx="25" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="95" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="25" cy="95" r="5" fill="#2563eb"/>
+                <circle cx="60" cy="60" r="8" fill="#7c3aed"/>
+                <path d="M85 85 Q60 85 50 70" stroke="#2563eb" stroke-width="8" fill="none"/>
+                <polygon points="25,25 40,35 35,50" fill="#2563eb"/>
+            </svg>
+            <span style="font-size: 0.8rem; color: #64748b;">16px</span>
+
+            <svg width="24" height="24" viewBox="0 0 120 120">
+                <circle cx="25" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="95" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="25" cy="95" r="5" fill="#2563eb"/>
+                <circle cx="60" cy="60" r="8" fill="#7c3aed"/>
+                <path d="M85 85 Q60 85 50 70" stroke="#2563eb" stroke-width="8" fill="none"/>
+                <polygon points="25,25 40,35 35,50" fill="#2563eb"/>
+            </svg>
+            <span style="font-size: 0.8rem; color: #64748b;">24px</span>
+
+            <svg width="32" height="32" viewBox="0 0 120 120">
+                <circle cx="25" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="95" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="25" cy="95" r="5" fill="#2563eb"/>
+                <circle cx="60" cy="60" r="8" fill="#7c3aed"/>
+                <path d="M85 85 Q60 85 50 70" stroke="#2563eb" stroke-width="8" fill="none"/>
+                <polygon points="25,25 40,35 35,50" fill="#2563eb"/>
+            </svg>
+            <span style="font-size: 0.8rem; color: #64748b;">32px</span>
+
+            <svg width="48" height="48" viewBox="0 0 120 120">
+                <circle cx="25" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="95" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="25" cy="95" r="5" fill="#2563eb"/>
+                <circle cx="60" cy="60" r="8" fill="#7c3aed"/>
+                <path d="M85 85 Q60 85 50 70" stroke="#2563eb" stroke-width="8" fill="none"/>
+                <polygon points="25,25 40,35 35,50" fill="#2563eb"/>
+            </svg>
+            <span style="font-size: 0.8rem; color: #64748b;">48px</span>
+
+            <svg width="64" height="64" viewBox="0 0 120 120">
+                <circle cx="25" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="95" cy="25" r="5" fill="#2563eb"/>
+                <circle cx="25" cy="95" r="5" fill="#2563eb"/>
+                <circle cx="60" cy="60" r="8" fill="#7c3aed"/>
+                <path d="M85 85 Q60 85 50 70" stroke="#2563eb" stroke-width="8" fill="none"/>
+                <polygon points="25,25 40,35 35,50" fill="#2563eb"/>
+            </svg>
+            <span style="font-size: 0.8rem; color: #64748b;">64px</span>
+        </div>
+
+        <!-- SVG Code Reference -->
+        <h2 class="section-title">SVG Code Reference</h2>
+        <div class="svg-code">
+&lt;!-- Balikin Logo SVG Template --&gt;
+&lt;svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"&gt;
+    &lt;defs&gt;
+        &lt;linearGradient id="balikinGradient" x1="0%" y1="0%" x2="100%" y2="100%"&gt;
+            &lt;stop offset="0%" style="stop-color:#2563eb"/&gt;
+            &lt;stop offset="100%" style="stop-color:#7c3aed"/&gt;
+        &lt;/linearGradient&gt;
+    &lt;/defs&gt;
+
+    &lt;!-- QR Corner Elements --&gt;
+    &lt;rect x="10" y="10" width="30" height="30" rx="6" fill="url(#balikinGradient)" opacity="0.3"/&gt;
+    &lt;rect x="80" y="10" width="30" height="30" rx="6" fill="url(#balikinGradient)" opacity="0.3"/&gt;
+    &lt;rect x="10" y="80" width="30" height="30" rx="6" fill="url(#balikinGradient)" opacity="0.3"/&gt;
+
+    &lt;!-- QR Dots --&gt;
+    &lt;circle cx="25" cy="25" r="5" fill="url(#balikinGradient)"/&gt;
+    &lt;circle cx="95" cy="25" r="5" fill="url(#balikinGradient)"/&gt;
+    &lt;circle cx="25" cy="95" r="5" fill="url(#balikinGradient)"/&gt;
+
+    &lt;!-- Return Arrow --&gt;
+    &lt;path d="M85 85 Q60 85 50 70 Q40 55 45 40 Q50 25 35 35"
+          stroke="url(#balikinGradient)" stroke-width="6" fill="none" stroke-linecap="round"/&gt;
+    &lt;polygon points="25,25 40,35 35,50" fill="url(#balikinGradient)"/&gt;
+&lt;/svg&gt;
+        </div>
+
+        <!-- Color Palette Reference -->
+        <h2 class="section-title">Color Palette Reference</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; border-radius: 12px; background: #2563eb;"></div>
+                <div>
+                    <div style="font-weight: bold; color: #1e3a8a;">Primary Blue</div>
+                    <div style="color: #64748b; font-size: 0.9rem;">#2563eb</div>
+                    <div style="color: #64748b; font-size: 0.8rem;">rgb(37, 99, 235)</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; border-radius: 12px; background: #7c3aed;"></div>
+                <div>
+                    <div style="font-weight: bold; color: #1e3a8a;">Secondary Purple</div>
+                    <div style="color: #64748b; font-size: 0.9rem;">#7c3aed</div>
+                    <div style="color: #64748b; font-size: 0.8rem;">rgb(124, 58, 237)</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #7c3aed);"></div>
+                <div>
+                    <div style="font-weight: bold; color: #1e3a8a;">Brand Gradient</div>
+                    <div style="color: #64748b; font-size: 0.9rem;">135deg</div>
+                    <div style="color: #64748b; font-size: 0.8rem;">Blue → Purple</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; border-radius: 12px; background: #1e3a8a;"></div>
+                <div>
+                    <div style="font-weight: bold; color: #1e3a8a;">Dark Blue</div>
+                    <div style="color: #64748b; font-size: 0.9rem;">#1e3a8a</div>
+                    <div style="color: #64748b; font-size: 0.8rem;">For text/contrast</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 50px; color: #64748b;">
+            <p>Balikin Logo Design Preview &copy; 2026</p>
+            <p style="font-size: 0.9rem;">QR + Arrow Return Concept dengan Modern Gradient</p>
+        </div>
+    </div>
+</body>
+</html>

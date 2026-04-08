@@ -1,0 +1,39 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="balikinGradientIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="url(#balikinGradientIcon)"/>
+
+  <!-- White QR/Arrow Elements -->
+  <!-- Top Left -->
+  <rect x="12" y="12" width="20" height="20" rx="5" fill="white" opacity="0.3"/>
+  <circle cx="22" cy="22" r="3.5" fill="white"/>
+
+  <!-- Top Right -->
+  <rect x="68" y="12" width="20" height="20" rx="5" fill="white" opacity="0.3"/>
+  <circle cx="78" cy="22" r="3.5" fill="white"/>
+
+  <!-- Bottom Left -->
+  <rect x="12" y="68" width="20" height="20" rx="5" fill="white" opacity="0.3"/>
+  <circle cx="22" cy="78" r="3.5" fill="white"/>
+
+  <!-- Center -->
+  <circle cx="50" cy="50" r="7" fill="white" opacity="0.7"/>
+  <circle cx="35" cy="35" r="3" fill="white" opacity="0.9"/>
+  <circle cx="65" cy="35" r="3" fill="white" opacity="0.9"/>
+  <circle cx="35" cy="65" r="3" fill="white" opacity="0.9"/>
+  <circle cx="65" cy="65" r="3" fill="white" opacity="0.9"/>
+
+  <!-- Return Arrow -->
+  <path d="M78 78 Q58 78 48 65 Q38 52 42 38 Q46 24 30 35"
+        stroke="white" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="18,25 35,35 28,50" fill="white"/>
+
+  <!-- Bottom Right -->
+  <circle cx="78" cy="78" r="3.5" fill="white" opacity="0.5"/>
+</svg>
