@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Service Worker & Cache</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background: #1d4ed8;
+        }
+        .success {
+            color: #16a34a;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .info {
+            background: #f3f4f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Service Worker & Cache</h1>
+
+    <div class="info">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click the buttons below to clear service worker and cache</li>
+            <li>Close all tabs of this application</li>
+            <li>Restart your development server: <code>npm run dev</code></li>
+            <li>Open the application again in a fresh tab</li>
+        </ol>
+    </div>
+
+    <button class="button" onclick="clearServiceWorkers()">Clear All Service Workers</button>
+    <button class="button" onclick="clearAllCaches()">Clear All Caches</button>
+    <button class="button" onclick="unregisterCurrentSW()">Unregister Current Service Worker</button>
+
+    <div id="message"></div>
+
+    <div class="info">
+        <h3>🔍 Manual Steps (if buttons don't work):</h3>
+        <ol>
+            <li>Open DevTools (F12 or Right-click → Inspect)</li>
+            <li>Go to <strong>Application</strong> tab</li>
+            <li>Click <strong>Service Workers</strong> on the left</li>
+            <li>Click <strong>"Unregister"</strong> for all service workers</li>
+            <li>Click <strong>Clear storage</strong> → <strong>"Clear site data"</strong></li>
+            <li>Close DevTools and refresh the page (Ctrl+Shift+R)</li>
+        </ol>
+    </div>
+
+    <script>
+        function showMessage(text, type = 'success') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = text;
+            document.getElementById('message').appendChild(div);
+        }
+
+        async function clearServiceWorkers() {
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                if (registrations.length === 0) {
+                    showMessage('No service workers found', 'info');
+                    return;
+                }
+                for (let registration of registrations) {
+                    await registration.unregister();
+                    showMessage(`Unregistered: ${registration.scope}`, 'success');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllCaches() {
+            try {
+                const cacheNames = await caches.keys();
+                if (cacheNames.length === 0) {
+                    showMessage('No caches found', 'info');
+                    return;
+                }
+                for (let cacheName of cacheNames) {
+                    await caches.delete(cacheName);
+                    showMessage(`Deleted cache: ${cacheName}`, 'success');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function unregisterCurrentSW() {
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        await registration.unregister();
+                        showMessage('Unregistered current service worker', 'success');
+                    } else {
+                        showMessage('No service worker registered on this page', 'info');
+                    }
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

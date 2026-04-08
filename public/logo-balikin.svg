@@ -1,0 +1,43 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="balikinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="balikinGradientVertical" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle (Optional, remove for transparent) -->
+  <circle cx="100" cy="100" r="90" fill="url(#balikinGradient)" opacity="0.05"/>
+
+  <!-- QR Corner Elements -->
+  <!-- Top Left -->
+  <rect x="25" y="25" width="35" height="35" rx="8" fill="url(#balikinGradient)" opacity="0.25"/>
+  <circle cx="42.5" cy="42.5" r="6" fill="url(#balikinGradient)"/>
+
+  <!-- Top Right -->
+  <rect x="140" y="25" width="35" height="35" rx="8" fill="url(#balikinGradient)" opacity="0.25"/>
+  <circle cx="157.5" cy="42.5" r="6" fill="url(#balikinGradient)"/>
+
+  <!-- Bottom Left -->
+  <rect x="25" y="140" width="35" height="35" rx="8" fill="url(#balikinGradient)" opacity="0.25"/>
+  <circle cx="42.5" cy="157.5" r="6" fill="url(#balikinGradient)"/>
+
+  <!-- Center QR Dots -->
+  <circle cx="100" cy="100" r="12" fill="url(#balikinGradient)" opacity="0.6"/>
+  <circle cx="75" cy="75" r="5" fill="url(#balikinGradient)" opacity="0.8"/>
+  <circle cx="125" cy="75" r="5" fill="url(#balikinGradient)" opacity="0.8"/>
+  <circle cx="75" cy="125" r="5" fill="url(#balikinGradient)" opacity="0.8"/>
+  <circle cx="125" cy="125" r="5" fill="url(#balikinGradient)" opacity="0.8"/>
+
+  <!-- Return Arrow -->
+  <path d="M150 150 Q120 150 105 130 Q90 110 95 85 Q100 60 75 75"
+        stroke="url(#balikinGradient)" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="60,60 80,75 70,95" fill="url(#balikinGradient)"/>
+
+  <!-- Bottom Right QR dot -->
+  <circle cx="157.5" cy="157.5" r="6" fill="url(#balikinGradient)" opacity="0.4"/>
+</svg>

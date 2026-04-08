@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { QrCode, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
-import { useSession, signOut } from '@/lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 
 export function SiteHeader() {
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const router = useRouter();
@@ -20,11 +20,21 @@ export function SiteHeader() {
     setIsSigningOut(true);
 
     try {
-      await signOut();
-      setIsMobileMenuOpen(false);
-      router.replace('/');
-      router.refresh();
+      // Use Better Auth's signOut method
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            // Force full page reload to clear all client state
+            window.location.href = "/";
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // Still redirect even if there's an error
+      window.location.href = "/";
     } finally {
+      setIsMobileMenuOpen(false);
       setIsSigningOut(false);
     }
   };

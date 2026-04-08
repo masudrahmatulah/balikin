@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatWhatsAppEmail, sendVerificationOTP, verifyOTPAndSignIn } from '@/lib/auth-client';
+import { authClient, formatWhatsAppEmail } from '@/lib/auth-client';
 
 interface AuthFormProps {
   mode?: 'sign-in' | 'sign-up';
@@ -16,6 +16,7 @@ type AuthMethod = 'email' | 'whatsapp';
 
 export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [authMethod, setAuthMethod] = useState<AuthMethod>('whatsapp');
 
   // Form states
@@ -37,43 +38,46 @@ export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
       let identifier: string;
       let displayIdentifier: string;
 
+      // Get emailOtp method from authClient
+      const { emailOtp } = authClient;
+
       if (authMethod === 'whatsapp') {
-        // Use manual OTP function for WhatsApp
+        // Use better-auth's OTP method for WhatsApp
         identifier = formatWhatsAppEmail(whatsapp);
         displayIdentifier = whatsapp;
-
-        const result = await sendVerificationOTP({
-          email: identifier,
-          type: 'sign-in',
-        });
-        if (result.error) {
-          throw new Error(result.error || 'Gagal mengirim kode OTP.');
-        }
       } else {
-        // Use manual OTP function for Email
-        const result = await sendVerificationOTP({
-          email: email,
-          type: 'sign-in',
-        });
-        if (result.error) {
-          throw new Error(result.error || 'Gagal mengirim kode OTP.');
-        }
+        // Use better-auth's OTP method for Email
         identifier = email;
         displayIdentifier = email;
       }
 
+      // Send OTP using better-auth's emailOtp method
+      const result = await emailOtp.sendVerificationOtp({
+        email: identifier,
+        type: 'sign-in',
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || 'Gagal mengirim kode OTP.');
+      }
+
       setSuccess(true);
+
+      // Get redirect parameter from current URL to pass it through
+      const redirectParam = searchParams.get('redirect') || '';
 
       // Redirect to OTP verification page
       setTimeout(() => {
-        router.push(
-          `/verify-otp?` +
-          `identifier=${encodeURIComponent(identifier)}` +
-          `&display=${encodeURIComponent(displayIdentifier)}` +
-          `&method=${authMethod}` +
-          `&mode=${mode}` +
-          `&name=${encodeURIComponent(name)}`
-        );
+        const verifyUrl = new URL('/verify-otp', window.location.origin);
+        verifyUrl.searchParams.set('identifier', identifier);
+        verifyUrl.searchParams.set('display', displayIdentifier);
+        verifyUrl.searchParams.set('method', authMethod);
+        verifyUrl.searchParams.set('mode', mode);
+        verifyUrl.searchParams.set('name', name);
+        if (redirectParam) {
+          verifyUrl.searchParams.set('redirect', redirectParam);
+        }
+        router.push(verifyUrl.pathname + verifyUrl.search);
       }, 500);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';

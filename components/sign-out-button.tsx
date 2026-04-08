@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 
-import { signOut } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 
 interface SignOutButtonProps {
@@ -29,9 +29,19 @@ export function SignOutButton({
     setIsSigningOut(true);
 
     try {
-      await signOut();
-      router.replace("/");
-      router.refresh();
+      // Use better-auth's signOut method
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            // Force full page reload to clear all client state
+            window.location.href = "/";
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // Still redirect even if there's an error
+      window.location.href = "/";
     } finally {
       setIsSigningOut(false);
     }
