@@ -1,8 +1,8 @@
 "use client";
 
-import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 interface AdminUser {
   id: string;
@@ -27,9 +27,21 @@ export function AdminHeader({ session }: AdminHeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    await signOut();
-    router.replace("/");
-    router.refresh();
+    try {
+      // Use Better Auth's signOut method
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            // Force full page reload to clear all client state
+            window.location.href = "/";
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // Still redirect even if there's an error
+      window.location.href = "/";
+    }
   };
 
   return (

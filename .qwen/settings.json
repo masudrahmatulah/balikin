@@ -17,7 +17,11 @@
       "Bash(npx *)",
       "Bash(python3 *)",
       "Bash(node *)",
-      "Bash(rm *)"
+      "Bash(rm *)",
+      "Bash(pkill *)",
+      "Bash(sleep *)",
+      "Bash(curl *)",
+      "Bash(chmod *)"
     ]
   },
   "$version": 3

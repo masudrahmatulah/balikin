@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { AuthForm } from '@/components/auth-form';
 import { MessageCircle } from 'lucide-react';
 import { buildMetadata } from '@/lib/seo';
@@ -10,6 +11,10 @@ export const metadata: Metadata = buildMetadata({
   path: '/sign-in',
   noIndex: true,
 });
+
+function SignInForm() {
+  return <AuthForm mode="sign-in" />;
+}
 
 export default function SignInPage() {
   return (
@@ -28,7 +33,9 @@ export default function SignInPage() {
           </div>
 
           {/* Auth Form */}
-          <AuthForm mode="sign-in" />
+          <Suspense fallback={<div className="animate-pulse bg-muted h-64 rounded-lg" />}>
+            <SignInForm />
+          </Suspense>
 
           {/* Back to Home */}
           <div className="mt-6 text-center">
