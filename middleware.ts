@@ -1,12 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
-import { db } from '@/db';
-import { user, session as sessionTable } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-
-// Force Node.js runtime instead of Edge to avoid telemetry issues
-export const runtime = 'nodejs';
 
 // Routes that don't require authentication
 const publicRoutes = [
@@ -41,69 +34,13 @@ const adminRoutes = [
   '/admin',
 ];
 
-/**
- * Get session manually from database
- */
-async function getManualSession(request: NextRequest) {
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
-
-  if (!sessionToken) {
-    return null;
-  }
-
-  try {
-    // Find session from database
-    const sessionRecord = await db
-      .select({
-        session: sessionTable,
-        user: user,
-      })
-      .from(sessionTable)
-      .innerJoin(user, eq(sessionTable.userId, user.id))
-      .where(eq(sessionTable.token, sessionToken))
-      .limit(1);
-
-    if (!sessionRecord.length) {
-      return null;
-    }
-
-    const sessionData = sessionRecord[0];
-
-    // Check if session is expired
-    if (new Date(sessionData.session.expiresAt) < new Date()) {
-      await db.delete(sessionTable).where(eq(sessionTable.token, sessionToken));
-      return null;
-    }
-
-    return {
-      user: sessionData.user,
-      session: sessionData.session,
-    };
-  } catch {
-    return null;
-  }
-}
-
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
 
-  // Try manual session first (since Better Auth API doesn't work)
-  let session: any = await getManualSession(request);
-
-  // Fallback to Better Auth if manual fails
-  if (!session) {
-    try {
-      const betterAuthSession = await auth.api.getSession({
-        headers: request.headers,
-      });
-      session = betterAuthSession;
-    } catch {
-      session = null;
-    }
-  }
-
-  const isAuthenticated = !!session;
+  // Check session cookie directly from request
+  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+  const isAuthenticated = !!sessionToken;
 
   // Check if route is public
   const isPublicRoute = publicRoutes.some((route) => {
@@ -138,17 +75,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Check admin role
-  if (isAdminRoute && isAuthenticated) {
-    const userRole = session.user?.role;
-    if (userRole !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard?error=no-admin', request.url));
-    }
-  }
+  // Note: Admin role check is now handled in the admin layout/server component
+  // We can't check roles in middleware without database access
 
-  // Redirect to dashboard if trying to access sign-in/sign-up while authenticated
-  if (isAuthenticated && (pathname === '/sign-in' || pathname === '/sign-up')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Redirect authenticated users away from sign-in/sign-up pages to dashboard
+  // Note: Don't redirect from /verify-otp as it handles post-login redirect itself
+  const isAuthPage = pathname === '/sign-in' || pathname === '/sign-up';
+  if (isAuthPage && isAuthenticated) {
+    // Get redirect parameter if exists, otherwise go to dashboard
+    const redirectParam = nextUrl.searchParams.get('redirect');
+    const dashboardUrl = new URL(redirectParam || '/dashboard', request.url);
+    return NextResponse.redirect(dashboardUrl);
   }
 
   return NextResponse.next();
@@ -162,7 +99,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
+     * - CSS and JS files
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|json|ico)$).*)',
   ],
 };
