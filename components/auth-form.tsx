@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Mail, Phone } from 'lucide-react';
+import { Loader2, Mail, Phone, Chrome } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,6 +83,26 @@ export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
       setError(errorMessage);
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get redirect parameter from current URL
+      const redirectParam = searchParams.get('redirect') || '/dashboard';
+
+      // Use signIn.social for Google
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: redirectParam,
+      });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal login dengan Google. Silakan coba lagi.';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
@@ -207,6 +227,30 @@ export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
             )}
           </>
         )}
+      </Button>
+
+      {/* Divider - Or continue with */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Atau
+          </span>
+        </div>
+      </div>
+
+      {/* Google Sign-In Button */}
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={handleGoogleSignIn}
+        disabled={isLoading}
+      >
+        <Chrome className="mr-2 h-4 w-4" />
+        Masuk dengan Google
       </Button>
 
       <div className="text-center text-sm leading-6 text-muted-foreground">

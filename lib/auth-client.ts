@@ -14,7 +14,7 @@ const getBaseURL = () => {
 
 const BASE_URL = getBaseURL();
 
-// Main auth client (Email OTP)
+// Main auth client (Email OTP + Social Login)
 export const authClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
@@ -41,7 +41,7 @@ export const {
   signUp,
   signOut,
   useSession,
-  emailOtp  // Email OTP specific methods
+  emailOtp,  // Email OTP specific methods
 } = authClient;
 
 // Helper to format phone number with "@wa.dev" suffix for WhatsApp auth

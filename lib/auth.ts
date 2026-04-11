@@ -163,6 +163,14 @@ export const auth = betterAuth({
     'https://*.devtunnels.ms',
     'https://*.devtunnels.ms/**',
   ],
+  // Social Providers (Google SSO)
+  socialProviders: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      enabled: true,
+    },
+  } : undefined,
   // Verification configuration - store in plain text for WhatsApp support
   verification: {
     storeIdentifier: "plain", // Use plain text instead of hashed (for @wa.dev support)
