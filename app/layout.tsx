@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -67,10 +66,34 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="overflow-x-hidden antialiased">
-        <ServiceWorkerRegistration />
         <Providers>
           {children}
         </Providers>
+        {/* Service Worker Cleanup Script - Removes old service workers that cause redirect errors */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if ('serviceWorker' in navigator) {
+                  // Unregister all service workers untuk fix redirect error
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    registrations.forEach(function(registration) {
+                      registration.unregister();
+                    });
+                  });
+                  // Clear all caches
+                  if ('caches' in window) {
+                    caches.keys().then(function(cacheNames) {
+                      cacheNames.forEach(function(cacheName) {
+                        caches.delete(cacheName);
+                      });
+                    });
+                  }
+                }
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );
