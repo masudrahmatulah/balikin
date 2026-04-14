@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { QrCode, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 
 export function SiteHeader() {
-  const { data: session, isPending } = authClient.useSession();
+  // Use disableCache to ensure we always get fresh session data
+  const { data: session, isPending, refetch } = authClient.useSession({
+    disableCache: true,
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const router = useRouter();
+
+  // Refetch session on mount to ensure fresh data
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  // Validate session has required user data
+  const isValidSession = session && session.user && session.user.id;
 
   const handleSignOut = async () => {
     if (isSigningOut) return;
@@ -20,22 +29,34 @@ export function SiteHeader() {
     setIsSigningOut(true);
 
     try {
-      // Use Better Auth's signOut method
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            // Force full page reload to clear all client state
-            window.location.href = "/";
-          },
-        },
+      // Clear all better-auth cookies explicitly before signing out
+      const cookies = document.cookie.split(';');
+      cookies.forEach(cookie => {
+        const cookieName = cookie.trim().split('=')[0];
+        if (cookieName.includes('better-auth') || cookieName.includes('session')) {
+          // Clear cookie for current path and domain
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+          // Also try with . prefix for subdomain cookies
+          if (window.location.hostname.includes('.')) {
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+          }
+        }
       });
+
+      // Use Better Auth's signOut method
+      await authClient.signOut();
     } catch (error) {
       console.error("Sign out error:", error);
-      // Still redirect even if there's an error
-      window.location.href = "/";
     } finally {
+      // Always redirect regardless of success/error
+      // This ensures UI is updated even if signOut API call fails
       setIsMobileMenuOpen(false);
       setIsSigningOut(false);
+      // Small delay to ensure cookies are cleared
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     }
   };
 
@@ -69,7 +90,7 @@ export function SiteHeader() {
           <div className="hidden items-center gap-3 md:flex">
             {isPending ? (
               <div className="h-9 w-32 animate-pulse rounded bg-gray-200" />
-            ) : session ? (
+            ) : isValidSession ? (
               <>
                 <Link href="/dashboard">
                   <Button className="shadow-lg shadow-blue-600/20">
@@ -103,7 +124,7 @@ export function SiteHeader() {
         <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'}`}>
           {isPending ? (
             <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
-          ) : session ? (
+          ) : isValidSession ? (
             <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
               <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full shadow-lg shadow-blue-600/20">

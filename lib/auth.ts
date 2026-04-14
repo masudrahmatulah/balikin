@@ -121,9 +121,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     updateAge: 24 * 60 * 60, // 1 day - update session age
+    // Disable cookie cache to prevent stale session issues
+    // Session will always be validated against database
     cookieCache: {
-      enabled: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      enabled: false,
     },
   },
   advanced: {
