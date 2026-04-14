@@ -23,6 +23,11 @@ export function SiteHeader() {
   // Validate session has required user data
   const isValidSession = session && session.user && session.user.id;
 
+  // Determine dashboard URL based on user role
+  const userRole = session?.user?.role || 'user';
+  const isAdmin = userRole === 'admin';
+  const dashboardUrl = isAdmin ? '/admin' : '/dashboard';
+
   const handleSignOut = async () => {
     if (isSigningOut) return;
 
@@ -92,10 +97,10 @@ export function SiteHeader() {
               <div className="h-9 w-32 animate-pulse rounded bg-gray-200" />
             ) : isValidSession ? (
               <>
-                <Link href="/dashboard">
+                <Link href={dashboardUrl}>
                   <Button className="shadow-lg shadow-blue-600/20">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
+                    {isAdmin ? 'Admin' : 'Dashboard'}
                   </Button>
                 </Link>
                 <Button
@@ -126,10 +131,10 @@ export function SiteHeader() {
             <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
           ) : isValidSession ? (
             <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
-              <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+              <Link href={dashboardUrl} onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full shadow-lg shadow-blue-600/20">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Dashboard
+                  {isAdmin ? 'Admin' : 'Dashboard'}
                 </Button>
               </Link>
               <Button
