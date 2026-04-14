@@ -2,12 +2,14 @@ import { createAuthClient } from "better-auth/react";
 import { emailOTPClient } from "better-auth/client/plugins";
 
 // Dynamic base URL that works with localhost, devtunnel, and production
-// Uses environment variable in production, but falls back to current origin for development
+// IMPORTANT: On client-side, ALWAYS use current origin to avoid domain mismatch
 const getBaseURL = () => {
+  // Client-side: ALWAYS use current origin to avoid cookie domain issues
+  // This ensures auth requests go to the same domain the user is accessing
   if (typeof window !== 'undefined') {
-    // Client-side: use current origin (works with devtunnel, localhost, etc.)
     return window.location.origin.replace(/\/$/, '');
   }
+
   // Server-side: use environment variable or localhost
   return (process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000").replace(/\/$/, '');
 };
@@ -19,7 +21,7 @@ export const authClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
   fetchOptions: {
-    // Include credentials for all requests
+    // Include credentials for all requests (required for cookies)
     credentials: 'include',
   },
 });
@@ -30,7 +32,7 @@ export const whatsappAuthClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
   fetchOptions: {
-    // Include credentials for all requests
+    // Include credentials for all requests (required for cookies)
     credentials: 'include',
   },
 });

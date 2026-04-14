@@ -59,6 +59,9 @@ function VerifyOTPContent() {
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  // Use useSession to get session data and refetch function
+  const { data: session, refetch: refetchSession } = authClient.useSession();
+
   // Countdown timer for resend
   useEffect(() => {
     if (countdown > 0) {
@@ -137,13 +140,28 @@ function VerifyOTPContent() {
       if (result.data) {
         console.log('[VERIFY OTP] Sign in successful, session data:', result.data);
 
-        // Session was created successfully
-        // Wait longer for browser to process the cookie and session to be stored
-        await new Promise<void>(resolve => setTimeout(resolve, 500));
+        // CRITICAL: Verify session was actually created by refetching
+        // This ensures the session is stored in database and cookie is set
+        console.log('[VERIFY OTP] Fetching fresh session...');
 
-        // Use window.location.href for full page reload to ensure cookies are properly set
-        // This ensures a fresh page load with the new session
-        window.location.href = redirectUrl;
+        // Wait for cookie to be set
+        await new Promise<void>(resolve => setTimeout(resolve, 1000));
+
+        // Refetch session to verify it's stored
+        const freshSession = await refetchSession();
+
+        console.log('[VERIFY OTP] Fresh session after refetch:', freshSession);
+
+        // Check if we have a valid session with user data
+        if (freshSession?.user?.id) {
+          console.log('[VERIFY OTP] Session validated, redirecting to:', redirectUrl);
+          // Session is valid - redirect to dashboard
+          window.location.href = redirectUrl;
+        } else {
+          console.error('[VERIFY OTP] Session not found after sign in!');
+          setError('Login berhasil tapi sesi tidak tersimpan. Silakan coba lagi.');
+          setIsLoading(false);
+        }
       } else {
         // No session data returned - this shouldn't happen if sign-in succeeded
         console.error('[VERIFY OTP] No session data in response');
