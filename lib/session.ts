@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { auth } from './auth';
 import type { Session } from './auth';
+import { cookies } from 'next/headers';
 
 /**
  * Get the current session on the server side
@@ -9,11 +10,26 @@ import type { Session } from './auth';
 export async function getSession(): Promise<Session | null> {
   try {
     const headersList = await headers();
+
+    // Debug: Check if session cookie exists
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('better-auth.session_token');
+    console.log('[getSession] Session cookie exists:', !!sessionCookie);
+
     const session = await auth.api.getSession({
       headers: headersList,
     });
+
+    console.log('[getSession] Session result:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userRole: session?.user?.role,
+    });
+
     return session as Session | null;
-  } catch {
+  } catch (error) {
+    console.error('[getSession] Error:', error);
     return null;
   }
 }
