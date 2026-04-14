@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { auth } from '@/lib/auth';
 
 // Routes that don't require authentication
 const publicRoutes = [
@@ -16,6 +17,7 @@ const publicRoutes = [
   '/sign-in',
   '/sign-up',
   '/verify-otp',
+  '/api/auth', // Auth API endpoints
   '/p/[slug]', // Public tag pages
 ];
 
@@ -34,58 +36,103 @@ const adminRoutes = [
   '/admin',
 ];
 
+/**
+ * Check if a path matches a route pattern (supports wildcards like [slug])
+ */
+function matchesRoute(pathname: string, route: string): boolean {
+  if (route.includes('[')) {
+    // Convert pattern like /p/[slug] to regex
+    const pattern = route.replace(/\[.*?\]/g, '[^/]+');
+    const regex = new RegExp(`^${pattern}$`);
+    return regex.test(pathname);
+  }
+  return pathname === route || pathname.startsWith(route + '/');
+}
+
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
 
-  // Check session cookie directly from request
-  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
-  const isAuthenticated = !!sessionToken;
-
-  // Check if route is public
-  const isPublicRoute = publicRoutes.some((route) => {
-    // Convert pattern like /p/[slug] to regex
-    if (route.includes('[')) {
-      const pattern = route.replace(/\[.*?\]/g, '[^/]+');
-      const regex = new RegExp(`^${pattern}$`);
-      return regex.test(pathname);
-    }
-    return pathname === route;
-  });
-
-  // Check if route is protected
-  const isProtectedRoute = protectedRoutes.some((route) => {
-    if (route.includes('[')) {
-      const pattern = route.replace(/\[.*?\]/g, '[^/]+');
-      const regex = new RegExp(`^${pattern}$`);
-      return regex.test(pathname);
-    }
-    return pathname === route || pathname.startsWith(route + '/');
-  });
-
-  // Check if route is admin
-  const isAdminRoute = adminRoutes.some((route) => {
-    return pathname === route || pathname.startsWith(route + '/');
-  });
-
-  // Redirect to sign-in if trying to access protected route without auth
-  if (isProtectedRoute && !isAuthenticated) {
-    const signInUrl = new URL('/sign-in', request.url);
-    signInUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(signInUrl);
+  // Skip middleware for static files and Next.js internals
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
   }
 
-  // Note: Admin role check is now handled in the admin layout/server component
-  // We can't check roles in middleware without database access
+  // Check if route is public
+  const isPublicRoute = publicRoutes.some((route) => matchesRoute(pathname, route));
 
-  // Redirect authenticated users away from sign-in/sign-up pages to dashboard
-  // Note: Don't redirect from /verify-otp as it handles post-login redirect itself
+  // If public route, let it pass
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // Check if route is protected
+  const isProtectedRoute = protectedRoutes.some((route) => matchesRoute(pathname, route));
+
+  // For protected routes, we need to validate the session
+  if (isProtectedRoute) {
+    try {
+      // Get session from Better Auth - this validates against database
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
+
+      if (!session?.user?.id) {
+        // No valid session - redirect to sign-in
+        const signInUrl = new URL('/sign-in', request.url);
+        signInUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(signInUrl);
+      }
+    } catch (error) {
+      // Session validation failed - redirect to sign-in
+      console.error('Middleware session validation error:', error);
+      const signInUrl = new URL('/sign-in', request.url);
+      signInUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
+  // Check if route is admin (additional role check done in page)
+  const isAdminRoute = adminRoutes.some((route) => matchesRoute(pathname, route));
+  if (isAdminRoute) {
+    try {
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
+
+      if (!session?.user?.id) {
+        const signInUrl = new URL('/sign-in', request.url);
+        signInUrl.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(signInUrl);
+      }
+    } catch {
+      const signInUrl = new URL('/sign-in', request.url);
+      signInUrl.searchParams.set('redirect', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
+  // Redirect authenticated users away from sign-in/sign-up pages
   const isAuthPage = pathname === '/sign-in' || pathname === '/sign-up';
-  if (isAuthPage && isAuthenticated) {
-    // Get redirect parameter if exists, otherwise go to dashboard
-    const redirectParam = nextUrl.searchParams.get('redirect');
-    const dashboardUrl = new URL(redirectParam || '/dashboard', request.url);
-    return NextResponse.redirect(dashboardUrl);
+  if (isAuthPage) {
+    try {
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
+
+      if (session?.user?.id) {
+        // Already authenticated - redirect to dashboard or original destination
+        const redirectParam = nextUrl.searchParams.get('redirect');
+        const targetUrl = redirectParam || '/dashboard';
+        return NextResponse.redirect(new URL(targetUrl, request.url));
+      }
+    } catch {
+      // Session check failed, continue to auth page
+    }
   }
 
   return NextResponse.next();
