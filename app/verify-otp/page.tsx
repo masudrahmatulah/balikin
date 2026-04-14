@@ -137,15 +137,33 @@ function VerifyOTPContent() {
       if (result.data) {
         console.log('[VERIFY OTP] Sign in successful, session data:', result.data);
 
-        // IMPORTANT: If sign in returned user data, the session IS created
-        // Trust the sign-in response and redirect directly
-        // The middleware will validate the session on the next page load
+        // Determine redirect destination based on user role
+        // Admin users go to /admin, regular users go to /dashboard
+        const userRole = result.data.user?.role || 'user';
+        const isAdmin = userRole === 'admin';
+
+        // Check if there's a custom redirect parameter
+        const customRedirect = searchParams.get('redirect');
+
+        let finalRedirectUrl: string;
+        if (customRedirect) {
+          // Use custom redirect if provided (e.g., from a protected page)
+          finalRedirectUrl = customRedirect;
+        } else if (isAdmin) {
+          // Admin users always go to admin dashboard
+          console.log('[VERIFY OTP] Admin user detected, redirecting to /admin');
+          finalRedirectUrl = '/admin';
+        } else {
+          // Regular users go to user dashboard
+          console.log('[VERIFY OTP] Regular user detected, redirecting to /dashboard');
+          finalRedirectUrl = '/dashboard';
+        }
 
         // Small delay to ensure cookie is processed by browser
         await new Promise<void>(resolve => setTimeout(resolve, 300));
 
-        console.log('[VERIFY OTP] Redirecting to:', redirectUrl);
-        window.location.href = redirectUrl;
+        console.log('[VERIFY OTP] Redirecting to:', finalRedirectUrl);
+        window.location.href = finalRedirectUrl;
       } else {
         // No session data returned - this shouldn't happen if sign-in succeeded
         console.error('[VERIFY OTP] No session data in response');
