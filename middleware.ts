@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
 
 // Routes that don't require authentication
 const publicRoutes = [
@@ -49,6 +48,16 @@ function matchesRoute(pathname: string, route: string): boolean {
   return pathname === route || pathname.startsWith(route + '/');
 }
 
+/**
+ * Fast check: Does the session cookie exist?
+ * This is much faster than database validation
+ */
+function hasSessionCookie(request: NextRequest): boolean {
+  // Check for Better Auth session token cookie
+  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+  return !!sessionToken;
+}
+
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathname = nextUrl.pathname;
@@ -65,7 +74,7 @@ export async function middleware(request: NextRequest) {
   // Check if route is public
   const isPublicRoute = publicRoutes.some((route) => matchesRoute(pathname, route));
 
-  // If public route, let it pass
+  // If public route, let it pass immediately (no DB call needed)
   if (isPublicRoute) {
     return NextResponse.next();
   }
@@ -73,66 +82,44 @@ export async function middleware(request: NextRequest) {
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some((route) => matchesRoute(pathname, route));
 
-  // For protected routes, we need to validate the session
+  // For protected routes, use fast two-tier validation
   if (isProtectedRoute) {
-    try {
-      // Get session from Better Auth - this validates against database
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      if (!session?.user?.id) {
-        // No valid session - redirect to sign-in
-        const signInUrl = new URL('/sign-in', request.url);
-        signInUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(signInUrl);
-      }
-    } catch (error) {
-      // Session validation failed - redirect to sign-in
-      console.error('Middleware session validation error:', error);
+    // Tier 1: Fast cookie check (no DB call)
+    if (!hasSessionCookie(request)) {
+      // No session cookie - definitely not authenticated
       const signInUrl = new URL('/sign-in', request.url);
       signInUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(signInUrl);
     }
+
+    // Tier 2: Let the page handle full session validation
+    // The dashboard page will do proper DB validation
+    // This avoids blocking in middleware while still protecting routes
+    // If session is invalid, the page will handle the redirect
+    return NextResponse.next();
   }
 
-  // Check if route is admin (additional role check done in page)
+  // Check if route is admin (same two-tier approach)
   const isAdminRoute = adminRoutes.some((route) => matchesRoute(pathname, route));
   if (isAdminRoute) {
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      if (!session?.user?.id) {
-        const signInUrl = new URL('/sign-in', request.url);
-        signInUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(signInUrl);
-      }
-    } catch {
+    if (!hasSessionCookie(request)) {
       const signInUrl = new URL('/sign-in', request.url);
       signInUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(signInUrl);
     }
+    // Admin page will do role validation
+    return NextResponse.next();
   }
 
   // Redirect authenticated users away from sign-in/sign-up pages
+  // Still use cookie check for this - fast and effective
   const isAuthPage = pathname === '/sign-in' || pathname === '/sign-up';
-  if (isAuthPage) {
-    try {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      if (session?.user?.id) {
-        // Already authenticated - redirect to dashboard or original destination
-        const redirectParam = nextUrl.searchParams.get('redirect');
-        const targetUrl = redirectParam || '/dashboard';
-        return NextResponse.redirect(new URL(targetUrl, request.url));
-      }
-    } catch {
-      // Session check failed, continue to auth page
-    }
+  if (isAuthPage && hasSessionCookie(request)) {
+    // User has session cookie - redirect to dashboard
+    // Let the dashboard validate the actual session
+    const redirectParam = nextUrl.searchParams.get('redirect');
+    const targetUrl = redirectParam || '/dashboard';
+    return NextResponse.redirect(new URL(targetUrl, request.url));
   }
 
   return NextResponse.next();
