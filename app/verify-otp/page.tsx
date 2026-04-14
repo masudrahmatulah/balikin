@@ -116,38 +116,42 @@ function VerifyOTPContent() {
       const { signIn } = authClient;
       const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
+      console.log('[VERIFY OTP] Attempting sign in with:', { identifier, otp, redirectUrl });
+
       const result = await signIn.emailOtp({
         email: identifier,
         otp: otp,
-        callbackURL: redirectUrl,
       });
+
+      console.log('[VERIFY OTP] Sign in result:', JSON.stringify(result, null, 2));
 
       // Handle synchronous error response
       if (result.error) {
+        console.error('[VERIFY OTP] Sign in error:', result.error);
         setError(result.error.message || 'Kode OTP tidak valid atau telah kadaluarsa');
         setIsLoading(false);
         return;
       }
 
-      // If successful, wait for session to be established and redirect
-      // better-auth v2 uses session cookie, so we need to wait a bit
-      await new Promise<void>(resolve => setTimeout(resolve, 800));
+      // Check if we have session data in the response
+      if (result.data) {
+        console.log('[VERIFY OTP] Sign in successful, session data:', result.data);
 
-      // Verify session was established by checking better-auth session
-      const sessionCheck = await fetch('/api/auth/get-session');
-      if (sessionCheck.ok) {
-        const sessionData = await sessionCheck.json();
-        if (sessionData.user) {
-          // Session is valid, redirect to dashboard
-          window.location.href = redirectUrl; // Use window.location for full reload to ensure cookies are set
-          return;
-        }
+        // Session was created successfully
+        // Wait longer for browser to process the cookie and session to be stored
+        await new Promise<void>(resolve => setTimeout(resolve, 500));
+
+        // Use window.location.href for full page reload to ensure cookies are properly set
+        // This ensures a fresh page load with the new session
+        window.location.href = redirectUrl;
+      } else {
+        // No session data returned - this shouldn't happen if sign-in succeeded
+        console.error('[VERIFY OTP] No session data in response');
+        setError('Gagal membuat sesi. Silakan coba lagi.');
+        setIsLoading(false);
       }
-
-      // If session check fails, still try to redirect (might be cookie timing issue)
-      // Use window.location for full page reload to ensure session cookie is properly set
-      window.location.href = redirectUrl;
     } catch (err: unknown) {
+      console.error('[VERIFY OTP] Exception:', err);
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
       setError(errorMessage);
       setIsLoading(false);
