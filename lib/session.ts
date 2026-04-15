@@ -14,8 +14,20 @@ export async function getSession(): Promise<Session | null> {
 
     // Debug: Check if session cookie exists
     const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
+
+    console.log('[getSession] All cookies:', allCookies.map(c => c.name));
     const sessionCookie = cookieStore.get('better-auth.session_token');
-    console.log('[getSession] Session cookie exists:', !!sessionCookie);
+    console.log('[getSession] Session cookie:', sessionCookie ? {
+      exists: true,
+      value: sessionCookie.value.slice(0, 20) + '...',
+      // @ts-ignore
+      domain: sessionCookie.domain,
+      // @ts-ignore
+      path: sessionCookie.path,
+    } : 'MISSING');
+
+    console.log('[getSession] Calling auth.api.getSession...');
 
     const session = await auth.api.getSession({
       headers: headersList,
@@ -31,6 +43,7 @@ export async function getSession(): Promise<Session | null> {
     return session as Session | null;
   } catch (error) {
     console.error('[getSession] Error:', error);
+    console.error('[getSession] Error stack:', error instanceof Error ? error.stack : 'No stack');
     return null;
   }
 }

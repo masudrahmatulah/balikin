@@ -129,11 +129,10 @@ export const auth = betterAuth({
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     updateAge: 24 * 60 * 60, // 1 day - update session age
-    // Enable cookie cache for better performance and reliability
-    // Session data is cached in cookie with validation against database
+    // Temporarily disable cookie cache for debugging
+    // Re-enable after fixing session validation issue
     cookieCache: {
-      enabled: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 days - same as session expiration
+      enabled: false,
     },
   },
   advanced: {
@@ -145,6 +144,11 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === 'production',
     // Configure SameSite for better cross-origin handling
     sameSite: 'lax',
+    // Add explicit cookie attributes for production
+    cookieAttributes: {
+      domain: process.env.NODE_ENV === 'production' ? '.masudrahmat.my.id' : undefined,
+      path: '/',
+    },
   },
   // Allow requests from localhost, devtunnel, and production domains
   trustedOrigins: [
