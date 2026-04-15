@@ -297,14 +297,6 @@ export function AuthForm({ mode = 'sign-in' }: AuthFormProps) {
           )}
         </p>
       </div>
-
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="text-center text-xs text-muted-foreground">
-          <p>
-            Mode: <span className="font-mono">Dev - Cek terminal untuk kode OTP</span>
-          </p>
-        </div>
-      )}
     </form>
   );
 }

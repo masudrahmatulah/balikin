@@ -233,9 +233,6 @@ export function generateScanAlertEmail({
  * Send OTP email.
  */
 export async function sendOTPEmail({ email, otp, type }: OTPEmailOptions): Promise<void> {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`[DEV OTP] type=${type} email=${email} otp=${otp}`);
-  }
   const { subject, html } = generateOTPEmail({ email, otp, type });
   await sendEmail({ to: email, subject, html });
 }

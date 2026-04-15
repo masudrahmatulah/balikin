@@ -9,41 +9,13 @@ import { cookies } from 'next/headers';
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    // Next.js 16 requires await for headers()
     const headersList = await headers();
-
-    // Debug: Check if session cookie exists
-    const cookieStore = await cookies();
-    const allCookies = cookieStore.getAll();
-
-    console.log('[getSession] All cookies:', allCookies.map(c => c.name));
-    const sessionCookie = cookieStore.get('better-auth.session_token');
-    console.log('[getSession] Session cookie:', sessionCookie ? {
-      exists: true,
-      value: sessionCookie.value.slice(0, 20) + '...',
-      // @ts-ignore
-      domain: sessionCookie.domain,
-      // @ts-ignore
-      path: sessionCookie.path,
-    } : 'MISSING');
-
-    console.log('[getSession] Calling auth.api.getSession...');
-
     const session = await auth.api.getSession({
       headers: headersList,
     });
-
-    console.log('[getSession] Session result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-      userRole: (session?.user as any)?.role,
-    });
-
     return session as Session | null;
   } catch (error) {
-    console.error('[getSession] Error:', error);
-    console.error('[getSession] Error stack:', error instanceof Error ? error.stack : 'No stack');
+    console.error('[getSession] Error:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }

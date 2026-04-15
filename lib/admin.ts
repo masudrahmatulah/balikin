@@ -12,24 +12,14 @@ import { headers } from "next/headers";
  */
 export const getAdminSession = cache(async () => {
   try {
-    // Use the same getSession logic as the dashboard
     const headersList = await headers();
-
-    console.log('[getAdminSession] Checking admin session...');
 
     // Get session using better-auth API
     const session = await auth.api.getSession({
       headers: headersList,
     });
 
-    console.log('[getAdminSession] Session result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-    });
-
     if (!session?.user) {
-      console.log('[getAdminSession] No session or user found');
       return null;
     }
 
@@ -38,14 +28,9 @@ export const getAdminSession = cache(async () => {
       where: eq(user.id, session.user.id),
     });
 
-    console.log('[getAdminSession] Database user role:', dbUser?.role);
-
     if (!dbUser || dbUser.role !== 'admin') {
-      console.log('[getAdminSession] User is not admin, role:', dbUser?.role);
       return null;
     }
-
-    console.log('[getAdminSession] Admin session confirmed for user:', session.user.id);
 
     return {
       user: {
@@ -60,7 +45,7 @@ export const getAdminSession = cache(async () => {
       }
     };
   } catch (error) {
-    console.error('[getAdminSession] Error:', error);
+    console.error('[getAdminSession] Error:', error instanceof Error ? error.message : String(error));
     return null;
   }
 });
