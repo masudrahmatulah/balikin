@@ -52,65 +52,27 @@ async function sendOTP({
   const startTime = Date.now();
 
   try {
-    // Debug logging at entry
-    console.log('[AUTH SERVICE] 🚀 sendOTP called:', {
-      email,
-      type,
-      hasApiKey: !!process.env.RESEND_API_KEY,
-      nodeEnv: process.env.NODE_ENV,
-      timestamp: new Date().toISOString(),
-    });
-
     if (isWhatsAppIdentifier(email)) {
       // Route to WhatsApp OTP
       const phoneNumber = extractPhoneNumber(email);
-      console.log('[AUTH SERVICE] 📱 Sending WhatsApp OTP:', {
-        phoneNumber,
-        type,
-        timestamp: new Date().toISOString(),
-      });
-
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[WHATSAPP AUTH OTP] type=${type} phone=${phoneNumber} otp=${otp}`);
-      }
 
       await sendWhatsAppOTP({
         phoneNumber,
         otp,
         type: type as 'sign-in' | 'email-verification' | 'forget-password',
       });
-
-      const duration = Date.now() - startTime;
-      console.log('[AUTH SERVICE] ✅ WhatsApp OTP sent successfully:', { duration: `${duration}ms` });
     } else {
       // Route to Email OTP
-      console.log('[AUTH SERVICE] 📧 About to call sendOTPEmail:', {
-        email,
-        otp,
-        type,
-      });
-
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[EMAIL AUTH OTP] type=${type} email=${email} otp=${otp}`);
-      }
-
       await sendOTPEmail({
         email,
         otp,
         type: type as 'sign-in' | 'email-verification' | 'forget-password',
       });
-
-      console.log('[AUTH SERVICE] ✅ sendOTPEmail returned successfully');
-
-      const duration = Date.now() - startTime;
-      console.log('[AUTH SERVICE] ✅ Email OTP sent successfully:', { duration: `${duration}ms` });
     }
   } catch (error) {
-    console.error('[AUTH SERVICE] ❌ ERROR sending OTP:', {
+    // Log error without exposing sensitive email/OTP
+    console.error('[AUTH SERVICE] ERROR sending OTP:', {
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      email,
-      type,
     });
     throw error; // Re-throw to ensure better-auth sees the error
   }
@@ -137,18 +99,14 @@ export const auth = betterAuth({
     },
   }),
   appName: "Balikin",
-  // Enable detailed logging in development for debugging
-  logger: process.env.NODE_ENV !== 'production' ? {
-    verbose: true,
-    disabled: false,
-  } : undefined,
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     updateAge: 24 * 60 * 60, // 1 day - update session age
-    // Temporarily disable cookie cache for debugging
-    // Re-enable after fixing session validation issue
+    // Enable cookie cache for better performance
+    // Session data is cached in cookie with validation against database
     cookieCache: {
-      enabled: false,
+      enabled: true,
+      maxAge: 7 * 24 * 60 * 60, // 7 days - same as session expiration
     },
   },
   advanced: {
@@ -215,47 +173,10 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
-        const requestId = Math.random().toString(36).substring(7);
         try {
-          console.log(`[BETTER_AUTH:${requestId}] sendVerificationOTP called:`, {
-            email,
-            otp,
-            type,
-            timestamp: new Date().toISOString(),
-          });
-
-          // Query verification table to confirm OTP was stored
-          if (process.env.NODE_ENV !== 'production') {
-            setTimeout(async () => {
-              try {
-                const { verification } = await import('@/db/schema');
-                const { eq, and, gt } = await import('drizzle-orm');
-
-                const records = await db
-                  .select()
-                  .from(verification)
-                  .where(
-                    and(
-                      eq(verification.identifier, email),
-                      gt(verification.expiresAt, new Date())
-                    )
-                  );
-
-                console.log(`[BETTER_AUTH:${requestId}] OTP stored in DB:`, {
-                  found: records.length,
-                  otpValue: records[0]?.value,
-                  expiresAt: records[0]?.expiresAt,
-                });
-              } catch (e) {
-                console.error(`[BETTER_AUTH:${requestId}] Failed to verify OTP storage:`, e);
-              }
-            }, 100);
-          }
-
           await sendOTP({ email, otp, type });
-          console.log(`[BETTER_AUTH:${requestId}] sendVerificationOTP completed successfully`);
         } catch (error) {
-          console.error(`[BETTER_AUTH:${requestId}] ❌ sendVerificationOTP failed:`, error);
+          console.error('[BETTER_AUTH] sendVerificationOTP failed:', error);
           throw error;
         }
       },
