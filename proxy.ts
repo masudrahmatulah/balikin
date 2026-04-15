@@ -51,10 +51,15 @@ function matchesRoute(pathname: string, route: string): boolean {
 /**
  * Fast check: Does the session cookie exist?
  * This is much faster than database validation
+ *
+ * Note: In production with useSecureCookies: true, the cookie name
+ * will be __Secure-better-auth.session_token instead of better-auth.session_token
  */
 function hasSessionCookie(request: NextRequest): boolean {
   // Check for Better Auth session token cookie
-  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+  // Try both names: regular and __Secure- prefixed (for production)
+  const sessionToken = request.cookies.get('better-auth.session_token')?.value ||
+                      request.cookies.get('__Secure-better-auth.session_token')?.value;
   return !!sessionToken;
 }
 
