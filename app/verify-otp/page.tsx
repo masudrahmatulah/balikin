@@ -57,6 +57,7 @@ function VerifyOTPContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [debugOtp, setDebugOtp] = useState<string | null>(null);
   const [debugLoading, setDebugLoading] = useState(false);
@@ -156,6 +157,7 @@ function VerifyOTPContent() {
       });
 
       console.log('[VERIFY OTP] Sign in result:', JSON.stringify(result, null, 2));
+      console.log('[VERIFY OTP] Current cookies:', document.cookie);
 
       // Handle synchronous error response
       if (result.error) {
@@ -191,6 +193,9 @@ function VerifyOTPContent() {
       if (result.data) {
         console.log('[VERIFY OTP] Sign in successful, session data:', result.data);
 
+        // Set redirecting state to show success message
+        setIsRedirecting(true);
+
         // Determine redirect destination based on user role
         // Admin users go to /admin, regular users go to /dashboard
         const userRole = (result.data.user as any)?.role || 'user';
@@ -213,10 +218,18 @@ function VerifyOTPContent() {
           finalRedirectUrl = '/dashboard';
         }
 
-        // Small delay to ensure cookie is processed by browser
-        await new Promise<void>(resolve => setTimeout(resolve, 300));
+        // Show success message to user before redirecting
+        console.log('[VERIFY OTP] Login successful! Showing success message...');
+
+        // Delay to ensure cookie is processed by browser
+        // Increased delay for better reliability, especially on slower connections
+        await new Promise<void>(resolve => setTimeout(resolve, 2000));
 
         console.log('[VERIFY OTP] Redirecting to:', finalRedirectUrl);
+        console.log('[VERIFY OTP] Cookies available:', document.cookie);
+        console.log('[VERIFY OTP] Session cookie:', document.cookie.includes('better-auth.session_token') ? 'Found' : 'Not found');
+
+        // Use window.location.href for full page reload to ensure cookies are properly set
         window.location.href = finalRedirectUrl;
       } else {
         // No session data returned - this shouldn't happen if sign-in succeeded
@@ -262,6 +275,18 @@ function VerifyOTPContent() {
           {error && (
             <div className="mb-4 p-3 rounded-md bg-destructive/15 border border-destructive/20">
               <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          {/* Success Message - Redirecting */}
+          {isRedirecting && (
+            <div className="mb-4 p-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-green-600 dark:text-green-400" />
+                <p className="text-sm text-green-800 dark:text-green-200">
+                  Login berhasil! Mengalihkan ke dashboard...
+                </p>
+              </div>
             </div>
           )}
 
