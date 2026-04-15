@@ -7,7 +7,8 @@ import { headers } from "next/headers";
 
 /**
  * Get the current session with admin role check
- * Uses better-auth API for consistency with the rest of the app
+ * Uses better-auth API for session, then queries database for role
+ * because better-auth doesn't return custom fields like 'role' by default
  */
 export const getAdminSession = cache(async () => {
   try {
@@ -25,7 +26,6 @@ export const getAdminSession = cache(async () => {
       hasSession: !!session,
       hasUser: !!session?.user,
       userId: session?.user?.id,
-      userRole: (session?.user as any)?.role,
     });
 
     if (!session?.user) {
@@ -33,10 +33,15 @@ export const getAdminSession = cache(async () => {
       return null;
     }
 
-    // Check if user has admin role
-    const userRole = (session.user as any)?.role;
-    if (userRole !== 'admin') {
-      console.log('[getAdminSession] User is not admin, role:', userRole);
+    // Query database to get the user's role (better-auth doesn't return custom fields)
+    const dbUser = await db.query.user.findFirst({
+      where: eq(user.id, session.user.id),
+    });
+
+    console.log('[getAdminSession] Database user role:', dbUser?.role);
+
+    if (!dbUser || dbUser.role !== 'admin') {
+      console.log('[getAdminSession] User is not admin, role:', dbUser?.role);
       return null;
     }
 
@@ -47,7 +52,7 @@ export const getAdminSession = cache(async () => {
         id: session.user.id,
         email: session.user.email,
         name: session.user.name,
-        role: userRole as "admin",
+        role: dbUser.role as "admin",
       },
       session: {
         token: session.session?.id || 'unknown',
