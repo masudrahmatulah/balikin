@@ -197,9 +197,22 @@ function VerifyOTPContent() {
         setIsRedirecting(true);
 
         // Determine redirect destination based on user role
-        // Admin users go to /admin, regular users go to /dashboard
-        const userRole = (result.data.user as any)?.role || 'user';
-        const isAdmin = userRole === 'admin';
+        // Note: better-auth doesn't return custom fields like 'role', so we need to fetch from database
+        console.log('[VERIFY OTP] Fetching user role from database...');
+
+        let isAdmin = false;
+        try {
+          const roleResponse = await fetch('/api/auth/role');
+          if (roleResponse.ok) {
+            const roleData = await roleResponse.json();
+            isAdmin = roleData.isAdmin;
+            console.log('[VERIFY OTP] User role from database:', roleData.role, 'isAdmin:', isAdmin);
+          } else {
+            console.error('[VERIFY OTP] Failed to fetch role, defaulting to user');
+          }
+        } catch (err) {
+          console.error('[VERIFY OTP] Error fetching role:', err);
+        }
 
         // Check if there's a custom redirect parameter
         const customRedirect = searchParams.get('redirect');
