@@ -9,6 +9,7 @@ import { cookies } from 'next/headers';
  */
 export async function getSession(): Promise<Session | null> {
   try {
+    // Next.js 16 requires await for headers()
     const headersList = await headers();
 
     // Debug: Check if session cookie exists
@@ -24,7 +25,7 @@ export async function getSession(): Promise<Session | null> {
       hasSession: !!session,
       hasUser: !!session?.user,
       userId: session?.user?.id,
-      userRole: session?.user?.role,
+      userRole: (session?.user as any)?.role,
     });
 
     return session as Session | null;

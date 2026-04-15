@@ -118,6 +118,11 @@ export const auth = betterAuth({
     },
   }),
   appName: "Balikin",
+  // Enable detailed logging in development for debugging
+  logger: process.env.NODE_ENV !== 'production' ? {
+    verbose: true,
+    disabled: false,
+  } : undefined,
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     updateAge: 24 * 60 * 60, // 1 day - update session age
@@ -179,12 +184,47 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
+        const requestId = Math.random().toString(36).substring(7);
         try {
-          console.log('[BETTER_AUTH] sendVerificationOTP callback called:', { email, type });
+          console.log(`[BETTER_AUTH:${requestId}] sendVerificationOTP called:`, {
+            email,
+            otp,
+            type,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Query verification table to confirm OTP was stored
+          if (process.env.NODE_ENV !== 'production') {
+            setTimeout(async () => {
+              try {
+                const { verification } = await import('@/db/schema');
+                const { eq, and, gt } = await import('drizzle-orm');
+
+                const records = await db
+                  .select()
+                  .from(verification)
+                  .where(
+                    and(
+                      eq(verification.identifier, email),
+                      gt(verification.expiresAt, new Date())
+                    )
+                  );
+
+                console.log(`[BETTER_AUTH:${requestId}] OTP stored in DB:`, {
+                  found: records.length,
+                  otpValue: records[0]?.value,
+                  expiresAt: records[0]?.expiresAt,
+                });
+              } catch (e) {
+                console.error(`[BETTER_AUTH:${requestId}] Failed to verify OTP storage:`, e);
+              }
+            }, 100);
+          }
+
           await sendOTP({ email, otp, type });
-          console.log('[BETTER_AUTH] sendVerificationOTP completed successfully');
+          console.log(`[BETTER_AUTH:${requestId}] sendVerificationOTP completed successfully`);
         } catch (error) {
-          console.error('[BETTER_AUTH] ❌ sendVerificationOTP failed:', error);
+          console.error(`[BETTER_AUTH:${requestId}] ❌ sendVerificationOTP failed:`, error);
           throw error;
         }
       },

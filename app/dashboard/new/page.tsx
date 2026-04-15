@@ -13,6 +13,9 @@ import { tags } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { FREE_TAG_LIMIT } from '@/lib/constants';
 
+// This page uses headers() via getSession(), so it must be dynamic
+export const dynamic = 'force-dynamic';
+
 export default async function NewTagPage() {
   const session = await getSession();
 

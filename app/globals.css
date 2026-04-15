@@ -439,8 +439,7 @@
   }
 
   /* Canvas styling for print */
-  body.printing-layout-mode .bg-slate-200,
-  body.printing-layout-mode .dark\\:bg-slate-800 {
+  body.printing-layout-mode .bg-slate-200 {
     background: white !important;
     padding: 0 !important;
   }
