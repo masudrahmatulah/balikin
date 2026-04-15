@@ -7,6 +7,22 @@ import { sendWhatsAppOTP } from "@/lib/whatsapp";
 import { user, session, account, verification } from "@/db/schema";
 
 /**
+ * Google OAuth Configuration
+ * Credentials should be set in environment variables:
+ * - GOOGLE_CLIENT_ID
+ * - GOOGLE_CLIENT_SECRET
+ */
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+if (process.env.NODE_ENV !== 'production' && !googleClientId) {
+  console.warn('[AUTH] GOOGLE_CLIENT_ID not set - Google SSO will not work');
+}
+if (process.env.NODE_ENV !== 'production' && !googleClientSecret) {
+  console.warn('[AUTH] GOOGLE_CLIENT_SECRET not set - Google SSO will not work');
+}
+
+/**
  * Helper function to check if an identifier is a WhatsApp number
  * WhatsApp numbers are stored with "@wa.dev" suffix to pass email validation
  */
@@ -188,6 +204,14 @@ export const auth = betterAuth({
     storeIdentifier: "plain", // Use plain text instead of hashed (for @wa.dev support)
     storeInDatabase: true, // Store OTPs in database
   },
+  // Social providers for SSO (Google)
+  socialProviders: googleClientId && googleClientSecret ? {
+    google: {
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      enabled: true,
+    },
+  } : undefined,
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
