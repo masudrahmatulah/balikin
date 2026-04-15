@@ -1,64 +1,63 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { cache } from "react";
 import { db } from "@/db";
-import { user, session as sessionTable } from "@/db/schema";
+import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 
 /**
  * Get the current session with admin role check
- * Updated to work with manual auth implementation
+ * Uses better-auth API for consistency with the rest of the app
  */
 export const getAdminSession = cache(async () => {
-  // Read session cookie directly
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get("better-auth.session_token")?.value;
+  try {
+    // Use the same getSession logic as the dashboard
+    const headersList = await headers();
 
-  if (!sessionToken) {
-    return null;
-  }
+    console.log('[getAdminSession] Checking admin session...');
 
-  // Find session from database
-  const sessionRecord = await db
-    .select({
-      session: sessionTable,
-      user: user,
-    })
-    .from(sessionTable)
-    .innerJoin(user, eq(sessionTable.userId, user.id))
-    .where(eq(sessionTable.token, sessionToken))
-    .limit(1);
+    // Get session using better-auth API
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
 
-  if (!sessionRecord.length) {
-    return null;
-  }
+    console.log('[getAdminSession] Session result:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userRole: (session?.user as any)?.role,
+    });
 
-  const sessionData = sessionRecord[0];
-
-  // Check if session is expired
-  if (new Date(sessionData.session.expiresAt) < new Date()) {
-    await db.delete(sessionTable).where(eq(sessionTable.token, sessionToken));
-    return null;
-  }
-
-  // Check if user has admin role
-  if (!sessionData.user || sessionData.user.role !== "admin") {
-    return null;
-  }
-
-  return {
-    user: {
-      id: sessionData.user.id,
-      email: sessionData.user.email,
-      name: sessionData.user.name,
-      role: sessionData.user.role as "admin",
-    },
-    session: {
-      token: sessionData.session.token,
-      expiresAt: sessionData.session.expiresAt,
+    if (!session?.user) {
+      console.log('[getAdminSession] No session or user found');
+      return null;
     }
-  };
+
+    // Check if user has admin role
+    const userRole = (session.user as any)?.role;
+    if (userRole !== 'admin') {
+      console.log('[getAdminSession] User is not admin, role:', userRole);
+      return null;
+    }
+
+    console.log('[getAdminSession] Admin session confirmed for user:', session.user.id);
+
+    return {
+      user: {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        role: userRole as "admin",
+      },
+      session: {
+        token: session.session?.id || 'unknown',
+        expiresAt: session.session?.expiresAt || new Date(),
+      }
+    };
+  } catch (error) {
+    console.error('[getAdminSession] Error:', error);
+    return null;
+  }
 });
 
 /**
