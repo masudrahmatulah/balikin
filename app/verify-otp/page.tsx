@@ -58,6 +58,8 @@ function VerifyOTPContent() {
   const [error, setError] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [debugOtp, setDebugOtp] = useState<string | null>(null);
+  const [debugLoading, setDebugLoading] = useState(false);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -66,6 +68,36 @@ function VerifyOTPContent() {
       return () => clearTimeout(timer);
     }
   }, [countdown]);
+
+  // Fetch OTP from debug endpoint in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !identifier) return;
+
+    const fetchDebugOtp = async () => {
+      setDebugLoading(true);
+      try {
+        const response = await fetch(`/api/auth/debug/check-otp?identifier=${encodeURIComponent(identifier)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.validOTP && data.validOTP.length > 0) {
+            setDebugOtp(data.validOTP[0].value);
+            console.log('[DEBUG OTP] Found OTP in database:', data.validOTP[0]);
+          } else {
+            console.log('[DEBUG OTP] No valid OTP found in database', data);
+          }
+        }
+      } catch (e) {
+        console.error('[DEBUG OTP] Failed to fetch:', e);
+      } finally {
+        setDebugLoading(false);
+      }
+    };
+
+    // Fetch immediately and every 5 seconds
+    fetchDebugOtp();
+    const interval = setInterval(fetchDebugOtp, 5000);
+    return () => clearInterval(interval);
+  }, [identifier]);
 
   // Handle OTP input - only numbers, max 6 digits
   const handleOtpChange = (value: string) => {
@@ -127,8 +159,30 @@ function VerifyOTPContent() {
 
       // Handle synchronous error response
       if (result.error) {
-        console.error('[VERIFY OTP] Sign in error:', result.error);
-        setError(result.error.message || 'Kode OTP tidak valid atau telah kadaluarsa');
+        console.error('[VERIFY OTP] Sign in error:', {
+          message: result.error.message,
+          status: result.error.status,
+          fullError: result.error,
+        });
+
+        // More specific error messages
+        let errorMessage = result.error.message || 'Kode OTP tidak valid atau telah kadaluarsa';
+
+        // Check if it's a specific error type
+        if (result.error.status === 500) {
+          errorMessage = 'Terjadi kesalahan server. Silakan coba lagi.';
+        } else if (/attempts|exceeded|too many/i.test(errorMessage)) {
+          errorMessage = 'Terlalu banyak percobaan. Silakan minta kode OTP baru.';
+        } else if (/expired/i.test(errorMessage)) {
+          errorMessage = 'Kode OTP telah kadaluarsa. Silakan minta kode baru.';
+        }
+
+        // Log to help debug
+        console.log('[VERIFY OTP] Current OTP from DB:', debugOtp);
+        console.log('[VERIFY OTP] User entered OTP:', otp);
+        console.log('[VERIFY OTP] Match:', debugOtp === otp);
+
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }
@@ -139,7 +193,7 @@ function VerifyOTPContent() {
 
         // Determine redirect destination based on user role
         // Admin users go to /admin, regular users go to /dashboard
-        const userRole = result.data.user?.role || 'user';
+        const userRole = (result.data.user as any)?.role || 'user';
         const isAdmin = userRole === 'admin';
 
         // Check if there's a custom redirect parameter
@@ -171,7 +225,11 @@ function VerifyOTPContent() {
         setIsLoading(false);
       }
     } catch (err: unknown) {
-      console.error('[VERIFY OTP] Exception:', err);
+      console.error('[VERIFY OTP] Exception:', {
+        error: err,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.';
       setError(errorMessage);
       setIsLoading(false);
@@ -242,6 +300,17 @@ function VerifyOTPContent() {
                 'Verifikasi'
               )}
             </Button>
+
+            {/* Development Mode - Auto-fill OTP */}
+            {process.env.NODE_ENV !== 'production' && debugOtp && (
+              <button
+                type="button"
+                onClick={() => setOtp(debugOtp)}
+                className="w-full text-sm text-blue-600 hover:text-blue-700 underline"
+              >
+                Auto-fill OTP dari database
+              </button>
+            )}
           </form>
 
           {/* Resend OTP */}
@@ -270,15 +339,48 @@ function VerifyOTPContent() {
           {/* Development Mode - Show OTP */}
           {process.env.NODE_ENV !== 'production' && (
             <div className="mt-6 p-4 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                Development Mode:
+              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-200 mb-2 flex items-center justify-between">
+                <span>Development Mode:</span>
+                {debugLoading && <span className="text-xs opacity-70">Loading...</span>}
               </p>
-              <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                Cek terminal/server logs untuk kode OTP.
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-2">
+                OTP dari database untuk {display}:
               </p>
-              <code className="mt-2 block break-all rounded bg-yellow-100 p-2 text-xs dark:bg-yellow-900/40">
-                OTP for {display}: XXXXXX
-              </code>
+              {debugOtp ? (
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 block break-all rounded bg-yellow-100 p-2 text-lg font-mono text-center dark:bg-yellow-900/40">
+                    {debugOtp}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(debugOtp);
+                      // Optional: show copied feedback
+                    }}
+                    className="px-3 py-2 text-xs bg-yellow-200 hover:bg-yellow-300 rounded dark:bg-yellow-800 dark:hover:bg-yellow-700"
+                    title="Copy OTP"
+                  >
+                    Copy
+                  </button>
+                </div>
+              ) : (
+                <div className="text-xs text-yellow-700 dark:text-yellow-300">
+                  <p className="mb-2">Belum ada OTP valid di database.</p>
+                  <p className="text-[10px] opacity-75">
+                    Pastikan Anda sudah meminta kode OTP. Refresh halaman untuk cek ulang.
+                  </p>
+                </div>
+              )}
+              <div className="mt-2 pt-2 border-t border-yellow-300 dark:border-yellow-700">
+                <a
+                  href={`/api/auth/debug/check-otp?identifier=${encodeURIComponent(identifier)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-yellow-800 dark:text-yellow-200 hover:underline"
+                >
+                  Lihat detail di debug endpoint →
+                </a>
+              </div>
             </div>
           )}
 

@@ -8,10 +8,8 @@ import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 
 export function SiteHeader() {
-  // Use disableCache to ensure we always get fresh session data
-  const { data: session, isPending, refetch } = authClient.useSession({
-    disableCache: true,
-  });
+  // Better Auth 1.6+ useSession no longer accepts options
+  const { data: session, isPending, refetch } = authClient.useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -24,7 +22,7 @@ export function SiteHeader() {
   const isValidSession = session && session.user && session.user.id;
 
   // Determine dashboard URL based on user role
-  const userRole = session?.user?.role || 'user';
+  const userRole = (session?.user as any)?.role || 'user';
   const isAdmin = userRole === 'admin';
   const dashboardUrl = isAdmin ? '/admin' : '/dashboard';
 

@@ -15,6 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+// This page uses headers() via getSession(), so it must be dynamic
+export const dynamic = 'force-dynamic';
+
 export default async function StickerCheckoutPage() {
   const session = await getSession();
 
