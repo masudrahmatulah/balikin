@@ -146,32 +146,22 @@ export const auth = betterAuth({
           email: event.data?.user?.email,
         });
 
-        // Normalize email for all user-related events including social sign-in
-        // This ensures consistent email format across all auth methods (OTP, WhatsApp, Google)
+        // Normalize email for sign-in and sign-up events only
+        // Avoid modifying social login data to prevent conflicts
         if (
-          event.type === 'sign_in' ||
-          event.type === 'sign_up' ||
-          event.type === 'user.create' ||
+          (event.type === 'sign_in' || event.type === 'sign_up') &&
           event.data?.user?.email
         ) {
-          const email = event.data?.user?.email;
-          if (email) {
-            // Normalize email: lowercase, trim, and handle Gmail dots/aliases
-            let normalizedEmail = email.toLowerCase().trim();
+          const email = event.data.user.email;
+          // Simple normalization: just lowercase and trim
+          // Don't remove Gmail dots as it can cause conflicts with OAuth providers
+          const normalizedEmail = email.toLowerCase().trim();
 
-            // For Gmail addresses, remove dots (everything before @gmail.com)
-            // This treats john.doe@gmail.com and johndoe@gmail.com as the same
-            if (normalizedEmail.endsWith('@gmail.com')) {
-              const [localPart, domain] = normalizedEmail.split('@');
-              normalizedEmail = localPart.replace(/\./g, '') + '@' + domain;
-            }
-
-            console.log('[AUTH] Normalizing email:', {
-              original: email,
-              normalized: normalizedEmail,
-            });
-            event.data.user.email = normalizedEmail;
-          }
+          console.log('[AUTH] Normalizing email:', {
+            original: email,
+            normalized: normalizedEmail,
+          });
+          event.data.user.email = normalizedEmail;
         }
       },
       // After user creation - link account and set defaults
