@@ -109,6 +109,15 @@ export const auth = betterAuth({
       maxAge: 7 * 24 * 60 * 60, // 7 days - same as session expiration
     },
   },
+  // Account linking configuration - Critical for Google SSO to work with existing OTP users
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Allow linking between different auth methods (OTP, WhatsApp, Google)
+      // This is essential for users who signed up with OTP/WhatsApp and want to link Google account
+      trustedProviders: ["email-password", "google"],
+    },
+  },
   advanced: {
     crossSubDomainCookies: {
       enabled: true,
@@ -122,6 +131,53 @@ export const auth = betterAuth({
     cookieAttributes: {
       domain: process.env.NODE_ENV === 'production' ? '.masudrahmat.my.id' : undefined,
       path: '/',
+    },
+    // Hooks for handling user creation and account linking
+    hooks: {
+      // Before user creation - normalize email and set default values
+      before: async (event) => {
+        console.log('[AUTH] BEFORE hook:', {
+          type: event.type,
+          hasData: !!event.data,
+          hasUser: !!event.data?.user,
+          email: event.data?.user?.email,
+        });
+
+        if (event.type === 'sign_in' || event.type === 'sign_up') {
+          const email = event.data?.user?.email;
+          if (email) {
+            // Normalize email to lowercase and trim to avoid duplicates
+            const normalizedEmail = email.toLowerCase().trim();
+            console.log('[AUTH] Normalizing email:', {
+              original: email,
+              normalized: normalizedEmail,
+            });
+            event.data.user.email = normalizedEmail;
+          }
+        }
+      },
+      // After user creation - link account and set defaults
+      after: async (event) => {
+        console.log('[AUTH] AFTER hook:', {
+          type: event.type,
+          hasUser: !!event.user,
+          userId: event.user?.id,
+          email: event.user?.email,
+          name: event.user?.name,
+        });
+
+        if (event.type === 'sign_up' || event.type === 'sign_in') {
+          const user = event.user;
+          if (user) {
+            console.log('[AUTH] User authenticated successfully:', {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              type: event.type,
+            });
+          }
+        }
+      },
     },
   },
   // Allow requests from localhost, devtunnel, and production domains
