@@ -99,6 +99,20 @@ export const auth = betterAuth({
     },
   }),
   appName: "Balikin",
+  user: {
+    additionalFields: {
+      // Define app_id field that exists in database schema
+      app_id: {
+        type: "string",
+        defaultValue: "balikin_id",
+      },
+      // Define role field that exists in database schema
+      role: {
+        type: "string",
+        defaultValue: "user",
+      },
+    },
+  },
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
     updateAge: 24 * 60 * 60, // 1 day - update session age
