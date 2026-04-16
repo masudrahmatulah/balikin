@@ -115,7 +115,10 @@ export const auth = betterAuth({
       enabled: true,
       // Allow linking between different auth methods (OTP, WhatsApp, Google)
       // This is essential for users who signed up with OTP/WhatsApp and want to link Google account
-      trustedProviders: ["email-password", "google"],
+      trustedProviders: ["google"],
+      // Allow linking with different email addresses to handle normalization differences
+      // This prevents unable_to_link_account error due to email case/symbol mismatches
+      allowDifferentEmails: true,
     },
   },
   advanced: {
@@ -143,11 +146,26 @@ export const auth = betterAuth({
           email: event.data?.user?.email,
         });
 
-        if (event.type === 'sign_in' || event.type === 'sign_up') {
+        // Normalize email for all user-related events including social sign-in
+        // This ensures consistent email format across all auth methods (OTP, WhatsApp, Google)
+        if (
+          event.type === 'sign_in' ||
+          event.type === 'sign_up' ||
+          event.type === 'user.create' ||
+          event.data?.user?.email
+        ) {
           const email = event.data?.user?.email;
           if (email) {
-            // Normalize email to lowercase and trim to avoid duplicates
-            const normalizedEmail = email.toLowerCase().trim();
+            // Normalize email: lowercase, trim, and handle Gmail dots/aliases
+            let normalizedEmail = email.toLowerCase().trim();
+
+            // For Gmail addresses, remove dots (everything before @gmail.com)
+            // This treats john.doe@gmail.com and johndoe@gmail.com as the same
+            if (normalizedEmail.endsWith('@gmail.com')) {
+              const [localPart, domain] = normalizedEmail.split('@');
+              normalizedEmail = localPart.replace(/\./g, '') + '@' + domain;
+            }
+
             console.log('[AUTH] Normalizing email:', {
               original: email,
               normalized: normalizedEmail,
