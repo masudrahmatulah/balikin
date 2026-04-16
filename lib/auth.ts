@@ -88,7 +88,7 @@ export const auth = betterAuth({
   // For Vercel deployments, BETTER_AUTH_URL should be set to the production domain
   baseURL: process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-    (process.env.NODE_ENV === 'production' ? 'https://balikin.masudrahmat.my.id' : 'http://localhost:3000'),
+    (process.env.NODE_ENV === 'production' ? 'https://balikin.online' : 'http://localhost:3000'),
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -132,7 +132,7 @@ export const auth = betterAuth({
     sameSite: 'lax',
     // Add explicit cookie attributes for production
     cookieAttributes: {
-      domain: process.env.NODE_ENV === 'production' ? '.masudrahmat.my.id' : undefined,
+      domain: process.env.NODE_ENV === 'production' ? '.balikin.online' : undefined,
       path: '/',
     },
     // Hooks for handling user creation and account linking
@@ -204,7 +204,8 @@ export const auth = betterAuth({
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
-    'https://balikin.masudrahmat.my.id',
+    'https://balikin.online',
+    'https://www.balikin.online',
     'https://balikin-ten.vercel.app',
     'https://*.vercel.app',
     'https://*.euw.devtunnels.ms',
@@ -220,8 +221,10 @@ export const auth = betterAuth({
     'http://127.0.0.1:3000/**',
     'http://127.0.0.1:3001',
     'http://127.0.0.1:3001/**',
-    'https://balikin.masudrahmat.my.id',
-    'https://balikin.masudrahmat.my.id/**',
+    'https://balikin.online',
+    'https://balikin.online/**',
+    'https://www.balikin.online',
+    'https://www.balikin.online/**',
     'https://balikin-ten.vercel.app',
     'https://balikin-ten.vercel.app/**',
     'https://*.vercel.app',
