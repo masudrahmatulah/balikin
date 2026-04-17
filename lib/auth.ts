@@ -221,7 +221,6 @@ export const auth = betterAuth({
     google: {
       clientId: googleClientId || "",
       clientSecret: googleClientSecret || "",
-      enabled: true,
     },
   },
   plugins: [
