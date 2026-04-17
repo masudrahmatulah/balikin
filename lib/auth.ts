@@ -143,56 +143,35 @@ export const auth = betterAuth({
       domain: process.env.NODE_ENV === 'production' ? '.balikin.online' : undefined,
       path: '/',
     },
-    // Hooks for handling user creation and account linking
-    hooks: {
-      // Before user creation - normalize email and set default values
-      before: async (event) => {
-        console.log('[AUTH] BEFORE hook:', {
-          type: event.type,
-          hasData: !!event.data,
-          hasUser: !!event.data?.user,
-          email: event.data?.user?.email,
-        });
-
-        // Normalize email for sign-in and sign-up events only
-        // Avoid modifying social login data to prevent conflicts
-        if (
-          (event.type === 'sign_in' || event.type === 'sign_up') &&
-          event.data?.user?.email
-        ) {
-          const email = event.data.user.email;
-          // Simple normalization: just lowercase and trim
-          // Don't remove Gmail dots as it can cause conflicts with OAuth providers
-          const normalizedEmail = email.toLowerCase().trim();
-
-          console.log('[AUTH] Normalizing email:', {
-            original: email,
-            normalized: normalizedEmail,
+  },
+  // Database hooks for handling user creation
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          console.log('[AUTH] Creating user:', {
+            email: user.email,
+            name: user.name,
           });
-          event.data.user.email = normalizedEmail;
-        }
-      },
-      // After user creation - link account and set defaults
-      after: async (event) => {
-        console.log('[AUTH] AFTER hook:', {
-          type: event.type,
-          hasUser: !!event.user,
-          userId: event.user?.id,
-          email: event.user?.email,
-          name: event.user?.name,
-        });
 
-        if (event.type === 'sign_up' || event.type === 'sign_in') {
-          const user = event.user;
-          if (user) {
-            console.log('[AUTH] User authenticated successfully:', {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              type: event.type,
-            });
+          // Normalize email for all auth methods
+          if (user.email) {
+            user.email = user.email.toLowerCase().trim();
           }
-        }
+
+          return {
+            data: user,
+          };
+        },
+        after: async (user) => {
+          console.log('[AUTH] User created successfully:', {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            app_id: user.app_id,
+            role: user.role,
+          });
+        },
       },
     },
   },
@@ -238,13 +217,13 @@ export const auth = betterAuth({
     storeInDatabase: true, // Store OTPs in database
   },
   // Social providers for SSO (Google)
-  socialProviders: googleClientId && googleClientSecret ? {
+  socialProviders: {
     google: {
-      clientId: googleClientId,
-      clientSecret: googleClientSecret,
+      clientId: googleClientId || "",
+      clientSecret: googleClientSecret || "",
       enabled: true,
     },
-  } : undefined,
+  },
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
