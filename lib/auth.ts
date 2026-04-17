@@ -123,16 +123,10 @@ export const auth = betterAuth({
       maxAge: 7 * 24 * 60 * 60, // 7 days - same as session expiration
     },
   },
-  // Account linking configuration - Critical for Google SSO to work with existing OTP users
+  // Account linking configuration - Disabled temporarily for testing
   account: {
     accountLinking: {
-      enabled: true,
-      // Allow linking between different auth methods (OTP, WhatsApp, Google)
-      // This is essential for users who signed up with OTP/WhatsApp and want to link Google account
-      trustedProviders: ["google"],
-      // Allow linking with different email addresses to handle normalization differences
-      // This prevents unable_to_link_account error due to email case/symbol mismatches
-      allowDifferentEmails: true,
+      enabled: false, // Disabled to allow new user registration with Google SSO
     },
   },
   advanced: {
