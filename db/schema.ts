@@ -31,7 +31,7 @@ export const session = pgTable('session', {
 
 export const account = pgTable('account', {
   id: text('id').primaryKey(),
-  app_id: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id'), // Make nullable - Better Auth doesn't populate this field
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
