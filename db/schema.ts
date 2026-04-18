@@ -7,7 +7,7 @@ const pgTable = pgTableCreator((name) => `balikin_${name}`);
 // Better Auth Tables
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   name: text('name'),
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').default(false),
@@ -19,7 +19,7 @@ export const user = pgTable('user', {
 
 export const session = pgTable('session', {
   id: text('id').primaryKey(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at').notNull(),
   token: text('token').notNull().unique(),
@@ -31,7 +31,7 @@ export const session = pgTable('session', {
 
 export const account = pgTable('account', {
   id: text('id').primaryKey(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
@@ -46,7 +46,7 @@ export const account = pgTable('account', {
 
 export const verification = pgTable('verification', {
   id: text('id').primaryKey(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
@@ -56,7 +56,7 @@ export const verification = pgTable('verification', {
 
 export const stickerOrders = pgTable('sticker_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   status: text('status').default('pending_payment').notNull(),
   paymentStatus: text('payment_status').default('pending').notNull(),
@@ -79,7 +79,7 @@ export const stickerOrders = pgTable('sticker_orders', {
 
 export const tagBundles = pgTable('tag_bundles', {
   id: uuid('id').primaryKey().defaultRandom(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   orderId: uuid('order_id').notNull().references(() => stickerOrders.id, { onDelete: 'cascade' }),
   productType: text('product_type').default('sticker').notNull(),
   itemCount: integer('item_count').default(6).notNull(),
@@ -93,7 +93,7 @@ export const tagBundles = pgTable('tag_bundles', {
 
 export const tags = pgTable('tags', {
   id: uuid('id').primaryKey().defaultRandom(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   slug: text('slug').unique().notNull(),
   ownerId: text('owner_id'),
   bundleId: uuid('bundle_id').references(() => tagBundles.id, { onDelete: 'set null' }),
@@ -139,7 +139,7 @@ export const tagBundlesRelations = relations(tagBundles, ({ one, many }) => ({
 
 export const scanLogs = pgTable('scan_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
   scannedAt: timestamp('scanned_at').defaultNow(),
   ipAddress: text('ip_address'),
@@ -159,7 +159,7 @@ export const scanLogsRelations = relations(scanLogs, ({ one, many }) => ({
 
 export const notificationLogs = pgTable('notification_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  appId: text('app_id').default('balikin_id').notNull(),
+  app_id: text('app_id').default('balikin_id').notNull(),
   tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
   scanLogId: uuid('scan_log_id').references(() => scanLogs.id, { onDelete: 'cascade' }),
   channel: text('channel').notNull(),

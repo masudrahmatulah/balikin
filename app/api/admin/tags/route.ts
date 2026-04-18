@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       contactWhatsapp: contactWhatsapp || null,
       customMessage: customMessage || null,
       rewardNote: rewardNote || null,
-      appId: "balikin_id",
+      app_id: "balikin_id",
       status: "normal",
       tier: isPremium ? "premium" : "free",
       productType: resolvedProductType,
