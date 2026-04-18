@@ -144,6 +144,11 @@ export const auth = betterAuth({
       path: '/',
     },
   },
+  // Enable Better Auth logger for debugging
+  logger: {
+    enabled: true,
+    level: process.env.NODE_ENV === 'production' ? "error" : "debug", // Debug di local, error-only di production
+  },
   // Database hooks for handling user creation
   databaseHooks: {
     user: {
