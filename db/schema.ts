@@ -38,7 +38,9 @@ export const account = pgTable('account', {
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   idToken: text('id_token'),
-  expiresAt: timestamp('expires_at'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at'), // Better Auth required field
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at'), // Better Auth required field
+  scope: text('scope'),
   password: text('password'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
