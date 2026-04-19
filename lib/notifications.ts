@@ -26,8 +26,8 @@ function getAppBaseUrl(): string {
   );
 }
 
-function buildTagDashboardUrl(slug: string): string {
-  return `${getAppBaseUrl()}/dashboard/tag/${slug}`;
+function buildTagPublicUrl(slug: string): string {
+  return `${getAppBaseUrl()}/p/${slug}`;
 }
 
 function canSendByThrottle(lastAlertSentAt: Date | null): boolean {
@@ -166,7 +166,7 @@ export async function handleScanAlert(tagId: string, scanLogId: string): Promise
       return;
     }
 
-    const tagUrl = buildTagDashboardUrl(context.tag.slug);
+    const tagUrl = buildTagPublicUrl(context.tag.slug);
     let sentCount = 0;
 
     if (context.tag.emailAlertsEnabled) {
