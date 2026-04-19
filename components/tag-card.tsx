@@ -11,6 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   QrCode,
   MessageCircle,
   Mail,
@@ -25,6 +30,7 @@ import {
   ShieldCheck,
   ScanLine,
   ExternalLink,
+  ChevronDown,
 } from 'lucide-react';
 import { updateTagStatus, updateTag, deleteTag } from '@/app/actions/tag';
 import { useRouter } from 'next/navigation';
@@ -80,6 +86,7 @@ export function TagCard({
   const productLabel = getTagProductLabel({ productType: productType ?? null, tier: tier ?? null } as { productType: ProductType | null; tier: string | null; });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [editName, setEditName] = useState(name);
   const [editWhatsapp, setEditWhatsapp] = useState(contactWhatsapp || '');
   const [editMessage, setEditMessage] = useState(customMessage || '');
@@ -276,42 +283,54 @@ export function TagCard({
   }
 
   return (
-    <Card className={`group overflow-hidden border shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isLost ? 'border-red-200 bg-red-50/60 shadow-red-100/60' : 'border-white/80 bg-white/95 shadow-slate-200/70'}`}>
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <div className={`rounded-2xl p-3 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                {isLost ? <AlertTriangle className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className={`group overflow-hidden border shadow-lg transition-all duration-300 ${isOpen ? 'hover:-translate-y-1 hover:shadow-xl' : ''} ${isLost ? 'border-red-200 bg-red-50/60 shadow-red-100/60' : 'border-white/80 bg-white/95 shadow-slate-200/70'}`}>
+        {/* Collapsed Header - Always Visible */}
+        <CollapsibleTrigger asChild>
+          <CardHeader className={`cursor-pointer transition-colors hover:bg-slate-50/50 ${isOpen ? 'border-b border-slate-100' : 'pb-4'}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`rounded-xl p-2 flex-shrink-0 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {isLost ? <AlertTriangle className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg font-semibold text-slate-950 truncate">
+                      {name}
+                    </CardTitle>
+                    <Badge variant={isLost ? 'destructive' : 'success'} className={`px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 ${isLost ? '' : 'bg-emerald-600'}`}>
+                      {isLost ? 'Hilang' : 'Normal'}
+                    </Badge>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs text-slate-500">/p/{slug}</span>
+                    <VerifiedBadge
+                      tier={tier as 'free' | 'premium' | null}
+                      productType={productType as ProductType | null}
+                      isVerified={isVerified}
+                      size="sm"
+                      showTier={isFreeTag}
+                    />
+                    <Badge variant="outline" className="border-slate-200 bg-white text-slate-600 text-xs">
+                      {productLabel}
+                    </Badge>
+                  </div>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-xl text-slate-950">
-                  {name}
-                </CardTitle>
-                <CardDescription className="mt-1 flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs text-slate-500">/p/{slug}</span>
-                  <VerifiedBadge
-                    tier={tier as 'free' | 'premium' | null}
-                    productType={productType as ProductType | null}
-                    isVerified={isVerified}
-                    size="sm"
-                    showTier={isFreeTag}
-                  />
-                  <Badge variant="outline" className="border-slate-200 bg-white text-slate-600">
-                    {productLabel}
-                  </Badge>
-                  {createdLabel && <span className="text-xs text-slate-400">Dibuat {createdLabel}</span>}
-                </CardDescription>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="text-right">
+                  <p className="text-xs text-slate-500">{scanCount} scans</p>
+                  {createdLabel && <p className="text-xs text-slate-400">{createdLabel}</p>}
+                </div>
+                <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>
             </div>
-          </div>
-          <Badge variant={isLost ? 'destructive' : 'success'} className={`px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${isLost ? '' : 'bg-emerald-600'}`}>
-            {isLost ? 'Hilang' : 'Normal'}
-          </Badge>
-        </div>
-      </CardHeader>
+          </CardHeader>
+        </CollapsibleTrigger>
 
-      <CardContent className="space-y-4">
+        {/* Expanded Content - Only Visible When Open */}
+        <CollapsibleContent>
+          <CardContent className="space-y-4">
         <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
           <div className="flex items-start gap-3">
             <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -448,9 +467,9 @@ export function TagCard({
             </div>
           </div>
         )}
-      </CardContent>
+          </CardContent>
 
-      <CardFooter className="flex flex-col items-stretch justify-between gap-3 border-t border-slate-100 bg-white/70 pt-5 sm:flex-row sm:items-center">
+          <CardFooter className="flex flex-col items-stretch justify-between gap-3 border-t border-slate-100 bg-white/70 pt-5 sm:flex-row sm:items-center">
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} disabled={isLoading}>
             <Pencil className="mr-2 h-4 w-4" />
@@ -480,6 +499,8 @@ export function TagCard({
           Hapus
         </Button>
       </CardFooter>
+        </CollapsibleContent>
     </Card>
+  </Collapsible>
   );
 }
