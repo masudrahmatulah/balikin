@@ -28,6 +28,7 @@ const protectedRoutes = [
   '/dashboard/sticker-orders/[orderId]',
   '/claim/[tagId]', // Claim flow requires auth
   '/stickers/checkout',
+  '/p/[slug]/private', // Tab 2 (Private) requires authentication
 ];
 
 // Routes that require admin role
