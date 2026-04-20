@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Calendar, ExternalLink, FileText, Smartphone, Crown,
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { DownloadCenter } from '@/components/download-center';
+import { TabTwoActivation } from '@/components/tab-two-activation';
 import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct } from '@/lib/product';
 
 interface TagDetailPageProps {
@@ -195,6 +196,14 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                 )}
               </CardContent>
             </Card>
+
+            {/* Tab 2 - Modul Privat */}
+            <TabTwoActivation
+              tagId={tag.id}
+              tagName={tag.name}
+              hasTabTwoEnabled={tag.hasTabTwoEnabled || false}
+              slug={tag.slug}
+            />
 
             {/* Scan History */}
             <Card>

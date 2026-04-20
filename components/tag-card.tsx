@@ -31,6 +31,7 @@ import {
   ScanLine,
   ExternalLink,
   ChevronDown,
+  Lock,
 } from 'lucide-react';
 import { updateTagStatus, updateTag, deleteTag } from '@/app/actions/tag';
 import { useRouter } from 'next/navigation';
@@ -59,6 +60,7 @@ interface TagCardProps {
   ownerEmail?: string | null;
   createdAt: Date | null;
   scanCount?: number;
+  hasTabTwoEnabled?: boolean | null;
 }
 
 export function TagCard({
@@ -77,6 +79,7 @@ export function TagCard({
   ownerEmail,
   createdAt,
   scanCount = 0,
+  hasTabTwoEnabled,
 }: TagCardProps) {
   const router = useRouter();
   const isLost = status === 'lost';
@@ -301,6 +304,12 @@ export function TagCard({
                     <Badge variant={isLost ? 'destructive' : 'success'} className={`px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 ${isLost ? '' : 'bg-emerald-600'}`}>
                       {isLost ? 'Hilang' : 'Normal'}
                     </Badge>
+                    {hasTabTwoEnabled && (
+                      <Badge variant="default" className="px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 bg-purple-600 text-white">
+                        <Lock className="w-3 h-3 mr-1" />
+                        Tab 2
+                      </Badge>
+                    )}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs text-slate-500">/p/{slug}</span>
