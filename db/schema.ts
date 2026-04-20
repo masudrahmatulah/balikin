@@ -111,6 +111,7 @@ export const tags = pgTable('tags', {
   whatsappAlertsEnabled: boolean('whatsapp_alerts_enabled').default(false).notNull(),
   lastAlertSentAt: timestamp('last_alert_sent_at'),
   claimedAt: timestamp('claimed_at'),
+  hasTabTwoEnabled: boolean('has_tab_two_enabled').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -184,6 +185,163 @@ export const notificationLogsRelations = relations(notificationLogs, ({ one }) =
   }),
 }));
 
+// ============================================================================
+// DUAL-TAB FEATURE TABLES
+// ============================================================================
+
+// Emergency medical information for Tab 1 (Public display)
+export const emergencyInformation = pgTable('emergency_information', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  bloodType: text('blood_type'), // A, B, AB, O
+  allergies: text('allergies'), // Free text
+  medicalConditions: text('medical_conditions'), // Free text
+  emergencyContact: text('emergency_contact'), // Phone number
+  emergencyContactName: text('emergency_contact_name'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const emergencyInformationRelations = relations(emergencyInformation, ({ one }) => ({
+  tag: one(tags, {
+    fields: [emergencyInformation.tagId],
+    references: [tags.id],
+  }),
+}));
+
+// User module selections for Tab 2 (Private modules)
+export const userModuleSelections = pgTable('user_module_selections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const userModuleSelectionsRelations = relations(userModuleSelections, ({ one }) => ({
+  user: one(user, {
+    fields: [userModuleSelections.userId],
+    references: [user.id],
+  }),
+}));
+
+// Student Kit module data
+export const studentKitData = pgTable('student_kit_data', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  classSchedule: text('class_schedule'), // JSON string
+  assignmentDeadlines: text('assignment_deadlines'), // JSON string
+  driveLinks: text('drive_links'), // JSON string
+  ktmKrsPhotos: text('ktm_krs_photos'), // JSON array of URLs
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const studentKitDataRelations = relations(studentKitData, ({ one }) => ({
+  user: one(user, {
+    fields: [studentKitData.userId],
+    references: [user.id],
+  }),
+}));
+
+// Otomotif module data
+export const otomotifData = pgTable('otomotif_data', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  stnkNumber: text('stnk_number'),
+  stnkExpiryDate: timestamp('stnk_expiry_date'),
+  oilChangeSchedule: text('oil_change_schedule'), // JSON string
+  serviceHistory: text('service_history'), // JSON string
+  insuranceNumber: text('insurance_number'),
+  insuranceProvider: text('insurance_provider'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const otomotifDataRelations = relations(otomotifData, ({ one }) => ({
+  user: one(user, {
+    fields: [otomotifData.userId],
+    references: [user.id],
+  }),
+}));
+
+// Pertanian module data
+export const pertanianData = pgTable('pertanian_data', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  hstCalculator: text('hst_calculator'), // JSON string
+  fertilizerSchedule: text('fertilizer_schedule'), // JSON string
+  harvestLog: text('harvest_log'), // JSON string
+  laborCostNotes: text('labor_cost_notes'), // JSON string
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const pertanianDataRelations = relations(pertanianData, ({ one }) => ({
+  user: one(user, {
+    fields: [pertanianData.userId],
+    references: [user.id],
+  }),
+}));
+
+// Diklat B2B module data
+export const diklatData = pgTable('diklat_data', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  eventId: text('event_id'), // For B2B event grouping
+  attendeeName: text('attendee_name'),
+  attendanceStatus: text('attendance_status'), // 'checked_in' | 'pending'
+  rundownSchedule: text('rundown_schedule'), // JSON string
+  materialLinks: text('material_links'), // JSON string
+  certificateUrl: text('certificate_url'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const diklatDataRelations = relations(diklatData, ({ one }) => ({
+  tag: one(tags, {
+    fields: [diklatData.tagId],
+    references: [tags.id],
+  }),
+}));
+
+// Document storage metadata (files stored in Vercel Blob)
+export const tagDocuments = pgTable('tag_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian'
+  documentType: text('document_type').notNull(), // 'ktm' | 'krs' | 'stnk' | 'certificate' etc
+  fileName: text('file_name').notNull(),
+  fileUrl: text('file_url').notNull(), // Vercel Blob URL
+  fileSize: integer('file_size'), // bytes
+  mimeType: text('mime_type'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tagDocumentsRelations = relations(tagDocuments, ({ one }) => ({
+  user: one(user, {
+    fields: [tagDocuments.userId],
+    references: [user.id],
+  }),
+  tag: one(tags, {
+    fields: [tagDocuments.tagId],
+    references: [tags.id],
+  }),
+}));
+
+// ============================================================================
+// TYPE EXPORTS
+// ============================================================================
+
 export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
 export type ScanLog = typeof scanLogs.$inferSelect;
@@ -196,3 +354,17 @@ export type TagBundle = typeof tagBundles.$inferSelect;
 export type NewTagBundle = typeof tagBundles.$inferInsert;
 export type NotificationLog = typeof notificationLogs.$inferSelect;
 export type NewNotificationLog = typeof notificationLogs.$inferInsert;
+export type EmergencyInformation = typeof emergencyInformation.$inferSelect;
+export type NewEmergencyInformation = typeof emergencyInformation.$inferInsert;
+export type UserModuleSelection = typeof userModuleSelections.$inferSelect;
+export type NewUserModuleSelection = typeof userModuleSelections.$inferInsert;
+export type StudentKitData = typeof studentKitData.$inferSelect;
+export type NewStudentKitData = typeof studentKitData.$inferInsert;
+export type OtomotifData = typeof otomotifData.$inferSelect;
+export type NewOtomotifData = typeof otomotifData.$inferInsert;
+export type PertanianData = typeof pertanianData.$inferSelect;
+export type NewPertanianData = typeof pertanianData.$inferInsert;
+export type DiklatData = typeof diklatData.$inferSelect;
+export type NewDiklatData = typeof diklatData.$inferInsert;
+export type TagDocument = typeof tagDocuments.$inferSelect;
+export type NewTagDocument = typeof tagDocuments.$inferInsert;
