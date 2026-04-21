@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { tags, scanLogs } from '@/db/schema';
-import { eq, count } from 'drizzle-orm';
+import { tags, scanLogs, userModuleSelections } from '@/db/schema';
+import { eq, count, and } from 'drizzle-orm';
 import { TagCard } from '@/components/tag-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,7 +35,7 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
     orderBy: (tags, { desc }) => [desc(tags.createdAt)],
   });
 
-  // Get scan count for each tag
+  // Get scan count for each tag and check if has Student Kit module
   const tagsWithScanCount = await Promise.all(
     userTags.map(async (tag) => {
       const scanResult = await db
@@ -43,10 +43,20 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
         .from(scanLogs)
         .where(eq(scanLogs.tagId, tag.id));
 
+      // Check if user has Student Kit module enabled
+      const studentKitModule = await db.query.userModuleSelections.findFirst({
+        where: and(
+          eq(userModuleSelections.userId, session.user.id),
+          eq(userModuleSelections.moduleType, 'student'),
+          eq(userModuleSelections.isActive, true)
+        ),
+      });
+
       return {
         ...tag,
         scanCount: scanResult[0]?.count || 0,
         ownerEmail: session.user.email ?? null,
+        hasStudentKit: !!studentKitModule,
       };
     })
   );

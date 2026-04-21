@@ -43,6 +43,7 @@ import {
 } from '@/lib/constants';
 import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct } from '@/lib/product';
 import type { ProductType } from '@/lib/product';
+import { GraduationCap } from 'lucide-react';
 
 interface TagCardProps {
   id: string;
@@ -61,6 +62,7 @@ interface TagCardProps {
   createdAt: Date | null;
   scanCount?: number;
   hasTabTwoEnabled?: boolean | null;
+  hasStudentKit?: boolean | null;
 }
 
 export function TagCard({
@@ -80,6 +82,7 @@ export function TagCard({
   createdAt,
   scanCount = 0,
   hasTabTwoEnabled,
+  hasStudentKit,
 }: TagCardProps) {
   const router = useRouter();
   const isLost = status === 'lost';
@@ -484,6 +487,14 @@ export function TagCard({
             <Pencil className="mr-2 h-4 w-4" />
             Edit Tag
           </Button>
+          {hasTabTwoEnabled && hasStudentKit && (
+            <Button variant="default" size="sm" asChild className="bg-purple-600 hover:bg-purple-700">
+              <Link href={`/p/${slug}/private/student`}>
+                <GraduationCap className="mr-2 h-4 w-4" />
+                Student Kit
+              </Link>
+            </Button>
+          )}
           <Button variant="ghost" size="sm" asChild disabled={isLoading}>
             <Link href={`/dashboard/tag/${slug}`}>
               <QrCode className="mr-2 h-4 w-4" />

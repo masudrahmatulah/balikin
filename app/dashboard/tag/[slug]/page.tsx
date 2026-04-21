@@ -1,12 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/db';
-import { notificationLogs, tags, scanLogs } from '@/db/schema';
+import { notificationLogs, tags, scanLogs, userModuleSelections } from '@/db/schema';
 import { and, eq, gte } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Calendar, ExternalLink, FileText, Smartphone, Crown, BellRing } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, ExternalLink, FileText, Smartphone, Crown, BellRing, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { DownloadCenter } from '@/components/download-center';
@@ -56,6 +56,16 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
       })
     : [];
 
+  // Check if user has Student Kit module enabled
+  const studentKitModule = await db.query.userModuleSelections.findFirst({
+    where: and(
+      eq(userModuleSelections.userId, session.user.id),
+      eq(userModuleSelections.moduleType, 'student'),
+      eq(userModuleSelections.isActive, true)
+    ),
+  });
+  const hasStudentKit = !!studentKitModule;
+
   // Generate QR Code
   const qrUrl = `${process.env.BETTER_AUTH_URL || 'http://localhost:3000'}/p/${slug}`;
   const qrCode = await QRCode.toDataURL(qrUrl, {
@@ -103,6 +113,14 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
               />
 
               <div className="space-y-2">
+                {tag.hasTabTwoEnabled && hasStudentKit && (
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white" asChild>
+                    <Link href={`/p/${slug}/private/student`}>
+                      <GraduationCap className="mr-2 h-4 w-4" />
+                      Buka Student Kit
+                    </Link>
+                  </Button>
+                )}
                 <Button variant="outline" className="w-full" asChild>
                   <a href={`/dashboard/tag/${slug}/qr`} download>
                     <FileText className="mr-2 h-4 w-4" />
