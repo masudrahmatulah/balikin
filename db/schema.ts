@@ -237,6 +237,13 @@ export const studentKitData = pgTable('student_kit_data', {
   assignmentDeadlines: text('assignment_deadlines'), // JSON string
   driveLinks: text('drive_links'), // JSON string
   ktmKrsPhotos: text('ktm_krs_photos'), // JSON array of URLs
+  // vCard data for professional networking
+  vcardData: text('vcard_data'), // JSON string: { fullName, title, email, phone, linkedinUrl, portfolioUrl, githubUrl, bio }
+  vcardShareCode: text('vcard_share_code'), // Unique code for public vCard sharing
+  // WhatsApp notification settings for deadline reminders
+  whatsappNotificationsEnabled: boolean('whatsapp_notifications_enabled').default(false),
+  notificationPhoneNumber: text('notification_phone_number'), // Phone number for reminders (if different from account)
+  lastNotificationSentAt: timestamp('last_notification_sent_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -244,6 +251,26 @@ export const studentKitData = pgTable('student_kit_data', {
 export const studentKitDataRelations = relations(studentKitData, ({ one }) => ({
   user: one(user, {
     fields: [studentKitData.userId],
+    references: [user.id],
+  }),
+}));
+
+// Student Kit Schedule Shares - for sharing schedules between students
+export const studentKitScheduleShares = pgTable('student_kit_schedule_shares', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  shareCode: text('share_code').unique().notNull(), // Unique code for sharing
+  classSchedule: text('class_schedule').notNull(), // JSON string
+  assignmentDeadlines: text('assignment_deadlines').notNull(), // JSON string
+  driveLinks: text('drive_links').notNull(), // JSON string
+  expiresAt: timestamp('expires_at').notNull(), // Share link expiry
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const studentKitScheduleSharesRelations = relations(studentKitScheduleShares, ({ one }) => ({
+  user: one(user, {
+    fields: [studentKitScheduleShares.userId],
     references: [user.id],
   }),
 }));
@@ -360,6 +387,8 @@ export type UserModuleSelection = typeof userModuleSelections.$inferSelect;
 export type NewUserModuleSelection = typeof userModuleSelections.$inferInsert;
 export type StudentKitData = typeof studentKitData.$inferSelect;
 export type NewStudentKitData = typeof studentKitData.$inferInsert;
+export type StudentKitScheduleShares = typeof studentKitScheduleShares.$inferSelect;
+export type NewStudentKitScheduleShares = typeof studentKitScheduleShares.$inferInsert;
 export type OtomotifData = typeof otomotifData.$inferSelect;
 export type NewOtomotifData = typeof otomotifData.$inferInsert;
 export type PertanianData = typeof pertanianData.$inferSelect;
