@@ -303,3 +303,189 @@ export async function getFonnteDeviceStatus(): Promise<{ status: boolean; device
     return { status: false };
   }
 }
+
+// ============================================================================
+// MODULE REQUEST NOTIFICATIONS
+// ============================================================================
+
+interface ModuleRequestNotificationOptions {
+  userName: string;
+  userEmail: string;
+  moduleType: string;
+  reason?: string;
+}
+
+interface ModuleApprovedNotificationOptions {
+  phoneNumber: string;
+  userName: string;
+  moduleType: string;
+}
+
+interface ModuleRejectedNotificationOptions {
+  phoneNumber: string;
+  userName: string;
+  moduleType: string;
+  rejectionReason?: string;
+}
+
+function getModuleDisplayName(moduleType: string): string {
+  const names: Record<string, string> = {
+    student: 'Student Kit',
+    otomotif: 'Otomotif',
+    pertanian: 'Pertanian',
+    diklat: 'Diklat B2B',
+  };
+  return names[moduleType] || moduleType;
+}
+
+function getModuleBenefits(moduleType: string): string {
+  const benefits: Record<string, string> = {
+    student: `✓ Kelola jadwal kuliah & deadline - hemat 3 jam/minggu!
+✓ Notifikasi WhatsApp otomatis sebelum deadline
+✓ Bagikan jadwal ke teman dengan satu link
+✓ Simpan KTM/KRS sebagai foto digital
+✓ Buat vCard profesional untuk networking`,
+    otomotif: `✓ Pantau STNK, servis, & klaim asuransi dalam satu tempat
+✓ Jadwal ganti oli & servis terkelola otomatis
+✓ Riwayat servis terdokumentasi lengkap
+✓ Data asuransi & klaim dalam genggaman`,
+    pertanian: `✓ Kalkulator HST otomatis untuk umur tanaman
+✓ Jadwal pemupukan tepat waktu
+✓ Catatan panen & biaya tenaga kerja
+✓ Optimalkan hasil panen dengan perencanaan baik`,
+    diklat: `✓ Tracking kehadiran peserta real-time
+✓ Materi & sertifikat terorganisir per event
+✓ QR code untuk check-in peserta
+✓ Rundown schedule yang terstruktur`,
+  };
+  return benefits[moduleType] || '';
+}
+
+/**
+ * Send module request notification to admin
+ */
+export async function sendModuleRequestNotificationToAdmin({
+  userName,
+  userEmail,
+  moduleType,
+  reason,
+}: ModuleRequestNotificationOptions): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+  const timestamp = new Date().toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const message = `🔔 [BALIKIN] Permintaan Modul Baru
+
+User: *${userName}* (${userEmail})
+Modul: *${moduleDisplayName}*
+${reason ? `Alasan: ${reason}` : ''}
+
+⏰ Waktu: ${timestamp}
+
+➡️ Action: Login ke admin dashboard untuk approve
+https://balikin.id/admin/requests
+
+— Balikin Module Requests`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(
+      process.env.WHATSAPP_ORDER_NUMBER!,
+      message,
+      'MODULE REQUEST',
+      config
+    );
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
+ * Send module approved notification to user
+ */
+export async function sendModuleApprovedNotificationToUser({
+  phoneNumber,
+  userName,
+  moduleType,
+}: ModuleApprovedNotificationOptions): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+  const benefits = getModuleBenefits(moduleType);
+
+  const message = `✅ [BALIKIN] Modul ${moduleDisplayName} Diaktifkan
+
+Halo *${userName}*! 👋
+
+Selamat! Modul *${moduleDisplayName}* telah diaktifkan untuk akun Anda.
+
+🚀 *Akses sekarang:*
+https://balikin.id/dashboard
+
+Nikmati fitur-fiturnya:
+${benefits}
+
+— Balikin
+Untuk mematikan notifikasi: reply STOP`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'MODULE APPROVED', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
+ * Send module rejected notification to user
+ */
+export async function sendModuleRejectedNotificationToUser({
+  phoneNumber,
+  userName,
+  moduleType,
+  rejectionReason,
+}: ModuleRejectedNotificationOptions): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+
+  const message = `❌ [BALIKIN] Permintaan Modul Ditolak
+
+Halo *${userName}*! 👋
+
+Maaf, permintaan modul *${moduleDisplayName}* ditolak.
+${rejectionReason ? `Alasan: ${rejectionReason}` : ''}
+
+💡 *Tips:*
+- Pastikan alasan request jelas
+- Hubungi admin untuk informasi lebih lanjut
+- Coba request lagi di lain waktu
+
+— Balikin`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'MODULE REJECTED', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
