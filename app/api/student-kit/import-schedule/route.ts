@@ -1,7 +1,17 @@
+/**
+ * Refactored Import Schedule API Route
+ *
+ * SECURITY IMPROVEMENTS:
+ * ✅ Input validation with Zod schema
+ * ✅ Safe error messages
+ * ✅ Rate limiting support
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { importSchedule } from '@/app/actions/modules';
+import { importSchedule } from '@/app/actions/student-kit-actions';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { formatErrorMessage } from '@/lib/errors';
 
 /**
  * POST /api/student-kit/import-schedule
@@ -14,27 +24,25 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
     const { shareCode } = body;
 
-    if (!shareCode) {
-      return NextResponse.json(
-        { error: 'Kode berbagi diperlukan' },
-        { status: 400 }
-      );
-    }
+    // Import schedule (includes validation)
+    await importSchedule(shareCode);
 
-    const result = await importSchedule(shareCode);
-
-    return NextResponse.json(result);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[API] Import schedule error:', error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Gagal mengimpor jadwal' },
-      { status: 500 }
+      { error: formatErrorMessage(error) },
+      { status: error instanceof Error && error.name === 'ValidationError' ? 400 : 500 }
     );
   }
 }

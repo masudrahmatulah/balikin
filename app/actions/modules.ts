@@ -2,19 +2,26 @@
 
 import { db } from '@/db';
 import {
-  studentKitData,
   otomotifData,
   pertanianData,
   emergencyInformation,
   userModuleSelections,
   tags,
-  studentKitScheduleShares,
 } from '@/db/schema';
-import { eq, and, gt, or } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { nanoid } from 'nanoid';
+import {
+  getStudentKitData as secureGetStudentKitData,
+  updateStudentKit as secureUpdateStudentKit,
+  shareSchedule as secureShareSchedule,
+  getScheduleByShareCode as secureGetScheduleByShareCode,
+  importSchedule as secureImportSchedule,
+  updateInternshipVCard as secureUpdateInternshipVCard,
+  getVCardByShareCode as secureGetVCardByShareCode,
+  updateStudentKitNotificationSettings as secureUpdateStudentKitNotificationSettings,
+} from './student-kit-actions';
 
 /**
  * Helper function to get authenticated session
@@ -37,65 +44,88 @@ async function verifyTagOwnership(tagId: string, userId: string): Promise<boolea
 }
 
 // ============================================================================
-// STUDENT KIT ACTIONS
+// STUDENT KIT ACTIONS (SECURE - Delegating to student-kit-actions.ts)
 // ============================================================================
 
+/**
+ * Get student kit data - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
 export async function getStudentKitData() {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  const data = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
-
-  return data;
+  return secureGetStudentKitData();
 }
 
+/**
+ * Update student kit data - Delegates to secure implementation with validation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
 export async function updateStudentKit(data: {
   classSchedule?: string;
   assignmentDeadlines?: string;
   driveLinks?: string;
   ktmKrsPhotos?: string;
 }) {
-  const session = await getSession();
+  return secureUpdateStudentKit(data);
+}
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+/**
+ * Share schedule - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function shareSchedule() {
+  return secureShareSchedule();
+}
 
-  const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
+/**
+ * Get schedule by share code - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function getScheduleByShareCode(shareCode: string) {
+  return secureGetScheduleByShareCode(shareCode);
+}
 
-  if (existingData) {
-    // Update existing record
-    await db
-      .update(studentKitData)
-      .set({
-        ...(data.classSchedule !== undefined && { classSchedule: data.classSchedule }),
-        ...(data.assignmentDeadlines !== undefined && {
-          assignmentDeadlines: data.assignmentDeadlines,
-        }),
-        ...(data.driveLinks !== undefined && { driveLinks: data.driveLinks }),
-        ...(data.ktmKrsPhotos !== undefined && { ktmKrsPhotos: data.ktmKrsPhotos }),
-        updatedAt: new Date(),
-      })
-      .where(eq(studentKitData.userId, session.user.id));
-  } else {
-    // Create new record
-    await db.insert(studentKitData).values({
-      userId: session.user.id,
-      classSchedule: data.classSchedule || '{}',
-      assignmentDeadlines: data.assignmentDeadlines || '{}',
-      driveLinks: data.driveLinks || '[]',
-      ktmKrsPhotos: data.ktmKrsPhotos || '[]',
-    });
-  }
+/**
+ * Import schedule - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function importSchedule(shareCode: string) {
+  return secureImportSchedule(shareCode);
+}
 
-  return { success: true };
+/**
+ * Update internship vCard - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function updateInternshipVCard(data: {
+  fullName?: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
+  githubUrl?: string;
+  bio?: string;
+}) {
+  return secureUpdateInternshipVCard(data);
+}
+
+/**
+ * Get vCard by share code - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function getVCardByShareCode(shareCode: string) {
+  return secureGetVCardByShareCode(shareCode);
+}
+
+/**
+ * Update notification settings - Delegates to secure implementation
+ * @deprecated Import directly from student-kit-actions.ts for type safety
+ */
+export async function updateStudentKitNotificationSettings(data: {
+  whatsappNotificationsEnabled?: boolean;
+  notificationPhoneNumber?: string;
+}) {
+  return secureUpdateStudentKitNotificationSettings(data);
 }
 
 // ============================================================================
@@ -385,267 +415,3 @@ export async function enableTabTwo(tagId: string) {
   return { success: true };
 }
 
-// ============================================================================
-// SCHEDULE SHARING ACTIONS
-// ============================================================================
-
-/**
- * Generate a share code for the current user's schedule
- * Creates a new share record that expires in 7 days
- */
-export async function shareSchedule() {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  // Get current student kit data
-  const studentData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
-
-  if (!studentData || !studentData.classSchedule) {
-    throw new Error('Tidak ada data jadwal untuk dibagikan');
-  }
-
-  // Generate unique share code
-  const shareCode = nanoid(10); // 10-character unique code
-
-  // Calculate expiry date (7 days from now)
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
-
-  // Create share record
-  await db.insert(studentKitScheduleShares).values({
-    userId: session.user.id,
-    shareCode,
-    classSchedule: studentData.classSchedule,
-    assignmentDeadlines: studentData.assignmentDeadlines || '{}',
-    driveLinks: studentData.driveLinks || '[]',
-    expiresAt,
-  });
-
-  return {
-    success: true,
-    shareCode,
-    expiresAt: expiresAt.toISOString(),
-  };
-}
-
-/**
- * Retrieve schedule by share code
- * Used for importing shared schedules
- */
-export async function getScheduleByShareCode(shareCode: string) {
-  const share = await db.query.studentKitScheduleShares.findFirst({
-    where: eq(studentKitScheduleShares.shareCode, shareCode),
-  });
-
-  if (!share) {
-    throw new Error('Kode berbagi tidak valid atau sudah kadaluarsa');
-  }
-
-  // Check if expired
-  if (share.expiresAt < new Date()) {
-    throw new Error('Kode berbagi sudah kadaluarsa');
-  }
-
-  return {
-    classSchedule: share.classSchedule,
-    assignmentDeadlines: share.assignmentDeadlines,
-    driveLinks: share.driveLinks,
-  };
-}
-
-/**
- * Import schedule from share code to current user's account
- */
-export async function importSchedule(shareCode: string) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  // Get the shared schedule
-  const sharedData = await getScheduleByShareCode(shareCode);
-
-  // Get existing student data
-  const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
-
-  if (existingData) {
-    // Update existing record with shared data
-    await db
-      .update(studentKitData)
-      .set({
-        classSchedule: sharedData.classSchedule,
-        assignmentDeadlines: sharedData.assignmentDeadlines,
-        driveLinks: sharedData.driveLinks,
-        updatedAt: new Date(),
-      })
-      .where(eq(studentKitData.userId, session.user.id));
-  } else {
-    // Create new record with shared data
-    await db.insert(studentKitData).values({
-      userId: session.user.id,
-      classSchedule: sharedData.classSchedule,
-      assignmentDeadlines: sharedData.assignmentDeadlines,
-      driveLinks: sharedData.driveLinks,
-      ktmKrsPhotos: '[]',
-    });
-  }
-
-  revalidatePath('/p/[slug]/private/student');
-
-  return { success: true };
-}
-
-// ============================================================================
-// VCARD ACTIONS
-// ============================================================================
-
-/**
- * Update vCard data for the current user
- */
-export async function updateInternshipVCard(data: {
-  fullName?: string;
-  title?: string;
-  email?: string;
-  phone?: string;
-  linkedinUrl?: string;
-  portfolioUrl?: string;
-  githubUrl?: string;
-  bio?: string;
-}) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  // Get existing data
-  const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
-
-  // Parse existing vCard data
-  const existingVCard = existingData?.vcardData
-    ? JSON.parse(existingData.vcardData)
-    : {};
-
-  // Merge with new data
-  const updatedVCard = {
-    ...existingVCard,
-    ...data,
-  };
-
-  // Generate unique share code if not exists
-  let vcardShareCode = existingData?.vcardShareCode;
-  if (!vcardShareCode && data.fullName) {
-    vcardShareCode = nanoid(10);
-  }
-
-  if (existingData) {
-    // Update existing record
-    await db
-      .update(studentKitData)
-      .set({
-        vcardData: JSON.stringify(updatedVCard),
-        ...(vcardShareCode && { vcardShareCode }),
-        updatedAt: new Date(),
-      })
-      .where(eq(studentKitData.userId, session.user.id));
-  } else {
-    // Create new record
-    await db.insert(studentKitData).values({
-      userId: session.user.id,
-      classSchedule: '{}',
-      assignmentDeadlines: '{}',
-      driveLinks: '[]',
-      ktmKrsPhotos: '[]',
-      vcardData: JSON.stringify(updatedVCard),
-      vcardShareCode,
-    });
-  }
-
-  revalidatePath('/p/[slug]/private/student');
-
-  return {
-    success: true,
-    shareCode: vcardShareCode,
-  };
-}
-
-/**
- * Get vCard data by share code
- * Used for public vCard page
- */
-export async function getVCardByShareCode(shareCode: string) {
-  const vcardData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.vcardShareCode, shareCode),
-  });
-
-  if (!vcardData || !vcardData.vcardData) {
-    throw new Error('vCard tidak ditemukan');
-  }
-
-  return {
-    vcardData: JSON.parse(vcardData.vcardData),
-    shareCode: vcardData.vcardShareCode,
-  };
-}
-
-// ============================================================================
-// NOTIFICATION SETTINGS ACTIONS
-// ============================================================================
-
-/**
- * Update WhatsApp notification preferences for deadline reminders
- */
-export async function updateStudentKitNotificationSettings(data: {
-  whatsappNotificationsEnabled?: boolean;
-  notificationPhoneNumber?: string;
-}) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  // Get existing data
-  const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
-  });
-
-  if (existingData) {
-    // Update existing record
-    await db
-      .update(studentKitData)
-      .set({
-        ...(data.whatsappNotificationsEnabled !== undefined && {
-          whatsappNotificationsEnabled: data.whatsappNotificationsEnabled,
-        }),
-        ...(data.notificationPhoneNumber !== undefined && {
-          notificationPhoneNumber: data.notificationPhoneNumber,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(studentKitData.userId, session.user.id));
-  } else {
-    // Create new record with notification settings
-    await db.insert(studentKitData).values({
-      userId: session.user.id,
-      classSchedule: '{}',
-      assignmentDeadlines: '{}',
-      driveLinks: '[]',
-      ktmKrsPhotos: '[]',
-      whatsappNotificationsEnabled: data.whatsappNotificationsEnabled || false,
-      notificationPhoneNumber: data.notificationPhoneNumber || null,
-    });
-  }
-
-  return { success: true };
-}
