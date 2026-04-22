@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { tags, scanLogs, userModuleSelections } from '@/db/schema';
+import { tags, scanLogs, userModuleSelections, userModulePermissions, moduleRequests } from '@/db/schema';
 import { eq, count, and } from 'drizzle-orm';
 import { TagCard } from '@/components/tag-card';
+import { ModuleCard } from '@/components/module-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -18,6 +19,10 @@ import { getSession } from '@/lib/session';
 import { FREE_TAG_LIMIT } from '@/lib/constants';
 import { Suspense } from 'react';
 import { SignOutButton } from '@/components/sign-out-button';
+import { getAllModules } from '@/lib/admin-modules';
+import { getEnabledModulesForUser as fetchEnabledModules } from '@/app/actions/admin-module-actions';
+import { getUserPendingRequests as fetchPendingRequests } from '@/app/actions/module-request-actions';
+import { RequestHistoryWrapper } from '@/components/request-history-wrapper';
 
 interface DashboardPageProps {
   searchParams: Promise<{ limit?: string }>;
@@ -155,6 +160,25 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
           </Link>
         </section>
 
+        {/* Module List */}
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-slate-900">Modul Tersedia</h2>
+            <span className="text-sm text-slate-600">
+              Upgrade akun Anda untuk mengakses lebih banyak modul
+            </span>
+          </div>
+          <ModulesListWrapper userId={session.user.id} />
+        </section>
+
+        {/* Request History */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+            Riwayat Permintaan Modul
+          </h2>
+          <RequestHistorySection userId={session.user.id} />
+        </section>
+
         {/* Recent Activity */}
         {totalScans > 0 && (
           <section className="mb-8">
@@ -227,6 +251,36 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
       </div>
     </div>
   );
+}
+
+// Module List Wrapper Component
+async function ModulesListWrapper({ userId }: { userId: string }) {
+  const allModules = getAllModules();
+  const enabledModules = await fetchEnabledModules(userId);
+  const pendingRequests = await fetchPendingRequests();
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {allModules.map((module) => (
+        <ModuleCard
+          key={module.type}
+          module={module}
+          isEnabled={enabledModules.includes(module.type)}
+          hasPendingRequest={pendingRequests.includes(module.type)}
+          onModuleAccess={(moduleType) => {
+            // Navigate to module-specific page
+            // For now, just show alert
+            alert(`Modul ${moduleType} akan segera tersedia!`);
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Request History Wrapper Component
+async function RequestHistorySection({ userId }: { userId: string }) {
+  return <RequestHistoryWrapper userId={userId} />;
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {

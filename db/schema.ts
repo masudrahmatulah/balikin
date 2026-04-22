@@ -228,6 +228,80 @@ export const userModuleSelectionsRelations = relations(userModuleSelections, ({ 
   }),
 }));
 
+// User module permissions - admin control for module access
+export const userModulePermissions = pgTable('user_module_permissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  isEnabled: boolean('is_enabled').default(false).notNull(),
+  grantedBy: text('granted_by').references(() => user.id, { onDelete: 'set null' }), // Admin who granted access
+  grantedAt: timestamp('granted_at'),
+  reason: text('reason'), // Optional reason for granting/revoking
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const userModulePermissionsRelations = relations(userModulePermissions, ({ one }) => ({
+  user: one(user, {
+    fields: [userModulePermissions.userId],
+    references: [user.id],
+  }),
+  grantedByUser: one(user, {
+    fields: [userModulePermissions.grantedBy],
+    references: [user.id],
+  }),
+}));
+
+// Module requests - user-initiated module access requests
+export const moduleRequests = pgTable('module_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  status: text('status').default('pending').notNull(), // 'pending' | 'approved' | 'rejected'
+  requestedAt: timestamp('requested_at').defaultNow(),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }),
+  reason: text('reason'), // User's reason for requesting
+  rejectionReason: text('rejection_reason'), // Admin's reason for rejection
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const moduleRequestsRelations = relations(moduleRequests, ({ one }) => ({
+  user: one(user, {
+    fields: [moduleRequests.userId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [moduleRequests.reviewedBy],
+    references: [user.id],
+  }),
+}));
+
+// Module usage analytics - track module activations for analytics
+export const moduleUsageAnalytics = pgTable('module_usage_analytics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  actionType: text('action_type').notNull(), // 'activate' | 'deactivate'
+  performedBy: text('performed_by').references(() => user.id, { onDelete: 'set null' }), // Admin user ID
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const moduleUsageAnalyticsRelations = relations(moduleUsageAnalytics, ({ one }) => ({
+  user: one(user, {
+    fields: [moduleUsageAnalytics.userId],
+    references: [user.id],
+  }),
+  performer: one(user, {
+    fields: [moduleUsageAnalytics.performedBy],
+    references: [user.id],
+  }),
+}));
+
 // Student Kit module data
 export const studentKitData = pgTable('student_kit_data', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -397,3 +471,9 @@ export type DiklatData = typeof diklatData.$inferSelect;
 export type NewDiklatData = typeof diklatData.$inferInsert;
 export type TagDocument = typeof tagDocuments.$inferSelect;
 export type NewTagDocument = typeof tagDocuments.$inferInsert;
+export type UserModulePermission = typeof userModulePermissions.$inferSelect;
+export type NewUserModulePermission = typeof userModulePermissions.$inferInsert;
+export type ModuleRequest = typeof moduleRequests.$inferSelect;
+export type NewModuleRequest = typeof moduleRequests.$inferInsert;
+export type ModuleUsageAnalytics = typeof moduleUsageAnalytics.$inferSelect;
+export type NewModuleUsageAnalytics = typeof moduleUsageAnalytics.$inferInsert;

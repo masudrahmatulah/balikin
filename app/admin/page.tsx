@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession, getAllUsers } from "@/lib/admin";
 import { db } from "@/db";
-import { tags } from "@/db/schema";
+import { tags, moduleRequests } from "@/db/schema";
 import { desc, eq, count } from "drizzle-orm";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { ClientsTable } from "@/components/admin/clients-table";
@@ -39,6 +39,10 @@ export default async function AdminPage() {
   const totalUsers = users.length;
   const totalTagsResult = await db.select({ count: count() }).from(tags);
   const totalTags = totalTagsResult[0]?.count || 0;
+
+  // Get pending module requests count
+  const pendingRequestsResult = await db.select({ count: count() }).from(moduleRequests).where(eq(moduleRequests.status, 'pending'));
+  const pendingRequestsCount = pendingRequestsResult[0]?.count || 0;
 
   // Get recent tags
   const recentTags = await db.query.tags.findMany({
@@ -117,6 +121,21 @@ export default async function AdminPage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Link href="/admin/requests">
+                <Button variant="outline" className="border-yellow-200 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
+                  Permintaan Modul
+                  {pendingRequestsCount > 0 && (
+                    <span className="ml-2 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
+                      {pendingRequestsCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+              <Link href="/admin/modules">
+                <Button variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20">
+                  Manajemen Modul
+                </Button>
+              </Link>
               <Link href="/admin/sticker-orders">
                 <Button variant="outline">Sticker Orders</Button>
               </Link>
