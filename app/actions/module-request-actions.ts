@@ -334,3 +334,20 @@ export async function getUserPendingRequests() {
 
   return requests.map((r) => r.moduleType as ModuleType);
 }
+
+/**
+ * Admin: Approve module request from form (requestId from formData)
+ */
+export async function approveModuleRequestFromForm(formData: FormData) {
+  const requestId = formData.get('requestId') as string;
+  await approveModuleRequest(requestId);
+}
+
+/**
+ * Admin: Reject module request from form (requestId from formData)
+ */
+export async function rejectModuleRequestFromForm(formData: FormData) {
+  const requestId = formData.get('requestId') as string;
+  const rejectionReason = formData.get('rejectionReason') as string | undefined;
+  await rejectModuleRequest({ requestId, rejectionReason });
+}
