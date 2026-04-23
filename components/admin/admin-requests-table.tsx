@@ -6,7 +6,7 @@ import { CheckCircle2, X, Check, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getModuleDisplayName, getModuleColor, getAllModules } from '@/lib/admin-modules';
-import { approveModuleRequest, rejectModuleRequest } from '@/app/actions/module-request-actions';
+import { approveModuleRequest, rejectModuleRequest, approveModuleRequestFromForm, rejectModuleRequestFromForm } from '@/app/actions/module-request-actions';
 
 interface PendingRequest {
   id: string;
@@ -267,21 +267,16 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
 
                       <td className='px-6 py-4 whitespace-nowrap text-right'>
                         <form className='flex gap-2 justify-end'>
+                          <input type='hidden' name='requestId' value={request.id} />
                           <button
-                            formAction={async () => {
-                              'use server';
-                              await approveModuleRequest(request.id);
-                            }}
+                            formAction={approveModuleRequestFromForm}
                             className='inline-flex items-center px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors'
                           >
                             <Check className='w-3 h-3 mr-1' />
                             Approve
                           </button>
                           <button
-                            formAction={async () => {
-                              'use server';
-                              await rejectModuleRequest({ requestId: request.id });
-                            }}
+                            formAction={rejectModuleRequestFromForm}
                             className='inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors'
                           >
                             <X className='w-3 h-3 mr-1' />
