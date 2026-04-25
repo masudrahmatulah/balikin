@@ -252,6 +252,15 @@ async function ModulesListSection({ userId }: { userId: string }) {
   const enabledModules = await fetchEnabledModules(userId);
   const pendingRequests = await fetchPendingRequests();
 
+  // Pass only serializable data (without React components like icons)
+  const serializableModules = allModules.map(({ type, name, description, benefits, color }) => ({
+    type,
+    name,
+    description,
+    benefits,
+    color,
+  }));
+
   return (
     <section className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -261,7 +270,7 @@ async function ModulesListSection({ userId }: { userId: string }) {
         </span>
       </div>
       <ModulesListWrapper
-        allModules={allModules}
+        allModules={serializableModules}
         enabledModules={enabledModules}
         pendingRequests={pendingRequests}
       />
