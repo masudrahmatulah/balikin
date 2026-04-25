@@ -3,22 +3,29 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type ModuleInfo, type ModuleType } from "@/lib/admin-modules";
+import {
+  getModuleInfo,
+  getModuleIcon,
+  type ModuleType
+} from "@/lib/admin-modules";
 import { requestModule } from "@/app/actions/module-request-actions";
 import { useRouter } from "next/navigation";
 
 interface ModuleRequestModalProps {
-  module: ModuleInfo;
+  moduleType: ModuleType;
   onClose: () => void;
 }
 
-export function ModuleRequestModal({ module, onClose }: ModuleRequestModalProps) {
+export function ModuleRequestModal({ moduleType, onClose }: ModuleRequestModalProps) {
   const router = useRouter();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const Icon = module.icon;
+  const module = getModuleInfo(moduleType);
+  const Icon = getModuleIcon(moduleType);
+
+  if (!module) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
