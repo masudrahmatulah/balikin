@@ -332,7 +332,7 @@ export function TagCard({
               <div className="flex items-center gap-3 flex-shrink-0">
                 <div className="text-right">
                   <p className="text-xs text-slate-500">{scanCount} scans</p>
-                  {createdLabel && <p className="text-xs text-slate-400">{createdLabel}</p>}
+                  {createdLabel && <p className="text-xs text-slate-400" suppressHydrationWarning>{createdLabel}</p>}
                 </div>
                 <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>

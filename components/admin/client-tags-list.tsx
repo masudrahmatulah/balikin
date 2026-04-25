@@ -234,7 +234,7 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                         {tag.slug}
                       </code>
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-slate-500 dark:text-slate-400" suppressHydrationWarning>
                       Dibuat:{" "}
                       {tag.createdAt
                         ? format(new Date(tag.createdAt), "dd MMM yyyy, HH:mm", { locale: id })
