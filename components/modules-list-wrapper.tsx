@@ -1,10 +1,19 @@
 "use client";
 
 import { ModuleCard } from "@/components/module-card";
-import { getAllModules, type ModuleType } from "@/lib/admin-modules";
+import type { ModuleType } from "@/lib/admin-modules";
+
+// Serializable module data (without React components)
+interface SerializableModule {
+  type: ModuleType;
+  name: string;
+  description: string;
+  benefits: string[];
+  color: string;
+}
 
 interface ModulesListWrapperProps {
-  allModules: ReturnType<typeof getAllModules>;
+  allModules: SerializableModule[];
   enabledModules: string[];
   pendingRequests: string[];
 }
