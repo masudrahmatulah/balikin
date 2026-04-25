@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
@@ -62,7 +63,8 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/icons/icon-192x192.png" />
+        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="overflow-x-hidden antialiased">
@@ -70,7 +72,8 @@ export default function RootLayout({
           {children}
         </Providers>
         {/* Service Worker Cleanup Script - Removes old service workers that cause redirect errors */}
-        <script
+        <Script
+          id="service-worker-cleanup"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

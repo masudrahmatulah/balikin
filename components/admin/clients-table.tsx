@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@/db/schema";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
+import { formatDate } from "@/lib/date";
 
 interface UserWithTags extends User {
   tagCount: number;
@@ -142,10 +141,8 @@ export function ClientsTable({ users }: ClientsTableProps) {
                     {user.tagCount}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                  {user.createdAt
-                    ? format(new Date(user.createdAt), "dd MMM yyyy", { locale: id })
-                    : "-"}
+                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400" suppressHydrationWarning>
+                  {formatDate(user.createdAt)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <button
@@ -207,10 +204,8 @@ export function ClientsTable({ users }: ClientsTableProps) {
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         {user.tagCount} tag
                       </span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {user.createdAt
-                          ? format(new Date(user.createdAt), "dd MMM yyyy", { locale: id })
-                          : "-"}
+                      <span className="text-xs text-slate-500 dark:text-slate-400" suppressHydrationWarning>
+                        {formatDate(user.createdAt)}
                       </span>
                     </div>
                     <button
