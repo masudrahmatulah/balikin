@@ -23,6 +23,7 @@ import { getAllModules } from '@/lib/admin-modules';
 import { getEnabledModulesForUser as fetchEnabledModules } from '@/app/actions/admin-module-actions';
 import { getUserPendingRequests as fetchPendingRequests } from '@/app/actions/module-request-actions';
 import { RequestHistoryWrapper } from '@/components/request-history-wrapper';
+import { ModulesListWrapper } from '@/components/modules-list-wrapper';
 
 interface DashboardPageProps {
   searchParams: Promise<{ limit?: string }>;
@@ -161,15 +162,7 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
         </section>
 
         {/* Module List */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-slate-900">Modul Tersedia</h2>
-            <span className="text-sm text-slate-600">
-              Upgrade akun Anda untuk mengakses lebih banyak modul
-            </span>
-          </div>
-          <ModulesListWrapper userId={session.user.id} />
-        </section>
+        <ModulesListSection userId={session.user.id} />
 
         {/* Request History */}
         <section className="mb-8">
@@ -253,28 +246,26 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
   );
 }
 
-// Module List Wrapper Component
-async function ModulesListWrapper({ userId }: { userId: string }) {
+// Module List Section - Server Component that fetches data
+async function ModulesListSection({ userId }: { userId: string }) {
   const allModules = getAllModules();
   const enabledModules = await fetchEnabledModules(userId);
   const pendingRequests = await fetchPendingRequests();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {allModules.map((module) => (
-        <ModuleCard
-          key={module.type}
-          moduleType={module.type}
-          isEnabled={enabledModules.includes(module.type)}
-          hasPendingRequest={pendingRequests.includes(module.type)}
-          onModuleAccess={(moduleType) => {
-            // Navigate to module-specific page
-            // For now, just show alert
-            alert(`Modul ${moduleType} akan segera tersedia!`);
-          }}
-        />
-      ))}
-    </div>
+    <section className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-slate-900">Modul Tersedia</h2>
+        <span className="text-sm text-slate-600">
+          Upgrade akun Anda untuk mengakses lebih banyak modul
+        </span>
+      </div>
+      <ModulesListWrapper
+        allModules={allModules}
+        enabledModules={enabledModules}
+        pendingRequests={pendingRequests}
+      />
+    </section>
   );
 }
 
