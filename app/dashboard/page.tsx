@@ -264,7 +264,7 @@ async function ModulesListWrapper({ userId }: { userId: string }) {
       {allModules.map((module) => (
         <ModuleCard
           key={module.type}
-          module={module}
+          moduleType={module.type}
           isEnabled={enabledModules.includes(module.type)}
           hasPendingRequest={pendingRequests.includes(module.type)}
           onModuleAccess={(moduleType) => {

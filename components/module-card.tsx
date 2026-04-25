@@ -4,29 +4,38 @@ import { useState } from "react";
 import { Lock, CheckCircle2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getModuleColor, type ModuleInfo, type ModuleType } from "@/lib/admin-modules";
+import {
+  getModuleIcon,
+  getModuleColor,
+  getModuleInfo,
+  type ModuleType
+} from "@/lib/admin-modules";
 import { ModuleRequestModal } from "./module-request-modal";
 
 interface ModuleCardProps {
-  module: ModuleInfo;
+  moduleType: ModuleType;
   isEnabled: boolean;
   hasPendingRequest?: boolean;
   onModuleAccess?: (moduleType: ModuleType) => void;
 }
 
 export function ModuleCard({
-  module,
+  moduleType,
   isEnabled,
   hasPendingRequest = false,
   onModuleAccess,
 }: ModuleCardProps) {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
-  const Icon = module.icon;
+  const module = getModuleInfo(moduleType);
+  const Icon = getModuleIcon(moduleType);
+  const color = getModuleColor(moduleType);
+
+  if (!module) return null;
 
   const handleAccess = () => {
     if (onModuleAccess) {
-      onModuleAccess(module.type);
+      onModuleAccess(moduleType);
     }
   };
 
@@ -39,7 +48,7 @@ export function ModuleCard({
       <div
         className={`relative overflow-hidden rounded-xl border-2 transition-all ${
           isEnabled
-            ? `${module.color.replace('bg-', 'border-')} bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900`
+            ? `${color.replace('bg-', 'border-')} bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900`
             : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50'
         }`}
       >
@@ -70,7 +79,7 @@ export function ModuleCard({
             <div
               className={`p-3 rounded-xl ${
                 isEnabled
-                  ? module.color
+                  ? color
                   : 'bg-slate-200 dark:bg-slate-700'
               } text-white shrink-0`}
             >
@@ -136,7 +145,7 @@ export function ModuleCard({
             {isEnabled ? (
               <Button
                 onClick={handleAccess}
-                className={`w-full ${module.color} hover:opacity-90 text-white font-medium`}
+                className={`w-full ${color} hover:opacity-90 text-white font-medium`}
               >
                 Buka {module.name}
                 <svg
@@ -177,7 +186,7 @@ export function ModuleCard({
       {/* Request Modal */}
       {isRequestModalOpen && (
         <ModuleRequestModal
-          module={module}
+          moduleType={moduleType}
           onClose={() => setIsRequestModalOpen(false)}
         />
       )}
