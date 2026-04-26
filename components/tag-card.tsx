@@ -274,15 +274,28 @@ export function TagCard({
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex justify-between gap-2">
           <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isLoading}>
             <X className="mr-2 h-4 w-4" />
             Batal
           </Button>
-          <Button onClick={handleSave} disabled={isLoading}>
-            <Check className="mr-2 h-4 w-4" />
-            Simpan
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="hidden sm:flex"
+            >
+              <a href={`/p/${slug}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Lihat Publik
+              </a>
+            </Button>
+            <Button onClick={handleSave} disabled={isLoading}>
+              <Check className="mr-2 h-4 w-4" />
+              Simpan
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     );

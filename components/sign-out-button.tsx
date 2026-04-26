@@ -12,6 +12,8 @@ interface SignOutButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   label?: string;
+  onClose?: () => void;
+  asChild?: boolean;
 }
 
 export function SignOutButton({
@@ -19,6 +21,8 @@ export function SignOutButton({
   variant = "ghost",
   size = "sm",
   label = "Keluar",
+  onClose,
+  asChild = false,
 }: SignOutButtonProps) {
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -44,8 +48,24 @@ export function SignOutButton({
       window.location.href = "/";
     } finally {
       setIsSigningOut(false);
+      onClose?.();
     }
   };
+
+  // If asChild, return a DropdownMenuItem instead
+  if (asChild) {
+    return (
+      <button
+        type="button"
+        onClick={handleSignOut}
+        disabled={isSigningOut}
+        className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+      >
+        <LogOut className="h-4 w-4" />
+        <span>{isSigningOut ? "Keluar..." : label}</span>
+      </button>
+    );
+  }
 
   return (
     <Button

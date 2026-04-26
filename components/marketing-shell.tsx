@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, QrCode, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { marketingNavLinks } from "@/lib/site-content";
 
@@ -25,8 +25,7 @@ export function MarketingShell({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <QrCode className="h-6 w-6 text-blue-600" />
-              <span>Balikin</span>
+              <img src="/logo-icon.png" alt="Balikin Logo" className="h-20 w-[260px]" />
             </Link>
             <nav className="hidden gap-5 text-sm text-gray-600 md:flex">
               {marketingNavLinks.map((link) => (

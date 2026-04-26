@@ -469,3 +469,132 @@
   }
 }
 }
+
+/* ========================================
+   Mobile-First UI - Glassmorphism Styles
+   ======================================== */
+
+/* iOS Safe Area Support */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+/* Glassmorphism utility classes */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Touch-friendly tap highlight removal */
+.no-tap-highlight {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scroll behavior for mobile */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Button press effect */
+.btn-press {
+  transition: transform 0.1s ease-out;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Prevent pull-to-refresh on mobile pages */
+.prevent-pull-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* Bottom navigation glass effect enhancement */
+.bottom-nav-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Card hover effect for touch devices */
+.card-touch {
+  transition: all 0.2s ease-out;
+}
+
+.card-touch:active {
+  transform: scale(0.98);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* Electric blue gradient text */
+.gradient-blue {
+  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Subtle pulse animation for indicators */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Loading shimmer for mobile cards */
+@keyframes shimmer-mobile {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-mobile {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-mobile 1.5s infinite;
+}
+
+/* Optimized font rendering for mobile */
+@media (max-width: 768px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Hide scrollbar for mobile horizontal scrolling */
+.hide-scrollbar-mobile {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar-mobile::-webkit-scrollbar {
+  display: none;
+}
