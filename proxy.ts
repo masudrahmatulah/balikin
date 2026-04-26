@@ -23,13 +23,26 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const userAgent = request.headers.get('user-agent') || ''
 
-  // Skip if already on mobile pages or API routes
+  // Skip if already on mobile pages, API routes, or auth pages
   if (
     pathname.startsWith('/mobile') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/sign-in') ||
+    pathname.startsWith('/sign-up') ||
     pathname.includes('.')
   ) {
+    return
+  }
+
+  // Redirect /p/[slug] to mobile claim page for mobile users
+  if (pathname.startsWith('/p/')) {
+    if (isMobile(userAgent)) {
+      const slug = pathname.split('/')[2]
+      const url = request.nextUrl.clone()
+      url.pathname = `/mobile/claim/${slug}`
+      return NextResponse.redirect(url)
+    }
     return
   }
 
