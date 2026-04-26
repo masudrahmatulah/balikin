@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { QrCode, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 
@@ -73,11 +73,8 @@ export function SiteHeader() {
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.3 }}
             >
-              <QrCode className="h-6 w-6 text-blue-600" />
+              <img src="/logo-icon.png" alt="Balikin Logo" className="h-20 w-[260px]" />
             </motion.div>
-            <span className="truncate text-lg font-bold group-hover:text-blue-600 transition-colors sm:text-xl">
-              Balikin
-            </span>
           </Link>
 
           <button
