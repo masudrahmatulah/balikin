@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession, getAllUsers } from "@/lib/admin";
+import { getPendingOrdersCount, getPendingRequestsCount } from "@/lib/admin-stats";
 import { db } from "@/db";
 import { tags, moduleRequests } from "@/db/schema";
 import { desc, eq, count } from "drizzle-orm";
@@ -40,9 +41,11 @@ export default async function AdminPage() {
   const totalTagsResult = await db.select({ count: count() }).from(tags);
   const totalTags = totalTagsResult[0]?.count || 0;
 
-  // Get pending module requests count
-  const pendingRequestsResult = await db.select({ count: count() }).from(moduleRequests).where(eq(moduleRequests.status, 'pending'));
-  const pendingRequestsCount = pendingRequestsResult[0]?.count || 0;
+  // Get pending module requests count (free modules)
+  const pendingRequestsCount = await getPendingRequestsCount();
+
+  // Get pending orders count (sticker + module)
+  const totalPendingOrders = await getPendingOrdersCount();
 
   // Get recent tags
   const recentTags = await db.query.tags.findMany({
@@ -54,17 +57,21 @@ export default async function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <AdminHeader session={session} />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
+      <AdminHeader
+        session={session}
+        pendingOrdersCount={totalPendingOrders}
+        pendingRequestsCount={pendingRequestsCount}
+      />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Total Klien</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Klien</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
                   {totalUsers}
                 </p>
               </div>
@@ -76,11 +83,11 @@ export default async function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Total Tag Aktif</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Tag Aktif</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
                   {totalTags}
                 </p>
               </div>
@@ -92,10 +99,10 @@ export default async function AdminPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Tag Hilang</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Tag Hilang</p>
                 <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">
                   {recentTags.filter(t => t.status === "lost").length}
                 </p>
@@ -110,13 +117,13 @@ export default async function AdminPage() {
         </div>
 
         {/* Clients Section */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-          <div className="flex flex-col gap-4 border-b border-slate-200 p-6 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col gap-4 border-b border-gray-200 p-6 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Daftar Klien
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Kelola klien dan buat tag QR Code untuk mereka
               </p>
             </div>

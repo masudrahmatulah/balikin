@@ -51,6 +51,50 @@ export const getAdminSession = cache(async () => {
 });
 
 /**
+ * Get admin session for use in server actions (non-cached)
+ * Using cache() in server actions can cause serialization issues
+ */
+export async function getAdminSessionForAction() {
+  try {
+    const headersList = await headers();
+
+    // Get session using better-auth API
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    if (!session?.user) {
+      return null;
+    }
+
+    // Query database to get the user's role (better-auth doesn't return custom fields)
+    const dbUser = await db.query.user.findFirst({
+      where: eq(user.id, session.user.id),
+    });
+
+    if (!dbUser || dbUser.role !== 'admin') {
+      return null;
+    }
+
+    return {
+      user: {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        role: dbUser.role as "admin",
+      },
+      session: {
+        token: session.session?.id || 'unknown',
+        expiresAt: session.session?.expiresAt || new Date(),
+      }
+    };
+  } catch (error) {
+    console.error('[getAdminSessionForAction] Error:', error instanceof Error ? error.message : String(error));
+    return null;
+  }
+}
+
+/**
  * Check if current user is admin
  */
 export const isAdmin = cache(async () => {

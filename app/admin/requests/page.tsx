@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
+import { getPendingOrdersCount } from "@/lib/admin-stats";
 import { getPendingModuleRequests } from "@/app/actions/module-request-actions";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminRequestsTable } from "@/components/admin/admin-requests-table";
@@ -27,26 +28,26 @@ export default async function AdminRequestsPage() {
   const totalPending = pendingRequests.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <AdminHeader session={session} />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
+      <AdminHeader session={session} pendingOrdersCount={await getPendingOrdersCount()} />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Permintaan Modul
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-gray-600 dark:text-gray-400">
             Kelola permintaan akses modul dari user
           </p>
         </div>
 
         {/* Stats Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Total Pending Requests</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Pending Requests</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
                 {totalPending}
               </p>
             </div>

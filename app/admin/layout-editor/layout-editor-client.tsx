@@ -188,25 +188,25 @@ export function LayoutEditorClient({ availableTags }: LayoutEditorClientProps) {
       </div>
 
       {/* Stats */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap gap-6 text-sm">
           <div>
-            <span className="text-slate-600 dark:text-slate-400">Jumlah Sticker:</span>{' '}
-            <span className="font-medium text-slate-900 dark:text-white">{items.length}</span>
+            <span className="text-gray-600 dark:text-gray-400">Jumlah Sticker:</span>{' '}
+            <span className="font-medium text-gray-900 dark:text-white">{items.length}</span>
           </div>
           <div>
-            <span className="text-slate-600 dark:text-slate-400">Ukuran Kertas:</span>{' '}
-            <span className="font-medium text-slate-900 dark:text-white">
+            <span className="text-gray-600 dark:text-gray-400">Ukuran Kertas:</span>{' '}
+            <span className="font-medium text-gray-900 dark:text-white">
               {paperSize.toUpperCase()} {orientation}
             </span>
           </div>
           <div>
-            <span className="text-slate-600 dark:text-slate-400">Bentuk Sticker:</span>{' '}
-            <span className="font-medium text-slate-900 dark:text-white">{selectedShape}</span>
+            <span className="text-gray-600 dark:text-gray-400">Bentuk Sticker:</span>{' '}
+            <span className="font-medium text-gray-900 dark:text-white">{selectedShape}</span>
           </div>
           <div>
-            <span className="text-slate-600 dark:text-slate-400">Ukuran Sticker:</span>{' '}
-            <span className="font-medium text-slate-900 dark:text-white">{selectedSize}</span>
+            <span className="text-gray-600 dark:text-gray-400">Ukuran Sticker:</span>{' '}
+            <span className="font-medium text-gray-900 dark:text-white">{selectedSize}</span>
           </div>
         </div>
       </div>

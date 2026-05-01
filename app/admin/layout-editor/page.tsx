@@ -10,12 +10,12 @@ export default async function LayoutEditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
       <main className="container mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Layout Editor Sticker</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Layout Editor Sticker</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Coming Soon - Fitur ini sedang dalam perbaikan.
             </p>
           </div>
@@ -23,7 +23,7 @@ export default async function LayoutEditorPage() {
             <Link href="/admin/sticker-orders">
               <button
                 type="button"
-                className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Kembali ke Orders
               </button>

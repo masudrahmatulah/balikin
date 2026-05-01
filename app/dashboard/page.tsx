@@ -5,6 +5,7 @@ import { eq, count, and } from 'drizzle-orm';
 import { TagCard } from '@/components/tag-card';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { QuickActionCard } from '@/components/quick-action-card';
+import { ModuleSpotlightCard } from '@/components/dashboard/module-spotlight-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -169,6 +170,9 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
             color="slate"
           />
         </section>
+
+        {/* Module Spotlight - Compact, dismissible promo card */}
+        <ModuleSpotlightCard />
 
         {/* Limit Alert */}
         {(isAtLimit || limitReached) && (

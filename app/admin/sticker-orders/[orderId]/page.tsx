@@ -53,13 +53,13 @@ export default async function AdminStickerOrderDetailPage({
   })));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
       <AdminHeader session={session} />
       <main className="container mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Detail Bundle Sticker</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Order {order.id}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Detail Bundle Sticker</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Order {order.id}</p>
           </div>
           <Link href="/admin/sticker-orders">
             <Button variant="outline">Kembali ke Sticker Orders</Button>
@@ -80,7 +80,7 @@ export default async function AdminStickerOrderDetailPage({
 
         {order.bundles.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-sm text-slate-600">
+            <CardContent className="py-10 text-center text-sm text-gray-600">
               Bundle belum dibuat untuk order ini.
             </CardContent>
           </Card>
@@ -106,13 +106,13 @@ export default async function AdminStickerOrderDetailPage({
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {bundle.tags.map((tag) => (
-                    <div key={tag.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div key={tag.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                       <div className="flex justify-center rounded-xl border bg-white p-4">
                         <img src={tag.qrDataUrl} alt={`QR ${tag.slug}`} className="h-48 w-48" />
                       </div>
-                      <p className="mt-3 font-medium text-slate-900">{tag.name}</p>
-                      <p className="mt-1 break-all font-mono text-xs text-slate-500">/p/{tag.slug}</p>
-                      <p className="mt-2 text-sm text-slate-600">{tag.ownerId ? 'Sudah diaktivasi' : 'Belum diaktivasi'}</p>
+                      <p className="mt-3 font-medium text-gray-900">{tag.name}</p>
+                      <p className="mt-1 break-all font-mono text-xs text-gray-500">/p/{tag.slug}</p>
+                      <p className="mt-2 text-sm text-gray-600">{tag.ownerId ? 'Sudah diaktivasi' : 'Belum diaktivasi'}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <a
                           href={`/p/${tag.slug}`}

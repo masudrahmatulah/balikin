@@ -16,15 +16,15 @@ export default async function QRStokPage() {
   const session = await getAdminSession();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 print:bg-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 print:bg-white">
       <AdminHeader session={session as any} />
 
       <div className="container mx-auto px-4 py-8 print:px-2 print:py-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             QR Stok - Gantungan Akrilik Premium
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-gray-600 dark:text-gray-400">
             Generate QR code untuk stok gantungan akrilik premium. QR yang di-generate belum memiliki owner dan akan otomatis dimiliki oleh orang pertama yang melakukan scan.
           </p>
         </div>

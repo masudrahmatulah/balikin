@@ -142,7 +142,7 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
               <button
                 onClick={clearSelection}
                 disabled={isBulkProcessing}
-                className='inline-flex items-center px-4 py-2 bg-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                className='inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'
               >
                 Clear
               </button>
@@ -151,9 +151,9 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
         </div>
       )}
 
-      <div className='bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden'>
-        <div className='px-6 py-4 border-b border-slate-200 dark:border-slate-700'>
-          <h2 className='text-lg font-semibold text-slate-900 dark:text-white'>
+      <div className='bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden'>
+        <div className='px-6 py-4 border-b border-gray-200 dark:border-gray-700'>
+          <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
             Daftar Permintaan
           </h2>
         </div>
@@ -161,7 +161,7 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
         {pendingRequests.length === 0 ? (
           <div className='p-12 text-center'>
             <svg
-              className='w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4'
+              className='w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -173,14 +173,14 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
                 d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
               />
             </svg>
-            <p className='text-slate-600 dark:text-slate-400'>
+            <p className='text-gray-600 dark:text-gray-400'>
               Tidak ada permintaan pending
             </p>
           </div>
         ) : (
           <div className='overflow-x-auto'>
             <table className='w-full'>
-              <thead className='bg-slate-50 dark:bg-slate-900/50'>
+              <thead className='bg-gray-50 dark:bg-gray-900/50'>
                 <tr>
                   <th className='px-4 py-3 text-left'>
                     <input
@@ -192,27 +192,27 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
                         }
                       }}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className='w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500'
+                      className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
                     />
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider'>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                     User
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider'>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                     Modul
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider'>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                     Alasan
                   </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider'>
+                  <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                     Tanggal Request
                   </th>
-                  <th className='px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider'>
+                  <th className='px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider'>
                     Aksi
                   </th>
                 </tr>
               </thead>
-              <tbody className='divide-y divide-slate-200 dark:divide-slate-700'>
+              <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
                 {pendingRequests.map((request) => {
                   const requestedDate = new Date(request.requestedAt).toLocaleDateString('id-ID', {
                     day: 'numeric',
@@ -225,7 +225,7 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
                   return (
                     <tr
                       key={request.id}
-                      className={`hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors ${
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors ${
                         selectedRequestIds.has(request.id) ? 'bg-blue-50 dark:bg-blue-900/10' : ''
                       }`}
                     >
@@ -234,16 +234,16 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
                           type='checkbox'
                           checked={selectedRequestIds.has(request.id)}
                           onChange={() => toggleRequestSelection(request.id)}
-                          className='w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500'
+                          className='w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
                         />
                       </td>
 
                       <td className='px-6 py-4 whitespace-nowrap'>
                         <div>
-                          <div className='text-sm font-medium text-slate-900 dark:text-white'>
+                          <div className='text-sm font-medium text-gray-900 dark:text-white'>
                             {request.user.name || 'Tanpa Nama'}
                           </div>
-                          <div className='text-sm text-slate-500 dark:text-slate-400'>
+                          <div className='text-sm text-gray-500 dark:text-gray-400'>
                             {request.user.email}
                           </div>
                         </div>
@@ -256,12 +256,12 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
                       </td>
 
                       <td className='px-6 py-4'>
-                        <p className='text-sm text-slate-600 dark:text-slate-400 max-w-xs truncate'>
+                        <p className='text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate'>
                           {request.reason || '-'}
                         </p>
                       </td>
 
-                      <td className='px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400'>
+                      <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400'>
                         {requestedDate}
                       </td>
 

@@ -385,11 +385,11 @@ export function QRStokManager() {
     <div className="space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Total QR Stok</p>
-              <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.total}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total QR Stok</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{stats.total}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,10 +399,10 @@ export function QRStokManager() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Sudah Diclaim</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Sudah Diclaim</p>
               <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.claimed}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
@@ -413,10 +413,10 @@ export function QRStokManager() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Belum Diclaim</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Belum Diclaim</p>
               <p className="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.unclaimed}</p>
             </div>
             <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/20 rounded-lg flex items-center justify-center">
@@ -482,8 +482,8 @@ export function QRStokManager() {
 
       {/* Create Form */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
             Generate QR Stok Baru
           </h2>
 
@@ -493,7 +493,7 @@ export function QRStokManager() {
               <div className="space-y-4">
                 {/* Tag Name */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nama Tag / Barang <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -502,13 +502,13 @@ export function QRStokManager() {
                     placeholder="Contoh: Gantungan Kunci Akrilik 001"
                     value={tagName}
                     onChange={(e) => setTagName(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 {/* WhatsApp Contact */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nomor WhatsApp (Opsional)
                   </label>
                   <input
@@ -516,16 +516,16 @@ export function QRStokManager() {
                     placeholder="Contoh: 628123456789"
                     value={contactWhatsapp}
                     onChange={(e) => setContactWhatsapp(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-gray-500">
                     Nomor WhatsApp pemilik (akan diisi otomatis saat QR diclaim)
                   </p>
                 </div>
 
                 {/* Custom Message */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Pesan Khusus (Opsional)
                   </label>
                   <textarea
@@ -533,13 +533,13 @@ export function QRStokManager() {
                     placeholder="Contoh: Ini adalah barang kesayangan saya, tolong dikembalikan ya..."
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                 </div>
 
                 {/* Reward Note */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Catatan Imbalan (Opsional)
                   </label>
                   <input
@@ -547,7 +547,7 @@ export function QRStokManager() {
                     placeholder="Contoh: Akan memberi imbalan bensin 20k"
                     value={rewardNote}
                     onChange={(e) => setRewardNote(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -563,7 +563,7 @@ export function QRStokManager() {
                       setRewardNote("");
                       setQrPreview(null);
                     }}
-                    className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Batal
                   </button>
@@ -578,25 +578,25 @@ export function QRStokManager() {
               </div>
 
               {/* Right Column - QR Preview */}
-              <div className="flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-lg p-6">
+              <div className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                 {qrPreview ? (
                   <>
                     <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
                       <img src={qrPreview} alt="QR Code Preview" className="w-48 h-48" />
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
                       Preview QR Code untuk: <br />
-                      <span className="font-medium text-slate-900 dark:text-white">{tagName}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{tagName}</span>
                     </p>
                   </>
                 ) : (
                   <div className="text-center">
-                    <div className="w-48 h-48 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center mb-4">
-                      <svg className="w-16 h-16 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-48 h-48 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-4">
+                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 17h.01M9 17h.01M9 17v-3m0 0h.01M18 17v-3m0 0h.01M16 17h.01M20 17h.01M20 9h.01M18 9h.01M16 9h.01M14 9h.01M12 9h.01M10 9h.01M8 9h.01M6 9h.01M4 9h.01M4 11h.01M4 13h.01M4 15h.01M4 17h.01" />
                       </svg>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Masukkan nama tag untuk melihat preview QR code
                     </p>
                   </div>
@@ -608,13 +608,13 @@ export function QRStokManager() {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setFilter("all")}
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             filter === "all"
               ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400"
-              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           }`}
         >
           Semua
@@ -624,7 +624,7 @@ export function QRStokManager() {
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             filter === "claimed"
               ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400"
-              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           }`}
         >
           Sudah Diclaim
@@ -634,7 +634,7 @@ export function QRStokManager() {
           className={`px-4 py-2 text-sm font-medium transition-colors ${
             filter === "unclaimed"
               ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400"
-              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           }`}
         >
           Belum Diclaim
@@ -684,7 +684,7 @@ export function QRStokManager() {
 
               <button
                 onClick={handleDownloadSelected}
-                className="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 transition-colors shadow-sm"
+                className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 transition-colors shadow-sm"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -694,7 +694,7 @@ export function QRStokManager() {
 
               <button
                 onClick={clearSelection}
-                className="inline-flex items-center px-4 py-2 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 border border-slate-300 dark:border-slate-600 transition-colors shadow-sm"
+                className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 border border-gray-300 dark:border-gray-600 transition-colors shadow-sm"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -712,24 +712,24 @@ export function QRStokManager() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : tags.length === 0 ? (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Belum ada QR stok
           </h3>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-gray-600 dark:text-gray-400">
             {filter === "unclaimed" ? "Tidak ada QR stok yang belum diclaim." : "Mulai dengan membuat QR stok baru."}
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   <th className="px-4 py-3 text-left">
                     <input
@@ -741,31 +741,31 @@ export function QRStokManager() {
                         }
                       }}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Nama Tag
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Slug
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Dibuat
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Aksi
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {tags.map((tag) => (
                   <tr
                     key={tag.id}
-                    className={`hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors ${
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors ${
                       selectedTagIds.has(tag.id)
                         ? "bg-blue-50 dark:bg-blue-900/10"
                         : ""
@@ -776,23 +776,23 @@ export function QRStokManager() {
                         type="checkbox"
                         checked={selectedTagIds.has(tag.id)}
                         onChange={() => toggleTagSelection(tag.id)}
-                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {tag.name}
                         </div>
                       </div>
                       {tag.contactWhatsapp && (
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {tag.contactWhatsapp}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600 dark:text-slate-400 font-mono">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 font-mono">
                         {tag.slug}
                       </div>
                     </td>
@@ -808,7 +808,7 @@ export function QRStokManager() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600 dark:text-slate-400">
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
                         {new Date(tag.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
@@ -819,7 +819,7 @@ export function QRStokManager() {
                     <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
                       <button
                         onClick={() => openPreview(tag)}
-                        className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                        className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
                         title="Preview QR"
                       >
                         <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -858,8 +858,8 @@ export function QRStokManager() {
 
       {/* Bulk Generate Form */}
       {showBulkForm && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
             Bulk Generate QR Stok
           </h2>
 
@@ -869,7 +869,7 @@ export function QRStokManager() {
               <div className="space-y-4">
                 {/* Prefix */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Prefix Nama <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -878,16 +878,16 @@ export function QRStokManager() {
                     placeholder="Contoh: Gantungan Akrilik"
                     value={bulkPrefix}
                     onChange={(e) => setBulkPrefix(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-gray-500">
                     Nama tag akan menjadi: "{bulkPrefix || 'Prefix'} 1", "{bulkPrefix || 'Prefix'} 2", dst.
                   </p>
                 </div>
 
                 {/* Quantity */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Jumlah <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -897,16 +897,16 @@ export function QRStokManager() {
                     max="100"
                     value={bulkQuantity}
                     onChange={(e) => setBulkQuantity(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-gray-500">
                     Maksimal 100 QR per batch
                   </p>
                 </div>
 
                 {/* Start Number */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nomor Awal
                   </label>
                   <input
@@ -915,13 +915,13 @@ export function QRStokManager() {
                     min="1"
                     value={bulkStartNumber}
                     onChange={(e) => setBulkStartNumber(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 {/* Custom Message */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Pesan Khusus (Opsional)
                   </label>
                   <textarea
@@ -929,13 +929,13 @@ export function QRStokManager() {
                     placeholder="Pesan yang sama untuk semua QR"
                     value={bulkCustomMessage}
                     onChange={(e) => setBulkCustomMessage(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                 </div>
 
                 {/* Reward Note */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Catatan Imbalan (Opsional)
                   </label>
                   <input
@@ -943,7 +943,7 @@ export function QRStokManager() {
                     placeholder="Imbalan yang sama untuk semua QR"
                     value={bulkRewardNote}
                     onChange={(e) => setBulkRewardNote(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -959,7 +959,7 @@ export function QRStokManager() {
                       setBulkCustomMessage("");
                       setBulkRewardNote("");
                     }}
-                    className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                    className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Batal
                   </button>
@@ -974,17 +974,17 @@ export function QRStokManager() {
               </div>
 
               {/* Right Column - Progress */}
-              <div className="flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-lg p-6">
+              <div className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
                 {isBulkGenerating ? (
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600 mx-auto mb-4"></div>
-                    <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+                    <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                       Generating QR Codes...
                     </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {bulkProgress.current} / {bulkProgress.total}
                     </p>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-4">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4">
                       <div
                         className="bg-amber-600 h-2 rounded-full transition-all"
                         style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
@@ -993,12 +993,12 @@ export function QRStokManager() {
                   </div>
                 ) : (
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Isi form dan klik "Generate Bulk" untuk membuat multiple QR codes sekaligus
                     </p>
                   </div>
@@ -1011,20 +1011,20 @@ export function QRStokManager() {
 
       {/* Bulk Results - Printable Layout */}
       {showBulkResults && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 print:shadow-none print:border-none">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 print:shadow-none print:border-none">
           <div className="flex justify-between items-center mb-6 no-print">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Hasil Bulk Generate
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {bulkResults.length} QR code berhasil dibuat
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowBulkResults(false)}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 Tutup
               </button>
@@ -1043,7 +1043,7 @@ export function QRStokManager() {
           {/* Printable Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 print:gap-4">
             {bulkResults.map((tag) => (
-              <div key={tag.id} className="border border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-4 print:border-slate-900">
+              <div key={tag.id} className="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 print:border-gray-900">
                 <div className="bg-white p-3 rounded-lg flex items-center justify-center mb-3">
                   <img
                     src={`${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/api/qr?text=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/p/${tag.slug}`)}`}
@@ -1052,10 +1052,10 @@ export function QRStokManager() {
                   />
                 </div>
                 <div className="text-center">
-                  <p className="font-medium text-slate-900 dark:text-white text-sm mb-1 break-words">
+                  <p className="font-medium text-gray-900 dark:text-white text-sm mb-1 break-words">
                     {tag.name}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                     /p/{tag.slug}
                   </p>
                 </div>
@@ -1068,7 +1068,7 @@ export function QRStokManager() {
                   </button>
                   <button
                     onClick={() => openPreview(tag)}
-                    className="flex-1 text-xs px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                    className="flex-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Preview
                   </button>
@@ -1082,17 +1082,17 @@ export function QRStokManager() {
       {/* Preview Modal */}
       {previewTag && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Preview QR Code
                 </h3>
                 <button
                   onClick={closePreview}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -1104,26 +1104,26 @@ export function QRStokManager() {
                 {previewQrData ? (
                   <img src={previewQrData} alt={`QR ${previewTag.name}`} className="w-64 h-64" />
                 ) : (
-                  <div className="w-64 h-64 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                  <div className="w-64 h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2 mb-6">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   <span className="font-medium">Nama:</span> {previewTag.name}
                 </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 break-all">
+                <p className="text-sm text-gray-600 dark:text-gray-400 break-all">
                   <span className="font-medium">URL:</span> {process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/p/{previewTag.slug}
                 </p>
                 {previewTag.customMessage && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Pesan:</span> {previewTag.customMessage}
                   </p>
                 )}
                 {previewTag.rewardNote && (
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Imbalan:</span> {previewTag.rewardNote}
                   </p>
                 )}
@@ -1138,7 +1138,7 @@ export function QRStokManager() {
                 </button>
                 <button
                   onClick={closePreview}
-                  className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Tutup
                 </button>
@@ -1151,23 +1151,23 @@ export function QRStokManager() {
       {/* Print Preview Modal */}
       {showPrintPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm print-modal-overlay">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700 no-print">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 no-print">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Print Preview - A4
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {printPreviewQrCodes.length} QR code akan dicetak
                   </p>
                 </div>
                 <button
                   onClick={() => setShowPrintPreview(false)}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -1175,12 +1175,12 @@ export function QRStokManager() {
             </div>
 
             {/* A4 Preview Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-100 dark:bg-slate-900">
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900">
               <div className="bg-white shadow-lg mx-auto a4-print-container">
                 {/* Print Header - only visible in preview, not in actual print */}
-                <div className="text-center py-4 border-b-2 border-slate-900 mb-4 no-print">
-                  <h2 className="text-lg font-bold text-slate-900">BALIKIN - QR Stok</h2>
-                  <p className="text-sm text-slate-600">
+                <div className="text-center py-4 border-b-2 border-gray-900 mb-4 no-print">
+                  <h2 className="text-lg font-bold text-gray-900">BALIKIN - QR Stok</h2>
+                  <p className="text-sm text-gray-600">
                     {new Date().toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "long",
@@ -1198,10 +1198,10 @@ export function QRStokManager() {
                         alt={`QR ${tag.name}`}
                         className="qr-print-image"
                       />
-                      <p className="font-semibold text-xs text-slate-900 mt-2 truncate px-1">
+                      <p className="font-semibold text-xs text-gray-900 mt-2 truncate px-1">
                         {tag.name}
                       </p>
-                      <p className="text-[10px] text-slate-600 font-mono truncate px-1">
+                      <p className="text-[10px] text-gray-600 font-mono truncate px-1">
                         /p/{tag.slug}
                       </p>
                     </div>
@@ -1209,17 +1209,17 @@ export function QRStokManager() {
                 </div>
 
                 {/* Print Footer */}
-                <div className="text-center py-2 border-t border-slate-300 mt-2 text-xs text-slate-500 no-print">
+                <div className="text-center py-2 border-t border-gray-300 mt-2 text-xs text-gray-500 no-print">
                   <p>Generated by BALIKIN - Smart Lost & Found</p>
                 </div>
               </div>
             </div>
 
             {/* Footer Actions */}
-            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex gap-3 no-print">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3 no-print">
               <button
                 onClick={() => setShowPrintPreview(false)}
-                className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 Batal
               </button>

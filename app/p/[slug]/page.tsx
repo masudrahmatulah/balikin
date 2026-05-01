@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags, scanLogs, emergencyInformation } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
@@ -37,6 +39,24 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   if (!tag) {
     notFound();
+  }
+
+  // Check ownership - if owner is viewing, redirect to private page
+  // Skip redirect for unclaimed tags or if viewing from claim page
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session?.user?.id && tag.ownerId === session.user.id) {
+    // Owner is viewing - redirect to appropriate page
+    if (tag.autoActivateModule) {
+      // Bundle tag - redirect to specific module
+      redirect(`/p/${slug}/private/${tag.autoActivateModule}`);
+    } else if (tag.hasTabTwoEnabled) {
+      // Tag with dual-tab - redirect to private tab
+      redirect(`/p/${slug}/private`);
+    }
+    // For regular tags without tab 2, show public page (owner might want to see what others see)
   }
 
   // Log scan if status is lost

@@ -6,6 +6,13 @@ const nextConfig = {
   },
   serverExternalPackages: [],
 
+  // Server Actions configuration for devtunnels compatibility
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
+
   // Add headers for all routes
   async headers() {
     return [

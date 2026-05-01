@@ -31,7 +31,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Main Content Area */}
       <div className="pb-24 min-h-screen">
         {children}
