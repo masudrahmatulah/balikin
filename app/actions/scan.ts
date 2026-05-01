@@ -4,8 +4,15 @@ import { headers } from 'next/headers';
 import { db } from '@/db';
 import { scanLogs } from '@/db/schema';
 import { handleScanAlert } from '@/lib/notifications';
+import { eq } from 'drizzle-orm';
 
-export async function logScan(tagId: string) {
+interface ClientLocation {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+}
+
+export async function logScan(tagId: string, clientLocation?: ClientLocation): Promise<string | null> {
   const headersList = await headers();
 
   const vercelCity = headersList.get('x-vercel-ip-city');
@@ -34,6 +41,9 @@ export async function logScan(tagId: string) {
     }
   }
 
+  // Use client location if available (more accurate), otherwise fallback to IP-based location
+  const useClientLocation = clientLocation && clientLocation.latitude && clientLocation.longitude;
+
   try {
     const insertedScan = await db
       .insert(scanLogs)
@@ -41,8 +51,8 @@ export async function logScan(tagId: string) {
         tagId,
         ipAddress: ip,
         city: vercelCity ? `${vercelCity}${vercelCountry ? `, ${vercelCountry}` : ''}` : null,
-        latitude: vercelLat || null,
-        longitude: vercelLon || null,
+        latitude: useClientLocation ? clientLocation.latitude.toString() : (vercelLat || null),
+        longitude: useClientLocation ? clientLocation.longitude.toString() : (vercelLon || null),
         deviceInfo,
       })
       .returning({ id: scanLogs.id });
@@ -52,8 +62,56 @@ export async function logScan(tagId: string) {
       handleScanAlert(tagId, scanLogId).catch((error) => {
         console.error('[Scan Alert] Failed in background:', error);
       });
+      return scanLogId;
     }
   } catch (error) {
     console.error('Failed to log scan:', error);
+  }
+  return null;
+}
+
+export async function updateScanLocation(scanLogId: string, clientLocation: ClientLocation) {
+  try {
+    await db
+      .update(scanLogs)
+      .set({
+        latitude: clientLocation.latitude.toString(),
+        longitude: clientLocation.longitude.toString(),
+      })
+      .where(eq(scanLogs.id, scanLogId));
+  } catch (error) {
+    console.error('Failed to update scan location:', error);
+  }
+}
+
+/**
+ * Update the most recent scan log for a tag with client location
+ * Used by premium geolocation feature after initial IP-based scan is logged
+ */
+export async function updateLatestScanLocation(tagId: string, clientLocation: ClientLocation) {
+  try {
+    // Get the most recent scan log for this tag
+    const latestScans = await db
+      .select()
+      .from(scanLogs)
+      .where(eq(scanLogs.tagId, tagId))
+      .orderBy(scanLogs.scannedAt)
+      .limit(1);
+
+    if (latestScans.length > 0) {
+      const latestScan = latestScans[0];
+      await db
+        .update(scanLogs)
+        .set({
+          latitude: clientLocation.latitude.toString(),
+          longitude: clientLocation.longitude.toString(),
+        })
+        .where(eq(scanLogs.id, latestScan.id));
+      return { success: true, scanId: latestScan.id };
+    }
+    return { success: false, error: 'No scan found' };
+  } catch (error) {
+    console.error('Failed to update latest scan location:', error);
+    return { success: false, error: 'Database error' };
   }
 }
