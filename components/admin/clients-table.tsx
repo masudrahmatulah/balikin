@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, Square, Trash2, Edit2 } from "lucide-react";
 import type { User } from "@/db/schema";
 import { formatDate } from "@/lib/date";
 import { CreateClientModal } from "@/components/admin/create-client-modal";
 import { EditClientModal } from "@/components/admin/edit-client-modal";
 import { DeleteClientModal } from "@/components/admin/delete-client-modal";
+import { BulkEditClientsModal } from "@/components/admin/bulk-edit-clients-modal";
 
 interface UserWithTags extends User {
   tagCount: number;
@@ -25,7 +27,12 @@ export function ClientsTable({ users }: ClientsTableProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bulkEditModalOpen, setBulkEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithTags | null>(null);
+
+  // Bulk selection states
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isAllSelected, setIsAllSelected] = useState(false);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -34,6 +41,38 @@ export function ClientsTable({ users }: ClientsTableProps) {
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+      setIsAllSelected(false);
+    } else {
+      setSelectedIds(new Set(filteredUsers.map((u) => u.id)));
+      setIsAllSelected(true);
+    }
+  };
+
+  // Handle individual select
+  const handleSelectOne = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+    setIsAllSelected(newSelected.size === filteredUsers.length);
+  };
+
+  // Get selected users
+  const selectedUsers = users.filter((u) => selectedIds.has(u.id));
+
+  // Clear selection
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setIsAllSelected(false);
+  };
 
   return (
     <div>
@@ -76,11 +115,49 @@ export function ClientsTable({ users }: ClientsTableProps) {
         </button>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
+              {selectedIds.size} klien dipilih
+            </span>
+            <button
+              onClick={clearSelection}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Batal pilih
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setBulkEditModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+              Edit Role
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="hidden overflow-x-auto md:block">
       <table className="w-full">
         <thead className="bg-gray-50 dark:bg-gray-900/50">
           <tr>
+            <th className="px-4 py-3 text-left">
+              <button
+                onClick={handleSelectAll}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {isAllSelected ? (
+                  <Check className="w-5 h-5 text-blue-600" />
+                ) : (
+                  <Square className="w-5 h-5" />
+                )}
+              </button>
+            </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Klien
             </th>
@@ -116,6 +193,18 @@ export function ClientsTable({ users }: ClientsTableProps) {
           ) : (
             filteredUsers.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td className="px-4 py-4">
+                  <button
+                    onClick={() => handleSelectOne(user.id)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    {selectedIds.has(user.id) ? (
+                      <Check className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-medium">
@@ -225,6 +314,16 @@ export function ClientsTable({ users }: ClientsTableProps) {
             <div key={user.id} className="p-4">
               <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/30">
                 <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => handleSelectOne(user.id)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 pt-1"
+                  >
+                    {selectedIds.has(user.id) ? (
+                      <Check className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 font-medium text-white">
                     {user.name?.[0] || user.email[0].toUpperCase()}
                   </div>
@@ -310,6 +409,14 @@ export function ClientsTable({ users }: ClientsTableProps) {
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         user={selectedUser}
+      />
+      <BulkEditClientsModal
+        isOpen={bulkEditModalOpen}
+        onClose={() => {
+          setBulkEditModalOpen(false);
+          clearSelection();
+        }}
+        selectedUsers={selectedUsers}
       />
     </div>
   );
