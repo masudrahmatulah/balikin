@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Square, Trash2, Edit2 } from "lucide-react";
+import { Check, Square, Trash2 } from "lucide-react";
 import type { User } from "@/db/schema";
 import { formatDate } from "@/lib/date";
 import { CreateClientModal } from "@/components/admin/create-client-modal";
 import { EditClientModal } from "@/components/admin/edit-client-modal";
 import { DeleteClientModal } from "@/components/admin/delete-client-modal";
-import { BulkEditClientsModal } from "@/components/admin/bulk-edit-clients-modal";
+import { BulkDeleteClientsModal } from "@/components/admin/bulk-delete-clients-modal";
 
 interface UserWithTags extends User {
   tagCount: number;
@@ -27,7 +27,7 @@ export function ClientsTable({ users }: ClientsTableProps) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [bulkEditModalOpen, setBulkEditModalOpen] = useState(false);
+  const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithTags | null>(null);
 
   // Bulk selection states
@@ -117,25 +117,25 @@ export function ClientsTable({ users }: ClientsTableProps) {
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 flex items-center justify-between">
+        <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
+            <span className="text-sm font-medium text-red-800 dark:text-red-300">
               {selectedIds.size} klien dipilih
             </span>
             <button
               onClick={clearSelection}
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-xs text-red-600 dark:text-red-400 hover:underline"
             >
               Batal pilih
             </button>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setBulkEditModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors"
+              onClick={() => setBulkDeleteModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
             >
-              <Edit2 className="w-4 h-4" />
-              Edit Role
+              <Trash2 className="w-4 h-4" />
+              Hapus {selectedIds.size} Klien
             </button>
           </div>
         </div>
@@ -410,10 +410,10 @@ export function ClientsTable({ users }: ClientsTableProps) {
         onClose={() => setDeleteModalOpen(false)}
         user={selectedUser}
       />
-      <BulkEditClientsModal
-        isOpen={bulkEditModalOpen}
+      <BulkDeleteClientsModal
+        isOpen={bulkDeleteModalOpen}
         onClose={() => {
-          setBulkEditModalOpen(false);
+          setBulkDeleteModalOpen(false);
           clearSelection();
         }}
         selectedUsers={selectedUsers}
