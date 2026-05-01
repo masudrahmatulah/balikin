@@ -7,6 +7,8 @@ import { tags, scanLogs, emergencyInformation } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
 import { logScan } from '@/app/actions/scan';
 import { WhatsAppButton } from '@/components/whatsapp-button';
+import { PremiumGeolocation } from '@/components/premium-geolocation';
+import { WhatsAppLocationButton } from '@/components/whatsapp-location-button';
 import { ClaimCTA } from './claim-cta';
 import { VerifiedBadge } from '@/components/verified-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,9 +92,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     where: eq(emergencyInformation.tagId, tag.id),
   });
 
+  // Check if tag is premium for geolocation feature
+  const isPremium = tag.tier === 'premium' || tag.productType === 'acrylic' || tag.productType === 'sticker';
+
   // Render the page content (will be wrapped by TabSwitcherHandler if Tab 2 is enabled)
   const pageContent = (
     <>
+      {/* Premium Geolocation - hidden component that triggers on mount for premium tags */}
+      {isLost && isPremium && <PremiumGeolocation tagId={tag.id} isPremium={isPremium} />}
+
       {/* Badge Display */}
       <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
         {isLost && (
@@ -185,20 +193,30 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               )}
 
               {tag.contactWhatsapp && (
-                <div className="flex justify-center">
-                  <WhatsAppButton
-                    phone={tag.contactWhatsapp}
-                    message={
-                      tag.customMessage
-                        ? `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang. ${tag.customMessage}`
-                        : `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang.`
-                    }
-                    label="Hubungi Pemilik via WhatsApp"
-                    variant="destructive"
-                    size="lg"
-                    className="w-full px-6 py-6 text-base sm:w-auto sm:px-8"
-                  />
-                </div>
+                <>
+                  <div className="flex justify-center">
+                    <WhatsAppButton
+                      phone={tag.contactWhatsapp}
+                      message={
+                        tag.customMessage
+                          ? `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang. ${tag.customMessage}`
+                          : `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang.`
+                      }
+                      label="Hubungi Pemilik via WhatsApp"
+                      variant="destructive"
+                      size="lg"
+                      className="w-full px-6 py-6 text-base sm:w-auto sm:px-8"
+                    />
+                  </div>
+                  {/* Location Sharing Button */}
+                  <div className="flex justify-center mt-3">
+                    <WhatsAppLocationButton
+                      phone={tag.contactWhatsapp}
+                      tagName={tag.name}
+                      className="w-full sm:w-auto"
+                    />
+                  </div>
+                </>
               )}
             </>
           ) : (
