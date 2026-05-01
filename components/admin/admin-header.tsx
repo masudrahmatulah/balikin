@@ -95,6 +95,12 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
                 QR Stok
               </Link>
               <Link
+                href="/admin/bundles"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Bundles
+              </Link>
+              <Link
                 href="/admin/layout-editor"
                 className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >

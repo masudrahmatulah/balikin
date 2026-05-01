@@ -3,8 +3,8 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
-import { eq, count, sql, desc } from 'drizzle-orm';
-import { DashboardHeader } from '@/components/admin/admin-header';
+import { count, sql, desc } from 'drizzle-orm';
+import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { AdminCard } from '@/components/admin/admin-card';
 import { BundleCard } from '@/components/admin/bundle-card';
@@ -44,7 +44,7 @@ export default async function AdminBundlesPage() {
     <AdminLayout
       title="Manage Bundles"
       description="Kelola bundle produk dan generate QR code"
-      header={<DashboardHeader email={session.user.email} />}
+      header={<AdminHeader session={session} />}
     >
       {/* Header Actions */}
       <div className="flex justify-end mb-8">
