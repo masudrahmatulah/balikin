@@ -82,7 +82,7 @@ function generateWhatsAppOTPMessage({ otp, type, name }: WhatsAppOTPOptions): st
 
 Berikut adalah kode masuk untuk akun Balikin Anda:
 
-*${otp.split('').join(' ')}*
+*${otp}*
 
 Kode ini berlaku selama 5 menit.
 
@@ -96,7 +96,7 @@ Balikin - Smart Lost & Found QR Tag`,
 
 Berikut adalah kode verifikasi untuk akun Balikin Anda:
 
-*${otp.split('').join(' ')}*
+*${otp}*
 
 Kode ini berlaku selama 5 menit.
 
@@ -108,7 +108,7 @@ Balikin - Smart Lost & Found QR Tag`,
 
 Berikut adalah kode reset password untuk akun Balikin Anda:
 
-*${otp.split('').join(' ')}*
+*${otp}*
 
 Kode ini berlaku selama 5 menit.
 
