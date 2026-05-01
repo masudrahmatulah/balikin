@@ -122,25 +122,25 @@ export function UserModuleModal({
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                     Kelola Modul User
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {userName} ({userEmail})
                   </p>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   disabled={isSubmitting}
                 >
                   <svg
-                    className="w-5 h-5 text-slate-500"
+                    className="w-5 h-5 text-gray-500"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -164,7 +164,7 @@ export function UserModuleModal({
               className={`p-4 rounded-xl border-2 transition-all ${
                 module.isEnabled
                   ? "border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700"
-                  : "border-slate-200 bg-slate-50 dark:bg-slate-900/50 dark:border-slate-700"
+                  : "border-gray-200 bg-gray-50 dark:bg-gray-900/50 dark:border-gray-700"
               }`}
             >
               <div className="flex items-start justify-between mb-3">
@@ -175,10 +175,10 @@ export function UserModuleModal({
                     <IconComponent module={module} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900 dark:text-white">
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
                       {module.name}
                     </h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       {module.description}
                     </p>
                   </div>
@@ -194,10 +194,10 @@ export function UserModuleModal({
               {/* Benefits List */}
               {module.isEnabled && (
                 <div className="mt-3 pl-11">
-                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Benefit utama:
                   </p>
-                  <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                  <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                     {module.benefits.slice(0, 3).map((benefit, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <svg
@@ -222,7 +222,7 @@ export function UserModuleModal({
 
               {/* Reason Input */}
               <div className="mt-3 pl-11">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Alasan (opsional):
                 </label>
                 <input
@@ -230,7 +230,7 @@ export function UserModuleModal({
                   value={module.reason}
                   onChange={(e) => handleReasonChange(module.type, e.target.value)}
                   placeholder={module.isEnabled ? "Contoh: Request via WhatsApp" : "Alasan dinonaktifkan"}
-                  className="mt-1 w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
+                  className="mt-1 w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                   disabled={isSubmitting}
                 />
               </div>

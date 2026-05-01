@@ -38,7 +38,7 @@ export function TemplateSelector({
       <CardContent className="space-y-6">
         {/* Shape Selection */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Bentuk Sticker
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -59,7 +59,7 @@ export function TemplateSelector({
 
         {/* Size Selection */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+          <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Ukuran Sticker
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -79,10 +79,10 @@ export function TemplateSelector({
         </div>
 
         {/* Preview Summary */}
-        <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+        <div className="rounded-lg bg-gray-100 p-3 dark:bg-gray-800">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Template terpilih:{' '}
-            <span className="font-semibold text-slate-900 dark:text-white">
+            <span className="font-semibold text-gray-900 dark:text-white">
               {getShapeLabel(selectedShape)} • {getSizeLabel(selectedSize)}
             </span>
           </p>

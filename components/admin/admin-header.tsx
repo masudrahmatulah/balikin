@@ -21,9 +21,11 @@ interface AdminSession {
 
 interface AdminHeaderProps {
   session: AdminSession | any;
+  pendingOrdersCount?: number;
+  pendingRequestsCount?: number;
 }
 
-export function AdminHeader({ session }: AdminHeaderProps) {
+export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCount = 0 }: AdminHeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -45,7 +47,7 @@ export function AdminHeader({ session }: AdminHeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {/* Logo */}
@@ -56,10 +58,10 @@ export function AdminHeader({ session }: AdminHeaderProps) {
               </svg>
             </div>
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+              <h1 className="truncate text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
                 Balikin Admin
               </h1>
-              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
                 Panel Manajemen Klien & QR Tag
               </p>
             </div>
@@ -71,25 +73,30 @@ export function AdminHeader({ session }: AdminHeaderProps) {
             <nav className="hidden sm:flex items-center gap-2">
               <Link
                 href="/admin"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 Klien
               </Link>
               <Link
                 href="/admin/sticker-orders"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="relative px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 Orders
+                {pendingOrdersCount > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                    {pendingOrdersCount > 9 ? '9+' : pendingOrdersCount}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/admin/qr-stok"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 QR Stok
               </Link>
               <Link
                 href="/admin/layout-editor"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 Layout Editor
               </Link>
@@ -101,19 +108,19 @@ export function AdminHeader({ session }: AdminHeaderProps) {
               </svg>
               Admin
             </span>
-            <div className="flex min-w-0 items-center gap-2 border-slate-200 dark:border-slate-700 sm:border-l sm:pl-4">
-              <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            <div className="flex min-w-0 items-center gap-2 border-gray-200 dark:border-gray-700 sm:border-l sm:pl-4">
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                   {session.user.name?.[0] || session.user.email[0].toUpperCase()}
                 </span>
               </div>
-              <span className="max-w-[160px] truncate text-sm text-slate-600 dark:text-slate-400">
+              <span className="max-w-[160px] truncate text-sm text-gray-600 dark:text-gray-400">
                 {session.user.name || session.user.email}
               </span>
             </div>
             <button
               onClick={handleSignOut}
-              className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               title="Keluar"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

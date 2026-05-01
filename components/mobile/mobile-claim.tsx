@@ -75,14 +75,14 @@ export function MobileClaim({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
               isLost
-                ? 'bg-gradient-to-br from-red-500 to-red-600'
+                ? 'bg-gradient-to-br from-rose-500 to-rose-600'
                 : 'bg-gradient-to-br from-blue-500 to-blue-600'
             } shadow-lg`}>
               <QrCode className="h-6 w-6 text-white" />
@@ -103,7 +103,7 @@ export function MobileClaim({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-red-500 to-red-600 rounded-3xl p-5 shadow-xl shadow-red-500/30 border border-white/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-rose-500/30 border border-white/20 relative overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -113,7 +113,7 @@ export function MobileClaim({
                 <AlertTriangle className="h-6 w-6 text-white" />
                 <span className="text-white font-bold text-lg">BARANG HILANG</span>
               </div>
-              <p className="text-red-100 text-sm mb-3">
+              <p className="text-rose-100 text-sm mb-3">
                 Pemilik sedang mencari barang ini. Jika Anda menemukannya, mohon hubungi segera.
               </p>
               {tag.rewardNote && (
@@ -154,12 +154,12 @@ export function MobileClaim({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 ${
-              isLost ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-blue-500'
+              isLost ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-blue-500'
             }`}
           >
             <div className="flex items-start gap-3">
-              <MessageCircle className={`h-5 w-5 mt-0.5 ${isLost ? 'text-red-500' : 'text-blue-500'}`} />
-              <p className={`text-sm ${isLost ? 'text-red-800' : 'text-gray-700'}`}>
+              <MessageCircle className={`h-5 w-5 mt-0.5 ${isLost ? 'text-rose-500' : 'text-blue-500'}`} />
+              <p className={`text-sm ${isLost ? 'text-rose-800' : 'text-gray-700'}`}>
                 {tag.customMessage}
               </p>
             </div>
@@ -205,13 +205,13 @@ export function MobileClaim({
               {emergencyInfo.bloodType && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Golongan Darah</span>
-                  <span className="text-sm font-bold text-red-600">{emergencyInfo.bloodType}</span>
+                  <span className="text-sm font-bold text-rose-600">{emergencyInfo.bloodType}</span>
                 </div>
               )}
               {emergencyInfo.allergies && (
-                <div className="bg-red-50 rounded-xl p-3">
+                <div className="bg-rose-50 rounded-xl p-3">
                   <p className="text-xs text-gray-500 mb-1">Alergi</p>
-                  <p className="text-sm text-red-700">{emergencyInfo.allergies}</p>
+                  <p className="text-sm text-rose-700">{emergencyInfo.allergies}</p>
                 </div>
               )}
               {emergencyInfo.medicalConditions && (
@@ -304,7 +304,7 @@ export function MobileClaim({
               onClick={handleWhatsAppClick}
               className={`w-full rounded-2xl py-5 font-semibold shadow-xl flex items-center justify-center gap-3 ${
                 isLost
-                  ? 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-500/30 text-white'
+                  ? 'bg-gradient-to-r from-rose-500 to-rose-600 shadow-rose-500/30 text-white'
                   : 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-500/30 text-white'
               }`}
             >

@@ -3,6 +3,10 @@ import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -61,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="icon" href="/favicon.png" />
         <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png" />

@@ -78,17 +78,17 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Buat Tag QR Baru
                 </h3>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -98,14 +98,14 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Select User */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Pilih Klien
                 </label>
                 <select
                   required
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Pilih klien...</option>
                   {users.map((user) => (
@@ -118,7 +118,7 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
 
               {/* Tag Name */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nama Tag / Barang
                 </label>
                 <input
@@ -127,13 +127,13 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                   placeholder="Contoh: Kunci Motor Nmax"
                   value={tagName}
                   onChange={(e) => setTagName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* WhatsApp Contact */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Nomor WhatsApp
                 </label>
                 <input
@@ -141,16 +141,16 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                   placeholder="Contoh: 628123456789"
                   value={contactWhatsapp}
                   onChange={(e) => setContactWhatsapp(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-gray-500">
                   {selectedUser ? `Default dari: ${selectedUser.email}` : "Akan diisi dari data klien"}
                 </p>
               </div>
 
               {/* Custom Message */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Pesan Khusus
                 </label>
                 <textarea
@@ -158,13 +158,13 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                   placeholder="Contoh: Ini adalah kunci kesayangan saya, tolong dikembalikan ya..."
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
 
               {/* Reward Note */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Catatan Imbalan (Opsional)
                 </label>
                 <input
@@ -172,7 +172,7 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                   placeholder="Contoh: Akan memberi imbalan bensin 20k"
                   value={rewardNote}
                   onChange={(e) => setRewardNote(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900 border-0 rounded-lg text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -181,7 +181,7 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   Batal
                 </button>

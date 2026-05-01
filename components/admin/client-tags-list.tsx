@@ -179,12 +179,12 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Tag Klien
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Kelola dan cetak QR code untuk tag klien ini
           </p>
         </div>
@@ -192,31 +192,31 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
         {tags.length === 0 ? (
           <div className="p-12 text-center">
             <svg
-              className="mx-auto w-16 h-16 text-slate-300 dark:text-slate-600 mb-4"
+              className="mx-auto w-16 h-16 text-gray-300 dark:text-gray-600 mb-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               Belum ada tag
             </h3>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-gray-600 dark:text-gray-400">
               Klien ini belum memiliki tag QR code
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {tags.map((tag) => (
               <div
                 key={tag.id}
-                className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="break-words text-lg font-medium text-slate-900 dark:text-white">
+                      <h3 className="break-words text-lg font-medium text-gray-900 dark:text-white">
                         {tag.name}
                       </h3>
                       <span
@@ -229,19 +229,19 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                         {tag.status === "lost" ? "Hilang" : "Normal"}
                       </span>
                     </div>
-                    <p className="mt-1 break-all text-sm text-slate-500 dark:text-slate-400">
-                      Slug: <code className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs">
+                    <p className="mt-1 break-all text-sm text-gray-500 dark:text-gray-400">
+                      Slug: <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">
                         {tag.slug}
                       </code>
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400" suppressHydrationWarning>
+                    <p className="text-sm text-gray-500 dark:text-gray-400" suppressHydrationWarning>
                       Dibuat:{" "}
                       {tag.createdAt
                         ? format(new Date(tag.createdAt), "dd MMM yyyy, HH:mm", { locale: id })
                         : "-"}
                     </p>
                     {tag.customMessage && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 italic">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">
                         &quot;{tag.customMessage}&quot;
                       </p>
                     )}
@@ -288,10 +288,10 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
       {/* QR Modal */}
       {selectedTag && qrDataUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-slate-800">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-gray-800">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h3 className="pr-3 text-lg font-semibold text-slate-900 dark:text-white sm:text-xl">
+                <h3 className="pr-3 text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
                   QR Code untuk {selectedTag.name}
                 </h3>
                 <button
@@ -299,9 +299,9 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                     setSelectedTag(null);
                     setQrDataUrl("");
                   }}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -310,16 +310,16 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
 
             <div className="p-6">
               {/* QR Preview */}
-              <div className="mb-6 flex justify-center rounded-xl border-2 border-slate-200 bg-white p-4 dark:border-slate-600 sm:p-6">
+              <div className="mb-6 flex justify-center rounded-xl border-2 border-gray-200 bg-white p-4 dark:border-gray-600 sm:p-6">
                 <img src={qrDataUrl} alt="QR Code" className="h-auto w-full max-w-[256px]" />
               </div>
 
               {/* Tag Info */}
               <div className="text-center mb-6">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Scan QR ini untuk melihat profil barang
                 </p>
-                <code className="break-all text-xs text-slate-500">
+                <code className="break-all text-xs text-gray-500">
                   /p/{selectedTag.slug}
                 </code>
               </div>
@@ -337,7 +337,7 @@ export function ClientTagsList({ tags, clientId }: ClientTagsListProps) {
                 </button>
                 <button
                   onClick={() => downloadQR("svg")}
-                  className="flex items-center justify-center rounded-lg bg-slate-800 px-4 py-3 text-white font-medium transition-colors hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600"
+                  className="flex items-center justify-center rounded-lg bg-gray-800 px-4 py-3 text-white font-medium transition-colors hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

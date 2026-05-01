@@ -185,14 +185,14 @@ export function QRLayoutEditorClient({ initialTags }: QRLayoutEditorClientProps)
 
         {/* Toolbar */}
         <div className="mb-4 flex items-center justify-between gap-3 no-print">
-          <div className="text-sm text-slate-600 dark:text-slate-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {items.length} QR code{items.length !== 1 ? 's' : ''} •
             Drag untuk mengatur posisi
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => router.push('/admin/qr-stok')}
-              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Batal
             </button>
@@ -206,7 +206,7 @@ export function QRLayoutEditorClient({ initialTags }: QRLayoutEditorClientProps)
         </div>
 
         {/* Canvas */}
-        <div ref={containerRef} className="bg-slate-200 dark:bg-slate-800 rounded-lg p-6 overflow-auto">
+        <div ref={containerRef} className="bg-gray-200 dark:bg-gray-800 rounded-lg p-6 overflow-auto">
           <div
             ref={canvasRef}
             className="bg-white shadow-lg mx-auto relative no-print"
@@ -274,11 +274,11 @@ export function QRLayoutEditorClient({ initialTags }: QRLayoutEditorClientProps)
 
       {/* Sidebar */}
       <div className="w-80 no-print">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-4">
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
             Informasi Layout
           </h3>
-          <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex justify-between">
               <span>Jumlah QR:</span>
               <span className="font-medium">{items.length}</span>
@@ -292,8 +292,8 @@ export function QRLayoutEditorClient({ initialTags }: QRLayoutEditorClientProps)
               <span className="font-medium">Portrait</span>
             </div>
             {selectedItem && (
-              <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                <p className="font-medium text-slate-900 dark:text-white mb-1">
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p className="font-medium text-gray-900 dark:text-white mb-1">
                   QR Terpilih
                 </p>
                 <p className="text-xs">{selectedItem.tag.name}</p>

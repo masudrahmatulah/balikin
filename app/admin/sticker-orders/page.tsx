@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { desc } from 'drizzle-orm';
 import { getAdminSession } from '@/lib/admin';
+import { getPendingOrdersCount } from '@/lib/admin-stats';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
 import { AdminHeader } from '@/components/admin/admin-header';
@@ -30,13 +31,13 @@ export default async function AdminStickerOrdersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <AdminHeader session={session} />
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
+      <AdminHeader session={session} pendingOrdersCount={await getPendingOrdersCount()} />
       <main className="container mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Sticker Orders</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Verifikasi pembayaran dan generate bundle sticker pack.</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sticker Orders</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Verifikasi pembayaran dan generate bundle sticker pack.</p>
           </div>
           <Link href="/admin">
             <Button variant="outline">Kembali ke Admin</Button>
@@ -46,7 +47,7 @@ export default async function AdminStickerOrdersPage() {
         <div className="grid gap-4">
           {orders.length === 0 ? (
             <Card>
-              <CardContent className="py-10 text-center text-sm text-slate-600">Belum ada order sticker.</CardContent>
+              <CardContent className="py-10 text-center text-sm text-gray-600">Belum ada order sticker.</CardContent>
             </Card>
           ) : (
             orders.map((order) => (
@@ -65,11 +66,11 @@ export default async function AdminStickerOrdersPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-4">
-                    <div>WhatsApp: <span className="font-medium text-slate-900">{order.phone}</span></div>
-                    <div>Total: <span className="font-medium text-slate-900">Rp{order.totalAmount.toLocaleString('id-ID')}</span></div>
-                    <div>Pack: <span className="font-medium text-slate-900">{order.packQuantity} x {order.unitCountPerPack}</span></div>
-                    <div>Alamat: <span className="font-medium text-slate-900">{order.city}</span></div>
+                  <div className="grid gap-3 text-sm text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>WhatsApp: <span className="font-medium text-gray-900">{order.phone}</span></div>
+                    <div>Total: <span className="font-medium text-gray-900">Rp{order.totalAmount.toLocaleString('id-ID')}</span></div>
+                    <div>Pack: <span className="font-medium text-gray-900">{order.packQuantity} x {order.unitCountPerPack}</span></div>
+                    <div>Alamat: <span className="font-medium text-gray-900">{order.city}</span></div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">

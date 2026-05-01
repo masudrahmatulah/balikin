@@ -99,7 +99,7 @@ export function MobileReport() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full mb-6 shadow-lg shadow-green-500/30"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full mb-6 shadow-lg shadow-emerald-500/30"
           >
             <CheckCircle2 className="h-10 w-10 text-white" />
           </motion.div>
@@ -195,15 +195,15 @@ export function MobileReport() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className={`mt-4 p-4 rounded-xl ${
                   tagInfo.status === 'lost'
-                    ? 'bg-red-50 border border-red-200'
-                    : 'bg-green-50 border border-green-200'
+                    ? 'bg-rose-50 border border-rose-200'
+                    : 'bg-emerald-50 border border-emerald-200'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {tagInfo.status === 'lost' ? (
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <AlertCircle className="h-5 w-5 text-rose-600" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   )}
                   <div>
                     <p className="font-semibold text-gray-900">{tagInfo.name}</p>
@@ -222,8 +222,8 @@ export function MobileReport() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 p-3 bg-red-50 rounded-xl flex items-center gap-2"
               >
-                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                <p className="text-sm text-rose-700">{error}</p>
               </motion.div>
             )}
           </motion.div>
@@ -236,7 +236,7 @@ export function MobileReport() {
             className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
           >
             <label className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
                 <MapPin className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -251,7 +251,7 @@ export function MobileReport() {
               placeholder="Contoh: Lobby Gedung A, Grand Indonesia..."
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
             />
           </motion.div>
 

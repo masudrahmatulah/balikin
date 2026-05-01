@@ -112,6 +112,11 @@ export const tags = pgTable('tags', {
   lastAlertSentAt: timestamp('last_alert_sent_at'),
   claimedAt: timestamp('claimed_at'),
   hasTabTwoEnabled: boolean('has_tab_two_enabled').default(false),
+  // Bundle support fields
+  bundleType: text('bundle_type'), // 'student_kit' | 'otomotif' | 'pertanian' | 'diklat' | 'standard' | null
+  autoActivateModule: text('auto_activate_module'), // 'student' | 'otomotif' | 'pertanian' | 'diklat' | null
+  welcomeShown: boolean('welcome_shown').default(false),
+  onboardingCompleted: boolean('onboarding_completed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -477,3 +482,71 @@ export type ModuleRequest = typeof moduleRequests.$inferSelect;
 export type NewModuleRequest = typeof moduleRequests.$inferInsert;
 export type ModuleUsageAnalytics = typeof moduleUsageAnalytics.$inferSelect;
 export type NewModuleUsageAnalytics = typeof moduleUsageAnalytics.$inferInsert;
+
+// ============================================================================
+// MODULE CONFIG & PURCHASE SYSTEM
+// ============================================================================
+
+// Module configuration - global settings for each module
+export const moduleConfig = pgTable('module_config', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  moduleType: text('module_type').notNull().unique(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  isEnabled: boolean('is_enabled').default(true).notNull(), // Global toggle - if false, no one can access
+  price: integer('price').default(0).notNull(), // Price in rupiah (0 = free)
+  isPaid: boolean('is_paid').default(false).notNull(), // Whether this module requires payment
+  requiresApproval: boolean('requires_approval').default(true).notNull(), // Whether payment needs admin approval
+  description: text('description'), // Module description for catalog
+  features: text('features'), // JSON array of module features
+  sortOrder: integer('sort_order').default(0).notNull(), // Display order in catalog
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const moduleConfigRelations = relations(moduleConfig, ({ many }) => ({
+  purchaseOrders: many(modulePurchaseOrders),
+}));
+
+// Module purchase orders - user purchases of paid modules
+export const modulePurchaseOrders = pgTable('module_purchase_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  moduleType: text('module_type').notNull(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  status: text('status').default('pending_payment').notNull(), // 'pending_payment' | 'paid' | 'approved' | 'rejected' | 'cancelled'
+  amount: integer('amount').notNull(), // Payment amount in rupiah
+  paymentMethod: text('payment_method').default('manual_qris').notNull(), // 'manual_qris' | 'manual_transfer'
+  paymentProofUrl: text('payment_proof_url'), // URL to payment proof image
+  requestedAt: timestamp('requested_at').defaultNow(),
+  paidAt: timestamp('paid_at'),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }), // Admin who reviewed
+  rejectionReason: text('rejection_reason'),
+  whatsappNotificationSent: boolean('whatsapp_notification_sent').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const modulePurchaseOrdersRelations = relations(modulePurchaseOrders, ({ one }) => ({
+  user: one(user, {
+    fields: [modulePurchaseOrders.userId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [modulePurchaseOrders.reviewedBy],
+    references: [user.id],
+  }),
+  moduleConfig: one(moduleConfig, {
+    fields: [modulePurchaseOrders.moduleType],
+    references: [moduleConfig.moduleType],
+  }),
+}));
+
+// ============================================================================
+// TYPE EXPORTS
+// ============================================================================
+
+export type ModuleConfig = typeof moduleConfig.$inferSelect;
+export type NewModuleConfig = typeof moduleConfig.$inferInsert;
+export type ModulePurchaseOrder = typeof modulePurchaseOrders.$inferSelect;
+export type NewModulePurchaseOrder = typeof modulePurchaseOrders.$inferInsert;

@@ -489,3 +489,169 @@ ${rejectionReason ? `Alasan: ${rejectionReason}` : ''}
     };
   }
 }
+
+// ============================================================================
+// MODULE PURCHASE NOTIFICATIONS
+// ============================================================================
+
+interface ModulePurchaseNotificationOptions {
+  orderId: string;
+  userName: string;
+  userEmail: string;
+  moduleType: string;
+  amount: number;
+}
+
+interface PaymentVerifiedNotificationOptions {
+  phoneNumber: string;
+  userName: string;
+  moduleType: string;
+  amount: number;
+}
+
+function formatRupiah(amount: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
+ * Send module purchase notification to admin
+ */
+export async function sendModulePurchaseNotificationToAdmin({
+  orderId,
+  userName,
+  userEmail,
+  moduleType,
+  amount,
+}: ModulePurchaseNotificationOptions): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+  const timestamp = new Date().toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const message = `💰 [BALIKIN] Order Modul Baru
+
+Order ID: ${orderId}
+User: *${userName}* (${userEmail})
+Modul: *${moduleDisplayName}*
+Nominal: *${formatRupiah(amount)}*
+
+⏰ Waktu: ${timestamp}
+
+➡️ Action: Login ke admin dashboard untuk verifikasi
+https://balikin.id/admin/module-orders
+
+— Balikin Module Orders`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(
+      process.env.WHATSAPP_ORDER_NUMBER!,
+      message,
+      'MODULE PURCHASE',
+      config
+    );
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
+ * Send payment verified notification to user
+ */
+export async function sendModulePaymentVerifiedNotificationToUser({
+  phoneNumber,
+  userName,
+  moduleType,
+  amount,
+}: PaymentVerifiedNotificationOptions): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+
+  const message = `✅ [BALIKIN] Pembayaran Terverifikasi
+
+Halo *${userName}*! 👋
+
+Pembayaran untuk modul *${moduleDisplayName}* sebesar *${formatRupiah(amount)}* telah kami terima.
+
+Menunggu persetujuan admin untuk aktivasi modul.
+
+📋 *Status: Menunggu Aktivasi*
+
+Anda akan mendapat notifikasi lagi setelah modul diaktifkan.
+
+— Balikin
+Untuk mematikan notifikasi: reply STOP`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'PAYMENT VERIFIED', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
+ * Send payment reminder notification to user
+ */
+export async function sendPaymentReminderNotificationToUser({
+  phoneNumber,
+  userName,
+  moduleType,
+  amount,
+  orderId,
+}: PaymentVerifiedNotificationOptions & { orderId: string }): Promise<WhatsAppSendResult> {
+  const moduleDisplayName = getModuleDisplayName(moduleType);
+
+  const message = `⏰ [BALIKIN] Reminder Pembayaran
+
+Halo *${userName}*! 👋
+
+Ini adalah reminder untuk pembayaran modul *${moduleDisplayName}*.
+
+💰 *Nominal: ${formatRupiah(amount)}*
+
+Silakan transfer ke:
+Bank: BCA
+Nomor Rekening: 1234567890
+Atas Nama: Balikin Indonesia
+
+Setelah transfer, upload bukti pembayaran di:
+https://balikin.id/dashboard/modules/purchases
+
+Order ID: ${orderId}
+
+— Balikin
+Untuk mematikan notifikasi: reply STOP`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'PAYMENT REMINDER', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}

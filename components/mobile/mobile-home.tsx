@@ -96,7 +96,7 @@ const quickActions = [
     description: 'Lacak lokasi terakhir',
     icon: MapPin,
     href: '/mobile/history',
-    color: 'from-green-500 to-emerald-500',
+    color: 'from-emerald-500 to-emerald-600',
   },
   {
     title: 'Notifikasi',
@@ -110,7 +110,7 @@ const quickActions = [
     description: 'Aktifkan status darurat',
     icon: Shield,
     href: '/mobile/lost-mode',
-    color: 'from-red-500 to-pink-500',
+    color: 'from-rose-500 to-rose-600',
   },
 ];
 
@@ -141,7 +141,7 @@ export function MobileHome() {
 
   const statsDisplay = [
     { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-blue-500 to-blue-600' },
-    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-green-500 to-green-600' },
+    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-emerald-500 to-emerald-600' },
     { value: `${stats.returnRate}%`, label: 'Tingkat Kembali', icon: TrendingUp, color: 'from-purple-500 to-purple-600' },
   ];
 
@@ -174,7 +174,7 @@ export function MobileHome() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-red-500 to-red-600 rounded-3xl p-5 shadow-xl shadow-red-500/30 border border-white/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-rose-500/30 border border-white/20 relative overflow-hidden"
           >
             <div className="relative flex items-center gap-3">
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -182,10 +182,10 @@ export function MobileHome() {
               </div>
               <div className="flex-1">
                 <p className="text-white font-bold">{stats.lostTags} Tag Hilang</p>
-                <p className="text-red-100 text-sm">Segera cek dan aktifkan mode hilang</p>
+                <p className="text-rose-100 text-sm">Segera cek dan aktifkan mode hilang</p>
               </div>
               <Link href="/mobile/lost-mode">
-                <div className="bg-white text-red-600 rounded-xl px-4 py-2 font-semibold text-sm">
+                <div className="bg-white text-rose-600 rounded-xl px-4 py-2 font-semibold text-sm">
                   Cek
                 </div>
               </Link>
@@ -219,7 +219,7 @@ export function MobileHome() {
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"
+                    className="bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"
                   >
                     URGENT
                   </motion.div>
@@ -321,12 +321,12 @@ export function MobileHome() {
                 {tags.slice(0, 3).map((tag) => (
                   <Link key={tag.id} href={`/dashboard/tag/${tag.slug}`}>
                     <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 ${
-                      tag.status === 'lost' ? 'border-l-4 border-l-red-500' : ''
+                      tag.status === 'lost' ? 'border-l-4 border-l-rose-500' : ''
                     }`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
                           tag.status === 'lost'
-                            ? 'bg-red-100 text-red-600'
+                            ? 'bg-rose-100 text-rose-600'
                             : 'bg-blue-100 text-blue-600'
                         }`}>
                           <QrCode className="h-5 w-5" />
@@ -335,7 +335,7 @@ export function MobileHome() {
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-semibold text-gray-900 truncate">{tag.name}</h4>
                             {tag.status === 'lost' && (
-                              <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">HILANG</span>
+                              <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">HILANG</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">
@@ -374,9 +374,9 @@ export function MobileHome() {
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       activity.status === 'success'
-                        ? 'bg-green-100 text-green-600'
+                        ? 'bg-emerald-100 text-emerald-600'
                         : activity.status === 'warning'
-                        ? 'bg-red-100 text-red-600'
+                        ? 'bg-rose-100 text-rose-600'
                         : 'bg-blue-100 text-blue-600'
                     }`}>
                       {activity.status === 'success' ? (

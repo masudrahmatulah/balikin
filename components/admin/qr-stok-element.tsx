@@ -53,12 +53,12 @@ export function QRStokElement({
     >
       {/* QR Card Container */}
       <div
-        className="w-full h-full bg-white border-2 border-slate-900 rounded-lg flex flex-col items-center justify-center p-2 shadow-sm"
+        className="w-full h-full bg-white border-2 border-gray-900 rounded-lg flex flex-col items-center justify-center p-2 shadow-sm"
         style={{ fontSize: `${10 * scale}px` }}
       >
         {/* QR Code */}
         <div
-          className="bg-white rounded flex items-center justify-center border border-slate-300"
+          className="bg-white rounded flex items-center justify-center border border-gray-300"
           style={{
             width: `${36 * scale}px`,
             height: `${36 * scale}px`,
@@ -77,7 +77,7 @@ export function QRStokElement({
 
         {/* Tag Name */}
         <div
-          className="text-slate-900 font-semibold text-center w-full"
+          className="text-gray-900 font-semibold text-center w-full"
           style={{ fontSize: `${7 * scale}px`, lineHeight: '1.2' }}
         >
           {tag.name}
@@ -85,7 +85,7 @@ export function QRStokElement({
 
         {/* Slug */}
         <div
-          className="text-slate-600 text-center font-mono w-full truncate"
+          className="text-gray-600 text-center font-mono w-full truncate"
           style={{ fontSize: `${5 * scale}px`, lineHeight: '1.2' }}
         >
           /p/{tag.slug}
@@ -93,7 +93,7 @@ export function QRStokElement({
 
         {/* Branding */}
         <div
-          className="text-slate-500 font-bold text-center"
+          className="text-gray-500 font-bold text-center"
           style={{ fontSize: `${4 * scale}px` }}
         >
           [BALIKIN]
