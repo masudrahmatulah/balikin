@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import JSZip from 'jszip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,19 +65,57 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
     }
   };
 
-  const handleDownloadAll = () => {
-    // Download all QR codes as individual files
-    createdTags.forEach((tag, index) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = tag.qrUrl;
-        link.download = `qr-${formData.bundleType}-${index + 1}.png`;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, index * 500); // Stagger downloads
-    });
+  const handleDownloadAll = async () => {
+    try {
+      // Create new ZIP instance
+      const zip = new JSZip();
+
+      // Add all QR codes to ZIP
+      for (let index = 0; index < createdTags.length; index++) {
+        const tag = createdTags[index];
+        // Fetch image as blob
+        const response = await fetch(tag.qrUrl);
+        const blob = await response.blob();
+        // Add to ZIP with padded filename
+        zip.file(
+          `qr-${formData.bundleType}-${(index + 1).toString().padStart(3, '0')}.png`,
+          blob
+        );
+      }
+
+      // Generate ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipUrl = window.URL.createObjectURL(zipBlob);
+
+      // Download ZIP
+      const link = document.createElement('a');
+      link.href = zipUrl;
+      link.download = `qr-${formData.bundleType}-${formData.batchSize}-${formData.batchSize + createdTags.length - 1}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(zipUrl);
+    } catch (error) {
+      console.error('Failed to create ZIP:', error);
+      alert('Gagal membuat file ZIP. Silakan coba lagi.');
+    }
+  };
+
+  const handleDownloadSingle = async (qrUrl: string, filename: string) => {
+    try {
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${filename}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   if (isSuccess) {
@@ -148,15 +187,12 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
                 {createdTags.map((tag) => (
                   <div key={tag.slug} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
                     <span className="font-mono text-gray-600">{tag.slug}</span>
-                    <a
-                      href={tag.qrUrl}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => handleDownloadSingle(tag.qrUrl, `qr-${tag.slug}`)}
                       className="text-blue-600 hover:underline"
                     >
                       Download
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>

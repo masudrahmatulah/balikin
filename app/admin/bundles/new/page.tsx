@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
-import { DashboardHeader } from '@/components/admin/admin-header';
+import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { BundleCreateForm } from '@/components/admin/bundle-create-form';
 import type { Metadata } from 'next';
@@ -38,7 +38,7 @@ export default async function NewBundlePage() {
     <AdminLayout
       title="Generate Bundle QR Codes"
       description="Buat QR codes untuk produk bundle (Student Kit, Otomotif, dll)"
-      header={<DashboardHeader email={session.user.email} />}
+      header={<AdminHeader session={session} />}
     >
       {/* Form */}
       <BundleCreateForm existingCount={bundleCount} />

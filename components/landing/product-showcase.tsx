@@ -54,12 +54,6 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badge: 'Best Seller',
       badgeColor: 'bg-blue-600',
       highlight: 'Kualitas premium, tahan lama',
-      images: [
-        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop', // Main product shot
-        'https://images.unsplash.com/photo-1616091216791-a5360b5fc78a?w=400&h=300&fit=crop', // Close-up QR code
-        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop', // Use case - keys
-        'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=300&fit=crop', // Use case - bag
-      ],
     },
     {
       name: 'Stiker Vinyl Waterproof',
