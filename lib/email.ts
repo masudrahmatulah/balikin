@@ -140,7 +140,7 @@ export function generateOTPEmail({ email, otp, type }: OTPEmailOptions): { subje
     .title { font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 16px; }
     .message { color: #4b5563; line-height: 1.6; margin-bottom: 24px; }
     .otp-container { background: #f3f4f6; padding: 24px; text-align: center; border-radius: 8px; margin-bottom: 24px; }
-    .otp { font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #2563eb; }
+    .otp { font-size: 36px; font-weight: bold; color: #2563eb; font-family: 'Courier New', monospace; }
     .footer { color: #9ca3af; font-size: 14px; text-align: center; margin-top: 32px; }
     .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px; }
     .warning-text { color: #92400e; font-size: 14px; margin: 0; }
@@ -154,7 +154,7 @@ export function generateOTPEmail({ email, otp, type }: OTPEmailOptions): { subje
       <p class="message">Email tujuan: ${email}</p>
       <p class="message">${message}</p>
       <div class="otp-container">
-        <div class="otp">${otp.split('').join(' ')}</div>
+        <div class="otp">${otp}</div>
       </div>
       <div class="warning">
         <p class="warning-text">Kode ini berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun, termasuk pihak Balikin.</p>
