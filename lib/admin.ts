@@ -4,13 +4,14 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { AuthenticationError, AuthorizationError, logError } from "@/lib/error-handler";
 
 /**
- * Get the current session with admin role check
+ * Core admin session logic (shared between cached and non-cached versions)
  * Uses better-auth API for session, then queries database for role
  * because better-auth doesn't return custom fields like 'role' by default
  */
-export const getAdminSession = cache(async () => {
+async function getAdminSessionCore() {
   try {
     const headersList = await headers();
 
@@ -20,6 +21,7 @@ export const getAdminSession = cache(async () => {
     });
 
     if (!session?.user) {
+      logError(new AuthenticationError('No valid session found'), 'getAdminSession');
       return null;
     }
 
@@ -28,7 +30,13 @@ export const getAdminSession = cache(async () => {
       where: eq(user.id, session.user.id),
     });
 
-    if (!dbUser || dbUser.role !== 'admin') {
+    if (!dbUser) {
+      logError(new AuthenticationError('User not found in database'), 'getAdminSession');
+      return null;
+    }
+
+    if (dbUser.role !== 'admin') {
+      logError(new AuthorizationError('User does not have admin role'), 'getAdminSession');
       return null;
     }
 
@@ -45,9 +53,16 @@ export const getAdminSession = cache(async () => {
       }
     };
   } catch (error) {
-    console.error('[getAdminSession] Error:', error instanceof Error ? error.message : String(error));
+    logError(error, 'getAdminSession');
     return null;
   }
+}
+
+/**
+ * Get the current session with admin role check (cached)
+ */
+export const getAdminSession = cache(async () => {
+  return getAdminSessionCore();
 });
 
 /**
@@ -55,43 +70,7 @@ export const getAdminSession = cache(async () => {
  * Using cache() in server actions can cause serialization issues
  */
 export async function getAdminSessionForAction() {
-  try {
-    const headersList = await headers();
-
-    // Get session using better-auth API
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
-
-    if (!session?.user) {
-      return null;
-    }
-
-    // Query database to get the user's role (better-auth doesn't return custom fields)
-    const dbUser = await db.query.user.findFirst({
-      where: eq(user.id, session.user.id),
-    });
-
-    if (!dbUser || dbUser.role !== 'admin') {
-      return null;
-    }
-
-    return {
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: dbUser.role as "admin",
-      },
-      session: {
-        token: session.session?.id || 'unknown',
-        expiresAt: session.session?.expiresAt || new Date(),
-      }
-    };
-  } catch (error) {
-    console.error('[getAdminSessionForAction] Error:', error instanceof Error ? error.message : String(error));
-    return null;
-  }
+  return getAdminSessionCore();
 }
 
 /**
