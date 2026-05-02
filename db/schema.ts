@@ -1,4 +1,4 @@
-import { pgTableCreator, uuid, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase
@@ -550,3 +550,148 @@ export type ModuleConfig = typeof moduleConfig.$inferSelect;
 export type NewModuleConfig = typeof moduleConfig.$inferInsert;
 export type ModulePurchaseOrder = typeof modulePurchaseOrders.$inferSelect;
 export type NewModulePurchaseOrder = typeof modulePurchaseOrders.$inferInsert;
+
+// ============================================================================
+// ADMIN DASHBOARD TABLES
+// ============================================================================
+
+// Material inventory - track acrylic and vinyl stock
+export const materialInventory = pgTable('material_inventory', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  materialType: text('material_type').notNull(), // 'acrylic' | 'vinyl'
+  quantity: integer('quantity').default(0).notNull(), // sheets/rolls available
+  unit: text('unit').notNull(), // 'sheets' | 'rolls'
+  lowStockThreshold: integer('low_stock_threshold').default(10).notNull(), // alert level
+  lastRestockedAt: timestamp('last_restocked_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const materialInventoryRelations = relations(materialInventory, ({ many }) => ({
+  printQueueItems: many(printQueue),
+}));
+
+// Print queue - manage batch printing jobs
+export const printQueue = pgTable('print_queue', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  batchId: uuid('batch_id').notNull(), // references tags.id or bundle
+  batchName: text('batch_name').notNull(), // human-readable batch name
+  status: text('status').default('pending').notNull(), // 'pending' | 'printing' | 'quality_check' | 'ready_for_stock' | 'completed'
+  itemCount: integer('item_count').default(0).notNull(),
+  materialType: text('material_type').notNull(), // 'sticker' | 'acrylic'
+  materialUsed: text('material_used'), // material details (e.g., "2 sheets A3 acrylic")
+  materialInventoryId: uuid('material_inventory_id').references(() => materialInventory.id, { onDelete: 'set null' }),
+  printedBy: text('printed_by').references(() => user.id, { onDelete: 'set null' }), // admin userId
+  printedAt: timestamp('printed_at'),
+  completedAt: timestamp('completed_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const printQueueRelations = relations(printQueue, ({ one }) => ({
+  printedByUser: one(user, {
+    fields: [printQueue.printedBy],
+    references: [user.id],
+  }),
+  materialInventory: one(materialInventory, {
+    fields: [printQueue.materialInventoryId],
+    references: [materialInventory.id],
+  }),
+}));
+
+// Audit logs - track all critical admin actions
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  adminId: text('admin_id').notNull(), // userId who performed action
+  action: text('action').notNull(), // action type: 'delete', 'status_change', 'suspend', 'tier_change', etc.
+  entityType: text('entity_type').notNull(), // 'user', 'order', 'tag', 'suspension', etc.
+  entityId: text('entity_id').notNull(), // ID of the affected entity
+  originalValue: jsonb('original_value'), // value before change
+  newValue: jsonb('new_value'), // value after change
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  admin: one(user, {
+    fields: [auditLogs.adminId],
+    references: [user.id],
+  }),
+}));
+
+// Shipping tracking - store shipping information
+export const shippingTracking = pgTable('shipping_tracking', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  orderId: uuid('order_id').notNull().references(() => stickerOrders.id, { onDelete: 'cascade' }),
+  courier: text('courier').notNull(), // 'JNE', 'Sicepat', etc.
+  trackingNumber: text('tracking_number').notNull(), // resi
+  status: text('status').default('processing').notNull(), // 'processing' | 'shipped' | 'in_transit' | 'delivered' | 'failed'
+  shippedAt: timestamp('shipped_at'),
+  estimatedDelivery: timestamp('estimated_delivery'),
+  deliveredAt: timestamp('delivered_at'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const shippingTrackingRelations = relations(shippingTracking, ({ one }) => ({
+  order: one(stickerOrders, {
+    fields: [shippingTracking.orderId],
+    references: [stickerOrders.id],
+  }),
+}));
+
+// Suspension log - track user suspensions
+export const suspensionLog = pgTable('suspension_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }),
+  suspensionType: text('suspension_type').notNull(), // 'user_id' | 'device_id'
+  identifier: text('identifier').notNull(), // the actual ID or device ID
+  reason: text('reason').notNull(),
+  suspendedBy: text('suspended_by').notNull().references(() => user.id, { onDelete: 'set null' }), // admin userId
+  suspendedAt: timestamp('suspended_at').defaultNow(),
+  liftedAt: timestamp('lifted_at'), // null if still suspended
+  liftedBy: text('lifted_by').references(() => user.id, { onDelete: 'set null' }), // admin userId who lifted
+  liftReason: text('lift_reason'), // reason for lifting suspension
+  isActive: boolean('is_active').default(true).notNull(), // true if suspension is currently active
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const suspensionLogRelations = relations(suspensionLog, ({ one }) => ({
+  user: one(user, {
+    fields: [suspensionLog.userId],
+    references: [user.id],
+  }),
+  suspendedByUser: one(user, {
+    fields: [suspensionLog.suspendedBy],
+    references: [user.id],
+  }),
+  liftedByUser: one(user, {
+    fields: [suspensionLog.liftedBy],
+    references: [user.id],
+  }),
+}));
+
+// ============================================================================
+// TYPE EXPORTS
+// ============================================================================
+
+export type MaterialInventory = typeof materialInventory.$inferSelect;
+export type NewMaterialInventory = typeof materialInventory.$inferInsert;
+export type PrintQueue = typeof printQueue.$inferSelect;
+export type NewPrintQueue = typeof printQueue.$inferInsert;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;
+export type ShippingTracking = typeof shippingTracking.$inferSelect;
+export type NewShippingTracking = typeof shippingTracking.$inferInsert;
+export type SuspensionLog = typeof suspensionLog.$inferSelect;
+export type NewSuspensionLog = typeof suspensionLog.$inferInsert;

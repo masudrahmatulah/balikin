@@ -107,9 +107,37 @@ export const isAdmin = cache(async () => {
  */
 export async function getAllUsers() {
   const users = await db.query.user.findMany({
-    orderBy: (users, { desc }) => [desc(users.createdAt)],
+    orderBy: (u, { desc }) => [desc(u.createdAt)],
   });
   return users;
+}
+
+/**
+ * Get users with tag counts (optimized single query)
+ */
+export async function getUsersWithTagCounts(limit = 100) {
+  const users = await db.query.user.findMany({
+    orderBy: (u, { desc }) => [desc(u.createdAt)],
+    limit,
+  });
+
+  // Get tag counts in a single query using groupBy
+  const tagCounts = await db
+    .select({
+      ownerId: tags.ownerId,
+      count: count(),
+    })
+    .from(tags)
+    .groupBy(tags.ownerId);
+
+  // Create a map for quick lookup
+  const tagCountMap = new Map(tagCounts.map((tc) => [tc.ownerId, tc.count]));
+
+  // Combine users with their tag counts
+  return users.map((user) => ({
+    ...user,
+    tagCount: tagCountMap.get(user.id) || 0,
+  }));
 }
 
 /**

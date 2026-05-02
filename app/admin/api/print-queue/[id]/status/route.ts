@@ -1,0 +1,71 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/admin";
+import { db } from "@/db";
+import { printQueue } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
+
+export const dynamic = "force-dynamic";
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { status, adminId } = body;
+
+    if (!status) {
+      return NextResponse.json({ error: "Status is required" }, { status: 400 });
+    }
+
+    // Get current item
+    const currentItem = await db.query.printQueue.findFirst({
+      where: eq(printQueue.id, params.id),
+    });
+
+    if (!currentItem) {
+      return NextResponse.json({ error: "Print queue item not found" }, { status: 404 });
+    }
+
+    // Update status
+    const updateData: any = { status };
+
+    if (status === "printing" && !currentItem.printedAt) {
+      updateData.printedAt = new Date();
+      updateData.printedBy = adminId;
+    }
+
+    if (status === "completed" && !currentItem.completedAt) {
+      updateData.completedAt = new Date();
+    }
+
+    await db
+      .update(printQueue)
+      .set(updateData)
+      .where(eq(printQueue.id, params.id));
+
+    // Log the action
+    const { ip, userAgent } = await getRequestContext();
+    await logAuditAction({
+      adminId,
+      action: "update_print_queue_status",
+      entityType: "print_queue",
+      entityId: params.id,
+      originalValue: { status: currentItem.status },
+      newValue: { status },
+      ipAddress: ip,
+      userAgent,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating print queue status:", error);
+    return NextResponse.json({ error: "Failed to update status" }, { status: 500 });
+  }
+}
