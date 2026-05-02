@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test:email": "tsx scripts/test-email.ts"
+    "test:email": "tsx scripts/test-email.ts",
+    "diagnose": "tsx scripts/diagnose-db.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
