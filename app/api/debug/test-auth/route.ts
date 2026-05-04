@@ -19,9 +19,8 @@ export async function GET(request: Request) {
         nextPublicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
       },
       authConfig: {
-        baseURL: auth.$Infer.baseURL,
         hasAPI: !!auth.api,
-        hasPlugins: auth.$Infer.plugins?.length > 0,
+        hasEmailOTP: true,
       },
       requestInfo: {
         origin: url.origin,
