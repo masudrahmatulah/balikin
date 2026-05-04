@@ -84,11 +84,12 @@ async function sendOTP({
  */
 export const auth = betterAuth({
   // Base URL is required for origin validation
-  // Use environment variable in production, localhost for development
-  // For Vercel deployments, BETTER_AUTH_URL should be set to the production domain
+  // Priority: Environment variable → NEXT_PUBLIC variable → Dynamic detection
+  // For preview deployments, use dynamic origin detection to avoid URL mismatch
   baseURL: process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-    (process.env.NODE_ENV === 'production' ? 'https://balikin.online' : 'http://localhost:3000'),
+    (process.env.VERCEL_ENV === 'preview' ? undefined : // Auto-detect for preview
+    (process.env.NODE_ENV === 'production' ? 'https://balikin.online' : 'http://localhost:3000')),
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
