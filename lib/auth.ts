@@ -138,9 +138,10 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === 'production',
     // Configure SameSite for better cross-origin handling
     sameSite: 'lax',
-    // Add explicit cookie attributes for production
+    // Add explicit cookie attributes - auto-detect domain
     cookieAttributes: {
-      domain: process.env.NODE_ENV === 'production' ? '.balikin.online' : undefined,
+      // Only set domain for main production site to avoid issues with devtunnels/preview URLs
+      domain: process.env.BETTER_AUTH_URL?.includes('balikin.online') ? '.balikin.online' : undefined,
       path: '/',
     },
   },

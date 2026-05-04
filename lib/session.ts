@@ -13,6 +13,14 @@ export async function getSession(): Promise<Session | null> {
     const session = await auth.api.getSession({
       headers: headersList,
     });
+
+    // Debug logging to help identify session issues
+    if (!session) {
+      console.warn('[getSession] No session found - user might not be authenticated');
+    } else {
+      console.log('[getSession] Session found for user:', session.user?.email);
+    }
+
     return session as Session | null;
   } catch (error) {
     console.error('[getSession] Error:', error instanceof Error ? error.message : String(error));

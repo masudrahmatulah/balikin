@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { cache } from "react";
 import { db } from "@/db";
-import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { user, tags } from "@/db/schema";
+import { eq, count } from "drizzle-orm";
 import { headers } from "next/headers";
 import { AuthenticationError, AuthorizationError, logError } from "@/lib/error-handler";
 
@@ -21,25 +21,40 @@ async function getAdminSessionCore() {
     });
 
     if (!session?.user) {
+      console.warn('[getAdminSession] No valid session found');
       logError(new AuthenticationError('No valid session found'), 'getAdminSession');
       return null;
     }
 
+    console.log('[getAdminSession] Session found for user:', session.user.email, '- checking admin role...');
+
     // Query database to get the user's role (better-auth doesn't return custom fields)
-    const dbUser = await db.query.user.findFirst({
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+    );
+
+    const queryPromise = db.query.user.findFirst({
       where: eq(user.id, session.user.id),
     });
 
+    const dbUser = await Promise.race([queryPromise, timeoutPromise]) as any;
+
     if (!dbUser) {
+      console.error('[getAdminSession] User not found in database:', session.user.id);
       logError(new AuthenticationError('User not found in database'), 'getAdminSession');
       return null;
     }
 
+    console.log('[getAdminSession] User found in DB:', dbUser.email, 'with role:', dbUser.role);
+
     if (dbUser.role !== 'admin') {
+      console.warn('[getAdminSession] User does not have admin role:', dbUser.role);
       logError(new AuthorizationError('User does not have admin role'), 'getAdminSession');
       return null;
     }
 
+    console.log('[getAdminSession] Admin access granted for:', session.user.email);
     return {
       user: {
         id: session.user.id,
@@ -53,6 +68,7 @@ async function getAdminSessionCore() {
       }
     };
   } catch (error) {
+    console.error('[getAdminSession] Exception:', error);
     logError(error, 'getAdminSession');
     return null;
   }
