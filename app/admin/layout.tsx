@@ -17,9 +17,27 @@ export default async function AdminLayout({
     redirect("/sign-in?redirect=/admin");
   }
 
-  // Get pending counts for header
-  const pendingRequestsCount = await getPendingRequestsCount();
-  const totalPendingOrders = await getPendingOrdersCount();
+  // Try to get pending counts, but use defaults if still slow
+  let pendingRequestsCount = 0;
+  let totalPendingOrders = 0;
+
+  try {
+    // These should be faster now with indexes, but use defaults if timeout
+    const results = await Promise.allSettled([
+      getPendingRequestsCount(),
+      getPendingOrdersCount(),
+    ]);
+
+    if (results[0].status === 'fulfilled') {
+      pendingRequestsCount = results[0].value;
+    }
+    if (results[1].status === 'fulfilled') {
+      totalPendingOrders = results[1].value;
+    }
+  } catch (error) {
+    // Use defaults if queries still fail
+    console.log('Pending counts queries still slow, using defaults');
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
