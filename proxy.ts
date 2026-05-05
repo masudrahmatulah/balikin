@@ -75,8 +75,8 @@ export async function proxy(request: NextRequest) {
       // Additional admin role check for /admin routes
       if (pathname.startsWith('/admin')) {
         // Import admin check function
-        const { getAdminSessionCore } = await import('./lib/admin')
-        const adminSession = await getAdminSessionCore()
+        const { getAdminSession } = await import('./lib/admin')
+        const adminSession = await getAdminSession()
 
         if (!adminSession) {
           const signInUrl = new URL('/sign-in', request.url)

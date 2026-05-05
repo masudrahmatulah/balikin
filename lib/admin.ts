@@ -35,16 +35,26 @@ async function getAdminSessionCore() {
     console.log('[getAdminSession] 🔍 Checking admin role in database...');
 
     // Query database to get the user's role (better-auth doesn't return custom fields)
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging (increased from 5s to 10s for stability)
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
     );
 
     const queryPromise = db.query.user.findFirst({
       where: eq(user.id, session.user.id),
     });
 
+    // Track query performance
+    const queryStart = Date.now();
     const dbUser = await Promise.race([queryPromise, timeoutPromise]) as any;
+    const queryDuration = Date.now() - queryStart;
+
+    if (queryDuration > 1000) {
+      console.warn(`[getAdminSession] ⚠️ Slow database query: ${queryDuration}ms (expected <100ms)`);
+      console.warn('[getAdminSession] Consider checking database indexes or connection performance');
+    } else {
+      console.log(`[getAdminSession] ✅ Database query completed in ${queryDuration}ms`);
+    }
 
     if (!dbUser) {
       console.error('[getAdminSession] ❌ User not found in database:', session.user.id);
