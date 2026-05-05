@@ -11,7 +11,14 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test:email": "tsx scripts/test-email.ts",
-    "diagnose": "tsx scripts/diagnose-db.js"
+    "diagnose": "tsx scripts/diagnose-db.js",
+    "admin:list": "tsx --env-file=.env.local scripts/list-users.ts",
+    "admin:make": "tsx --env-file=.env.local scripts/make-admin.ts",
+    "check-user": "npx tsx scripts/check-user-role.ts",
+    "list-users": "npx tsx scripts/list-users.ts",
+    "make-admin": "npx tsx scripts/make-admin.ts",
+    "debug-auth": "curl -s http://localhost:3000/api/auth/debug | json_pp",
+    "test-admin": "curl -s http://localhost:3000/api/auth/test-admin | json_pp"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

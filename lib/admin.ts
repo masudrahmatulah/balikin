@@ -22,11 +22,17 @@ async function getAdminSessionCore() {
 
     if (!session?.user) {
       console.warn('[getAdminSession] No valid session found');
+      console.warn('[getAdminSession] Possible causes:');
+      console.warn('[getAdminSession]  - User not authenticated');
+      console.warn('[getAdminSession]  - Session expired');
+      console.warn('[getAdminSession]  - Cookie not being sent');
+      console.warn('[getAdminSession] Suggestions: Check /api/auth/debug for details');
       logError(new AuthenticationError('No valid session found'), 'getAdminSession');
       return null;
     }
 
-    console.log('[getAdminSession] Session found for user:', session.user.email, '- checking admin role...');
+    console.log('[getAdminSession] ✅ Session found for user:', session.user.email);
+    console.log('[getAdminSession] 🔍 Checking admin role in database...');
 
     // Query database to get the user's role (better-auth doesn't return custom fields)
     // Add timeout to prevent hanging
@@ -41,20 +47,29 @@ async function getAdminSessionCore() {
     const dbUser = await Promise.race([queryPromise, timeoutPromise]) as any;
 
     if (!dbUser) {
-      console.error('[getAdminSession] User not found in database:', session.user.id);
+      console.error('[getAdminSession] ❌ User not found in database:', session.user.id);
+      console.error('[getAdminSession] Possible causes:');
+      console.error('[getAdminSession]  - User deleted from database');
+      console.error('[getAdminSession]  - Database connection issue');
+      console.error('[getAdminSession]  - Schema mismatch');
+      console.error('[getAdminSession] Suggestions: Recreate user account or check database');
       logError(new AuthenticationError('User not found in database'), 'getAdminSession');
       return null;
     }
 
-    console.log('[getAdminSession] User found in DB:', dbUser.email, 'with role:', dbUser.role);
+    console.log('[getAdminSession] ✅ User found in DB:', dbUser.email, '| Current role:', dbUser.role);
 
     if (dbUser.role !== 'admin') {
-      console.warn('[getAdminSession] User does not have admin role:', dbUser.role);
+      console.warn('[getAdminSession] ❌ User does not have admin role. Current role:', dbUser.role);
+      console.warn('[getAdminSession] To make this user admin, run:');
+      console.warn('[getAdminSession]   npm run make-admin', session.user.email);
+      console.warn('[getAdminSession] Or check user role with:');
+      console.warn('[getAdminSession]   npm run check-user', session.user.email);
       logError(new AuthorizationError('User does not have admin role'), 'getAdminSession');
       return null;
     }
 
-    console.log('[getAdminSession] Admin access granted for:', session.user.email);
+    console.log('[getAdminSession] ✅ Admin access granted for:', session.user.email);
     return {
       user: {
         id: session.user.id,
@@ -68,7 +83,12 @@ async function getAdminSessionCore() {
       }
     };
   } catch (error) {
-    console.error('[getAdminSession] Exception:', error);
+    console.error('[getAdminSession] ❌ Exception occurred:', error);
+    if (error instanceof Error) {
+      console.error('[getAdminSession] Error message:', error.message);
+      console.error('[getAdminSession] Error stack:', error.stack);
+    }
+    console.error('[getAdminSession] Suggestions: Check /api/auth/debug for diagnostics');
     logError(error, 'getAdminSession');
     return null;
   }

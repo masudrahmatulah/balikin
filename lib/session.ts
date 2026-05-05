@@ -16,14 +16,25 @@ export async function getSession(): Promise<Session | null> {
 
     // Debug logging to help identify session issues
     if (!session) {
-      console.warn('[getSession] No session found - user might not be authenticated');
+      console.warn('[getSession] ❌ No session found');
+      console.warn('[getSession] Possible causes:');
+      console.warn('[getSession]  - User not authenticated');
+      console.warn('[getSession]  - Session expired');
+      console.warn('[getSession]  - Cookie not being sent');
+      console.warn('[getSession] Suggestions: Complete OTP verification or check /api/auth/debug');
     } else {
-      console.log('[getSession] Session found for user:', session.user?.email);
+      console.log('[getSession] ✅ Session found for user:', session.user?.email);
+      console.log('[getSession] Session ID:', session.session?.id);
+      console.log('[getSession] Expires at:', session.session?.expiresAt);
     }
 
     return session as Session | null;
   } catch (error) {
-    console.error('[getSession] Error:', error instanceof Error ? error.message : String(error));
+    console.error('[getSession] ❌ Error:', error instanceof Error ? error.message : String(error));
+    if (error instanceof Error) {
+      console.error('[getSession] Error stack:', error.stack);
+    }
+    console.error('[getSession] Suggestions: Check /api/auth/debug for diagnostics');
     return null;
   }
 }
