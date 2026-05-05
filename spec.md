@@ -30,7 +30,50 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 3. Alur Aplikasi & Alur User
+## 3. Model Bisnis & Produk
+
+Sistem mendukung empat pilar distribusi fisik ke digital:
+
+### 🏭 3.1 Mass-Retail (Bulk QR)
+- **Deskripsi:** Produksi massal gantungan kunci/tag dengan status *unclaimed*
+- **Distribusi:** Dijual secara retail melalui berbagai channel penjualan
+- **Aktivasi:** Pembeli melakukan klaim setelah pembelian
+- **Target Market:** Retail mass market, harga terjangkau
+- **Harga:** Rp 29.000 - Rp 35.000
+
+### 🏢 3.2 B2B & Bundling (Niche Markets)
+- **Deskripsi:** Paket khusus untuk segmen spesifik dengan branding khusus
+- **Bundle Types:**
+  - **Student Kit** (🎓): Sekolah, universitas, mahasiswa
+  - **Otomotif** (🚗): Komunitas motor, bengkel, pengendara
+  - **Pertanian** (🌾): Petani, kelompok tani, distributor
+  - **Diklat B2B** (👥): Perusahaan, instansi pelatihan
+- **Fitur Tambahan:** Dashboard pemantauan distribusi bagi mitra B2B
+- **Harga:** Rp 59.000 - Rp 149.000
+
+### 🎨 3.3 Direct-to-Consumer (D2C Custom)
+- **Deskripsi:** Pesanan kustom melalui website
+- **Kustomisasi:**
+  - Pilihan bentuk akrilik (circle, square, custom shape)
+  - Pilihan warna QR code
+  - Upload desain/gambar custom
+- **Produksi:** On-demand setelah order
+- **Status Pengiriman:** *Active* tanpa perlu klaim (langsung aktif)
+- **Harga:** Rp 45.000 - Rp 75.000
+
+### 🏷️ 3.4 Sticker Bundles
+- **Deskripsi:** Paket stiker yang bisa ditempel mandiri pada barang apapun
+- **Variant Packs:**
+  - **Small Pack:** 5 stiker - Rp 25.000
+  - **Medium Pack:** 10 stiker - Rp 35.000
+  - **Large Pack:** 15 stiker - Rp 45.000
+  - **Extra Large Pack:** 20 stiker - Rp 50.000
+- **Material:** Vinyl waterproof, anti pudar
+- **Aktivasi:** Scan untuk klaim
+
+---
+
+## 4. Alur Aplikasi & Alur User
 
 ### Alur Aplikasi (Operational)
 
@@ -50,7 +93,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 4. Alur Konversi (Free to Premium Funnel)
+## 5. Alur Konversi (Free to Premium Funnel)
 
 1. **Acquisition:** User membuat akun gratis untuk mencoba sistem (misal: untuk wallpaper HP).
 2. **Experience:** User merasakan kemudahan Dashboard dan simulasi scan.
@@ -60,7 +103,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 5. Core Features (Fitur Utama)
+## 6. Core Features (Fitur Utama)
 
 * **Dynamic Redirection:** Mengarahkan satu QR Code ke berbagai aksi berdasarkan status di database.
 * **Lost Mode Toggle:** Perubahan tampilan halaman profil secara *real-time* saat barang dinyatakan hilang.
@@ -73,7 +116,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 6. Module System (Fitur Tambahan per Kategori)
+## 7. Module System (Fitur Tambahan per Kategori)
 
 ### Student Kit Module 🎓
 * **Class Schedule:** Jadwal kuliah dengan hari, jam, dan ruangan.
@@ -107,44 +150,139 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 7. Admin Features (Fitur Admin)
+## 8. Admin Features (Fitur Admin)
 
-### Admin Dashboard
-* **Overview Statistics:** Total users, tags, lost items, scan logs.
-* **Clients Table:** Daftar semua user dengan jumlah tag.
-* **Quick Actions:** Akses cepat ke fitur admin.
-* **Pending Orders:** Track pesanan sticker/bundle yang pending.
+Dashboard dibagi menjadi **dua modul utama** untuk efisiensi operasional:
 
-### Client Management
-* **Create Client:** Buat user baru secara manual.
-* **Update Client:** Edit informasi user.
-* **Delete Client:** Hapus user dengan cascade delete tags.
-* **Role Management:** Set user sebagai admin atau user biasa.
+### 🎯 A. Module: Customer Service (CS) Dashboard
 
-### Bundle Management
-* **Create Bundles:** Generate QR codes untuk paket bundle (Student Kit, Otomotif, Pertanian, Diklat).
-* **Bundle Types:** Student Kit (Rp79.000), Otomotif (Rp59.000), Pertanian (Rp69.000), Diklat (Rp149.000).
-* **Batch Numbering:** Sistem penomoran batch (001, 002, dst).
-* **Bulk QR Generation:** Generate hingga 100 QR dalam satu batch.
-* **ZIP Download:** Download semua QR dalam satu file ZIP.
+#### **Fokus:** Pelayanan pelanggan dan komunikasi
 
-### QR Stock Manager
-* **Stock Management:** Kelola stok QR yang tersedia.
-* **Bulk Generation:** Generate QR secara massal.
-* **Prefix Naming:** Sistem penamaan dengan prefix kustom.
+##### **A1. Order Management**
+```
+- Incoming Orders Queue
+- Payment Verification
+- Order Status Updates
+- Customer Communication
+- Refund/Return Handling
+```
 
-### Sticker Orders Management
-* **Order Verification:** Verifikasi bukti pembayaran.
-* **Status Updates:** Update status (in_production, shipped, completed).
-* **Sticker Types:** Circle/Rectangle, Small/Medium/Large.
-* **Bundle Generation:** Generate bundle QR untuk pesanan sticker.
+##### **A2. Customer Support**
+```
+- Claim Verification & Assistance
+- Manual Token Reset
+- Account Management
+- Badge Verification (Verified User)
+- Complaint Handling
+```
 
-### Layout Editor (Coming Soon)
-* **Custom Design:** Editor untuk desain sticker kustom.
+##### **A3. Shipping & Fulfillment**
+```
+- Shipping Label Generation
+- Tracking Number Input
+- Delivery Status Updates
+- Customer Notifications
+```
+
+##### **A4. B2B Partner Management**
+```
+- Partner Dashboard Access
+- Distribution Analytics
+- Bulk Claim Codes
+- White-label Configuration
+```
+
+### 🏭 B. Module: Production & Operations Dashboard
+
+#### **Fokus:** Produksi fisik dan inventory management
+
+##### **B1. Batch Generation & Management**
+```
+- Generate UUID/Serial Number massal
+- Batch categorization (Student Kit, Otomotif, dll)
+- Batch naming & numbering
+- Batch assignment to partners
+```
+
+##### **B2. VDP Export (Variable Data Printing)**
+```
+- QR Code generation in bulk
+- PDF export dengan layout siap cetak
+- CSV export untuk database produksi
+- Template management (A4, A3, custom)
+- Auto-layout optimization (12 items/A4, 20 items/A3)
+```
+
+##### **B3. Production Queue**
+```
+- Print Queue Management
+- Production Status Tracking
+- Quality Control Checkpoints
+- Admin Workload Assignment
+```
+
+##### **B4. Inventory Management**
+```
+- Material Stock Tracking (Akrilik, Vinyl)
+- Low Stock Alerts
+- Material Usage Analytics
+- Restock Management
+- Supplier Management
+```
+
+##### **B5. Quality Control**
+```
+- QC Checklists
+- Defect Tracking
+- Quality Metrics
+- Return/Defect Analysis
+```
 
 ---
 
-## 8. Public Pages
+## 9. Admin UI/UX Principles
+
+### ⚡ 9.1 Efficiency-First Design
+
+#### **Barcode Scanner Integration**
+- Dukungan barcode scanner fisik untuk quick lookup
+- Quick search: Scan serial number → langsung ke detail tag
+- Mobile-friendly untuk operasional lapangan
+
+#### **Keyboard Shortcuts**
+```
+Ctrl/Cmd + K : Quick Search
+Ctrl/Cmd + N : New Order/Batch
+Ctrl/Cmd + P : Print Queue
+Ctrl/Cmd + S : Save Status
+Esc : Close modal/back
+```
+
+### 🎨 9.2 Visual Design Principles
+
+#### **Color Coding System**
+| Status | Color | Hex Code |
+|--------|-------|----------|
+| Unclaimed | Gray | #9CA3AF |
+| In Production | Blue | #3B82F6 |
+| In Transit | Purple | #8B5CF6 |
+| Active | Green | #10B981 |
+| Lost | Red | #EF4444 |
+| Suspended | Orange | #F59E0B |
+
+#### **Status Indicators**
+- **Badge System:** Quick visual status identification
+- **Progress Bars:** Production completion percentage
+- **Toast Notifications:** Real-time updates
+
+### 📱 9.3 Responsive Design
+- **Desktop:** Full-featured dashboard dengan sidebar
+- **Tablet:** Optimized layout untuk production floor
+- **Mobile:** Essential features untuk on-the-go operations
+
+---
+
+## 10. Public Pages
 
 ### Landing Page
 * **Hero Section:** CTA utama dengan penawaran produk.
@@ -165,7 +303,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 9. API Routes
+## 11. API Routes
 
 ### Authentication API
 * **Google OAuth:** Sign in dengan Google.
@@ -177,6 +315,8 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **Module Management:** Kelola modul user.
 * **QR Stock:** Kelola stok QR.
 * **Tag Management:** CRUD tag.
+* **Batch Management:** Generate dan kelola batch produksi.
+* **Claim Validation:** Validasi claim token dengan rate limiting.
 
 ### Mobile API
 * **User Profile:** Ambil data profil user.
@@ -195,7 +335,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 10. Strategi "Verified Owner Badge"
+## 12. Strategi "Verified Owner Badge"
 
 Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
@@ -205,17 +345,154 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
 ---
 
-## 11. Monetisasi (Revenue Streams)
+## 13. Monetisasi (Revenue Streams)
 
 1. **Direct Sales:** Penjualan satuan gantungan kunci (Standard: Rp29.000, Premium: Rp35.000).
-2. **Sticker Packs:** Stiker vinyl waterproof (Small: Rp25.000, Medium: Rp35.000, Large: Rp50.000).
+2. **Sticker Packs:** Stiker vinyl waterproof (Small: Rp25.000, Medium: Rp35.000, Large: Rp45.000, XL: Rp50.000).
 3. **Bundle Packages:** Paket tematik (Student Kit: Rp79.000, Otomotif: Rp59.000, Pertanian: Rp69.000, Diklat: Rp149.000).
 4. **Corporate/B2B:** Paket custom untuk sekolah, komunitas motor, tour & travel.
 5. **Premium Features (SaaS):** Biaya langganan kecil untuk fitur premium tracking history.
 
 ---
 
-## 12. Tech Stack
+## 14. Logika Keamanan & Aktivasi (Claim Logic)
+
+Untuk produk non-custom (Bulk & Stiker), sistem mencegah aktivasi ilegal sebelum pembelian.
+
+### 🔐 14.1 Dual-Validation Claim System
+
+#### **Komponen 1: Public ID (Serial Number)**
+- Tertera pada QR Code untuk identifikasi publik
+- Dapat discan oleh siapa saja
+- Mengarah ke halaman profil publik
+- **Format:** 12 karakter alphanumeric (Nanoid)
+
+#### **Komponen 2: Secret Token (Claim Code)**
+- Kode rahasia 3-4 digit untuk validasi kepemilikan
+- Tersembunyi di balik lapisan gosok (*scratch-off*) atau di dalam kemasan
+- Hanya dimiliki oleh pembeli sah
+- **Hash:** Disimpan dalam bentuk hash di database
+- **Format:** 4 digit numeric
+
+### 📊 14.2 Status Tag Lifecycle
+
+| Status | Deskripsi | Use Case |
+|--------|-----------|----------|
+| **`unclaimed`** | Sudah dicetak, belum ada pemilik | Bulk production, Sticker packs |
+| **`in_transit`** | Sedang dikirim, sudah terikat ke user | Custom orders, B2B bulk distribution |
+| **`active`** | Sudah diklaim dan profil aktif | Semua produk setelah aktivasi |
+| **`lost`** | Barang dinyatakan hilang | User mengaktifkan mode hilang |
+| **`suspended`** | Tag dinonaktifkan oleh admin | Pelanggaran atau permintaan user |
+
+### 🛡️ 14.3 Keamanan Aktivasi
+
+#### **Proteksi Brute Force:**
+- Maksimal 3 percobaan claim token per IP per jam
+- Delay 2 detik antara percobaan
+- Block sementara setelah 3 percobaan gagal
+
+#### **Proteksi Duplicasi:**
+- Satu claim token hanya valid untuk satu aktivasi
+- IP logging untuk setiap percobaan klaim
+- Notifikasi ke owner jika ada percobaan mencurigakan
+
+---
+
+## 15. Alur Kerja Operasional (Workflow)
+
+### 🔄 15.1 Alur Bulk Production
+
+```
+1. GENERATE BATCH
+   └─> Admin generates bulk QR codes
+   └─> System creates unique serial numbers + claim tokens
+   └─> Batch assigned ID and status: 'production'
+
+2. VDP EXPORT
+   └─> Export QR data to PDF/CSV
+   └─> Print physical QR codes on acrylic/vinyl
+   └─> Apply scratch-off layer on claim tokens
+
+3. DISTRIBUTION
+   └─> Package and ship to retailers/partners
+   └─> Update batch status to 'distributed'
+   └─> Track inventory levels
+
+4. CUSTOMER PURCHASE
+   └─> Customer buys physical product
+   └─> Receives QR tag with hidden claim token
+
+5. CLAIM PROCESS
+   └─> Customer scans QR code
+   └─> Directed to claim page
+   └─> Enters claim token
+   └─> System validates token
+   └─> Tag status changes to 'active'
+   └─> Customer can now configure profile
+```
+
+### 🎨 15.2 Alur Custom Order
+
+```
+1. ORDER PLACEMENT
+   └─> Customer designs custom QR on website
+   └─> Selects shape, color, uploads design
+   └─> Completes payment
+
+2. PRODUCTION QUEUE
+   └─> Order appears in production dashboard
+   └─> Status: 'pending_payment' → 'paid'
+
+3. PRODUCTION
+   └─> Admin generates QR with custom specifications
+   └─> Tag pre-bound to customer account
+   └─> Status: 'in_production'
+
+4. QUALITY CHECK
+   └─> QC verification of custom specifications
+   └─> Photo documentation (optional)
+   └─> Status: 'qc_passed'
+
+5. SHIPPING
+   └─> Admin inputs tracking number
+   └─> Status changes to 'in_transit'
+   └─> Customer receives shipping notification
+
+6. AUTO-ACTIVATION
+   └─> Upon delivery confirmation, tag auto-activates
+   └─> Status: 'active'
+   └─> Customer can immediately use profile
+```
+
+### 📦 15.3 Alur Sticker Bundle
+
+```
+1. BUNDLE GENERATION
+   └─> Admin creates sticker bundle (5, 10, 15, 20 pack)
+   └─> Generate multiple QR codes with claim tokens
+   └─> Bundle ID assigned
+
+2. PRINTING
+   └─> Export to PDF for sticker printing
+   └─> Vinyl sticker cutting
+   └─> Quality verification
+
+3. PACKAGING
+   └─> Pack stickers with claim instructions
+   └─> Apply scratch-off stickers on claim codes
+
+4. DISTRIBUTION
+   └─> Ship to customer or retail partner
+
+5. INDIVIDUAL CLAIM
+   └─> Customer claims each sticker individually
+   └─> Can apply to different items
+   └─> Each sticker gets unique profile or shared profile
+```
+
+---
+
+## 16. Tech Stack
 
 ### Frontend
 * **Framework:** Next.js 16.2.3 (App Router)
@@ -306,7 +583,7 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
 ---
 
-## 13. Database Schema (Drizzle ORM)
+## 17. Database Schema (Drizzle ORM)
 
 > **Catatan Penting:** Karena Supabase digunakan oleh aplikasi lain, semua tabel menggunakan prefix `balikin_` dan memiliki `app_id` bernilai `"balikin_id"`.
 
@@ -320,8 +597,11 @@ accounts - OAuth accounts
 verifications - Email/OTP verification
 
 // Tags
-balikin_tags - Tag data (slug, owner, status, tier, module)
+balikin_tags - Tag data (slug, owner, status, tier, module, batch_id, claim_token_hash)
 balikin_scan_logs - Scan history (IP, location, device)
+
+// Production & Batches
+balikin_batches - Batch management (name, type, status, partner_id)
 
 // Module Data
 balikin_student_modules - Student kit data
@@ -336,9 +616,48 @@ balikin_order_bundles - Bundle-to-order mapping
 balikin_qr_stocks - QR stock management
 ```
 
+### New Tables & Updates
+
+#### **Table: `balikin_batches`**
+```sql
+CREATE TABLE balikin_batches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL, -- 'bulk', 'student_kit', 'otomotif', 'pertanian', 'diklat'
+  status VARCHAR(20) DEFAULT 'production', -- 'production', 'distributed', 'completed'
+  partner_id UUID REFERENCES balikin_users(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  metadata JSONB -- Additional batch information
+);
+```
+
+#### **Table Updates: `balikin_tags`**
+```sql
+ALTER TABLE balikin_tags
+ADD COLUMN batch_id UUID REFERENCES balikin_batches(id),
+ADD COLUMN claim_token_hash VARCHAR(255), -- Hashed secret claim code
+ADD COLUMN production_meta JSONB, -- Custom production details (color, shape, etc.)
+ADD COLUMN claim_attempts INTEGER DEFAULT 0,
+ADD COLUMN last_claim_attempt TIMESTAMP,
+ADD COLUMN claim_ip_address INET;
+```
+
+### Database Indexes
+
+```sql
+-- Performance indexes for production queries
+CREATE INDEX idx_tags_batch_id ON balikin_tags(batch_id);
+CREATE INDEX idx_tags_status ON balikin_tags(status);
+CREATE INDEX idx_tags_claim_token ON balikin_tags(claim_token_hash);
+CREATE INDEX idx_batches_type ON balikin_batches(type);
+CREATE INDEX idx_batches_status ON balikin_batches(status);
+CREATE INDEX idx_scan_logs_created_at ON balikin_scan_logs(created_at DESC);
+```
+
 ---
 
-## 14. Aturan Khusus & Business Logic
+## 18. Aturan Khusus & Business Logic
 
 1. **Privasi Data:**
    * Halaman profil tidak boleh menampilkan nomor HP dalam bentuk teks biasa.
@@ -350,7 +669,8 @@ balikin_qr_stocks - QR stock management
 
 3. **Ownership Claim:**
    * Gantungan kunci yang baru dicetak berstatus "Unclaimed".
-   * Siapa pun yang pertama kali scan dan login akan menjadi pemilik sah.
+   * Untuk bulk & sticker: Siapa pun yang pertama kali scan dan memasukkan claim token yang benar akan menjadi pemilik sah.
+   * Untuk custom: Pre-bound ke pembeli, langsung aktif setelah dikirim.
 
 4. **Lost Mode Logic:**
    * Jika `status === 'lost'`, halaman publik menampilkan:
@@ -367,9 +687,15 @@ balikin_qr_stocks - QR stock management
    * Admin dapat mengaktifkan modul untuk tag tertentu.
    * Modul aktif menampilkan konten tambahan di halaman profil.
 
+7. **Claim Token Security:**
+   * Maksimal 3 percobaan klaim per IP per jam
+   - Delay 2 detik antara percobaan
+   - Block sementara setelah 3 percobaan gagal
+   - IP logging untuk audit trail
+
 ---
 
-## 15. Target Pengembangan MVP (Minimal Viable Product)
+## 19. Target Pengembangan MVP (Minimal Viable Product)
 
 ### ✅ Sudah Selesai
 * **Authentication:** Google OAuth + Email OTP.
@@ -391,3 +717,55 @@ balikin_qr_stocks - QR stock management
 * **Mobile App:** Native app untuk iOS dan Android.
 * **Integration:** Partnership dengan ekspedisi/logistik.
 * **Insurance:** Asuransi kehilangan berbayar.
+
+---
+
+## 20. Success Metrics & KPIs
+
+### Production Metrics
+- **Production Capacity:** Tags per day
+- **QC Pass Rate:** Percentage of products passing quality check
+- **Material Efficiency:** Usage vs waste ratio
+- **Production Lead Time:** Average time from order to ship
+
+### Customer Service Metrics
+- **Claim Success Rate:** First-attempt claim success
+- **Response Time:** Average customer inquiry response time
+- **Resolution Time:** Average issue resolution time
+- **Customer Satisfaction:** CSAT scores
+
+### Business Metrics
+- **Monthly Active Users:** Active tag usage
+- **Scan Rate:** Tags scanned per day
+- **Conversion Rate:** Free to paid conversion
+- **Partner Distribution:** B2B partner adoption
+
+---
+
+## 21. Implementation Priority
+
+### Phase 1: Foundation (Week 1-2)
+- ✅ Database schema updates
+- ✅ Basic role-based dashboard separation
+- ✅ Claim token system implementation
+
+### Phase 2: CS Dashboard (Week 3-4)
+- ✅ Order management interface
+- ✅ Customer support tools
+- ✅ Shipping integration
+
+### Phase 3: Production Dashboard (Week 5-6)
+- ✅ Batch generation system
+- ✅ VDP export functionality
+- ✅ Production queue management
+
+### Phase 4: Advanced Features (Week 7-8)
+- ✅ B2B partner portal
+- ✅ Advanced analytics
+- ✅ Mobile optimization
+
+---
+
+**Document Status:** Updated with operational specifications  
+**Last Updated:** 2026-05-05  
+**Version:** 2.0
