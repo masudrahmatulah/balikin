@@ -1,12 +1,25 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { Link } from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  TrendingUp,
+  Users,
+  ShoppingCart,
+  Target,
+  BarChart3,
+  Megaphone,
+  ArrowRight,
+  Plus
+} from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 // FIXED: Lazy load MarketingDashboard to reduce initial bundle size
 // This component contains heavy recharts library (~120KB)
-const MarketingDashboard = dynamic(
+// Note: ssr: false is not allowed in Server Components, so we load it client-side only
+const MarketingDashboard = dynamicImport(
   () => import("@/components/admin/marketing-dashboard").then(mod => ({ default: mod.MarketingDashboard })),
   {
     loading: () => (
@@ -14,21 +27,8 @@ const MarketingDashboard = dynamic(
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     ),
-    ssr: false, // Charts don't need SSR, reduces server load
   }
 );
-import {
-  TrendingUp,
-  Users,
-  ShoppingCart,
-  Target,
-  BarChart3,
-  Campaign,
-  ArrowRight,
-  Plus
-} from "lucide-react";
-
-export const dynamic = "force-dynamic";
 
 export default async function MarketingDashboardPage() {
   const session = await getAdminSession();

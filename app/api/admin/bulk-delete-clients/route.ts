@@ -34,22 +34,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { userIds } = body;
-
-    // Validate input
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      return NextResponse.json({ error: "Invalid userIds" }, { status: 400 });
-    }
-
-    // Prevent deleting yourself
-    if (userIds.includes(session.user.id)) {
-      return NextResponse.json(
-        { error: "Cannot delete your own account" },
-        { status: 400 }
-      );
-    }
-
     // Cascade delete all related data
     // 1. Delete student kit data
     await db.delete(studentKitData).where(inArray(studentKitData.userId, userIds));

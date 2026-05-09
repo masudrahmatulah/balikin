@@ -1,0 +1,5 @@
+{
+  "tunnel.forwardedPorts": [
+    { "localPort": 3000, "name": "Next.js Dev Server" }
+  ]
+}
