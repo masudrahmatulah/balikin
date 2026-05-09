@@ -1,29 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import { updateModuleConfig } from '@/app/actions/module-config-actions';
-import { user } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { db } from '@/db';
+import { isAdmin } from '@/lib/admin';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ moduleType: string }> }
 ) {
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Verify admin role
-  const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
-  });
-
-  if (!dbUser || dbUser.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+  // FIXED: Use centralized isAdmin() function for consistent authorization
+  const adminCheck = await isAdmin();
+  if (!adminCheck) {
+    return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 401 });
   }
 
   try {

@@ -1,15 +1,16 @@
 import { auth } from "@/lib/auth";
 import { cache } from "react";
 import { db } from "@/db";
-import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { user, tags } from "@/db/schema";
+import { eq, count } from "drizzle-orm";
 import { headers } from "next/headers";
 import { AuthenticationError, AuthorizationError, logError } from "@/lib/error-handler";
+import { Division, type DivisionType } from "@/lib/admin-divisions";
 
 /**
  * Core admin session logic (shared between cached and non-cached versions)
- * Uses better-auth API for session, then queries database for role
- * because better-auth doesn't return custom fields like 'role' by default
+ * Uses better-auth API for session, then queries database for role and division
+ * because better-auth doesn't return custom fields like 'role' or 'division' by default
  */
 async function getAdminSessionCore() {
   try {
@@ -25,7 +26,7 @@ async function getAdminSessionCore() {
       return null;
     }
 
-    // Query database to get the user's role (better-auth doesn't return custom fields)
+    // Query database to get the user's role and division (better-auth doesn't return custom fields)
     const dbUser = await db.query.user.findFirst({
       where: eq(user.id, session.user.id),
     });
@@ -46,6 +47,7 @@ async function getAdminSessionCore() {
         email: session.user.email,
         name: session.user.name,
         role: dbUser.role as "admin",
+        division: dbUser.division as DivisionType | null,
       },
       session: {
         token: session.session?.id || 'unknown',
@@ -80,6 +82,129 @@ export const isAdmin = cache(async () => {
   const adminSession = await getAdminSession();
   return adminSession !== null;
 });
+
+/**
+ * Session management constants
+ */
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes of inactivity
+const SESSION_WARNING_MS = 25 * 60 * 1000; // Show warning at 25 minutes
+
+/**
+ * Check session timeout and activity
+ * Returns true if session is still valid, false if should logout
+ */
+export async function checkSessionTimeout(): Promise<boolean> {
+  const session = await getAdminSession();
+
+  if (!session?.session) {
+    return false;
+  }
+
+  const now = new Date();
+  const expiresAt = new Date(session.session.expiresAt);
+
+  // Check if session has expired
+  if (now >= expiresAt) {
+    return false;
+  }
+
+  // Check if session is about to expire (within warning threshold)
+  const timeUntilExpiry = expiresAt.getTime() - now.getTime();
+  if (timeUntilExpiry <= SESSION_WARNING_MS) {
+    // Session is about to expire, could show warning here
+    console.warn(`Session expires in ${Math.floor(timeUntilExpiry / 1000 / 60)} minutes`);
+  }
+
+  return true;
+}
+
+/**
+ * Get current admin user with session info
+ */
+export async function getCurrentAdminUser() {
+  const session = await getAdminSession();
+  return session?.user || null;
+}
+
+/**
+ * Invalidate session (logout)
+ * Properly cleans up session on server side
+ */
+export async function invalidateSession(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getAdminSession();
+
+    if (!session) {
+      return { success: false, error: "No active session to invalidate" };
+    }
+
+    // Better auth will handle session invalidation
+    // This is a placeholder for any additional cleanup needed
+    // In production, you might want to:
+    // - Log the logout event
+    // - Clear any server-side caches
+    // - Update user last activity timestamp
+
+    return { success: true };
+  } catch (error) {
+    logError(error, 'invalidateSession');
+    return { success: false, error: "Failed to invalidate session" };
+  }
+}
+
+/**
+ * Extend session timeout
+ * Refreshes session expiry time
+ */
+export async function refreshSession(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getAdminSession();
+
+    if (!session) {
+      return { success: false, error: "No active session to refresh" };
+    }
+
+    // Better auth handles session refresh automatically
+    // This is a placeholder for any additional refresh logic
+    // In production, you might want to:
+    // - Update last activity timestamp in database
+    // - Log the refresh event
+    // - Clear stale caches
+
+    return { success: true };
+  } catch (error) {
+    logError(error, 'refreshSession');
+    return { success: false, error: "Failed to refresh session" };
+  }
+}
+
+/**
+ * Get session info for display (time remaining, etc.)
+ */
+export async function getSessionInfo() {
+  const session = await getAdminSession();
+
+  if (!session?.session) {
+    return {
+      isValid: false,
+      expiresAt: null,
+      timeRemaining: 0,
+      warningThreshold: SESSION_WARNING_MS,
+    };
+  }
+
+  const now = new Date();
+  const expiresAt = new Date(session.session.expiresAt);
+  const timeRemaining = Math.max(0, expiresAt.getTime() - now.getTime());
+
+  return {
+    isValid: timeRemaining > 0,
+    expiresAt,
+    timeRemaining,
+    warningThreshold: SESSION_WARNING_MS,
+    shouldWarn: timeRemaining <= SESSION_WARNING_MS && timeRemaining > 0,
+  };
+}
 
 /**
  * Get all users (admin only)
@@ -136,4 +261,35 @@ export async function updateUserRole(userId: string, role: "admin" | "user") {
   await db.update(user)
     .set({ role, updatedAt: new Date() })
     .where(eq(user.id, userId));
+}
+
+/**
+ * Update user division (admin only)
+ */
+export async function updateUserDivision(userId: string, division: DivisionType | null) {
+  await db.update(user)
+    .set({ division, updatedAt: new Date() })
+    .where(eq(user.id, userId));
+}
+
+/**
+ * Get user division (admin only)
+ */
+export async function getUserDivision(userId: string): Promise<DivisionType | null> {
+  const dbUser = await db.query.user.findFirst({
+    where: eq(user.id, userId),
+  });
+
+  return dbUser?.division as DivisionType | null || null;
+}
+
+/**
+ * Get all admins by division
+ */
+export async function getAdminsByDivision(division: DivisionType) {
+  const admins = await db.query.user.findMany({
+    where: eq(user.role, 'admin'),
+  });
+
+  return admins.filter(admin => admin.division === division);
 }

@@ -23,11 +23,15 @@ export default async function AdminStickerOrdersPage() {
     with: {
       user: true,
       bundles: {
-        with: {
-          tags: true,
-        },
+        // FIXED: Remove eager loading of tags to prevent N+1 queries
+        // Tags will be loaded on-demand when viewing bundle details
+        // with: {
+        //   tags: true,
+        // },
       },
     },
+    // Add pagination to prevent loading too many records
+    limit: 50,
   });
 
   return (
