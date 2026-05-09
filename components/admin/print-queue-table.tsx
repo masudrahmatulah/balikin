@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -19,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Download, Filter, Search, Package, RotateCw, Clock } from "lucide-react";
+import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 
 interface PrintQueueItem {
   id: string;
@@ -45,7 +49,22 @@ interface PrintQueueTableProps {
 }
 
 export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
+  const router = useRouter();
   const [updating, setUpdating] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentItems, setCurrentItems] = useState(items);
+
+  // Auto-refresh every 60 seconds
+  const { isRefreshing, nextRefreshIn, refresh } = useAutoRefresh({
+    interval: 60000, // 60 seconds
+    enabled: true,
+    onRefresh: async () => {
+      // Refresh the page to get latest data
+      router.refresh();
+    },
+    immediate: false, // Don't refresh immediately on mount
+  });
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -76,8 +95,15 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
         throw new Error("Failed to update status");
       }
 
-      // Refresh the page to show updated data
-      window.location.reload();
+      // Update local state and refresh the page
+      setCurrentItems(items.map(item =>
+        item.id === itemId ? { ...item, status: newStatus } : item
+      ));
+
+      // Small delay then refresh page to get server-side updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status. Please try again.");
@@ -91,8 +117,53 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
   const qualityCheckCount = items.filter((i) => i.status === "quality_check").length;
   const readyCount = items.filter((i) => i.status === "ready_for_stock").length;
 
+  // Update current items when props change
+  useState(() => {
+    setCurrentItems(items);
+  });
+
+  // Filter items based on status and search query
+  const filteredItems = currentItems.filter((item) => {
+    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+    const matchesSearch =
+      searchQuery === "" ||
+      item.batchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.batchId.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
   return (
     <div className="space-y-6">
+      {/* Auto-Refresh Indicator */}
+      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-2">
+          {isRefreshing ? (
+            <>
+              <RotateCw className="w-4 h-4 animate-spin" />
+              <span>Memperbarui data...</span>
+            </>
+          ) : (
+            <>
+              <Clock className="w-4 h-4" />
+              <span>
+                Terakhir diperbarui: {new Date().toLocaleTimeString("id-ID")}
+                {nextRefreshIn !== null && ` • Next refresh in ${nextRefreshIn}s`}
+              </span>
+            </>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={refresh}
+          disabled={isRefreshing}
+          className="gap-1"
+        >
+          <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+          Refresh Now
+        </Button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
@@ -113,8 +184,56 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
         </div>
       </div>
 
+      {/* Filter and Search Controls */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search */}
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            placeholder="Search by batch name or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-400" />
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="printing">Printing</SelectItem>
+              <SelectItem value="quality_check">Quality Check</SelectItem>
+              <SelectItem value="ready_for_stock">Ready for Stock</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Download All Button */}
+        <Button variant="outline" className="gap-2">
+          <Download className="w-4 h-4" />
+          Download Assets
+        </Button>
+      </div>
+
       {/* Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        {/* Results counter */}
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Package className="w-4 h-4" />
+            <span>
+              Showing {filteredItems.length} of {items.length} items
+            </span>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -126,18 +245,18 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                 <TableHead>Material Used</TableHead>
                 <TableHead>Printed By</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.length === 0 ? (
+              {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    No items in print queue
+                    {items.length === 0 ? "No items in print queue" : "No items match your filters"}
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((item) => (
+                filteredItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
                       <div>
@@ -173,23 +292,34 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                         minute: "2-digit",
                       })}
                     </TableCell>
-                    <TableCell>
-                      <Select
-                        value={item.status}
-                        onValueChange={(value) => updateStatus(item.id, value)}
-                        disabled={updating === item.id}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="printing">Printing</SelectItem>
-                          <SelectItem value="quality_check">Quality Check</SelectItem>
-                          <SelectItem value="ready_for_stock">Ready for Stock</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/api/admin/print-queue/${item.id}/download`, "_blank")}
+                          className="gap-1"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </Button>
+                        <Select
+                          value={item.status}
+                          onValueChange={(value) => updateStatus(item.id, value)}
+                          disabled={updating === item.id}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="printing">Printing</SelectItem>
+                            <SelectItem value="quality_check">Quality Check</SelectItem>
+                            <SelectItem value="ready_for_stock">Ready for Stock</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

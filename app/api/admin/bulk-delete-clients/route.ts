@@ -1,21 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { user, tags, scanLogs, studentKitData, emergencyInformation } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    // Check authentication and admin role
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    // FIXED: Use centralized isAdmin() function for consistent authorization
+    const adminCheck = await isAdmin();
+    if (!adminCheck) {
+      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+    }
 
-    if (!session?.user || session.user.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Get current admin user from session for validation
+    const { getCurrentAdminUser } = await import("@/lib/admin");
+    const currentUser = await getCurrentAdminUser();
+
+    const body = await req.json();
+    const { userIds } = body;
+
+    // Validate input
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return NextResponse.json({ error: "Invalid userIds" }, { status: 400 });
+    }
+
+    // Prevent deleting yourself
+    if (currentUser && userIds.includes(currentUser.id)) {
+      return NextResponse.json(
+        { error: "Cannot delete your own account" },
+        { status: 400 }
+      );
     }
 
     const body = await req.json();

@@ -3,12 +3,15 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { GlobalSearch } from "./global-search";
+import { WITAClock, ProductionDeadlineIndicator } from "./wita-clock";
 
 interface AdminUser {
   id: string;
   email: string;
   name?: string | null;
   role: string;
+  division?: string | null;
 }
 
 interface AdminSession {
@@ -50,7 +53,7 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Mobile Menu Toggle & Logo */}
           <div className="flex min-w-0 items-center gap-3">
             {showMobileMenu && (
@@ -76,13 +79,35 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
                 Balikin Admin
               </h1>
               <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                Panel Manajemen Klien & QR Tag
+                {session.user.division ? `${session.user.division.replace('_', ' ')} Division` : 'Panel Manajemen Klien & QR Tag'}
               </p>
             </div>
           </div>
 
-          {/* Admin Badge & Menu */}
+          {/* Admin Badge, Search, Clock & Menu */}
           <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+            {/* Global Search */}
+            <GlobalSearch className="hidden md:block" />
+
+            {/* WITA Clock & Deadline Indicator */}
+            <div className="hidden lg:flex items-center gap-3">
+              <ProductionDeadlineIndicator />
+              <WITAClock />
+            </div>
+
+            {/* Notification Bell */}
+            <button
+              className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Notifications"
+            >
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </button>
+
             {/* Navigation Links */}
             <nav className="hidden sm:flex items-center gap-2">
               <Link
@@ -122,31 +147,34 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
               </Link>
             </nav>
 
-            <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Admin
-            </span>
-            <div className="flex min-w-0 items-center gap-2 border-gray-200 dark:border-gray-700 sm:border-l sm:pl-4">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {session.user.name?.[0] || session.user.email[0].toUpperCase()}
+            {/* Admin Badge & User Info */}
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                Admin
+              </span>
+              <div className="flex min-w-0 items-center gap-2 border-gray-200 dark:border-gray-700 sm:border-l sm:pl-4">
+                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    {session.user.name?.[0] || session.user.email[0].toUpperCase()}
+                  </span>
+                </div>
+                <span className="max-w-[160px] truncate text-sm text-gray-600 dark:text-gray-400">
+                  {session.user.name || session.user.email}
                 </span>
               </div>
-              <span className="max-w-[160px] truncate text-sm text-gray-600 dark:text-gray-400">
-                {session.user.name || session.user.email}
-              </span>
+              <button
+                onClick={handleSignOut}
+                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Keluar"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              title="Keluar"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
