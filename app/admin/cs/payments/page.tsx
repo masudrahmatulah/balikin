@@ -7,7 +7,7 @@ import { PaymentVerificationGrid } from "@/components/admin/payment-verification
 
 export const dynamic = "force-dynamic";
 
-export default async class PaymentsPage() {
+export default async function PaymentsPage() {
   const session = await getAdminSession();
   if (!session) {
     redirect("/sign-in?redirect=/admin/cs/payments");

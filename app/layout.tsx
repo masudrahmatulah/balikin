@@ -70,6 +70,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" />
         <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
       </head>
       <body className="overflow-x-hidden antialiased">
         <Providers>

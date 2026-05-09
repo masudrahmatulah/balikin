@@ -44,17 +44,16 @@ export default async function AdminLayout({
   const userDivision = session.user.division;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-background text-on-surface font-body-md selection:bg-balikin-gold/30">
       <Sidebar userDivision={userDivision} />
-      <div className="lg:ml-72">
+      <div className="lg:ml-sidebar-width">
         <AdminHeader
           session={session}
           pendingOrdersCount={totalPendingOrders}
           pendingRequestsCount={pendingRequestsCount}
           showMobileMenu={true}
         />
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* FIXED: Add Error Boundary to catch component errors */}
+        <main className="pt-24 px-8 pb-12">
           <AdminErrorBoundary>
             {children}
           </AdminErrorBoundary>

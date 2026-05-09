@@ -34,147 +34,108 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
 
   const handleSignOut = async () => {
     try {
-      // Use Better Auth's signOut method
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            // Force full page reload to clear all client state
             window.location.href = "/";
           },
         },
       });
     } catch (error) {
       console.error("Sign out error:", error);
-      // Still redirect even if there's an error
       window.location.href = "/";
     }
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          {/* Mobile Menu Toggle & Logo */}
-          <div className="flex min-w-0 items-center gap-3">
-            {showMobileMenu && (
-              <button
-                onClick={() => {
-                  // Toggle sidebar by dispatching custom event
-                  window.dispatchEvent(new CustomEvent("toggle-sidebar"));
-                }}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            )}
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
-                Balikin Admin
-              </h1>
-              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                {session.user.division ? `${session.user.division.replace('_', ' ')} Division` : 'Panel Manajemen Klien & QR Tag'}
-              </p>
-            </div>
-          </div>
+    <header className="fixed top-0 right-0 left-[280px] h-16 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flex justify-between items-center px-8 w-full z-40">
+      {/* Left Section: Search & Nav */}
+      <div className="flex items-center gap-6 flex-1">
+        {/* Mobile Menu Toggle */}
+        {showMobileMenu && (
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("toggle-sidebar"));
+            }}
+            className="lg:hidden p-2 rounded-lg hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-on-surface-variant !text-[24px]">
+              menu
+            </span>
+          </button>
+        )}
 
-          {/* Admin Badge, Search, Clock & Menu */}
-          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-            {/* Global Search */}
-            <GlobalSearch className="hidden md:block" />
+        {/* Global Search */}
+        <GlobalSearch className="relative w-full max-w-md" />
 
-            {/* WITA Clock & Deadline Indicator */}
-            <div className="hidden lg:flex items-center gap-3">
-              <ProductionDeadlineIndicator />
-              <WITAClock />
-            </div>
-
-            {/* Notification Bell */}
-            <button
-              className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Notifications"
-            >
-              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
-            </button>
-
-            {/* Navigation Links */}
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link
-                href="/admin"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Klien
-              </Link>
-              <Link
-                href="/admin/sticker-orders"
-                className="relative px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Orders
-                {pendingOrdersCount > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
-                    {pendingOrdersCount > 9 ? '9+' : pendingOrdersCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/admin/qr-stok"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                QR Stok
-              </Link>
-              <Link
-                href="/admin/bundles"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Bundles
-              </Link>
-              <Link
-                href="/admin/layout-editor"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Layout Editor
-              </Link>
-            </nav>
-
-            {/* Admin Badge & User Info */}
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                Admin
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex items-center gap-6">
+          <Link
+            href="/admin"
+            className="text-balikin-gold border-b-2 border-balikin-gold pb-1 font-medium transition-colors"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/admin/sticker-orders"
+            className="text-on-surface-variant hover:text-balikin-gold transition-colors font-medium"
+          >
+            Orders
+            {pendingOrdersCount > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-status-critical text-white text-xs font-bold rounded-full">
+                {pendingOrdersCount > 9 ? '9+' : pendingOrdersCount}
               </span>
-              <div className="flex min-w-0 items-center gap-2 border-gray-200 dark:border-gray-700 sm:border-l sm:pl-4">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    {session.user.name?.[0] || session.user.email[0].toUpperCase()}
-                  </span>
-                </div>
-                <span className="max-w-[160px] truncate text-sm text-gray-600 dark:text-gray-400">
-                  {session.user.name || session.user.email}
-                </span>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Keluar"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
+            )}
+          </Link>
+          <Link
+            href="/admin/analytics"
+            className="text-on-surface-variant hover:text-balikin-gold transition-colors font-medium"
+          >
+            Analytics
+          </Link>
+        </nav>
+      </div>
+
+      {/* Right Section: Notifications, WITA Clock, Actions, Profile */}
+      <div className="flex items-center gap-4">
+        {/* WITA Clock & Deadline Indicator */}
+        <div className="hidden lg:flex items-center gap-3">
+          <ProductionDeadlineIndicator />
+          <WITAClock />
+        </div>
+
+        {/* Notifications */}
+        <button className="p-2 text-on-surface-variant hover:text-balikin-gold transition-colors relative">
+          <span className="material-symbols-outlined !text-[20px]" data-icon="notifications">
+            notifications
+          </span>
+          {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
+            <span className="absolute top-2 right-2 w-2 h-2 bg-status-critical rounded-full border border-surface"></span>
+          )}
+        </button>
+
+        {/* Divider */}
+        <div className="h-8 w-[1px] bg-outline-variant mx-2"></div>
+
+        {/* Quick Actions */}
+        <div className="hidden md:flex items-center gap-2">
+          <button className="bg-balikin-gold text-on-primary px-4 py-2 rounded font-bold text-label-caps uppercase hover:brightness-110 transition-all active:scale-95">
+            Ship Orders
+          </button>
+        </div>
+
+        {/* User Profile */}
+        <div className="flex items-center gap-3 ml-4 cursor-pointer group">
+          <div className="text-right">
+            <p className="text-body-md font-bold leading-none">{session.user.name || 'Admin User'}</p>
+            <p className="text-[10px] text-outline font-label-caps uppercase">
+              {session.user.role || 'Super Admin'}
+            </p>
+          </div>
+          <div className="w-10 h-10 bg-balikin-gold/20 rounded-full border border-balikin-gold flex items-center justify-center group-hover:scale-105 transition-transform">
+            <span className="text-sm font-bold text-balikin-gold">
+              {session.user.name?.[0] || session.user.email[0].toUpperCase()}
+            </span>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
-import { getCachedStockStats } from "@/lib/admin-cache";
+import { getStockStatsServer } from "@/app/admin/actions/stock-actions";
 
 interface StockStats {
   totalProduced: number;
@@ -44,8 +44,8 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
 
   const fetchStockStats = async () => {
     try {
-      // FIXED: Use cached version instead of direct API call
-      const data = await getCachedStockStats();
+      // Use server action instead of direct database import
+      const data = await getStockStatsServer();
       setStats(data);
       setLastUpdated(new Date());
     } catch (error) {
