@@ -44,7 +44,7 @@ export default async function AdminLayout({
   const userDivision = session.user.division;
 
   return (
-    <div className="min-h-screen bg-background text-on-surface font-body-md selection:bg-balikin-gold/30">
+    <div className="min-h-screen bg-neutral text-primary font-body selection:bg-tertiary/20">
       <Sidebar userDivision={userDivision} />
       <div className="lg:ml-sidebar-width">
         <AdminHeader
@@ -53,7 +53,7 @@ export default async function AdminLayout({
           pendingRequestsCount={pendingRequestsCount}
           showMobileMenu={true}
         />
-        <main className="pt-24 px-8 pb-12">
+        <main className="pt-24 px-8 pb-12 max-w-[1600px] mx-auto">
           <AdminErrorBoundary>
             {children}
           </AdminErrorBoundary>

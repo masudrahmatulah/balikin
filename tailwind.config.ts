@@ -16,12 +16,24 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#1A1C1E", // Heritage Primary (Ink)
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#6C7278", // Heritage Secondary (Slate)
+          foreground: "#FFFFFF",
+        },
+        tertiary: {
+          DEFAULT: "#B8422E", // Heritage Tertiary (Accent Red)
+          foreground: "#FFFFFF",
+        },
+        neutral: {
+          DEFAULT: "#F7F5F2", // Heritage Neutral (Limestone)
+          foreground: "#1A1C1E",
+        },
+        surface: {
+          DEFAULT: "#FFFFFF", // Heritage Surface
+          foreground: "#1A1C1E",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -43,11 +55,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Balikin Gold Theme Colors
-        tertiary: {
-          DEFAULT: "#00f1ff",
-          container: "#006a70",
-        },
+        // Balikin Gold Theme Colors (Legacy/Alternative)
         "surface-container": "#231f14",
         "status-critical": "#FF4D4D",
         "on-error": "#690005",
@@ -59,7 +67,6 @@ const config: Config = {
         "on-primary": "#3a3000",
         "surface-dim": "#161308",
         "on-secondary-fixed-variant": "#474646",
-        "tertiary": "#defcff",
         "primary-fixed": "#ffe16d",
         "on-secondary-fixed": "#1c1b1b",
         "surface-deep": "#0A0A0A",
@@ -86,7 +93,6 @@ const config: Config = {
         "secondary-container": "#4a4949",
         "on-primary-fixed-variant": "#544600",
         "on-error-container": "#ffdad6",
-        surface: "#161308",
         "on-primary-fixed": "#221b00",
         "tertiary-fixed": "#79f5ff",
         "secondary-fixed": "#e5e2e1",
@@ -94,16 +100,14 @@ const config: Config = {
         "on-secondary-container": "#bab8b7",
         "status-open": "#2979FF",
         "surface-container-highest": "#393528",
-        secondary: "#c8c6c5",
-        primary: "#fff6df",
         "on-primary-container": "#705e00",
         "on-surface-variant": "#d0c6ab",
         "inverse-primary": "#705d00",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "8px", // Heritage lg
+        md: "4px", // Heritage md
+        sm: "2px", // Heritage sm
         DEFAULT: "0.25rem",
         xl: "0.75rem",
         full: "9999px",
@@ -112,24 +116,32 @@ const config: Config = {
         "sidebar-width": "280px",
         "gutter-md": "1.5rem",
         "container-padding": "2rem",
+        "h-sm": "8px",
+        "h-md": "16px",
+        "h-lg": "32px",
       },
       fontFamily: {
-        "label-caps": ["Inter", "sans-serif"],
+        display: ["var(--font-display)", "serif"],
+        body: ["var(--font-body)", "sans-serif"],
+        label: ["var(--font-label)", "sans-serif"],
+        "label-caps": ["var(--font-label)", "sans-serif"],
         "data-mono": ["JetBrains Mono", "monospace"],
-        "body-lg": ["Inter", "sans-serif"],
-        "headline-xl": ["Inter", "sans-serif"],
-        "headline-md": ["Inter", "sans-serif"],
-        "body-md": ["Inter", "sans-serif"],
-        "headline-lg": ["Inter", "sans-serif"],
+        "body-lg": ["var(--font-body)", "sans-serif"],
+        "headline-xl": ["var(--font-display)", "serif"],
+        "headline-md": ["var(--font-display)", "serif"],
+        "body-md": ["var(--font-body)", "sans-serif"],
+        "headline-lg": ["var(--font-display)", "serif"],
       },
       fontSize: {
-        "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "700" }],
+        "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.08em", fontWeight: "700" }],
         "data-mono": ["14px", { lineHeight: "20px", fontWeight: "500" }],
         "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
         "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
         "headline-md": ["20px", { lineHeight: "28px", fontWeight: "600" }],
         "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
         "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "600" }],
+        "display": ["4rem", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "500" }],
+        "h1": ["2.5rem", { lineHeight: "1.2", fontWeight: "500" }],
       },
     },
   },

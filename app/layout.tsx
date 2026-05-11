@@ -3,10 +3,13 @@ import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
-import { Geist } from "next/font/google";
+import { Geist, Fraunces, Public_Sans, Space_Grotesk } from "next/font/google";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" });
+const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-body" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-label" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -65,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable, fraunces.variable, publicSans.variable, spaceGrotesk.variable)}>
       <head>
         <link rel="icon" href="/favicon.png" />
         <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png" />

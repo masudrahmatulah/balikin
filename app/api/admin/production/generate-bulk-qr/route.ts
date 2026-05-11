@@ -53,8 +53,11 @@ export async function POST(request: NextRequest) {
       // Create tag in database
       const newTag = {
         slug,
+        name: `${name} ${sequenceNumber}`, // Add name field (required)
         tier: productType === "sticker" ? "sticker" : "premium",
+        productType: productType, // Add productType field
         bundleType: autoActivateModule || null,
+        autoActivateModule: autoActivateModule || null, // Add autoActivateModule field
         status: "unclaimed",
         stickerShape: productType === "sticker" ? stickerShape : null,
         stickerSize: productType === "sticker" ? stickerSize : null,
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
         updatedAt: new Date(),
       };
 
-      await db.insert(tags).values(newTag);
+      await db.insert(tags).values(newTag as any);
 
       generatedTags.push({
         slug,
