@@ -77,19 +77,33 @@ export async function getStockStatsServer() {
 export async function getDashboardStatsServer() {
   const cache = unstable_cache(
     async () => {
-      const [usersResult, tagsResult, ordersResult] = await Promise.all([
+      const [usersResult, tagsResult, ordersResult, lostTagsResult] = await Promise.all([
         db.select({ count: count() }).from(user),
         db.select({ count: count() }).from(tags),
         db.select({ count: count() }).from(stickerOrders),
+        db.select({ count: count() }).from(tags).where(eq(tags.status, "lost")),
+      ]);
+
+      const { getRevenueStats, getMaterialStockAlerts } = await import("@/lib/admin-dashboard");
+      const [dailyRevenue, monthlyRevenue, materialAlerts] = await Promise.all([
+        getRevenueStats("daily"),
+        getRevenueStats("monthly"),
+        getMaterialStockAlerts(),
       ]);
 
       return {
         totalUsers: usersResult[0]?.count || 0,
         totalTags: tagsResult[0]?.count || 0,
         totalOrders: ordersResult[0]?.count || 0,
+        lostTags: lostTagsResult[0]?.count || 0,
+        revenue: {
+          daily: dailyRevenue,
+          monthly: monthlyRevenue,
+        },
+        materials: materialAlerts,
       };
     },
-    ["admin-dashboard-stats"],
+    ["admin-dashboard-stats-v2"],
     {
       revalidate: 300, // 5 minutes
       tags: ["admin-stats"],
