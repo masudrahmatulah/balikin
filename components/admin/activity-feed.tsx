@@ -1,14 +1,17 @@
 "use client";
 
+import { ActivityRow } from "./base/activity-row";
+import type { LucideIcon } from "lucide-react";
+
 interface Activity {
   id: string;
   event: string;
-  icon: string;
-  iconColor: string;
-  reference: string;
-  admin: string;
+  icon?: LucideIcon;
+  iconClassName?: string;
+  reference?: string;
+  admin?: string;
   timestamp: string;
-  status: "Success" | "Pending" | "Transit" | "Blocked" | "Failed";
+  status: "success" | "pending" | "transit" | "failed";
 }
 
 interface ActivityFeedProps {
@@ -19,104 +22,157 @@ const defaultActivities: Activity[] = [
   {
     id: "1",
     event: "Batch B-204 Generated",
-    icon: "inventory",
-    iconColor: "text-primary",
+    icon: "📦",
     reference: "#BTC-204-981",
     admin: "Admin S.",
     timestamp: "10:42:01 AM",
-    status: "Success",
+    status: "success",
   },
   {
     id: "2",
     event: "Suspicious User Flagged",
-    icon: "warning",
-    iconColor: "text-tertiary",
+    icon: "⚠️",
     reference: "USR-882-P",
     admin: "System (AI)",
     timestamp: "09:15:33 AM",
-    status: "Pending",
+    status: "pending",
   },
   {
     id: "3",
     event: "Shipment Dispatched",
-    icon: "local_shipping",
-    iconColor: "text-primary",
+    icon: "🚚",
     reference: "#ORD-9021-X",
     admin: "Warehouse A",
     timestamp: "08:02:11 AM",
-    status: "Transit",
+    status: "transit",
   },
   {
     id: "4",
     event: "VDP Error: Invalid Resi",
-    icon: "report",
-    iconColor: "text-tertiary",
+    icon: "❌",
     reference: "#TX-7711",
     admin: "Admin J.",
     timestamp: "07:44:59 AM",
-    status: "Blocked",
+    status: "failed",
+  },
+  {
+    id: "5",
+    event: "New Order #8842",
+    icon: "📋",
+    reference: "#ORD-8842",
+    admin: "Customer Service",
+    timestamp: "07:30:15 AM",
+    status: "success",
+  },
+  {
+    id: "6",
+    event: "Bundle Generation Started",
+    icon: "📦",
+    reference: "#BND-456",
+    admin: "System",
+    timestamp: "07:15:22 AM",
+    status: "pending",
   },
 ];
 
 export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
-  const getStatusStyle = (status: Activity["status"]) => {
-    switch (status) {
-      case "Success":
-        return "text-primary border-primary";
-      case "Pending":
-      case "Transit":
-        return "text-secondary border-secondary";
-      case "Blocked":
-      case "Failed":
-        return "text-tertiary border-tertiary";
-      default:
-        return "text-secondary border-secondary";
-    }
+  const getStatusLabel = (status: Activity["status"]) => {
+    const labels = {
+      success: "Success",
+      pending: "Pending",
+      transit: "Transit",
+      failed: "Failed",
+    };
+    return labels[status];
   };
 
   return (
-    <div className="col-span-12 lg:col-span-8 bg-surface rounded-lg border border-secondary/10 flex flex-col overflow-hidden shadow-sm">
-      <div className="p-8 border-b border-secondary/10 flex justify-between items-end">
-        <div>
-          <h3 className="font-display text-2xl font-bold text-primary">System Activity</h3>
-          <p className="font-body text-xs text-secondary mt-1">Audit logs and real-time event monitoring.</p>
-        </div>
-        <button className="text-tertiary font-label text-[10px] font-bold uppercase tracking-widest hover:underline">
-          Full Audit Log
-        </button>
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">System Activity</h3>
+        <p className="text-sm text-gray-500 mt-1">Recent system events and activities</p>
       </div>
-      <div className="p-0 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full">
           <thead>
-            <tr className="bg-neutral">
-              <th className="px-8 py-4 font-label text-[9px] text-secondary uppercase tracking-[0.2em] font-bold">Event</th>
-              <th className="px-8 py-4 font-label text-[9px] text-secondary uppercase tracking-[0.2em] font-bold">Reference</th>
-              <th className="px-8 py-4 font-label text-[9px] text-secondary uppercase tracking-[0.2em] font-bold">Admin</th>
-              <th className="px-8 py-4 font-label text-[9px] text-secondary uppercase tracking-[0.2em] font-bold text-right">Status</th>
+            <tr className="bg-gray-50">
+              <th className="px-6 py-3 text-left">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Event</span>
+              </th>
+              <th className="px-6 py-3 text-left">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference</span>
+              </th>
+              <th className="px-6 py-3 text-left">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin</span>
+              </th>
+              <th className="px-6 py-3 text-right">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</span>
+              </th>
+              <th className="px-6 py-3 text-right">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</span>
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-secondary/5">
+          <tbody className="divide-y divide-gray-100">
             {activities.map((activity) => (
-              <tr key={activity.id} className="hover:bg-neutral/30 transition-colors group">
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <span className={`material-symbols-outlined ${activity.iconColor} !text-[18px] opacity-70 group-hover:opacity-100 transition-opacity`} data-icon={activity.icon}>
-                      {activity.icon}
-                    </span>
-                    <span className="font-body text-sm font-medium text-primary">{activity.event}</span>
-                  </div>
-                </td>
-                <td className="px-8 py-5 font-data-mono text-[12px] text-secondary">{activity.reference}</td>
-                <td className="px-8 py-5 font-body text-xs text-secondary">{activity.admin}</td>
-                <td className="px-8 py-5 text-right">
-                  <span className={`px-2 py-0.5 border text-[9px] font-bold uppercase tracking-widest rounded-sm ${getStatusStyle(activity.status)}`}>
-                    {activity.status}
-                  </span>
-                </td>
-              </tr>
+              <ActivityRow
+                key={activity.id}
+                icon={activity.icon as any}
+                iconClassName={activity.iconClassName}
+                event={activity.event}
+                reference={activity.reference}
+                admin={activity.admin}
+                timestamp={activity.timestamp}
+                status={activity.status}
+              />
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <span className="text-sm text-gray-600">Showing {activities.length} of 128 events</span>
+        <div className="flex gap-2">
+          <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
+            Previous
+          </button>
+          <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Loading state
+export function ActivityFeedSkeleton() {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-48 bg-gray-100 rounded mt-1 animate-pulse" />
+      </div>
+      <div className="p-0">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="flex gap-4 ml-9">
+              <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-6 py-4 border-t border-gray-200">
+        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
       </div>
     </div>
   );

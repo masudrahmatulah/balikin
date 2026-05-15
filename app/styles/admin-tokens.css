@@ -1,0 +1,159 @@
+/**
+ * Balikin Admin Dashboard Design Tokens
+ * Centralized styling tokens for consistent admin UI
+ */
+
+:root {
+  /* ============================================
+     ADMIN COLOR PALETTE
+     ============================================ */
+
+  /* Primary Colors */
+  --admin-primary: #2563eb;
+  --admin-primary-hover: #1d4ed8;
+  --admin-primary-light: #eff6ff;
+
+  /* Success Colors */
+  --admin-success: #16a34a;
+  --admin-success-light: #dcfce7;
+
+  /* Warning Colors */
+  --admin-warning: #d97706;
+  --admin-warning-light: #fef3c7;
+
+  /* Error Colors */
+  --admin-error: #dc2626;
+  --admin-error-light: #fee2e2;
+
+  /* Neutral Colors */
+  --admin-gray-50: #f9fafb;
+  --admin-gray-100: #f3f4f6;
+  --admin-gray-200: #e5e7eb;
+  --admin-gray-300: #d1d5db;
+  --admin-gray-400: #9ca3af;
+  --admin-gray-500: #6b7280;
+  --admin-gray-600: #4b5563;
+  --admin-gray-700: #374151;
+  --admin-gray-800: #1f2937;
+  --admin-gray-900: #111827;
+
+  /* ============================================
+     TYPOGRAPHY SCALE
+     ============================================ */
+
+  /* Font Sizes */
+  --admin-text-xs: 0.75rem;    /* 12px */
+  --admin-text-sm: 0.875rem;   /* 14px */
+  --admin-text-base: 1rem;     /* 16px */
+  --admin-text-lg: 1.125rem;   /* 18px */
+  --admin-text-xl: 1.25rem;    /* 20px */
+  --admin-text-2xl: 1.5rem;    /* 24px */
+  --admin-text-3xl: 1.875rem;  /* 30px */
+  --admin-text-4xl: 2.25rem;   /* 36px */
+
+  /* Font Weights */
+  --admin-font-normal: 400;
+  --admin-font-medium: 500;
+  --admin-font-semibold: 600;
+  --admin-font-bold: 700;
+
+  /* ============================================
+     SPACING SYSTEM
+     ============================================ */
+
+  --admin-space-1: 0.25rem;   /* 4px */
+  --admin-space-2: 0.5rem;    /* 8px */
+  --admin-space-3: 0.75rem;   /* 12px */
+  --admin-space-4: 1rem;      /* 16px */
+  --admin-space-5: 1.25rem;   /* 20px */
+  --admin-space-6: 1.5rem;    /* 24px */
+  --admin-space-8: 2rem;      /* 32px */
+  --admin-space-10: 2.5rem;   /* 40px */
+  --admin-space-12: 3rem;     /* 48px */
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+
+  --admin-radius-sm: 0.25rem;   /* 4px */
+  --admin-radius-md: 0.5rem;    /* 8px */
+  --admin-radius-lg: 0.75rem;   /* 12px */
+  --admin-radius-xl: 1rem;      /* 16px */
+  --admin-radius-2xl: 1.5rem;   /* 24px */
+  --admin-radius-full: 9999px;
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+
+  --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --admin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --admin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Colored Shadows */
+  --admin-shadow-blue: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+  --admin-shadow-green: 0 20px 25px -5px rgba(22, 163, 74, 0.3);
+  --admin-shadow-amber: 0 20px 25px -5px rgba(217, 119, 6, 0.3);
+  --admin-shadow-red: 0 20px 25px -5px rgba(220, 38, 38, 0.3);
+
+  /* ============================================
+     ANIMATION DURATION
+     ============================================ */
+
+  --admin-duration-fast: 150ms;
+  --admin-duration-base: 300ms;
+  --admin-duration-slow: 600ms;
+}
+
+/* ============================================
+   ADMIN UTILITY CLASSES
+   ============================================ */
+
+.admin-card {
+  border: 1px solid var(--admin-gray-200);
+  background: white;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.admin-card-hover:hover {
+  box-shadow: var(--admin-shadow-md);
+  transition: box-shadow var(--admin-duration-base);
+}
+
+.admin-card-highlighted {
+  border: 2px solid var(--admin-warning);
+  background: var(--admin-warning-light);
+}
+
+.admin-border-error {
+  border: 2px solid var(--admin-error);
+}
+
+.admin-border-success {
+  border: 2px solid var(--admin-success);
+}
+
+.admin-text-error {
+  color: var(--admin-error);
+}
+
+.admin-text-success {
+  color: var(--admin-success);
+}
+
+.admin-text-warning {
+  color: var(--admin-warning);
+}
+
+.admin-bg-error {
+  background-color: var(--admin-error-light);
+}
+
+.admin-bg-success {
+  background-color: var(--admin-success-light);
+}
+
+.admin-bg-warning {
+  background-color: var(--admin-warning-light);
+}
