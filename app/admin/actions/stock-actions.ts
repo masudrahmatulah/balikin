@@ -176,3 +176,75 @@ export async function getRecentUsersServer(limit = 10) {
 
   return await cache(limit);
 }
+
+/**
+ * Get detailed stock information for the production dashboard
+ * Server Action - can safely import database
+ * Cached for 5 minutes - detailed stock data
+ */
+export async function getDetailedStockServer(
+  filterByTier: string | undefined,
+  filterByStatus: string | undefined,
+  sortBy: string = 'createdAt',
+  sortOrder: 'asc' | 'desc' = 'desc',
+  pageSize: number = 25,
+  currentPage: number = 1
+) {
+  const cache = unstable_cache(
+    async (filterByTier, filterByStatus, sortBy, sortOrder, pageSize, currentPage) => {
+      // Base query
+      const query = db.select({
+        id: tags.id,
+        slug: tags.slug,
+        tier: tags.tier,
+        status: tags.status,
+        name: tags.name,
+        ownerEmail: tags.contactWhatsapp,
+        createdAt: tags.createdAt,
+      }).from(tags);
+
+      // Apply filters
+      if (filterByTier) {
+        query.where(eq(tags.tier, filterByTier));
+      }
+      if (filterByStatus) {
+        query.where(eq(tags.status, filterByStatus));
+      }
+
+      // Apply sorting
+      query.orderBy([sortBy, 'createdAt'], [sortOrder, 'desc']);
+
+      // Apply pagination
+      const offset = (currentPage - 1) * pageSize;
+      query.limit(pageSize).offset(offset);
+
+      const result = await query;
+
+      // Get total count for pagination
+      const totalCount = await db.select({ count: count() }).from(tags);
+      const total = parseInt(totalCount[0]?.count || '0', 10);
+
+      return {
+        items: result,
+        total,
+        pageSize,
+        currentPage,
+      };
+    },
+    [
+      "admin-detailed-stock",
+      filterByTier,
+      filterByStatus,
+      sortBy,
+      sortOrder,
+      pageSize,
+      currentPage,
+    ],
+    {
+      revalidate: 300, // 5 minutes
+      tags: ["admin-stats"],
+    }
+  );
+
+  return await cache(filterByTier, filterByStatus, sortBy, sortOrder, pageSize, currentPage);
+}

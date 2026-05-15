@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { GlobalSearch } from "./global-search";
-import { WITAClock, ProductionDeadlineIndicator } from "./wita-clock";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "./global-search";
+import { WITAClock } from "./wita-clock";
+import { Bell, LogOut, User } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -30,7 +31,12 @@ interface AdminHeaderProps {
   showMobileMenu?: boolean;
 }
 
-export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCount = 0, showMobileMenu = false }: AdminHeaderProps) {
+export function AdminHeader({
+  session,
+  pendingOrdersCount = 0,
+  pendingRequestsCount = 0,
+  showMobileMenu = false,
+}: AdminHeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -48,92 +54,118 @@ export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCo
     }
   };
 
+  const divisionBadge = {
+    admin: "Super Admin",
+    production: "Production",
+    "customer_service": "Customer Service",
+    marketing: "Marketing",
+  }[session.user.division || "admin"] || "Admin";
+
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-[280px] h-20 bg-surface/80 backdrop-blur-md border-b border-secondary/10 flex justify-between items-center px-8 z-40">
+    <header className="fixed top-0 right-0 left-0 h-16 bg-white border-b border-gray-200 flex justify-between items-center px-6 z-40">
       {/* Left Section: Search & Nav */}
-      <div className="flex items-center gap-8 flex-1">
+      <div className="flex items-center gap-4 flex-1">
         {/* Mobile Menu Toggle */}
         {showMobileMenu && (
           <button
             onClick={() => {
               window.dispatchEvent(new CustomEvent("toggle-sidebar"));
             }}
-            className="lg:hidden p-2 rounded-sm hover:bg-neutral transition-colors"
+            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <span className="material-symbols-outlined text-primary !text-[24px]">
-              menu
-            </span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
         )}
 
         {/* Global Search */}
-        <div className="relative w-full max-w-md hidden md:block">
-          <GlobalSearch className="relative w-full" />
+        <div className="hidden md:block flex-1 max-w-md">
+          <GlobalSearch className="w-full" />
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden xl:flex items-center gap-8">
+        <nav className="hidden xl:flex items-center gap-1">
           <Link
             href="/admin"
-            className="text-primary font-label text-[10px] uppercase tracking-[0.15em] font-bold border-b-2 border-tertiary pb-1 transition-all"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-blue-600 bg-blue-50"
+            )}
           >
             Dashboard
           </Link>
           <Link
             href="/admin/sticker-orders"
-            className="text-secondary hover:text-primary font-label text-[10px] uppercase tracking-[0.15em] transition-all flex items-center gap-2"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-gray-700 hover:bg-gray-100"
+            )}
           >
             Orders
             {pendingOrdersCount > 0 && (
-              <span className="px-1.5 py-0.5 bg-tertiary text-surface text-[10px] font-bold rounded-sm">
+              <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
                 {pendingOrdersCount}
               </span>
             )}
           </Link>
           <Link
             href="/admin/analytics"
-            className="text-secondary hover:text-primary font-label text-[10px] uppercase tracking-[0.15em] transition-all"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-gray-700 hover:bg-gray-100"
+            )}
           >
             Analytics
           </Link>
         </nav>
       </div>
 
-      {/* Right Section: Notifications, WITA Clock, Actions, Profile */}
-      <div className="flex items-center gap-6">
-        {/* WITA Clock & Deadline Indicator */}
-        <div className="hidden lg:flex items-center gap-4">
-          <ProductionDeadlineIndicator />
-          <div className="h-4 w-[1px] bg-secondary/20"></div>
+      {/* Right Section: Notifications, Actions, Profile */}
+      <div className="flex items-center gap-3">
+        {/* WITA Clock */}
+        <div className="hidden lg:flex items-center gap-3 mr-2">
           <WITAClock />
         </div>
 
         {/* Notifications */}
-        <button className="p-2 text-secondary hover:text-primary transition-colors relative">
-          <span className="material-symbols-outlined !text-[20px]" data-icon="notifications">
-            notifications
-          </span>
+        <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+          <Bell size={20} />
           {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-tertiary rounded-full ring-2 ring-surface"></span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
           )}
         </button>
 
+        {/* Divider */}
+        <div className="hidden sm:block w-[1px] h-6 bg-gray-200" />
+
         {/* User Profile */}
-        <div className="flex items-center gap-4 pl-4 border-l border-secondary/10 group cursor-pointer" onClick={handleSignOut}>
-          <div className="text-right hidden sm:block">
-            <p className="font-display text-sm font-bold leading-none text-primary">{session.user.name || 'Admin User'}</p>
-            <p className="font-label text-[9px] text-secondary uppercase tracking-widest mt-1">
-              {session.user.role || 'Super Admin'}
-            </p>
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+              {session.user.name?.[0] || session.user.email[0].toUpperCase()}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-gray-900">
+                {session.user.name || "Admin User"}
+              </p>
+              <p className="text-xs text-gray-500">{divisionBadge}</p>
+            </div>
           </div>
-          <div className="w-10 h-10 bg-neutral border border-secondary/10 rounded-sm flex items-center justify-center group-hover:border-tertiary/50 transition-all overflow-hidden">
-            {session.user.image ? (
-              <img src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xs font-bold text-primary">
-                {session.user.name?.[0] || session.user.email[0].toUpperCase()}
-              </span>
-            )}
+
+          <button
+            onClick={handleSignOut}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Sign out"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+
+        {/* Mobile Profile Button */}
+        <div className="sm:hidden flex items-center gap-2">
+          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+            {session.user.name?.[0] || session.user.email[0].toUpperCase()}
           </div>
         </div>
       </div>

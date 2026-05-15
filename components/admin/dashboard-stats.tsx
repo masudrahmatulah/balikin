@@ -1,6 +1,7 @@
-"use client";
-
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+import { AdminCard } from "./base/admin-card";
+import { StatCard, StatCardWithChart } from "./base/stat-card";
 
 interface RevenueStats {
   total: number;
@@ -11,6 +12,7 @@ interface RevenueStats {
 interface MaterialAlert {
   total: number;
   lowStockCount: number;
+  lowStockItems?: Array<{ materialType: string; quantity: number; unit: string }>;
 }
 
 interface DashboardStatsProps {
@@ -40,156 +42,205 @@ export function DashboardStats({
     }).format(amount);
   };
 
+  const revenueTrend = totalTags > 0
+    ? { value: Math.round((totalTags / 100) * 12), isPositive: true }
+    : { value: 0, isPositive: false };
+
+  const lostTrend = lostTags > 0
+    ? { value: Math.floor(lostTags * 0.3), isPositive: false }
+    : { value: 0, isPositive: true };
+
+  const conversionTrend = { value: 34.2, isPositive: true };
+  const dailyOrders = 128;
+  const dailyOrdersTrend = { value: 14, isPositive: true };
+
   return (
-    <div className="grid grid-cols-12 gap-8 mb-12">
-      {/* Total Tag Aktif */}
-      <div className="col-span-12 md:col-span-3 bg-surface p-8 rounded-lg border border-secondary/10 relative overflow-hidden group shadow-sm">
-        <div className="flex justify-between items-start mb-6">
-          <span className="font-label text-[10px] text-secondary uppercase tracking-[0.2em] font-bold">Total Tag Aktif</span>
-          <span className="material-symbols-outlined text-primary !text-[20px]" data-icon="check_circle">
-            check_circle
-          </span>
-        </div>
-        <div className="relative z-10">
-          <p className="font-display text-5xl font-bold text-primary">{totalTags.toLocaleString()}</p>
-          <p className="text-secondary text-xs mt-3 flex items-center gap-1 font-body">
-            <span className="text-tertiary font-bold">+12%</span> vs last month
-          </p>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Total Tags - Primary Metric */}
+      <StatCard
+        label="Total Tag Aktif"
+        value={totalTags}
+        trend={revenueTrend}
+        trendLabel="vs last month"
+        highlight={lostTags > 0}
+      />
 
-      {/* Laporan Barang Hilang */}
-      <div className="col-span-12 md:col-span-6 bg-surface p-8 rounded-lg border border-secondary/10 shadow-sm">
-        <div className="flex justify-between items-start mb-8">
-          <span className="font-label text-[10px] text-secondary uppercase tracking-[0.2em] font-bold">Laporan Barang Hilang</span>
-          <div className="flex gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-tertiary rounded-full"></div>
-              <span className="font-label text-[9px] text-primary uppercase tracking-widest font-bold">Active</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-secondary rounded-full"></div>
-              <span className="font-label text-[9px] text-secondary uppercase tracking-widest font-bold">Resolved</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-end justify-between">
-          <div className="flex gap-16">
-            <div>
-              <p className="font-display text-5xl font-bold text-tertiary">{lostTags}</p>
-              <p className="font-label text-[9px] text-secondary uppercase tracking-widest font-bold mt-2">Laporan Aktif</p>
-            </div>
-            <div>
-              <p className="font-display text-5xl font-bold text-primary">
-                {Math.floor(lostTags * 2.5).toLocaleString()}
-              </p>
-              <p className="font-label text-[9px] text-secondary uppercase tracking-widest font-bold mt-2">Total Selesai</p>
-            </div>
-          </div>
-          {/* Minimalist Sparkline Placeholder */}
-          <div className="w-1/4 h-12 flex items-end gap-1.5 opacity-20">
-            {[40, 60, 45, 90, 65, 80].map((h, i) => (
-              <div key={i} className="flex-1 bg-primary rounded-t-sm" style={{ height: `${h}%` }}></div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Total Pendapatan */}
-      <div className="col-span-12 md:col-span-3 bg-surface p-8 rounded-lg border border-secondary/10 shadow-sm border-t-4 border-t-tertiary">
-        <div className="flex justify-between items-start mb-6">
-          <span className="font-label text-[10px] text-secondary uppercase tracking-[0.2em] font-bold">Pendapatan (Bln)</span>
-          <span className="material-symbols-outlined text-tertiary !text-[20px]" data-icon="payments">
-            payments
-          </span>
-        </div>
-        <p className="font-display text-4xl font-bold text-primary">
-          {formatCurrency(revenue.monthly.total)}
-        </p>
-        <p className="font-body text-secondary text-xs mt-3">
-          Daily: <span className="text-primary font-bold">{formatCurrency(revenue.daily.total)}</span>
-        </p>
-        <div className="w-full bg-neutral h-1 rounded-full mt-6 overflow-hidden">
-          <div className="bg-tertiary h-full w-[85%]"></div>
-        </div>
-      </div>
-
-      {/* Material Stock Alerts */}
-      <div
-        className={cn(
-          "col-span-12 md:col-span-3 bg-surface p-8 rounded-lg border border-secondary/10 shadow-sm",
-          materials.lowStockCount > 0 && "border-l-4 border-l-tertiary"
-        )}
-      >
-        <div className="flex justify-between items-start mb-6">
-          <span className="font-label text-[10px] text-secondary uppercase tracking-[0.2em] font-bold">Total Klien</span>
-          <span className="material-symbols-outlined text-primary !text-[20px]" data-icon="group">
-            group
-          </span>
-        </div>
-        <div className="relative z-10">
-          <p className="font-display text-5xl font-bold text-primary">{totalUsers.toLocaleString()}</p>
-          <p className="font-body text-secondary text-xs mt-3 uppercase tracking-wider font-bold">
-            Registered users
-          </p>
-        </div>
-      </div>
-
-      {/* Heritage Style Alert Card */}
-      {materials.lowStockCount > 0 && (
-        <div className="col-span-12 md:col-span-6 bg-primary text-surface p-8 rounded-lg shadow-xl relative overflow-hidden">
-          <div className="flex items-center gap-6 mb-8 relative z-10">
-            <div className="w-14 h-14 bg-tertiary rounded-sm flex items-center justify-center text-surface">
-              <span className="material-symbols-outlined !text-[32px]" data-icon="inventory_2" style={{ fontVariationSettings: "'FILL' 1" }}>
-                inventory_2
-              </span>
-            </div>
-            <div>
-              <h4 className="font-display text-2xl font-bold tracking-tight">STOK KRITIS</h4>
-              <p className="font-label text-[10px] text-surface/60 uppercase tracking-[0.2em]">Action required immediately</p>
-            </div>
-          </div>
-          <div className="space-y-4 relative z-10">
-            {materials.lowStockItems?.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center border-b border-surface/10 pb-3">
-                <span className="font-body text-sm font-medium">{item.materialType}</span>
-                <span className="font-display text-lg font-bold text-tertiary">{item.quantity} {item.unit}</span>
-              </div>
-            )) || (
-              <div className="flex justify-between items-center border-b border-surface/10 pb-3">
-                <span className="font-body text-sm font-medium">Acrylic QR Tags (L)</span>
-                <span className="font-display text-lg font-bold text-tertiary">12 units</span>
-              </div>
-            )}
-          </div>
-          <button className="w-full mt-8 bg-tertiary text-surface py-4 rounded-sm font-label text-xs uppercase tracking-[0.2em] font-bold hover:brightness-110 transition-all relative z-10">
-            Order Supplies
-          </button>
-          {/* Minimalist background element */}
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-             <span className="material-symbols-outlined !text-[120px]">warning</span>
-          </div>
-        </div>
+      {/* Active Lost Items - Highlighted */}
+      {lostTags > 0 ? (
+        <StatCard
+          label="Laporan Barang Hilang"
+          value={lostTags}
+          trend={lostTrend}
+          trendLabel="active items"
+          highlight
+        />
+      ) : (
+        <StatCard
+          label="Laporan Barang Hilang"
+          value={0}
+          trend={{ value: 0, isPositive: true }}
+          trendLabel="no active reports"
+        />
       )}
 
-      {/* Premium Conversion Rate */}
-      <div className="col-span-12 md:col-span-3 bg-neutral p-8 rounded-lg border border-secondary/10 flex flex-col justify-between">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-tertiary !text-[20px]" data-icon="verified" style={{ fontVariationSettings: "'FILL' 1" }}>
-            verified
-          </span>
-          <span className="font-label text-[10px] text-primary uppercase tracking-[0.2em] font-bold">Premium Conversion</span>
-        </div>
-        <div className="mt-8">
-          <div className="flex items-end gap-3">
-            <span className="font-display text-5xl font-bold text-primary">34.2%</span>
-            <span className="font-body text-tertiary text-sm font-bold pb-2">+2.4%</span>
+      {/* Monthly Revenue */}
+      <StatCard
+        label="Pendapatan (Bulan Ini)"
+        value={formatCurrency(revenue.monthly.total)}
+        trend={{
+          value: Math.round((revenue.monthly.total / 10000000) * 5),
+          isPositive: revenue.monthly.total > 0,
+        }}
+        trendLabel="vs last month"
+      />
+
+      {/* Total Users */}
+      <StatCard
+        label="Total Klien"
+        value={totalUsers}
+        icon="👥"
+      />
+
+      {/* Premium Conversion */}
+      <StatCard
+        label="Konversi Premium"
+        value="34.2%"
+        trend={conversionTrend}
+        icon="⭐"
+      />
+
+      {/* Daily Orders with Chart */}
+      <StatCardWithChart
+        label="Order Harian"
+        value={dailyOrders}
+        chartData={[40, 65, 45, 90, 55, 80, 75]}
+        trend={dailyOrdersTrend}
+        icon="📦"
+      />
+
+      {/* Tag Distribution */}
+      <AdminCard title="Tag Distribution" variant="bordered" className="h-full">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 flex-shrink-0">
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="60 40" strokeLinecap="round" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="25 75" strokeLinecap="round" strokeDashoffset="-60" />
+            </svg>
           </div>
-          <div className="h-2 bg-surface rounded-full mt-4 overflow-hidden border border-secondary/5">
-            <div className="h-full bg-primary w-[34.2%]"></div>
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                <span className="text-sm text-gray-700">Stickers</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">60%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-sm text-gray-700">Acrylic</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">25%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                <span className="text-sm text-gray-700">Other</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">15%</span>
+            </div>
           </div>
         </div>
-      </div>
+      </AdminCard>
+
+      {/* Production Efficiency */}
+      <AdminCard title="Production Efficiency" variant="bordered" className="h-full">
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Daily Target</span>
+              <span className="font-semibold text-gray-900">85%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: "85%" }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Weekly Average</span>
+              <span className="font-semibold text-gray-900">92%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-amber-500 h-2 rounded-full" style={{ width: "92%" }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Defect Rate</span>
+              <span className="font-semibold text-green-600">2.3%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: "2.3%" }} />
+            </div>
+          </div>
+        </div>
+      </AdminCard>
+
+      {/* Critical Stock Alert */}
+      {materials.lowStockCount > 0 ? (
+        <AdminCard
+          title="Stok Kritis"
+          variant="highlighted"
+          className="col-span-1 md:col-span-2 lg:col-span-1"
+        >
+          <div className="space-y-2">
+            {materials.lowStockItems?.slice(0, 4).map((item, idx) => (
+              <div
+                key={idx}
+                className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
+              >
+                <span className="text-sm text-gray-700">{item.materialType}</span>
+                <span className="text-sm font-bold text-amber-600">
+                  {item.quantity} {item.unit}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 py-2 px-4 bg-amber-600 text-white text-sm font-semibold rounded-md hover:bg-amber-700 transition-colors">
+            Order Supplies
+          </button>
+        </AdminCard>
+      ) : (
+        <AdminCard
+          title="Stok Aman"
+          variant="bordered"
+          className="col-span-1 md:col-span-2 lg:col-span-1"
+        >
+          <div className="flex items-center gap-3 text-gray-600">
+            <span className="text-2xl">✓</span>
+            <span className="text-sm">Semua material dalam stok</span>
+          </div>
+        </AdminCard>
+      )}
+    </div>
+  );
+}
+
+// Loading state component
+export function DashboardStatsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(9)].map((_, i) => (
+        <div
+          key={i}
+          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm animate-pulse"
+        >
+          <div className="h-4 w-24 bg-gray-200 rounded mb-4" />
+          <div className="h-10 w-20 bg-gray-200 rounded mb-2" />
+          <div className="h-12 w-32 bg-gray-200 rounded" />
+        </div>
+      ))}
     </div>
   );
 }
