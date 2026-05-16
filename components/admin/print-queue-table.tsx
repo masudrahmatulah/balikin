@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -118,9 +118,9 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
   const readyCount = items.filter((i) => i.status === "ready_for_stock").length;
 
   // Update current items when props change
-  useState(() => {
+  useEffect(() => {
     setCurrentItems(items);
-  });
+  }, [items]);
 
   // Filter items based on status and search query
   const filteredItems = currentItems.filter((item) => {
@@ -216,9 +216,20 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
         </div>
 
         {/* Download All Button */}
-        <Button variant="outline" className="gap-2">
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={() => {
+            filteredItems.forEach((item, index) => {
+              setTimeout(() => {
+                window.open(`/admin/api/print-queue/${item.id}/download`, "_blank");
+              }, index * 300);
+            });
+          }}
+          disabled={filteredItems.length === 0}
+        >
           <Download className="w-4 h-4" />
-          Download Assets
+          Download Assets ({filteredItems.length})
         </Button>
       </div>
 
@@ -297,7 +308,7 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`/api/admin/print-queue/${item.id}/download`, "_blank")}
+                          onClick={() => window.open(`/admin/api/print-queue/${item.id}/download`, "_blank")}
                           className="gap-1"
                         >
                           <Download className="w-3 h-3" />
