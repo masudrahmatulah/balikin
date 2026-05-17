@@ -14,7 +14,14 @@ import { Download, Search } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const session = await getAdminSession();
+  let session;
+  try {
+    session = await getAdminSession();
+  } catch (error) {
+    console.error('[ADMIN PAGE] Session check failed:', error);
+    redirect("/sign-in?redirect=/admin");
+  }
+
   if (!session) {
     redirect("/sign-in?redirect=/admin");
   }

@@ -29,16 +29,28 @@ interface DashboardPageProps {
 }
 
 async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
-  const session = await getSession();
+  let session;
+  try {
+    session = await getSession();
+  } catch (error) {
+    console.error('[DASHBOARD] Session check failed:', error);
+    redirect('/sign-in');
+  }
 
   if (!session?.user?.id) {
     redirect('/sign-in');
   }
 
-  const userTags = await db.query.tags.findMany({
-    where: eq(tags.ownerId, session.user.id),
-    orderBy: (tags, { desc }) => [desc(tags.createdAt)],
-  });
+  let userTags;
+  try {
+    userTags = await db.query.tags.findMany({
+      where: eq(tags.ownerId, session.user.id),
+      orderBy: (tags, { desc }) => [desc(tags.createdAt)],
+    });
+  } catch (error) {
+    console.error('[DASHBOARD] Failed to fetch tags:', error);
+    userTags = []; // Return empty array on error
+  }
 
   // Get scan count for each tag and check if has Student Kit module
   const tagsWithScanCount = await Promise.all(

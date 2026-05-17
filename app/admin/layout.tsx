@@ -2,10 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
 import { Sidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
-import { getPendingOrdersCount, getPendingRequestsCount } from "@/lib/admin-stats";
 import { AdminErrorBoundary } from "@/components/admin/error-boundary";
-
-export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
@@ -18,28 +15,6 @@ export default async function AdminLayout({
     redirect("/sign-in?redirect=/admin");
   }
 
-  // Try to get pending counts, but use defaults if still slow
-  let pendingRequestsCount = 0;
-  let totalPendingOrders = 0;
-
-  try {
-    // These should be faster now with indexes, but use defaults if timeout
-    const results = await Promise.allSettled([
-      getPendingRequestsCount(),
-      getPendingOrdersCount(),
-    ]);
-
-    if (results[0].status === 'fulfilled') {
-      pendingRequestsCount = results[0].value;
-    }
-    if (results[1].status === 'fulfilled') {
-      totalPendingOrders = results[1].value;
-    }
-  } catch (error) {
-    // Use defaults if queries still fail
-    console.log('Pending counts queries still slow, using defaults');
-  }
-
   // Get user division from session
   const userDivision = session.user.division;
 
@@ -49,8 +24,6 @@ export default async function AdminLayout({
       <div className="lg:ml-sidebar-width">
         <AdminHeader
           session={session}
-          pendingOrdersCount={totalPendingOrders}
-          pendingRequestsCount={pendingRequestsCount}
           showMobileMenu={true}
         />
         <main className="pt-24 px-8 pb-12 max-w-[1600px] mx-auto">
