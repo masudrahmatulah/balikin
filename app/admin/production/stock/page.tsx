@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
 import { StockStatusIndicator } from "@/components/admin/stock-status-indicator";
+import { StockListTable } from "@/components/admin/stock-list-table";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,9 @@ export default async function ProductionStockPage() {
 
       {/* Stock Status Indicator */}
       <StockStatusIndicator autoRefresh={true} />
+
+      {/* Stock List Table */}
+      <StockListTable />
 
       {/* Additional Information */}
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">

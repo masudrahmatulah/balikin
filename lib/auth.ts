@@ -131,23 +131,22 @@ export const auth = betterAuth({
   },
   advanced: {
     crossSubDomainCookies: {
-      enabled: true,
+      enabled: false, // Disable for now to debug cookie issues
     },
-    // Configure cookie settings for devtunnel compatibility
+    // Configure cookie settings
     cookiePrefix: 'better-auth',
-    useSecureCookies: process.env.NODE_ENV === 'production',
+    useSecureCookies: false, // Use insecure cookies for localhost testing
     // Configure SameSite for better cross-origin handling
     sameSite: 'lax',
-    // Add explicit cookie attributes for production
+    // Add explicit cookie attributes - simplified for debugging
     cookieAttributes: {
-      domain: process.env.NODE_ENV === 'production' ? '.balikin.online' : undefined,
       path: '/',
     },
   },
   // Enable Better Auth logger for debugging
   logger: {
     enabled: true,
-    level: process.env.NODE_ENV === 'production' ? "error" : "debug", // Error-only in production, debug in development
+    level: "debug", // Always debug for now to diagnose authentication issues
   },
   // Database hooks for handling user creation
   databaseHooks: {

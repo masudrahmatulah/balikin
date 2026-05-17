@@ -3,30 +3,40 @@
 import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { user, tags, stickerOrders } from "@/db/schema";
-import { count, eq, desc, sql } from "drizzle-orm";
+import { count, eq, desc, sql, asc, or, like, and, isNull, isNotNull } from "drizzle-orm";
+import { getTagsApproximateCount, withQueryTimeout } from "@/lib/postgres-utils";
 
 /**
  * Get stock statistics with caching
  * Server Action - can safely import database
- * Cached for 2 minutes - production critical data
+ * Cached for 10 minutes - uses approximate counts for large tables
  */
 export async function getStockStatsServer() {
   const cache = unstable_cache(
     async () => {
-      const [totalProduced, totalClaimed] = await Promise.all([
-        db.select({ count: count() }).from(tags),
-        db.select({ count: count() }).from(tags).where(sql`${tags.ownerId} IS NOT NULL`),
-      ]);
+      // Use approximate count for total produced - instant, no table scan
+      const totalProduced = await getTagsApproximateCount();
 
-      // Get tier-specific stats
+      // Use approximate count with timeout for claimed tags
+      const claimedResult = await withQueryTimeout(
+        () => db.select({ count: count() }).from(tags).where(sql`${tags.ownerId} IS NOT NULL`),
+        { count: 0 },
+        2000
+      );
+
+      // Get tier-specific stats with timeout protection
       let stickerCount = { produced: 0, claimed: 0 };
       let acrylicCount = { produced: 0, claimed: 0 };
 
       try {
-        const stickerData = await db
-          .select({ count: count(), claimed: count(tags.ownerId) })
-          .from(tags)
-          .where(eq(tags.tier, "sticker"));
+        const stickerData = await withQueryTimeout(
+          () => db
+            .select({ count: count(), claimed: count(tags.ownerId) })
+            .from(tags)
+            .where(eq(tags.tier, "sticker")),
+          { count: 0, claimed: 0 },
+          2000
+        );
         stickerCount = {
           produced: stickerData[0]?.count || 0,
           claimed: stickerData[0]?.claimed || 0,
@@ -36,10 +46,14 @@ export async function getStockStatsServer() {
       }
 
       try {
-        const acrylicData = await db
-          .select({ count: count(), claimed: count(tags.ownerId) })
-          .from(tags)
-          .where(eq(tags.tier, "premium"));
+        const acrylicData = await withQueryTimeout(
+          () => db
+            .select({ count: count(), claimed: count(tags.ownerId) })
+            .from(tags)
+            .where(eq(tags.tier, "premium")),
+          { count: 0, claimed: 0 },
+          2000
+        );
         acrylicCount = {
           produced: acrylicData[0]?.count || 0,
           claimed: acrylicData[0]?.claimed || 0,
@@ -49,8 +63,8 @@ export async function getStockStatsServer() {
       }
 
       return {
-        totalProduced: totalProduced[0]?.count || 0,
-        totalClaimed: totalClaimed[0]?.count || 0,
+        totalProduced,
+        totalClaimed: claimedResult[0]?.count || 0,
         lowStockThreshold: 50,
         byType: {
           stickers: stickerCount,
@@ -59,9 +73,9 @@ export async function getStockStatsServer() {
         },
       };
     },
-    ["admin-stock-stats"],
+    ["admin-stock-stats-v2"],
     {
-      revalidate: 120, // 2 minutes
+      revalidate: 600, // 10 minutes
       tags: ["admin-stats", "stock-stats"],
     }
   );
@@ -72,17 +86,34 @@ export async function getStockStatsServer() {
 /**
  * Get dashboard statistics with caching
  * Server Action - can safely import database
- * Cached for 5 minutes to reduce database load
+ * Cached for 15 minutes to reduce database load - uses approximate counts for large tables
  */
 export async function getDashboardStatsServer() {
   const cache = unstable_cache(
     async () => {
-      const [usersResult, tagsResult, ordersResult, lostTagsResult] = await Promise.all([
-        db.select({ count: count() }).from(user),
-        db.select({ count: count() }).from(tags),
-        db.select({ count: count() }).from(stickerOrders),
-        db.select({ count: count() }).from(tags).where(eq(tags.status, "lost")),
+      // Use approximate count for tags (large table) - instant, no table scan
+      const tagsCount = await getTagsApproximateCount();
+
+      // Use exact counts with timeout protection for smaller tables
+      const [usersResult, ordersResult] = await Promise.all([
+        withQueryTimeout(
+          () => db.select({ count: count() }).from(user),
+          { count: 0 },
+          2000
+        ),
+        withQueryTimeout(
+          () => db.select({ count: count() }).from(stickerOrders),
+          { count: 0 },
+          2000
+        ),
       ]);
+
+      // For lost tags, also use timeout protection - this has a WHERE clause so it's slower
+      const lostTagsResult = await withQueryTimeout(
+        () => db.select({ count: count() }).from(tags).where(eq(tags.status, "lost")),
+        { count: 0 },
+        2000
+      );
 
       const { getRevenueStats, getMaterialStockAlerts } = await import("@/lib/admin-dashboard");
       const [dailyRevenue, monthlyRevenue, materialAlerts] = await Promise.all([
@@ -93,7 +124,7 @@ export async function getDashboardStatsServer() {
 
       return {
         totalUsers: usersResult[0]?.count || 0,
-        totalTags: tagsResult[0]?.count || 0,
+        totalTags: tagsCount,
         totalOrders: ordersResult[0]?.count || 0,
         lostTags: lostTagsResult[0]?.count || 0,
         revenue: {
@@ -103,9 +134,9 @@ export async function getDashboardStatsServer() {
         materials: materialAlerts,
       };
     },
-    ["admin-dashboard-stats-v2"],
+    ["admin-dashboard-stats-v3"],
     {
-      revalidate: 300, // 5 minutes
+      revalidate: 900, // 15 minutes - dashboard stats don't need to be real-time
       tags: ["admin-stats"],
     }
   );
@@ -116,17 +147,25 @@ export async function getDashboardStatsServer() {
 /**
  * Get pending counts with caching
  * Server Action - can safely import database
- * Cached for 1 minute - time-sensitive data
+ * Cached for 2 minutes - time-sensitive data with timeout protection
  */
 export async function getPendingCountsServer() {
   const cache = unstable_cache(
     async () => {
       const [pendingOrders, pendingRequests] = await Promise.all([
-        db
-          .select({ count: count() })
-          .from(stickerOrders)
-          .where(eq(stickerOrders.paymentStatus, "pending")),
-        db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.status, "pending_payment")),
+        withQueryTimeout(
+          () => db
+            .select({ count: count() })
+            .from(stickerOrders)
+            .where(eq(stickerOrders.paymentStatus, "pending")),
+          { count: 0 },
+          2000
+        ),
+        withQueryTimeout(
+          () => db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.status, "pending_payment")),
+          { count: 0 },
+          2000
+        ),
       ]);
 
       return {
@@ -134,9 +173,9 @@ export async function getPendingCountsServer() {
         pendingRequests: pendingRequests[0]?.count || 0,
       };
     },
-    ["admin-pending-counts"],
+    ["admin-pending-counts-v2"],
     {
-      revalidate: 60, // 1 minute
+      revalidate: 120, // 2 minutes
       tags: ["admin-stats"],
     }
   );
@@ -147,29 +186,33 @@ export async function getPendingCountsServer() {
 /**
  * Get recent users with caching
  * Server Action - can safely import database
- * Cached for 5 minutes
+ * Cached for 10 minutes with timeout protection
  */
 export async function getRecentUsersServer(limit = 10) {
   const cache = unstable_cache(
     async (limit = 10) => {
-      const users = await db.query.user.findMany({
-        orderBy: [desc(user.createdAt)],
-        limit,
-        columns: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          division: true,
-          createdAt: true,
-        },
-      });
+      const users = await withQueryTimeout(
+        () => db.query.user.findMany({
+          orderBy: [desc(user.createdAt)],
+          limit,
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            division: true,
+            createdAt: true,
+          },
+        }),
+        [],
+        2000
+      );
 
       return users;
     },
-    ["admin-recent-users"],
+    ["admin-recent-users-v2"],
     {
-      revalidate: 300, // 5 minutes
+      revalidate: 600, // 10 minutes
       tags: ["admin-users"],
     }
   );
@@ -180,71 +223,104 @@ export async function getRecentUsersServer(limit = 10) {
 /**
  * Get detailed stock information for the production dashboard
  * Server Action - can safely import database
- * Cached for 5 minutes - detailed stock data
+ * Cached for 10 minutes - detailed stock data with approximate total count
  */
 export async function getDetailedStockServer(
   filterByTier: string | undefined,
-  filterByStatus: string | undefined,
+  filterByClaimStatus: 'all' | 'claimed' | 'unclaimed' = 'all',
   sortBy: string = 'createdAt',
   sortOrder: 'asc' | 'desc' = 'desc',
   pageSize: number = 25,
-  currentPage: number = 1
+  currentPage: number = 1,
+  searchQuery: string = ''
 ) {
+  // Build cache key with all parameters
+  const cacheKey = [
+    "admin-detailed-stock-v3",
+    filterByTier,
+    filterByClaimStatus,
+    sortBy,
+    sortOrder,
+    pageSize,
+    currentPage,
+    searchQuery,
+  ];
+
   const cache = unstable_cache(
-    async (filterByTier, filterByStatus, sortBy, sortOrder, pageSize, currentPage) => {
-      // Base query
-      const query = db.select({
+    async (filterByTier, filterByClaimStatus, sortBy, sortOrder, pageSize, currentPage, searchQuery) => {
+      // Build where conditions
+      const conditions = [];
+
+      if (filterByTier) {
+        conditions.push(eq(tags.tier, filterByTier));
+      }
+
+      if (filterByClaimStatus === 'claimed') {
+        conditions.push(isNotNull(tags.ownerId));
+      } else if (filterByClaimStatus === 'unclaimed') {
+        conditions.push(isNull(tags.ownerId));
+      }
+
+      if (searchQuery) {
+        conditions.push(
+          or(
+            like(tags.slug, `%${searchQuery}%`),
+            like(tags.name, `%${searchQuery}%`),
+            like(tags.ownerId, `%${searchQuery}%`)
+          )
+        );
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Determine sort column
+      let sortColumn = tags.createdAt;
+      if (sortBy === 'claimedAt') {
+        sortColumn = tags.claimedAt;
+      }
+
+      // Build query
+      const items = await db.select({
         id: tags.id,
         slug: tags.slug,
         tier: tags.tier,
         status: tags.status,
         name: tags.name,
-        ownerEmail: tags.contactWhatsapp,
+        ownerId: tags.ownerId,
+        claimedAt: tags.claimedAt,
         createdAt: tags.createdAt,
-      }).from(tags);
+      }).from(tags)
+        .where(whereClause)
+        .orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn))
+        .limit(pageSize)
+        .offset((currentPage - 1) * pageSize);
 
-      // Apply filters
-      if (filterByTier) {
-        query.where(eq(tags.tier, filterByTier));
+      // Get total count with timeout
+      let total = 0;
+      if (whereClause) {
+        const totalCount = await withQueryTimeout(
+          () => db.select({ count: count() }).from(tags).where(whereClause),
+          { count: 0 },
+          3000
+        );
+        total = parseInt(totalCount[0]?.count || '0', 10);
+      } else {
+        total = await getTagsApproximateCount();
       }
-      if (filterByStatus) {
-        query.where(eq(tags.status, filterByStatus));
-      }
-
-      // Apply sorting
-      query.orderBy([sortBy, 'createdAt'], [sortOrder, 'desc']);
-
-      // Apply pagination
-      const offset = (currentPage - 1) * pageSize;
-      query.limit(pageSize).offset(offset);
-
-      const result = await query;
-
-      // Get total count for pagination
-      const totalCount = await db.select({ count: count() }).from(tags);
-      const total = parseInt(totalCount[0]?.count || '0', 10);
 
       return {
-        items: result,
+        items,
         total,
         pageSize,
         currentPage,
       };
     },
-    [
-      "admin-detailed-stock",
-      filterByTier,
-      filterByStatus,
-      sortBy,
-      sortOrder,
-      pageSize,
-      currentPage,
-    ],
+    cacheKey,
     {
-      revalidate: 300, // 5 minutes
+      revalidate: 600, // 10 minutes
       tags: ["admin-stats"],
     }
   );
 
-  return await cache(filterByTier, filterByStatus, sortBy, sortOrder, pageSize, currentPage);
+  return await cache(filterByTier, filterByClaimStatus, sortBy, sortOrder, pageSize, currentPage, searchQuery);
 }

@@ -112,15 +112,20 @@ function VerifyOTPContent() {
     setIsLoading(true);
     setError(null);
 
+    console.log('[VERIFY-OTP] Attempting to verify OTP for:', identifier);
+
     try {
       // Use better-auth's signIn.emailOtp method
       const { signIn } = authClient;
-      const redirectUrl = searchParams.get('redirect') || '/dashboard';
+
+      console.log('[VERIFY-OTP] Calling signIn.emailOtp...');
 
       const result = await signIn.emailOtp({
         email: identifier,
         otp: otp,
       });
+
+      console.log('[VERIFY-OTP] Sign-in result:', result);
 
       // Handle synchronous error response
       if (result.error) {
@@ -143,19 +148,48 @@ function VerifyOTPContent() {
 
       // Check if we have session data in the response
       if (result.data) {
+        console.log('[VERIFY-OTP] Session created successfully:', result.data);
+
         // Set redirecting state to show success message
         setIsRedirecting(true);
+
+        // Verify session was actually created
+        console.log('[VERIFY-OTP] Verifying session...');
+        try {
+          const testSessionResponse = await fetch('/api/auth/test-session');
+          const testSessionData = await testSessionResponse.json();
+          console.log('[VERIFY-OTP] Session verification:', testSessionData);
+
+          if (!testSessionData.success) {
+            console.error('[VERIFY-OTP] Session verification failed:', testSessionData);
+            setError('Sesi tidak berhasil dibuat. Silakan coba lagi.');
+            setIsRedirecting(false);
+            setIsLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error('[VERIFY-OTP] Session verification error:', err);
+          // Continue anyway - this is just a debug check
+        }
 
         // Determine redirect destination based on user role
         // Note: better-auth doesn't return custom fields like 'role', so we need to fetch from database
         let isAdmin = false;
         try {
+          console.log('[VERIFY-OTP] Checking user role...');
           const roleResponse = await fetch('/api/auth/role');
+          console.log('[VERIFY-OTP] Role response status:', roleResponse.status);
+
           if (roleResponse.ok) {
             const roleData = await roleResponse.json();
+            console.log('[VERIFY-OTP] Role data:', roleData);
             isAdmin = roleData.isAdmin;
+          } else {
+            const errorText = await roleResponse.text();
+            console.error('[VERIFY-OTP] Role check failed:', errorText);
           }
         } catch (err) {
+          console.error('[VERIFY-OTP] Role check error:', err);
           // Silently fail, default to user dashboard
         }
 
@@ -166,22 +200,28 @@ function VerifyOTPContent() {
         if (customRedirect) {
           // Use custom redirect if provided (e.g., from a protected page)
           finalRedirectUrl = customRedirect;
+          console.log('[VERIFY-OTP] Using custom redirect:', customRedirect);
         } else if (isAdmin) {
           // Admin users always go to admin dashboard
           finalRedirectUrl = '/admin';
+          console.log('[VERIFY-OTP] User is admin, redirecting to /admin');
         } else {
           // Regular users go to user dashboard
           finalRedirectUrl = '/dashboard';
+          console.log('[VERIFY-OTP] User is not admin, redirecting to /dashboard');
         }
 
-        // Delay to ensure cookie is processed by browser
-        // Increased delay for better reliability, especially on slower connections
-        await new Promise<void>(resolve => setTimeout(resolve, 2000));
+        console.log('[VERIFY-OTP] Final redirect URL:', finalRedirectUrl);
 
+        // Delay to ensure cookie is processed by browser
+        await new Promise<void>(resolve => setTimeout(resolve, 1000));
+
+        console.log('[VERIFY-OTP] Redirecting...');
         // Use window.location.href for full page reload to ensure cookies are properly set
         window.location.href = finalRedirectUrl;
       } else {
         // No session data returned - this shouldn't happen if sign-in succeeded
+        console.error('[VERIFY-OTP] No session data returned:', result);
         setError('Gagal membuat sesi. Silakan coba lagi.');
         setIsLoading(false);
       }

@@ -11,7 +11,7 @@ export default async function TierManagementPage() {
     redirect("/sign-in?redirect=/admin/tier-management");
   }
 
-  const users = await getAllUsers();
+  const users = await getAllUsers(100, 0); // Limit to 100 users for now
 
   return (
     <div className="space-y-6">

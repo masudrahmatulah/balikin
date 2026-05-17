@@ -207,11 +207,13 @@ export async function getSessionInfo() {
 }
 
 /**
- * Get all users (admin only)
+ * Get all users with pagination (admin only)
  */
-export async function getAllUsers() {
+export async function getAllUsers(limit = 100, offset = 0) {
   const users = await db.query.user.findMany({
     orderBy: (u, { desc }) => [desc(u.createdAt)],
+    limit,
+    offset,
   });
   return users;
 }
