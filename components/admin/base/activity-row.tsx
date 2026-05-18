@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 interface ActivityRowProps {
-  icon?: LucideIcon;
+  icon?: LucideIcon | string;
   iconClassName?: string;
   event: string;
   reference?: string;
@@ -47,7 +47,11 @@ export function ActivityRow({
       <td className="px-4 py-3">
         {Icon && (
           <div className={cn("w-6 h-6", iconClassName)}>
-            <Icon size={16} />
+            {typeof Icon === "string" ? (
+              <span className="text-sm">{Icon}</span>
+            ) : (
+              <Icon size={16} />
+            )}
           </div>
         )}
         {!Icon && (

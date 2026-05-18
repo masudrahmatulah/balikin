@@ -223,7 +223,7 @@ export async function getRecentUsersServer(limit = 10) {
 /**
  * Get detailed stock information for the production dashboard
  * Server Action - can safely import database
- * Cached for 10 minutes - detailed stock data with approximate total count
+ * Cached for 5 minutes - detailed stock data with pagination
  */
 export async function getDetailedStockServer(
   filterByTier: string | undefined,
@@ -234,93 +234,104 @@ export async function getDetailedStockServer(
   currentPage: number = 1,
   searchQuery: string = ''
 ) {
-  // Build cache key with all parameters
-  const cacheKey = [
-    "admin-detailed-stock-v3",
+  const cache = unstable_cache(
+    async (
+      filterByTier: string | undefined,
+      filterByClaimStatus: 'all' | 'claimed' | 'unclaimed',
+      sortBy: string,
+      sortOrder: 'asc' | 'desc',
+      pageSize: number,
+      currentPage: number,
+      searchQuery: string
+    ) => {
+    // Build where conditions
+    const conditions = [];
+
+    if (filterByTier) {
+      conditions.push(eq(tags.tier, filterByTier));
+    }
+
+    if (filterByClaimStatus === 'claimed') {
+      conditions.push(isNotNull(tags.ownerId));
+    } else if (filterByClaimStatus === 'unclaimed') {
+      conditions.push(isNull(tags.ownerId));
+    }
+
+    if (searchQuery) {
+      conditions.push(
+        or(
+          like(tags.slug, `%${searchQuery}%`),
+          like(tags.name, `%${searchQuery}%`),
+          like(tags.ownerId, `%${searchQuery}%`)
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Determine sort column and order
+    const sortByCreatedAt = sortBy === 'createdAt';
+    const orderByDesc = sortOrder === 'desc';
+
+    // Build single query with sort
+    const items = await db.select({
+      id: tags.id,
+      slug: tags.slug,
+      tier: tags.tier,
+      status: tags.status,
+      name: tags.name,
+      ownerId: tags.ownerId,
+      claimedAt: tags.claimedAt,
+      createdAt: tags.createdAt,
+    }).from(tags)
+      .where(whereClause)
+      .orderBy(sortByCreatedAt
+        ? (orderByDesc ? desc(tags.createdAt) : asc(tags.createdAt))
+        : (orderByDesc ? desc(tags.claimedAt) : asc(tags.claimedAt))
+      )
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize);
+
+    // Get total count
+    let total = 0;
+    if (whereClause) {
+      const totalCount = await db.select({ count: count() }).from(tags).where(whereClause);
+      total = typeof totalCount[0]?.count === 'number' ? totalCount[0].count : parseInt(totalCount[0]?.count as string || '0', 10);
+    } else {
+      total = await getTagsApproximateCount();
+    }
+
+      // Return minimal data to avoid large payloads
+      return {
+        items: items.map((item) => ({
+          id: item.id,
+          slug: item.slug,
+          tier: item.tier,
+          status: item.status,
+          name: item.name,
+          ownerId: item.ownerId,
+          claimedAt: item.claimedAt ? item.claimedAt.toISOString() : null,
+          createdAt: item.createdAt?.toISOString() || new Date().toISOString(),
+        })),
+        total,
+        pageSize,
+        currentPage,
+      };
+    },
+    ["admin-detailed-stock-v3"],
+    {
+      revalidate: 300, // 5 minutes
+      tags: ["admin-stats", "stock-details"],
+    }
+  );
+
+  return await cache(
     filterByTier,
     filterByClaimStatus,
     sortBy,
     sortOrder,
     pageSize,
     currentPage,
-    searchQuery,
-  ];
-
-  const cache = unstable_cache(
-    async (filterByTier, filterByClaimStatus, sortBy, sortOrder, pageSize, currentPage, searchQuery) => {
-      // Build where conditions
-      const conditions = [];
-
-      if (filterByTier) {
-        conditions.push(eq(tags.tier, filterByTier));
-      }
-
-      if (filterByClaimStatus === 'claimed') {
-        conditions.push(isNotNull(tags.ownerId));
-      } else if (filterByClaimStatus === 'unclaimed') {
-        conditions.push(isNull(tags.ownerId));
-      }
-
-      if (searchQuery) {
-        conditions.push(
-          or(
-            like(tags.slug, `%${searchQuery}%`),
-            like(tags.name, `%${searchQuery}%`),
-            like(tags.ownerId, `%${searchQuery}%`)
-          )
-        );
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
-      // Determine sort column
-      let sortColumn = tags.createdAt;
-      if (sortBy === 'claimedAt') {
-        sortColumn = tags.claimedAt;
-      }
-
-      // Build query
-      const items = await db.select({
-        id: tags.id,
-        slug: tags.slug,
-        tier: tags.tier,
-        status: tags.status,
-        name: tags.name,
-        ownerId: tags.ownerId,
-        claimedAt: tags.claimedAt,
-        createdAt: tags.createdAt,
-      }).from(tags)
-        .where(whereClause)
-        .orderBy(sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn))
-        .limit(pageSize)
-        .offset((currentPage - 1) * pageSize);
-
-      // Get total count with timeout
-      let total = 0;
-      if (whereClause) {
-        const totalCount = await withQueryTimeout(
-          () => db.select({ count: count() }).from(tags).where(whereClause),
-          { count: 0 },
-          3000
-        );
-        total = parseInt(totalCount[0]?.count || '0', 10);
-      } else {
-        total = await getTagsApproximateCount();
-      }
-
-      return {
-        items,
-        total,
-        pageSize,
-        currentPage,
-      };
-    },
-    cacheKey,
-    {
-      revalidate: 600, // 10 minutes
-      tags: ["admin-stats"],
-    }
+    searchQuery
   );
-
-  return await cache(filterByTier, filterByClaimStatus, sortBy, sortOrder, pageSize, currentPage, searchQuery);
 }

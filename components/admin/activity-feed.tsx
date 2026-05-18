@@ -6,7 +6,7 @@ import type { LucideIcon } from "lucide-react";
 interface Activity {
   id: string;
   event: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon | string;
   iconClassName?: string;
   reference?: string;
   admin?: string;
@@ -76,16 +76,6 @@ const defaultActivities: Activity[] = [
 ];
 
 export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
-  const getStatusLabel = (status: Activity["status"]) => {
-    const labels = {
-      success: "Success",
-      pending: "Pending",
-      transit: "Transit",
-      failed: "Failed",
-    };
-    return labels[status];
-  };
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
       {/* Header */}

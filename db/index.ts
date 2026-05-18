@@ -9,7 +9,7 @@ if (!connectionString) {
 }
 
 const isSupabase = connectionString.includes('supabase.com');
-const poolMax = Number(process.env.DATABASE_POOL_MAX || (isSupabase ? 1 : 5));
+const poolMax = Number(process.env.DATABASE_POOL_MAX || (isSupabase ? 5 : 5));
 
 const options = {
   prepare: false,

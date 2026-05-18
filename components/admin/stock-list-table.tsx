@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/table";
 import { getDetailedStockServer } from "@/app/admin/actions/stock-actions";
 import { Search, Filter, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type ClaimStatus = 'all' | 'claimed' | 'unclaimed';
 type SortBy = 'createdAt' | 'claimedAt';
@@ -29,8 +28,8 @@ interface StockItem {
   status: string;
   name: string;
   ownerId: string | null;
-  claimedAt: Date | null;
-  createdAt: Date;
+  claimedAt: string | null | undefined;
+  createdAt: string;
 }
 
 interface StockListTableProps {
@@ -50,6 +49,8 @@ export function StockListTable({ className = "" }: StockListTableProps) {
   const [filterByTier, setFilterByTier] = useState<string>("");
   const [filterByClaimStatus, setFilterByClaimStatus] = useState<ClaimStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Sort and pagination state
   const [sortBy, setSortBy] = useState<SortBy>("createdAt");
@@ -69,8 +70,9 @@ export function StockListTable({ className = "" }: StockListTableProps) {
         sortOrder,
         pageSize,
         currentPage,
-        searchQuery
+        debouncedSearch
       );
+      console.log("Stock list data fetched:", { items: result.items.length, total: result.total });
       setData(result.items);
       setTotal(result.total);
     } catch (error) {
@@ -84,11 +86,20 @@ export function StockListTable({ className = "" }: StockListTableProps) {
     setCurrentPage(1);
   }, [filterByTier, filterByClaimStatus, searchQuery]);
 
+  // Debounce search input
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(searchTimeoutRef.current);
+  }, [searchQuery]);
+
   useEffect(() => {
     fetchData();
-  }, [filterByTier, filterByClaimStatus, sortBy, sortOrder, currentPage, searchQuery]);
+  }, [filterByTier, filterByClaimStatus, sortBy, sortOrder, currentPage, debouncedSearch]);
 
-  const formatDate = (date: Date | null) => {
+  const formatDate = (date: string | null) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -155,7 +166,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
             {/* Filters */}
             <div className="flex gap-2">
               <div className="w-40">
-                <Select value={filterByTier} onValueChange={setFilterByTier}>
+                <Select value={filterByTier} onValueChange={(v) => setFilterByTier(v || "")}>
                   <SelectTrigger className="w-full">
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="All Tiers" />
@@ -170,7 +181,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
               </div>
 
               <div className="w-40">
-                <Select value={filterByClaimStatus} onValueChange={(v: ClaimStatus) => setFilterByClaimStatus(v)}>
+                <Select value={filterByClaimStatus} onValueChange={(v) => setFilterByClaimStatus((v || "all") as ClaimStatus)}>
                   <SelectTrigger className="w-full">
                     <Filter className="w-4 h-4 mr-2" />
                     <SelectValue placeholder="All Status" />
@@ -184,7 +195,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
               </div>
 
               <div className="w-40">
-                <Select value={sortBy} onValueChange={(v: SortBy) => setSortBy(v)}>
+                <Select value={sortBy} onValueChange={(v) => setSortBy((v || "createdAt") as SortBy)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Sort By" />
                   </SelectTrigger>

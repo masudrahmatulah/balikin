@@ -40,7 +40,8 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
     },
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const fetchStockStats = async () => {
     try {
@@ -56,10 +57,11 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
   };
 
   useEffect(() => {
+    setIsMounted(true);
     fetchStockStats();
 
     if (autoRefresh) {
-      const interval = setInterval(fetchStockStats, 30000); // Refresh every 30 seconds
+      const interval = setInterval(fetchStockStats, 60000); // Refresh every 60 seconds
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
@@ -187,9 +189,11 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
           </div>
 
           {/* Last Updated */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </div>
+          {isMounted && lastUpdated && (
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
