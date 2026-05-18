@@ -147,11 +147,11 @@ export default async function ProductionDashboardPage() {
       {/* Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold mb-4">Aksi Cepat</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Link href="/admin/production/bulk-qr">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Link href="/admin/vdp-tool">
             <Button className="w-full gap-2">
               <Plus className="w-4 h-4" />
-              Bulk QR Generator
+              QR Generator (VDP Tool)
             </Button>
           </Link>
           <Link href="/admin/print-queue">
@@ -164,12 +164,6 @@ export default async function ProductionDashboardPage() {
             <Button variant="outline" className="w-full gap-2">
               <FileText className="w-4 h-4" />
               Material Logs
-            </Button>
-          </Link>
-          <Link href="/admin/vdp-tool">
-            <Button variant="outline" className="w-full gap-2">
-              <Settings className="w-4 h-4" />
-              VDP Tool
             </Button>
           </Link>
         </div>
