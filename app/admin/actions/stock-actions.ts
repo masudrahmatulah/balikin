@@ -221,6 +221,48 @@ export async function getRecentUsersServer(limit = 10) {
 }
 
 /**
+ * Get recent tags for admin dashboard
+ * Server Action - can safely import database
+ * Cached for 5 minutes with timeout protection
+ */
+export async function getRecentTagsServer(limit = 4) {
+  const cache = unstable_cache(
+    async (limit = 4) => {
+      const recentTags = await withQueryTimeout(
+        () => db.query.tags.findMany({
+          orderBy: [desc(tags.createdAt)],
+          limit,
+          columns: {
+            id: true,
+            slug: true,
+            name: true,
+            tier: true,
+            createdAt: true,
+          },
+        }),
+        [],
+        2000
+      );
+
+      return recentTags.map((tag) => ({
+        id: tag.id,
+        slug: tag.slug,
+        name: tag.name,
+        tier: tag.tier,
+        createdAt: tag.createdAt?.toISOString() || new Date().toISOString(),
+      }));
+    },
+    ["admin-recent-tags-v1"],
+    {
+      revalidate: 300, // 5 minutes
+      tags: ["admin-stats", "recent-tags"],
+    }
+  );
+
+  return await cache(limit);
+}
+
+/**
  * Get detailed stock information for the production dashboard
  * Server Action - can safely import database
  * Cached for 5 minutes - detailed stock data with pagination

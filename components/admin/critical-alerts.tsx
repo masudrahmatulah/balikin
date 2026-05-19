@@ -1,12 +1,22 @@
 import { AlertCard } from "./base/alert-box";
+import { RecentQRPreviews } from "./recent-qr-previews";
 
 interface MaterialAlert {
   name: string;
   quantity: number;
 }
 
+interface RecentTag {
+  id: string;
+  slug: string;
+  name: string;
+  tier: string;
+  createdAt: string;
+}
+
 interface CriticalAlertsProps {
   materials?: MaterialAlert[];
+  recentTags?: RecentTag[];
 }
 
 const defaultMaterials: MaterialAlert[] = [
@@ -15,7 +25,7 @@ const defaultMaterials: MaterialAlert[] = [
   { name: "QR Code Sheets", quantity: 5 },
 ];
 
-export function CriticalAlerts({ materials = defaultMaterials }: CriticalAlertsProps) {
+export function CriticalAlerts({ materials = defaultMaterials, recentTags }: CriticalAlertsProps) {
   const highPriority = materials.filter((m) => m.quantity <= 5);
   const mediumPriority = materials.filter((m) => m.quantity > 5 && m.quantity <= 10);
   const lowPriority = materials.filter((m) => m.quantity > 10);
@@ -79,20 +89,7 @@ export function CriticalAlerts({ materials = defaultMaterials }: CriticalAlertsP
         title="Recent VDP Previews"
         message="QR codes yang baru saja di-generate"
       >
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="aspect-square bg-gray-100 rounded-lg p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors border border-gray-200"
-            >
-              <span className="text-3xl mb-2">📦</span>
-              <span className="text-xs text-gray-600 font-mono">#BK-{991 + i}</span>
-            </div>
-          ))}
-        </div>
-        <button className="w-full mt-4 py-2 px-4 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors">
-          View All Previews
-        </button>
+        <RecentQRPreviews recentTags={recentTags || []} />
       </AlertCard>
 
       {/* Operational Status */}
@@ -145,6 +142,22 @@ export function CriticalAlertsSkeleton() {
           ))}
         </div>
       ))}
+      {/* Recent VDP Previews Skeleton */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="aspect-square bg-gray-100 rounded-lg animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="h-10 w-full bg-gray-200 rounded-md mt-4 animate-pulse" />
+      </div>
     </div>
   );
 }

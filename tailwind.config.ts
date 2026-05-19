@@ -113,7 +113,7 @@ const config: Config = {
         full: "9999px",
       },
       spacing: {
-        "sidebar-width": "280px",
+        "sidebar-width": "248px",
         "gutter-md": "1.5rem",
         "container-padding": "2rem",
         "h-sm": "8px",

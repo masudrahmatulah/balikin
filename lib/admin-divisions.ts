@@ -90,7 +90,6 @@ export const DivisionNavigation = {
   [Division.PRODUCTION]: [
     { title: 'Dashboard', href: '/admin/production', icon: '📊' },
     { title: 'Print Queue', href: '/admin/print-queue', icon: '🖨️' },
-    { title: 'Bulk QR Generator', href: '/admin/production/bulk-qr', icon: '📦' },
     { title: 'Stock Status', href: '/admin/production/stock', icon: '📊' },
     { title: 'Material Logs', href: '/admin/material-logs', icon: '📋' },
     { title: 'VDP Tool', href: '/admin/vdp-tool', icon: '🔧' },
@@ -115,7 +114,6 @@ export const DivisionNavigation = {
     ...[
       { title: 'Overview', href: '/admin', icon: '🏠' },
       { title: 'Print Queue', href: '/admin/print-queue', icon: '🖨️' },
-      { title: 'Bulk QR Generator', href: '/admin/production/bulk-qr', icon: '📦' },
       { title: 'Stock Status', href: '/admin/production/stock', icon: '📊' },
       { title: 'Payments', href: '/admin/cs/payments', icon: '💳' },
       { title: 'Client Management', href: '/admin', icon: '👥' },
