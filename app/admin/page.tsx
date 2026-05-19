@@ -8,7 +8,7 @@ import {
   ActivityFeedSkeleton,
   CriticalAlertsSkeleton,
 } from "@/components/admin/skeletons";
-import { getDashboardStatsServer, getPendingCountsServer } from "@/app/admin/actions/stock-actions";
+import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer } from "@/app/admin/actions/stock-actions";
 import { Download, Search } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -27,9 +27,10 @@ export default async function AdminPage() {
   }
 
   // Fetch dashboard data using server actions
-  const [dashboardStats, pendingCounts] = await Promise.allSettled([
+  const [dashboardStats, pendingCounts, recentTags] = await Promise.allSettled([
     getDashboardStatsServer(),
     getPendingCountsServer(),
+    getRecentTagsServer(4),
   ]);
 
   const stats = dashboardStats.status === "fulfilled" ? dashboardStats.value : {
@@ -43,6 +44,8 @@ export default async function AdminPage() {
     },
     materials: { total: 0, lowStockCount: 0, lowStockItems: [] },
   };
+
+  const recentTagsData = recentTags.status === "fulfilled" ? recentTags.value : [];
 
   return (
     <div className="space-y-6">
@@ -78,7 +81,10 @@ export default async function AdminPage() {
       {/* Dashboard Body - Main Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ActivityFeed />
-        <CriticalAlerts materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))} />
+        <CriticalAlerts
+          materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))}
+          recentTags={recentTagsData}
+        />
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDetailedStockServer } from "@/app/admin/actions/stock-actions";
-import { Search, Filter, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, ExternalLink, AlertCircle } from "lucide-react";
 
 type ClaimStatus = 'all' | 'claimed' | 'unclaimed';
 type SortBy = 'createdAt' | 'claimedAt';
@@ -44,6 +44,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
   const [data, setData] = useState<StockItem[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter and search state
   const [filterByTier, setFilterByTier] = useState<string>("");
@@ -62,7 +63,18 @@ export function StockListTable({ className = "" }: StockListTableProps) {
 
   const fetchData = async () => {
     setIsLoading(true);
+    setError(null);
     try {
+      console.log("Fetching stock list with params:", {
+        filterByTier,
+        filterByClaimStatus,
+        sortBy,
+        sortOrder,
+        pageSize,
+        currentPage,
+        debouncedSearch
+      });
+
       const result = await getDetailedStockServer(
         filterByTier || undefined,
         filterByClaimStatus,
@@ -72,11 +84,13 @@ export function StockListTable({ className = "" }: StockListTableProps) {
         currentPage,
         debouncedSearch
       );
+
       console.log("Stock list data fetched:", { items: result.items.length, total: result.total });
       setData(result.items);
       setTotal(result.total);
     } catch (error) {
       console.error("Failed to fetch stock list:", error);
+      setError(error instanceof Error ? error.message : "Failed to load stock data. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -239,13 +253,34 @@ export function StockListTable({ className = "" }: StockListTableProps) {
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
-                      Loading...
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Loading QR codes...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      <div className="flex flex-col items-center justify-center gap-2 text-red-600 dark:text-red-400">
+                        <AlertCircle className="w-6 h-6" />
+                        <span>{error}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchData()}
+                          className="mt-2"
+                        >
+                          Try Again
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : data.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      No QR codes found
+                      No QR codes found matching your criteria.
+                      {total > 0 && ` Total: ${total} tags in database.`}
                     </TableCell>
                   </TableRow>
                 ) : (

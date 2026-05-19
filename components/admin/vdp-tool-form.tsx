@@ -375,34 +375,35 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="generate" className="space-y-8 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <TabsContent value="generate" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Bulk Generation Form */}
-            <Card className="lg:col-span-2 bg-surface border-secondary/10 shadow-sm overflow-hidden">
-              <CardHeader className="bg-neutral/30 border-b border-secondary/5 p-6">
-                <CardTitle className="font-display text-xl font-bold text-primary">Bulk Generate Tags</CardTitle>
-                <CardDescription className="font-body text-xs text-secondary mt-1">
+            <Card className="lg:col-span-3 bg-surface border-secondary/10 shadow-sm overflow-hidden">
+              <CardHeader className="bg-neutral/30 border-b border-secondary/5 p-4">
+                <CardTitle className="font-display text-lg font-bold text-primary">Bulk Generate Tags</CardTitle>
+                <CardDescription className="font-body text-xs text-secondary mt-0.5">
                   Create a batch of unclaimed tags for high-precision production.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-6">
-                <form onSubmit={handleBulkGenerate} className="space-y-6">
-                  {/* Batch Name */}
-                  <div className="space-y-3">
-                    <Label htmlFor="batchName" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Batch Name</Label>
-                    <Input
-                      id="batchName"
-                      placeholder="e.g., Batch-May-2025-001"
-                      className="font-body text-sm rounded-sm border-secondary/20 focus:border-tertiary focus:ring-tertiary/20"
-                      value={formData.batchName}
-                      onChange={(e) => setFormData({ ...formData, batchName: e.target.value })}
-                      required
-                    />
-                  </div>
+              <CardContent className="p-4">
+                <form onSubmit={handleBulkGenerate} className="space-y-5">
+                  {/* Basic Configuration - 4 column grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    {/* Batch Name - 2 cols */}
+                    <div className="lg:col-span-2 space-y-2">
+                      <Label htmlFor="batchName" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Batch Name</Label>
+                      <Input
+                        id="batchName"
+                        placeholder="e.g., Batch-May-2025-001"
+                        className="font-body text-sm rounded-sm border-secondary/20 focus:border-tertiary focus:ring-tertiary/20 h-10"
+                        value={formData.batchName}
+                        onChange={(e) => setFormData({ ...formData, batchName: e.target.value })}
+                        required
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Quantity */}
-                    <div className="space-y-3">
+                    {/* Quantity - 1 col */}
+                    <div className="space-y-2">
                       <Label htmlFor="quantity" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Quantity</Label>
                       <Input
                         id="quantity"
@@ -410,24 +411,23 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         min="1"
                         max="1000"
                         step="10"
-                        className="font-body text-sm rounded-sm border-secondary/20"
+                        className="font-body text-sm rounded-sm border-secondary/20 h-10"
                         value={formData.quantity}
                         onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
                         required
                       />
-                      <p className="font-body text-[10px] text-secondary/60">Max 1000 tags per execution.</p>
                     </div>
 
-                    {/* Material Type */}
-                    <div className="space-y-3">
-                      <Label htmlFor="materialType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Material Type</Label>
+                    {/* Material Type - 1 col */}
+                    <div className="space-y-2">
+                      <Label htmlFor="materialType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Material</Label>
                       <Select
                         value={formData.materialType}
                         onValueChange={(value: "sticker" | "acrylic") =>
                           setFormData({ ...formData, materialType: value })
                         }
                       >
-                        <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20">
+                        <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="font-body text-sm">
@@ -438,58 +438,16 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                     </div>
                   </div>
 
-                  {/* Sticker Configuration - Only for stickers */}
-                  {formData.materialType === "sticker" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-neutral/20 rounded-sm border border-secondary/10">
-                      <div className="space-y-3">
-                        <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Shape</Label>
-                        <Select
-                          value={formData.stickerShape}
-                          onValueChange={(value: "circle" | "square" | "rectangle") =>
-                            setFormData({ ...formData, stickerShape: value })
-                          }
-                        >
-                          <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="font-body text-sm">
-                            <SelectItem value="circle">Circle</SelectItem>
-                            <SelectItem value="square">Square</SelectItem>
-                            <SelectItem value="rectangle">Rectangle</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Size</Label>
-                        <Select
-                          value={formData.stickerSize}
-                          onValueChange={(value: "small" | "medium" | "large") =>
-                            setFormData({ ...formData, stickerSize: value })
-                          }
-                        >
-                          <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="font-body text-sm">
-                            <SelectItem value="small">Small (20mm)</SelectItem>
-                            <SelectItem value="medium">Medium (35mm)</SelectItem>
-                            <SelectItem value="large">Large (50mm)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Product Type */}
-                    <div className="space-y-3">
+                  {/* Advanced Configuration - 4 column grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    {/* Product Module - 2 cols */}
+                    <div className="lg:col-span-2 space-y-2">
                       <Label htmlFor="productType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Product Module</Label>
                       <Select
                         value={formData.productType}
                         onValueChange={(value: any) => setFormData({ ...formData, productType: value })}
                       >
-                        <SelectTrigger id="productType" className="font-body text-sm rounded-sm border-secondary/20">
+                        <SelectTrigger id="productType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="font-body text-sm">
@@ -502,14 +460,14 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       </Select>
                     </div>
 
-                    {/* Paper Size */}
-                    <div className="space-y-3">
-                      <Label htmlFor="paperSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Layout Paper Size</Label>
+                    {/* Paper Size - 1 col */}
+                    <div className="space-y-2">
+                      <Label htmlFor="paperSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Paper Size</Label>
                       <Select
                         value={formData.paperSize}
                         onValueChange={(value: "a4" | "a3") => setFormData({ ...formData, paperSize: value })}
                       >
-                        <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20">
+                        <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="font-body text-sm">
@@ -518,11 +476,61 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Estimate info - 1 col */}
+                    <div className="flex items-end">
+                      <p className="text-[10px] text-secondary/70 leading-tight">
+                        Est. <span className="font-bold text-primary">{getEstimatedSheets()}</span> sheets
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Sticker Configuration - Only for stickers */}
+                  {formData.materialType === "sticker" && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
+                      <div className="space-y-2">
+                        <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Shape</Label>
+                        <Select
+                          value={formData.stickerShape}
+                          onValueChange={(value: "circle" | "square" | "rectangle") =>
+                            setFormData({ ...formData, stickerShape: value })
+                          }
+                        >
+                          <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="font-body text-sm">
+                            <SelectItem value="circle">Circle</SelectItem>
+                            <SelectItem value="square">Square</SelectItem>
+                            <SelectItem value="rectangle">Rectangle</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Size</Label>
+                        <Select
+                          value={formData.stickerSize}
+                          onValueChange={(value: "small" | "medium" | "large") =>
+                            setFormData({ ...formData, stickerSize: value })
+                          }
+                        >
+                          <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="font-body text-sm">
+                            <SelectItem value="small">Small (20mm)</SelectItem>
+                            <SelectItem value="medium">Medium (35mm)</SelectItem>
+                            <SelectItem value="large">Large (50mm)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Progress Bar */}
                   {isGenerating && (
-                    <div className="space-y-2 p-4 bg-neutral/20 rounded-sm">
+                    <div className="space-y-2 p-3 bg-neutral/20 rounded-sm">
                       <div className="flex justify-between text-xs font-medium">
                         <span className="text-secondary">Generating QR Codes...</span>
                         <span className="text-primary">{progress.current} / {progress.total}</span>
@@ -570,7 +578,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                     type="submit"
                     disabled={isGenerating || !formData.batchName}
                     className={cn(
-                      "w-full py-6 rounded-sm font-label text-xs uppercase tracking-[0.2em] font-bold shadow-lg transition-all active:scale-[0.98]",
+                      "w-full py-4 rounded-sm font-label text-xs uppercase tracking-[0.2em] font-bold shadow-lg transition-all active:scale-[0.98]",
                       isGenerating ? "bg-secondary text-surface" : "bg-tertiary text-surface hover:brightness-110"
                     )}
                   >
@@ -591,66 +599,66 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
             </Card>
 
             {/* Info Panel */}
-            <div className="space-y-8">
+            <div className="space-y-4">
               <Card className="bg-primary text-surface border-none shadow-xl overflow-hidden relative">
-                <CardHeader className="pb-2 relative z-10">
-                  <CardTitle className="font-display text-xl font-bold tracking-tight">Batch Summary</CardTitle>
+                <CardHeader className="pb-2 px-4 pt-4 relative z-10">
+                  <CardTitle className="font-display text-lg font-bold tracking-tight">Batch Summary</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6 relative z-10 pt-4">
-                  <div className="flex justify-between items-end border-b border-surface/10 pb-4">
+                <CardContent className="space-y-4 px-4 pb-4 relative z-10">
+                  <div className="flex justify-between items-end border-b border-surface/10 pb-3">
                     <div>
                       <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Total Tags</p>
-                      <p className="font-display text-4xl font-bold">{formData.quantity}</p>
+                      <p className="font-display text-3xl font-bold">{formData.quantity}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Sheets</p>
-                      <p className="font-display text-4xl font-bold">{getEstimatedSheets()}</p>
+                      <p className="font-display text-3xl font-bold">{getEstimatedSheets()}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-sm bg-surface/10 flex items-center justify-center">
-                        <Info className="w-4 h-4 text-tertiary" />
+                      <div className="w-7 h-7 rounded-sm bg-surface/10 flex items-center justify-center shrink-0">
+                        <Info className="w-3.5 h-3.5 text-tertiary" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Material</p>
-                        <p className="font-body text-sm font-medium capitalize">
+                        <p className="font-body text-xs font-medium capitalize truncate">
                           {formData.materialType === "sticker" ? "Vinyl Sticker" : "Acrylic"}
                           {formData.materialType === "sticker" && ` (${formData.stickerShape}, ${formData.stickerSize})`}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-sm bg-surface/10 flex items-center justify-center">
-                        <Package className="w-4 h-4 text-tertiary" />
+                      <div className="w-7 h-7 rounded-sm bg-surface/10 flex items-center justify-center shrink-0">
+                        <Package className="w-3.5 h-3.5 text-tertiary" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Module</p>
-                        <p className="font-body text-sm font-medium capitalize">{formData.productType.replace("_", " ")}</p>
+                        <p className="font-body text-xs font-medium capitalize">{formData.productType.replace("_", " ")}</p>
                       </div>
                     </div>
                   </div>
                 </CardContent>
-                <div className="absolute -bottom-10 -right-10 opacity-5">
-                  <Package size={200} />
+                <div className="absolute -bottom-8 -right-8 opacity-5">
+                  <Package size={150} />
                 </div>
               </Card>
 
               <Card className="bg-surface border-secondary/10 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="font-display text-lg font-bold text-primary">Instructions</CardTitle>
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <CardTitle className="font-display text-base font-bold text-primary">Instructions</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4">
-                  <ul className="space-y-3">
+                <CardContent className="px-4 pb-4">
+                  <ul className="space-y-2">
                     {[
-                      "Define batch parameters and identity.",
-                      "Execute high-resolution asset generation.",
-                      "Verify and download the compiled ZIP.",
-                      "Transmit to specialized production line.",
-                      "Monitor status via System Activity Feed.",
+                      "Define batch parameters",
+                      "Generate assets",
+                      "Download ZIP",
+                      "Send to production",
+                      "Monitor via Activity Feed",
                     ].map((step, i) => (
-                      <li key={i} className="flex gap-3 group">
+                      <li key={i} className="flex gap-2 group">
                         <span className="font-data-mono text-[10px] text-tertiary font-bold shrink-0">{i + 1}.</span>
                         <span className="font-body text-xs text-secondary group-hover:text-primary transition-colors">{step}</span>
                       </li>
@@ -659,9 +667,9 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                 </CardContent>
               </Card>
 
-              <div className="bg-neutral p-6 rounded-lg border-l-4 border-tertiary flex gap-4">
-                <AlertCircle className="w-5 h-5 text-tertiary shrink-0" />
-                <p className="font-body text-[11px] text-primary leading-relaxed">
+              <div className="bg-neutral p-4 rounded-lg border-l-4 border-tertiary flex gap-3">
+                <AlertCircle className="w-4 h-4 text-tertiary shrink-0 mt-0.5" />
+                <p className="font-body text-[10px] text-primary leading-relaxed">
                   <span className="font-bold">Operational Note:</span> Generated tags will be initialized with "unclaimed" status. These will not be associated with any user until manual claim or fulfillment assignment.
                 </p>
               </div>
@@ -670,85 +678,87 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
           {/* Single Tag Creation */}
           <Card className="bg-surface border-secondary/10 shadow-sm">
-            <CardHeader className="bg-neutral/30 border-b border-secondary/5 p-6">
-              <CardTitle className="font-display text-xl font-bold text-primary">Create Single Tag</CardTitle>
-              <CardDescription className="font-body text-xs text-secondary mt-1">
+            <CardHeader className="bg-neutral/30 border-b border-secondary/5 p-4">
+              <CardTitle className="font-display text-lg font-bold text-primary">Create Single Tag</CardTitle>
+              <CardDescription className="font-body text-xs text-secondary mt-0.5">
                 Create individual tags with custom configuration.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
-              <form onSubmit={handleSingleCreate} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <Label htmlFor="tagName" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Tag Name</Label>
-                      <Input
-                        id="tagName"
-                        placeholder="e.g., Gantungan Kunci Akrilik 001"
-                        className="font-body text-sm rounded-sm border-secondary/20"
-                        value={singleForm.name}
-                        onChange={(e) => setSingleForm({ ...singleForm, name: e.target.value })}
-                        required
-                      />
+            <CardContent className="p-4">
+              <form onSubmit={handleSingleCreate} className="space-y-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="tagName" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Tag Name</Label>
+                        <Input
+                          id="tagName"
+                          placeholder="e.g., Gantungan Kunci Akrilik 001"
+                          className="font-body text-sm rounded-sm border-secondary/20 h-10"
+                          value={singleForm.name}
+                          onChange={(e) => setSingleForm({ ...singleForm, name: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="contactWhatsapp" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">WhatsApp Contact</Label>
+                        <Input
+                          id="contactWhatsapp"
+                          placeholder="e.g., 628123456789"
+                          className="font-body text-sm rounded-sm border-secondary/20 h-10"
+                          value={singleForm.contactWhatsapp}
+                          onChange={(e) => setSingleForm({ ...singleForm, contactWhatsapp: e.target.value })}
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="contactWhatsapp" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">WhatsApp Contact (Optional)</Label>
-                      <Input
-                        id="contactWhatsapp"
-                        placeholder="e.g., 628123456789"
-                        className="font-body text-sm rounded-sm border-secondary/20"
-                        value={singleForm.contactWhatsapp}
-                        onChange={(e) => setSingleForm({ ...singleForm, contactWhatsapp: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label htmlFor="customMessage" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Custom Message (Optional)</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="customMessage" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Custom Message</Label>
                       <Textarea
                         id="customMessage"
                         placeholder="e.g., Ini adalah barang kesayangan saya..."
-                        rows={3}
+                        rows={2}
                         className="font-body text-sm rounded-sm border-secondary/20 resize-none"
                         value={singleForm.customMessage}
                         onChange={(e) => setSingleForm({ ...singleForm, customMessage: e.target.value })}
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="rewardNote" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Reward Note (Optional)</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="rewardNote" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Reward Note</Label>
                       <Input
                         id="rewardNote"
                         placeholder="e.g., Akan memberi imbalan bensin 20k"
-                        className="font-body text-sm rounded-sm border-secondary/20"
+                        className="font-body text-sm rounded-sm border-secondary/20 h-10"
                         value={singleForm.rewardNote}
                         onChange={(e) => setSingleForm({ ...singleForm, rewardNote: e.target.value })}
                       />
                     </div>
 
-                    <Button type="submit" className="w-full bg-tertiary text-surface hover:brightness-110">
+                    <Button type="submit" className="w-full bg-tertiary text-surface hover:brightness-110 py-3">
                       <QrCode className="w-4 h-4 mr-2" />
                       Create Single Tag
                     </Button>
                   </div>
 
-                  <div className="flex flex-col items-center justify-center bg-neutral/20 rounded-sm p-6">
+                  <div className="flex flex-col items-center justify-center bg-neutral/20 rounded-sm p-4">
                     {singleForm.qrPreview ? (
                       <>
-                        <div className="bg-white p-4 rounded-sm shadow-sm mb-4">
-                          <img src={singleForm.qrPreview} alt="QR Code Preview" className="w-48 h-48" />
+                        <div className="bg-white p-3 rounded-sm shadow-sm mb-3">
+                          <img src={singleForm.qrPreview} alt="QR Code Preview" className="w-32 h-32" />
                         </div>
-                        <p className="text-sm text-secondary text-center">
+                        <p className="text-xs text-secondary text-center">
                           Preview QR Code for: <br />
                           <span className="font-medium text-primary">{singleForm.name}</span>
                         </p>
                       </>
                     ) : (
                       <div className="text-center">
-                        <div className="w-48 h-48 bg-secondary/10 rounded-sm flex items-center justify-center mb-4 mx-auto">
-                          <QrCode className="w-16 h-16 text-secondary/30" />
+                        <div className="w-32 h-32 bg-secondary/10 rounded-sm flex items-center justify-center mb-3 mx-auto">
+                          <QrCode className="w-12 h-12 text-secondary/30" />
                         </div>
-                        <p className="text-sm text-secondary">
+                        <p className="text-xs text-secondary">
                           Enter tag name to preview QR code
                         </p>
                       </div>
@@ -760,46 +770,46 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
           </Card>
         </TabsContent>
 
-        <TabsContent value="manage" className="space-y-6 mt-6">
+        <TabsContent value="manage" className="space-y-5 mt-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="bg-surface border-secondary/10 shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-secondary">Total Tags</p>
-                    <p className="text-3xl font-bold text-primary mt-1">{stats.total}</p>
+                    <p className="text-xs text-secondary">Total Tags</p>
+                    <p className="text-2xl font-bold text-primary mt-1">{stats.total}</p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                    <QrCode className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-10 h-10 bg-tertiary/10 rounded-lg flex items-center justify-center">
+                    <QrCode className="w-5 h-5 text-tertiary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-surface border-secondary/10 shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-secondary">Claimed</p>
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">{stats.claimed}</p>
+                    <p className="text-xs text-secondary">Claimed</p>
+                    <p className="text-2xl font-bold text-green-600 mt-1">{stats.claimed}</p>
                   </div>
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  <div className="w-10 h-10 bg-green-600/10 rounded-lg flex items-center justify-center">
+                    <Check className="w-5 h-5 text-green-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="bg-surface border-secondary/10 shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-secondary">Unclaimed</p>
-                    <p className="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.unclaimed}</p>
+                    <p className="text-xs text-secondary">Unclaimed</p>
+                    <p className="text-2xl font-bold text-amber-600 mt-1">{stats.unclaimed}</p>
                   </div>
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/20 rounded-lg flex items-center justify-center">
-                    <Package className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  <div className="w-10 h-10 bg-amber-600/10 rounded-lg flex items-center justify-center">
+                    <Package className="w-5 h-5 text-amber-600" />
                   </div>
                 </div>
               </CardContent>
@@ -845,17 +855,17 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
           {/* Bulk Actions Bar */}
           {selectedTagIds.size > 0 && (
-            <div className="sticky top-0 z-10 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 shadow-sm">
+            <div className="sticky top-0 z-10 bg-tertiary/5 border border-tertiary/20 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <Check className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 bg-tertiary rounded-lg flex items-center justify-center">
+                    <Check className="w-5 h-5 text-surface" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
+                    <p className="text-sm font-semibold text-primary">
                       {selectedTagIds.size} QR Selected
                     </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <p className="text-xs text-secondary">
                       Select actions for selected QR codes
                     </p>
                   </div>
@@ -955,7 +965,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                           key={tag.id}
                           className={cn(
                             "hover:bg-neutral/20 transition-colors",
-                            selectedTagIds.has(tag.id) ? "bg-blue-50 dark:bg-blue-900/10" : ""
+                            selectedTagIds.has(tag.id) ? "bg-tertiary/10" : ""
                           )}
                         >
                           <td className="px-4 py-4">
@@ -1011,7 +1021,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                             </button>
                             <button
                               onClick={() => downloadQR(tag.slug, tag.name)}
-                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                              className="text-tertiary hover:text-primary"
                               title="Download QR"
                             >
                               <FileDown className="w-5 h-5 inline" />
@@ -1019,7 +1029,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                             {!tag.ownerId && (
                               <button
                                 onClick={() => handleDelete(tag.id)}
-                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                className="text-red-600 hover:text-red-800"
                                 title="Delete"
                               >
                                 <Trash2 className="w-5 h-5 inline" />

@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
           slug,
           ownerId: null,
           name: `${batchName} ${sequenceNumber}`,
-          status: "unclaimed",
+          status: "normal",
           tier,
           productType: materialType,
           bundleType: productType !== "standard" ? productType : null,

@@ -41,7 +41,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col py-6 px-4 z-50 transition-transform duration-300",
+          "fixed left-0 top-0 h-screen w-56 bg-white border-r border-gray-200 flex flex-col py-6 px-4 z-50 transition-transform duration-300",
           "lg:translate-x-0",
           isCollapsed ? "-translate-x-full" : "translate-x-0"
         )}
@@ -90,11 +90,6 @@ export function Sidebar({ userDivision }: SidebarProps) {
 
         {/* Bottom Section */}
         <div className="mt-auto pt-6 border-t border-gray-200 space-y-2">
-          {/* Generate Batch Button */}
-          <button className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-            Generate Batch
-          </button>
-
           {/* Settings Link */}
           <Link
             href="/admin/settings"
