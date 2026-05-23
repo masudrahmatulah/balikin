@@ -99,7 +99,7 @@ export function MobileReport() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full mb-6 shadow-lg shadow-emerald-500/30"
+            className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-mobile-success-light to-mobile-success rounded-full mb-6 shadow-lg shadow-mobile-success/30"
           >
             <CheckCircle2 className="h-10 w-10 text-white" />
           </motion.div>
@@ -109,8 +109,8 @@ export function MobileReport() {
           </p>
 
           {tagInfo?.status === 'lost' && (
-            <div className="bg-blue-50 rounded-2xl p-4 mb-6">
-              <p className="text-sm text-blue-800">
+            <div className="bg-mobile-primary-lighter rounded-2xl p-4 mb-6">
+              <p className="text-sm text-mobile-primary">
                 Barang ini dalam status <strong>HILANG</strong>. Pemilik sangat membutuhkan bantuan Anda!
               </p>
             </div>
@@ -123,7 +123,7 @@ export function MobileReport() {
                 setFormData({ qrCode: '', location: '', message: '' });
                 setTagInfo(null);
               }}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl py-4 font-semibold shadow-lg shadow-blue-500/30"
+              className="w-full bg-gradient-to-r from-mobile-primary-light to-mobile-primary text-white rounded-2xl py-4 font-semibold shadow-lg shadow-mobile-primary/30"
             >
               Laporkan Lainnya
             </button>
@@ -157,7 +157,7 @@ export function MobileReport() {
             className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
           >
             <label className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mobile-primary-light to-mobile-primary flex items-center justify-center shadow-lg">
                 <QrCode className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -172,13 +172,13 @@ export function MobileReport() {
                 placeholder="Contoh: ABC123XYZ"
                 value={formData.qrCode}
                 onChange={(e) => setFormData({ ...formData, qrCode: e.target.value })}
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={handleLookupQR}
                 disabled={isLookingUp || !formData.qrCode.trim()}
-                className="bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="bg-mobile-primary text-white px-4 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isLookingUp ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -195,15 +195,15 @@ export function MobileReport() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className={`mt-4 p-4 rounded-xl ${
                   tagInfo.status === 'lost'
-                    ? 'bg-rose-50 border border-rose-200'
-                    : 'bg-emerald-50 border border-emerald-200'
+                    ? 'bg-mobile-danger-lighter border border-mobile-danger-lighter'
+                    : 'bg-mobile-success-lighter border border-mobile-success-lighter'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {tagInfo.status === 'lost' ? (
-                    <AlertCircle className="h-5 w-5 text-rose-600" />
+                    <AlertCircle className="h-5 w-5 text-mobile-danger" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    <CheckCircle2 className="h-5 w-5 text-mobile-success" />
                   )}
                   <div>
                     <p className="font-semibold text-gray-900">{tagInfo.name}</p>
@@ -222,8 +222,8 @@ export function MobileReport() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 p-3 bg-red-50 rounded-xl flex items-center gap-2"
               >
-                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                <p className="text-sm text-rose-700">{error}</p>
+                <AlertCircle className="h-4 w-4 text-mobile-danger flex-shrink-0" />
+                <p className="text-sm text-mobile-danger">{error}</p>
               </motion.div>
             )}
           </motion.div>
@@ -236,7 +236,7 @@ export function MobileReport() {
             className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
           >
             <label className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mobile-success-light to-mobile-success flex items-center justify-center shadow-lg">
                 <MapPin className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -251,7 +251,7 @@ export function MobileReport() {
               placeholder="Contoh: Lobby Gedung A, Grand Indonesia..."
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-success focus:ring-2 focus:ring-mobile-success/20 outline-none transition-all"
             />
           </motion.div>
 
@@ -263,7 +263,7 @@ export function MobileReport() {
             className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
           >
             <label className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-mobile-info-light to-mobile-info flex items-center justify-center shadow-lg">
                 <MessageSquare className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -277,7 +277,7 @@ export function MobileReport() {
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-info focus:ring-2 focus:ring-mobile-info/20 outline-none transition-all resize-none"
             />
           </motion.div>
 
@@ -291,7 +291,7 @@ export function MobileReport() {
             <button
               type="submit"
               disabled={isSubmitting || !formData.qrCode.trim() || !formData.location.trim()}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl py-5 font-semibold shadow-xl shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              className="w-full bg-gradient-to-r from-mobile-primary-light to-mobile-primary text-white rounded-2xl py-5 font-semibold shadow-xl shadow-mobile-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
               {isSubmitting ? (
                 <>

@@ -75,15 +75,15 @@ export function MobileClaim({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
               isLost
-                ? 'bg-gradient-to-br from-rose-500 to-rose-600'
-                : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                ? 'bg-gradient-to-br from-mobile-danger-light to-mobile-danger'
+                : 'bg-gradient-to-br from-mobile-primary-light to-mobile-primary'
             } shadow-lg`}>
               <QrCode className="h-6 w-6 text-white" />
             </div>
@@ -103,7 +103,7 @@ export function MobileClaim({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-rose-500/30 border border-white/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-mobile-danger-light to-mobile-danger rounded-3xl p-5 shadow-xl shadow-mobile-danger/30 border border-white/20 relative overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -131,7 +131,7 @@ export function MobileClaim({
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-amber-400 to-orange-400 rounded-3xl p-5 shadow-xl shadow-amber-500/30 border border-white/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-mobile-warning-light to-mobile-warning rounded-3xl p-5 shadow-xl shadow-mobile-warning/30 border border-white/20 relative overflow-hidden"
           >
             <div className="absolute inset-0 opacity-10">
               <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white rounded-full" />
@@ -154,12 +154,12 @@ export function MobileClaim({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 ${
-              isLost ? 'border-l-4 border-l-rose-500' : 'border-l-4 border-l-blue-500'
+              isLost ? 'border-l-4 border-l-mobile-danger' : 'border-l-4 border-l-mobile-primary'
             }`}
           >
             <div className="flex items-start gap-3">
-              <MessageCircle className={`h-5 w-5 mt-0.5 ${isLost ? 'text-rose-500' : 'text-blue-500'}`} />
-              <p className={`text-sm ${isLost ? 'text-rose-800' : 'text-gray-700'}`}>
+              <MessageCircle className={`h-5 w-5 mt-0.5 ${isLost ? 'text-mobile-danger' : 'text-mobile-primary'}`} />
+              <p className={`text-sm ${isLost ? 'text-mobile-danger' : 'text-gray-700'}`}>
                 {tag.customMessage}
               </p>
             </div>
@@ -175,7 +175,7 @@ export function MobileClaim({
             className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
           >
             <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
+              <Shield className="h-5 w-5 text-mobile-primary" />
               Info Darurat
             </h3>
             <div className="space-y-3">
@@ -191,33 +191,33 @@ export function MobileClaim({
               {emergencyInfo.emergencyPhone && (
                 <button
                   onClick={handleEmergencyCall}
-                  className="w-full flex items-center justify-between bg-green-50 rounded-xl px-4 py-3 active:bg-green-100 transition-colors"
+                  className="w-full flex items-center justify-between bg-mobile-success-lighter rounded-xl px-4 py-3 active:bg-mobile-success-lighter transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">
+                    <Phone className="h-4 w-4 text-mobile-success" />
+                    <span className="text-sm font-medium text-mobile-success">
                       {emergencyInfo.emergencyPhone}
                     </span>
                   </div>
-                  <span className="text-xs text-green-600">Panggil</span>
+                  <span className="text-xs text-mobile-success">Panggil</span>
                 </button>
               )}
               {emergencyInfo.bloodType && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Golongan Darah</span>
-                  <span className="text-sm font-bold text-rose-600">{emergencyInfo.bloodType}</span>
+                  <span className="text-sm font-bold text-mobile-danger">{emergencyInfo.bloodType}</span>
                 </div>
               )}
               {emergencyInfo.allergies && (
-                <div className="bg-rose-50 rounded-xl p-3">
+                <div className="bg-mobile-danger-lighter rounded-xl p-3">
                   <p className="text-xs text-gray-500 mb-1">Alergi</p>
-                  <p className="text-sm text-rose-700">{emergencyInfo.allergies}</p>
+                  <p className="text-sm text-mobile-danger">{emergencyInfo.allergies}</p>
                 </div>
               )}
               {emergencyInfo.medicalConditions && (
-                <div className="bg-amber-50 rounded-xl p-3">
+                <div className="bg-mobile-warning-lighter rounded-xl p-3">
                   <p className="text-xs text-gray-500 mb-1">Kondisi Medis</p>
-                  <p className="text-sm text-amber-700">{emergencyInfo.medicalConditions}</p>
+                  <p className="text-sm text-mobile-warning">{emergencyInfo.medicalConditions}</p>
                 </div>
               )}
             </div>
@@ -232,7 +232,7 @@ export function MobileClaim({
           className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20"
         >
           <div className="flex items-center gap-3 mb-3">
-            <QrCode className="h-5 w-5 text-blue-600" />
+            <QrCode className="h-5 w-5 text-mobile-primary" />
             <h3 className="font-bold text-gray-900">Tentang Tag Ini</h3>
           </div>
           <p className="text-sm text-gray-600">
@@ -257,7 +257,7 @@ export function MobileClaim({
               className="w-full flex items-center justify-between p-5 active:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-purple-600" />
+                <MapPin className="h-5 w-5 text-mobile-info" />
                 <span className="font-bold text-gray-900">Riwayat Scan</span>
                 <span className="text-xs text-gray-400">({recentScans.length})</span>
               </div>
@@ -304,8 +304,8 @@ export function MobileClaim({
               onClick={handleWhatsAppClick}
               className={`w-full rounded-2xl py-5 font-semibold shadow-xl flex items-center justify-center gap-3 ${
                 isLost
-                  ? 'bg-gradient-to-r from-rose-500 to-rose-600 shadow-rose-500/30 text-white'
-                  : 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-500/30 text-white'
+                  ? 'bg-gradient-to-r from-mobile-danger-light to-mobile-danger shadow-mobile-danger/30 text-white'
+                  : 'bg-gradient-to-r from-mobile-success-light to-mobile-success shadow-mobile-success/30 text-white'
               }`}
             >
               <MessageCircle className="h-5 w-5" />

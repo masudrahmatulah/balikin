@@ -103,6 +103,40 @@ const config: Config = {
         "on-primary-container": "#705e00",
         "on-surface-variant": "#d0c6ab",
         "inverse-primary": "#705d00",
+
+        // Mobile Design Tokens - Single Source of Truth for Mobile App
+        mobile: {
+          primary: {
+            DEFAULT: "#2563eb", // blue-600 equivalent
+            light: "#3b82f6", // blue-500
+            dark: "#1d4ed8", // blue-700
+            lighter: "#dbeafe", // blue-100
+          },
+          success: {
+            DEFAULT: "#10b981", // emerald-600
+            light: "#34d399", // emerald-500
+            lighter: "#d1fae5", // emerald-100
+          },
+          danger: {
+            DEFAULT: "#e11d48", // rose-600
+            light: "#f43f5e", // rose-500
+            lighter: "#ffe4e6", // rose-100
+          },
+          warning: {
+            DEFAULT: "#f97316", // orange-500
+            light: "#fbbf24", // amber-400
+            lighter: "#ffedd5", // orange-100
+          },
+          info: {
+            DEFAULT: "#a855f7", // purple-600
+            light: "#c084fc", // purple-500
+            lighter: "#f3e8ff", // purple-100
+          },
+          background: {
+            DEFAULT: "#f0f9ff", // blue-50
+            to: "#ffffff",
+          },
+        },
       },
       borderRadius: {
         lg: "8px", // Heritage lg

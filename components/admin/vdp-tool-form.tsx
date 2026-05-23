@@ -18,6 +18,8 @@ import { CardFooter } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Package, Download, Info, AlertCircle, Eye, Trash2, Printer, Check, X, FileDown, QrCode } from "lucide-react";
 import QRCode from "qrcode";
+import QRCodeStyling from "qr-code-styling";
+import { getPremiumQRColors } from "@/lib/premium-qr-generator";
 
 interface Tag {
   id: string;
@@ -30,6 +32,7 @@ interface Tag {
   status: string;
   tier: string;
   productType: string;
+  bundleType: string | null;
   createdAt: string;
   stickerShape: string | null;
   stickerSize: string | null;
@@ -118,6 +121,74 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     } catch (error) {
       console.error("Error generating QR preview:", error);
     }
+  };
+
+  /**
+   * Generate premium QR code using qr-code-styling for acrylic/premium tier
+   */
+  const generatePremiumQR = async (
+    url: string,
+    productType: string,
+    size: number = 600
+  ): Promise<string> => {
+    try {
+      const colors = getPremiumQRColors(productType !== "standard" ? productType : "standard");
+
+      const qrCode = new QRCodeStyling({
+        width: size,
+        height: size,
+        data: url,
+        margin: 4,
+        qrOptions: {
+          errorCorrectionLevel: "H",
+        },
+        dotsOptions: {
+          color: colors.dots,
+          type: "dots",
+        },
+        backgroundOptions: {
+          color: colors.background,
+        },
+        cornersSquareOptions: {
+          color: colors.cornerSquare,
+          type: "extra-rounded",
+        },
+        cornersDotOptions: {
+          color: colors.cornerDot,
+          type: "dot",
+        },
+      });
+
+      // Convert QR to base64 using canvas
+      return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        qrCode.apply(canvas).then(() => {
+          resolve(canvas.toDataURL('image/png'));
+        }).catch(reject);
+      });
+    } catch (error) {
+      console.error("Error generating premium QR:", error);
+      // Fallback to standard QR
+      return QRCode.toDataURL(url, {
+        width: size,
+        margin: 4,
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+    }
+  };
+
+  /**
+   * Generate standard QR code for sticker/free tier
+   */
+  const generateStandardQR = async (
+    url: string,
+    size: number = 600
+  ): Promise<string> => {
+    return QRCode.toDataURL(url, {
+      width: size,
+      margin: 4,
+      color: { dark: "#000000", light: "#ffffff" },
+    });
   };
 
   const fetchTags = async () => {
@@ -262,11 +333,18 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
       const qrUrl = `${baseUrl}/p/${slug}`;
 
-      const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-        width: 600,
-        margin: 4,
-        color: { dark: "#000000", light: "#ffffff" },
-      });
+      // Find the tag to determine tier
+      const tag = tags.find(t => t.slug === slug);
+      const isPremium = tag?.tier === "premium" || tag?.productType === "acrylic";
+      const productType = tag?.bundleType || tag?.productType || "standard";
+
+      let qrDataUrl: string;
+
+      if (isPremium) {
+        qrDataUrl = await generatePremiumQR(qrUrl, productType, 600);
+      } else {
+        qrDataUrl = await generateStandardQR(qrUrl, 600);
+      }
 
       const link = document.createElement("a");
       link.href = qrDataUrl;
@@ -283,11 +361,20 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
       const qrUrl = `${baseUrl}/p/${tag.slug}`;
-      const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-        width: 300,
-        margin: 3,
-        color: { dark: "#000000", light: "#ffffff" },
-      });
+      const isPremium = tag.tier === "premium" || tag.productType === "acrylic";
+      const productType = tag.bundleType || tag.productType || "standard";
+
+      let qrDataUrl: string;
+
+      if (isPremium) {
+        qrDataUrl = await generatePremiumQR(qrUrl, productType, 300);
+      } else {
+        qrDataUrl = await QRCode.toDataURL(qrUrl, {
+          width: 300,
+          margin: 3,
+          color: { dark: "#000000", light: "#ffffff" },
+        });
+      }
       setPreviewQrData(qrDataUrl);
     } catch (error) {
       console.error("Error generating preview QR:", error);
@@ -336,11 +423,20 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
       for (const tag of selectedTags) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
         const qrUrl = `${baseUrl}/p/${tag.slug}`;
-        const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-          width: 300,
-          margin: 3,
-          color: { dark: "#000000", light: "#ffffff" },
-        });
+        const isPremium = tag.tier === "premium" || tag.productType === "acrylic";
+        const productType = tag.bundleType || tag.productType || "standard";
+
+        let qrDataUrl: string;
+
+        if (isPremium) {
+          qrDataUrl = await generatePremiumQR(qrUrl, productType, 300);
+        } else {
+          qrDataUrl = await QRCode.toDataURL(qrUrl, {
+            width: 300,
+            margin: 3,
+            color: { dark: "#000000", light: "#ffffff" },
+          });
+        }
         qrCodes.push({ tag, qrDataUrl });
       }
       setPrintPreviewQrCodes(qrCodes);

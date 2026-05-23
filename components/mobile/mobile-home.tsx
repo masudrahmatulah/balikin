@@ -89,28 +89,28 @@ const quickActions = [
     description: 'Scan untuk melihat info pemilik',
     icon: Search,
     href: '/scan',
-    color: 'from-blue-500 to-cyan-500',
+    color: 'from-cyan-400 to-mobile-primary',
   },
   {
     title: 'Riwayat Scan',
     description: 'Lacak lokasi terakhir',
     icon: MapPin,
     href: '/mobile/history',
-    color: 'from-emerald-500 to-emerald-600',
+    color: 'from-mobile-success-light to-mobile-success',
   },
   {
     title: 'Notifikasi',
     description: 'Alert aktivitas tag',
     icon: Bell,
     href: '/mobile/notifications',
-    color: 'from-orange-500 to-amber-500',
+    color: 'from-mobile-warning-light to-mobile-warning',
   },
   {
     title: 'Mode Hilang',
     description: 'Aktifkan status darurat',
     icon: Shield,
     href: '/mobile/lost-mode',
-    color: 'from-rose-500 to-rose-600',
+    color: 'from-mobile-danger-light to-mobile-danger',
   },
 ];
 
@@ -140,9 +140,9 @@ export function MobileHome() {
   }, [session]);
 
   const statsDisplay = [
-    { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-blue-500 to-blue-600' },
-    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-emerald-500 to-emerald-600' },
-    { value: `${stats.returnRate}%`, label: 'Tingkat Kembali', icon: TrendingUp, color: 'from-purple-500 to-purple-600' },
+    { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-mobile-primary-light to-mobile-primary' },
+    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-mobile-success-light to-mobile-success' },
+    { value: `${stats.returnRate}%`, label: 'Tingkat Kembali', icon: TrendingUp, color: 'from-mobile-info-light to-mobile-info' },
   ];
 
   return (
@@ -158,7 +158,7 @@ export function MobileHome() {
               <h1 className="text-xl font-bold text-gray-900">Balikin</h1>
             </div>
             <Link href="/mobile/profile">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-mobile-primary-light to-mobile-primary flex items-center justify-center shadow-lg shadow-mobile-primary/30">
                 <span className="text-white font-bold text-lg">
                   {session?.user?.name?.charAt(0).toUpperCase() || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
                 </span>
@@ -174,7 +174,7 @@ export function MobileHome() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-rose-500/30 border border-white/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-mobile-danger-light to-mobile-danger rounded-3xl p-5 shadow-xl shadow-mobile-danger/30 border border-white/20 relative overflow-hidden"
           >
             <div className="relative flex items-center gap-3">
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -185,7 +185,7 @@ export function MobileHome() {
                 <p className="text-rose-100 text-sm">Segera cek dan aktifkan mode hilang</p>
               </div>
               <Link href="/mobile/lost-mode">
-                <div className="bg-white text-rose-600 rounded-xl px-4 py-2 font-semibold text-sm">
+                <div className="bg-white text-mobile-danger rounded-xl px-4 py-2 font-semibold text-sm">
                   Cek
                 </div>
               </Link>
@@ -201,10 +201,10 @@ export function MobileHome() {
           className="relative"
         >
           {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur-2xl opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-mobile-primary-light to-mobile-primary rounded-3xl blur-2xl opacity-20" />
 
           <Link href="/mobile/report" className="relative block">
-            <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-3xl p-6 shadow-2xl shadow-blue-500/30 border border-white/20 overflow-hidden">
+            <div className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 overflow-hidden">
               {/* Animated background pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -219,7 +219,7 @@ export function MobileHome() {
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"
+                    className="bg-mobile-danger text-white text-xs font-bold px-3 py-1.5 rounded-full"
                   >
                     URGENT
                   </motion.div>
@@ -237,7 +237,7 @@ export function MobileHome() {
                     <Clock className="h-4 w-4" />
                     <span>24/7 Aktif</span>
                   </div>
-                  <div className="bg-white text-blue-600 rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
+                  <div className="bg-white text-mobile-primary rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
                     Laporkan Sekarang
                     <ArrowRight className="h-5 w-5" />
                   </div>
@@ -278,7 +278,7 @@ export function MobileHome() {
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} href={action.href}>
-                <div className="group bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 text-center">
+                <div className="group bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 hover:shadow-xl hover:shadow-mobile-primary/10 transition-all duration-300 hover:-translate-y-1 text-center">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} text-white mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                     <action.icon className="h-6 w-6" />
                   </div>
@@ -299,7 +299,7 @@ export function MobileHome() {
           >
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Tag Saya</h3>
-              <Link href="/mobile/profile/tags" className="text-sm text-blue-600 font-medium">
+              <Link href="/mobile/profile/tags" className="text-sm text-mobile-primary font-medium">
                 Lihat Semua
               </Link>
             </div>
@@ -311,7 +311,7 @@ export function MobileHome() {
                 </div>
                 <p className="text-gray-500 text-sm mb-3">Belum ada tag</p>
                 <Link href="/dashboard/new">
-                  <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                  <div className="inline-block bg-mobile-primary text-white px-4 py-2 rounded-xl text-sm font-semibold">
                     Buat Tag Sekarang
                   </div>
                 </Link>
@@ -326,8 +326,8 @@ export function MobileHome() {
                       <div className="flex items-center gap-3">
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
                           tag.status === 'lost'
-                            ? 'bg-rose-100 text-rose-600'
-                            : 'bg-blue-100 text-blue-600'
+                            ? 'bg-mobile-danger-lighter text-mobile-danger'
+                            : 'bg-mobile-primary-lighter text-mobile-primary'
                         }`}>
                           <QrCode className="h-5 w-5" />
                         </div>
@@ -335,7 +335,7 @@ export function MobileHome() {
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-semibold text-gray-900 truncate">{tag.name}</h4>
                             {tag.status === 'lost' && (
-                              <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">HILANG</span>
+                              <span className="text-xs bg-mobile-danger-lighter text-mobile-danger px-2 py-0.5 rounded-full">HILANG</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">
@@ -360,7 +360,7 @@ export function MobileHome() {
           >
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Aktivitas Terkini</h3>
-              <Link href="/mobile/history" className="text-sm text-blue-600 font-medium">
+              <Link href="/mobile/history" className="text-sm text-mobile-primary font-medium">
                 Lihat Semua
               </Link>
             </div>
@@ -374,10 +374,10 @@ export function MobileHome() {
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       activity.status === 'success'
-                        ? 'bg-emerald-100 text-emerald-600'
+                        ? 'bg-mobile-success-lighter text-mobile-success'
                         : activity.status === 'warning'
-                        ? 'bg-rose-100 text-rose-600'
-                        : 'bg-blue-100 text-blue-600'
+                        ? 'bg-mobile-danger-lighter text-mobile-danger'
+                        : 'bg-mobile-primary-lighter text-mobile-primary'
                     }`}>
                       {activity.status === 'success' ? (
                         <CheckCircle2 className="h-6 w-6" />
