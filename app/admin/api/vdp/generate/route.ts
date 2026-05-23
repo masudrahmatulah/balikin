@@ -7,6 +7,7 @@ import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
 import JSZip from "jszip";
+import { generatePremiumQRDataURL } from "@/lib/premium-qr-generator";
 
 export const dynamic = "force-dynamic";
 
@@ -173,11 +174,7 @@ export async function POST(request: NextRequest) {
       });
 
       const qrUrl = `${baseUrl}/p/${slug}`;
-      const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-        width: 600,
-        margin: 4,
-        color: { dark: "#000000", light: "#ffffff" },
-      });
+      const qrDataUrl = await generatePremiumQRDataURL(qrUrl, "standard", 600);
 
       const base64Data = qrDataUrl.split(",")[1];
       const buffer = Buffer.from(base64Data, "base64");
@@ -219,11 +216,18 @@ export async function POST(request: NextRequest) {
         });
 
         const qrUrl = `${baseUrl}/p/${slug}`;
-        const qrDataUrl = await QRCode.toDataURL(qrUrl, {
-          width: 600,
-          margin: 4,
-          color: { dark: "#000000", light: "#ffffff" },
-        });
+        let qrDataUrl: string;
+
+        // Use premium QR for acrylic, standard QR for sticker
+        if (tier === "premium") {
+          qrDataUrl = await generatePremiumQRDataURL(qrUrl, productType !== "standard" ? productType : "standard", 600);
+        } else {
+          qrDataUrl = await QRCode.toDataURL(qrUrl, {
+            width: 600,
+            margin: 4,
+            color: { dark: "#000000", light: "#ffffff" },
+          });
+        }
 
         const base64Data = qrDataUrl.split(",")[1];
         const buffer = Buffer.from(base64Data, "base64");

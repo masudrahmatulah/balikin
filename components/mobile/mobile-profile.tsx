@@ -55,14 +55,14 @@ const menuSections = [
   {
     title: 'Akun',
     items: [
-      { icon: Tag, label: 'Tag Saya', href: '/mobile/profile/tags', color: 'from-purple-500 to-purple-600', badge: null },
-      { icon: Bell, label: 'Notifikasi', href: '/mobile/profile/notifications', color: 'from-orange-500 to-orange-600', badge: null },
+      { icon: Tag, label: 'Tag Saya', href: '/mobile/profile/tags', color: 'from-mobile-info-light to-mobile-info', badge: null },
+      { icon: Bell, label: 'Notifikasi', href: '/mobile/profile/notifications', color: 'from-mobile-warning-light to-mobile-warning', badge: null },
     ],
   },
   {
     title: 'Keamanan',
     items: [
-      { icon: Shield, label: 'Privasi & Data', href: '/mobile/profile/privacy', color: 'from-green-500 to-green-600', badge: null },
+      { icon: Shield, label: 'Privasi & Data', href: '/mobile/profile/privacy', color: 'from-mobile-success-light to-mobile-success', badge: null },
       { icon: Settings, label: 'Pengaturan', href: '/mobile/profile/settings', color: 'from-gray-500 to-gray-600', badge: null },
     ],
   },
@@ -114,7 +114,7 @@ export function MobileProfile() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-mobile-primary animate-spin" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ export function MobileProfile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-3xl p-6 shadow-2xl shadow-blue-500/30 border border-white/20 relative overflow-hidden"
+          className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 relative overflow-hidden"
         >
           {/* Background decoration */}
           <div className="absolute inset-0 opacity-10">
@@ -149,7 +149,7 @@ export function MobileProfile() {
                 </span>
               </div>
               {profileData?.user?.isVerified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-mobile-success rounded-full flex items-center justify-center border-2 border-white">
                   <Shield className="h-3 w-3 text-white" />
                 </div>
               )}
@@ -190,16 +190,16 @@ export function MobileProfile() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-rose-50 border border-rose-200 rounded-2xl p-4"
+            className="bg-mobile-danger-lighter border border-mobile-danger-lighter rounded-2xl p-4"
           >
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-rose-600" />
+              <AlertCircle className="h-5 w-5 text-mobile-danger" />
               <div className="flex-1">
-                <p className="font-semibold text-rose-900">{tagCount - stats.activeTags} Tag Hilang</p>
-                <p className="text-xs text-rose-700">Segera cek dan aktifkan mode hilang</p>
+                <p className="font-semibold text-mobile-danger">{tagCount - stats.activeTags} Tag Hilang</p>
+                <p className="text-xs text-mobile-danger">Segera cek dan aktifkan mode hilang</p>
               </div>
               <Link href="/mobile/lost-mode">
-                <div className="bg-rose-600 text-white px-3 py-2 rounded-xl text-sm font-semibold">
+                <div className="bg-mobile-danger text-white px-3 py-2 rounded-xl text-sm font-semibold">
                   Cek
                 </div>
               </Link>
@@ -228,7 +228,7 @@ export function MobileProfile() {
                     </div>
                     <div className="flex items-center gap-2">
                       {item.badge && (
-                        <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+                        <span className="bg-mobile-primary-lighter text-mobile-primary text-xs font-semibold px-2.5 py-1 rounded-full">
                           {item.badge}
                         </span>
                       )}
@@ -248,16 +248,16 @@ export function MobileProfile() {
           transition={{ delay: 0.3 }}
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 flex items-center gap-4 hover:bg-rose-50/50 transition-colors group disabled:opacity-50"
+          className="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 flex items-center gap-4 hover:bg-mobile-danger-lighter/50 transition-colors group disabled:opacity-50"
         >
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-mobile-danger-light to-mobile-danger flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
             {isSigningOut ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             ) : (
               <LogOut className="h-5 w-5 text-white" />
             )}
           </div>
-          <span className="font-semibold text-rose-600">
+          <span className="font-semibold text-mobile-danger">
             {isSigningOut ? 'Keluar...' : 'Keluar'}
           </span>
         </motion.button>
