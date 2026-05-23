@@ -3,6 +3,10 @@ import { getAdminSession } from "@/lib/admin";
 import { DashboardStats } from "@/components/admin/dashboard-stats";
 import { ActivityFeed } from "@/components/admin/activity-feed";
 import { CriticalAlerts } from "@/components/admin/critical-alerts";
+import { ManufacturingQueueMetrics, ManufacturingQueueMetricsSkeleton } from "@/components/admin/overview/manufacturing-queue-metrics";
+import { VdpBatchDownload, VdpBatchDownloadSkeleton } from "@/components/admin/overview/vdp-batch-download";
+import { SystemHealthMonitor, SystemHealthMonitorSkeleton } from "@/components/admin/overview/system-health-monitor";
+import { VerificationQueue, VerificationQueueSkeleton } from "@/components/admin/overview/verification-queue";
 import {
   DashboardStatsSkeleton,
   ActivityFeedSkeleton,
@@ -54,7 +58,7 @@ export default async function AdminPage() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Real-time metrics and system status
+            Real-time metrics and operational controls
           </p>
         </div>
         <div className="flex gap-3">
@@ -77,6 +81,27 @@ export default async function AdminPage() {
         revenue={stats.revenue}
         materials={stats.materials}
       />
+
+      {/* Operational Overview Section */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
+          Operational Overview
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Manufacturing Queue - Production & Admin */}
+          <ManufacturingQueueMetrics />
+
+          {/* VDP Batch Download - Production & Admin */}
+          <VdpBatchDownload />
+
+          {/* System Health Monitor - Production & Admin */}
+          <SystemHealthMonitor />
+
+          {/* Verification Queue - Customer Service & Admin */}
+          <VerificationQueue />
+        </div>
+      </div>
 
       {/* Dashboard Body - Main Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -108,6 +133,17 @@ export const AdminPageLoading = () => {
 
       {/* Skeleton Stats */}
       <DashboardStatsSkeleton />
+
+      {/* Operational Overview Skeleton */}
+      <div className="space-y-2">
+        <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <ManufacturingQueueMetricsSkeleton />
+          <VdpBatchDownloadSkeleton />
+          <SystemHealthMonitorSkeleton />
+          <VerificationQueueSkeleton />
+        </div>
+      </div>
 
       {/* Skeleton Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

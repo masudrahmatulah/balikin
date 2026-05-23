@@ -25,9 +25,15 @@ export async function getStockStatsServer() {
       );
 
       // Get tier-specific stats with timeout protection
-      let stickerCount = { produced: 0, claimed: 0 };
+      // We need to categorize all tags without overlapping counts
+      // Categories: stickers, acrylic, bundles, freeTags, lost
+      let stickersCount = { produced: 0, claimed: 0 };
       let acrylicCount = { produced: 0, claimed: 0 };
+      let bundlesCount = { produced: 0, claimed: 0 };
+      let freeTagsCount = { produced: 0, claimed: 0 };
+      let lostCount = { produced: 0, claimed: 0 };
 
+      // Stickers: tier="sticker" (regardless of bundleType or status)
       try {
         const stickerData = await withQueryTimeout(
           () => db
@@ -37,7 +43,7 @@ export async function getStockStatsServer() {
           { count: 0, claimed: 0 },
           2000
         );
-        stickerCount = {
+        stickersCount = {
           produced: stickerData[0]?.count || 0,
           claimed: stickerData[0]?.claimed || 0,
         };
@@ -45,6 +51,7 @@ export async function getStockStatsServer() {
         console.warn("Could not query sticker tier data:", e);
       }
 
+      // Acrylic: tier="premium" (regardless of bundleType or status)
       try {
         const acrylicData = await withQueryTimeout(
           () => db
@@ -62,14 +69,82 @@ export async function getStockStatsServer() {
         console.warn("Could not query premium tier data:", e);
       }
 
+      // Bundles: bundleType IS NOT NULL AND tier NOT IN ("sticker", "premium")
+      try {
+        const bundlesData = await withQueryTimeout(
+          () => db
+            .select({ count: count(), claimed: count(tags.ownerId) })
+            .from(tags)
+            .where(
+              and(
+                isNotNull(tags.bundleType),
+                sql`${tags.tier} != 'sticker'`,
+                sql`${tags.tier} != 'premium'`
+              )
+            ),
+          { count: 0, claimed: 0 },
+          2000
+        );
+        bundlesCount = {
+          produced: bundlesData[0]?.count || 0,
+          claimed: bundlesData[0]?.claimed || 0,
+        };
+      } catch (e) {
+        console.warn("Could not query bundles data:", e);
+      }
+
+      // Free Tags: tier="free" AND bundleType IS NULL AND status!="lost"
+      try {
+        const freeTagsData = await withQueryTimeout(
+          () => db
+            .select({ count: count(), claimed: count(tags.ownerId) })
+            .from(tags)
+            .where(
+              and(
+                eq(tags.tier, "free"),
+                isNull(tags.bundleType),
+                sql`${tags.status} != 'lost'`
+              )
+            ),
+          { count: 0, claimed: 0 },
+          2000
+        );
+        freeTagsCount = {
+          produced: freeTagsData[0]?.count || 0,
+          claimed: freeTagsData[0]?.claimed || 0,
+        };
+      } catch (e) {
+        console.warn("Could not query free tags data:", e);
+      }
+
+      // Lost: status="lost" (regardless of other fields)
+      try {
+        const lostData = await withQueryTimeout(
+          () => db
+            .select({ count: count(), claimed: count(tags.ownerId) })
+            .from(tags)
+            .where(eq(tags.status, "lost")),
+          { count: 0, claimed: 0 },
+          2000
+        );
+        lostCount = {
+          produced: lostData[0]?.count || 0,
+          claimed: lostData[0]?.claimed || 0,
+        };
+      } catch (e) {
+        console.warn("Could not query lost tags data:", e);
+      }
+
       return {
         totalProduced,
         totalClaimed: claimedResult[0]?.count || 0,
         lowStockThreshold: 50,
         byType: {
-          stickers: stickerCount,
+          stickers: stickersCount,
           acrylic: acrylicCount,
-          bundles: { produced: 0, claimed: 0 },
+          bundles: bundlesCount,
+          freeTags: freeTagsCount,
+          lost: lostCount,
         },
       };
     },

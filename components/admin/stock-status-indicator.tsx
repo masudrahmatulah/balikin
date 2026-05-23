@@ -15,6 +15,8 @@ interface StockStats {
     stickers: { produced: number; claimed: number };
     acrylic: { produced: number; claimed: number };
     bundles: { produced: number; claimed: number };
+    freeTags: { produced: number; claimed: number };
+    lost: { produced: number; claimed: number };
   };
 }
 
@@ -37,6 +39,8 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
       stickers: { produced: 0, claimed: 0 },
       acrylic: { produced: 0, claimed: 0 },
       bundles: { produced: 0, claimed: 0 },
+      freeTags: { produced: 0, claimed: 0 },
+      lost: { produced: 0, claimed: 0 },
     },
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +103,8 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
             </div>
             <Progress value={claimRate} className="h-2" />
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>{stats.totalClaimed} claimed</span>
+              <span className="font-medium text-green-600 dark:text-green-400">{stats.totalClaimed} claimed</span>
+              <span className="font-medium text-orange-600 dark:text-orange-400">{unclaimedCount} unclaimed</span>
               <span>{stats.totalProduced} produced</span>
             </div>
           </div>
@@ -112,9 +117,17 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Stickers</span>
-                <span className="font-medium">
-                  {stats.byType.stickers.produced - stats.byType.stickers.claimed} unclaimed
-                </span>
+                <div className="flex gap-3">
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {stats.byType.stickers.claimed} claimed
+                  </span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {stats.byType.stickers.produced - stats.byType.stickers.claimed} unclaimed
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({stats.byType.stickers.produced} total)
+                  </span>
+                </div>
               </div>
               <Progress
                 value={
@@ -130,9 +143,17 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Acrylic Tags</span>
-                <span className="font-medium">
-                  {stats.byType.acrylic.produced - stats.byType.acrylic.claimed} unclaimed
-                </span>
+                <div className="flex gap-3">
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {stats.byType.acrylic.claimed} claimed
+                  </span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {stats.byType.acrylic.produced - stats.byType.acrylic.claimed} unclaimed
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({stats.byType.acrylic.produced} total)
+                  </span>
+                </div>
               </div>
               <Progress
                 value={
@@ -148,14 +169,74 @@ export function StockStatusIndicator({ className = "", autoRefresh = true }: Sto
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600 dark:text-gray-400">Bundles</span>
-                <span className="font-medium">
-                  {stats.byType.bundles.produced - stats.byType.bundles.claimed} unclaimed
-                </span>
+                <div className="flex gap-3">
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {stats.byType.bundles.claimed} claimed
+                  </span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {stats.byType.bundles.produced - stats.byType.bundles.claimed} unclaimed
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({stats.byType.bundles.produced} total)
+                  </span>
+                </div>
               </div>
               <Progress
                 value={
                   stats.byType.bundles.produced > 0
                     ? (stats.byType.bundles.claimed / stats.byType.bundles.produced) * 100
+                    : 0
+                }
+                className="h-1.5"
+              />
+            </div>
+
+            {/* Free Tags */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Free Tags</span>
+                <div className="flex gap-3">
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {stats.byType.freeTags.claimed} claimed
+                  </span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {stats.byType.freeTags.produced - stats.byType.freeTags.claimed} unclaimed
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({stats.byType.freeTags.produced} total)
+                  </span>
+                </div>
+              </div>
+              <Progress
+                value={
+                  stats.byType.freeTags.produced > 0
+                    ? (stats.byType.freeTags.claimed / stats.byType.freeTags.produced) * 100
+                    : 0
+                }
+                className="h-1.5"
+              />
+            </div>
+
+            {/* Lost */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Lost</span>
+                <div className="flex gap-3">
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {stats.byType.lost.claimed} claimed
+                  </span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {stats.byType.lost.produced - stats.byType.lost.claimed} unclaimed
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({stats.byType.lost.produced} total)
+                  </span>
+                </div>
+              </div>
+              <Progress
+                value={
+                  stats.byType.lost.produced > 0
+                    ? (stats.byType.lost.claimed / stats.byType.lost.produced) * 100
                     : 0
                 }
                 className="h-1.5"

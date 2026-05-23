@@ -24,6 +24,9 @@ export const DivisionPermissions = {
     'material_logs',
     'vdp_tool',
     'production_dashboard',
+    'manufacturing_queue',
+    'vdp_batch_download',
+    'system_health_monitor',
   ],
   [Division.CUSTOMER_SERVICE]: [
     'payment_verification',
@@ -32,6 +35,9 @@ export const DivisionPermissions = {
     'client_management',
     'sticker_orders',
     'requests',
+    'verification_queue',
+    'lost_found_success_rate',
+    'batch_activation_metrics',
   ],
   [Division.MARKETING]: [
     'analytics',
@@ -40,6 +46,8 @@ export const DivisionPermissions = {
     'finder_to_buyer',
     'marketing_dashboard',
     'campaigns',
+    'geo_scan_heatmap',
+    'analytics_dashboard',
   ],
   [Division.ADMIN]: ['*'], // Full access to all features
 } as const;
@@ -88,7 +96,7 @@ export const DivisionInfo = {
  */
 export const DivisionNavigation = {
   [Division.PRODUCTION]: [
-    { title: 'Dashboard', href: '/admin/production', icon: '📊' },
+    { title: 'Dashboard', href: '/admin', icon: '📊' },
     { title: 'Print Queue', href: '/admin/print-queue', icon: '🖨️' },
     { title: 'Stock Status', href: '/admin/production/stock', icon: '📊' },
     { title: 'Material Logs', href: '/admin/material-logs', icon: '📋' },
