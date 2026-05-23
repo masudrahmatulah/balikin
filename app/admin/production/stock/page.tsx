@@ -55,7 +55,7 @@ export default async function ProductionStockPage() {
       {/* Stock by Type Legend */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold mb-4">Kategori Stok</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
               <span className="text-white text-sm">📋</span>
@@ -88,6 +88,30 @@ export default async function ProductionStockPage() {
               <p className="font-medium text-gray-900 dark:text-white">Bundles</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Paket bundle modul spesifik
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm">🏷️</span>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">Free Tags</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                QR tags gratis standar
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm">❌</span>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">Lost</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                QR tags yang hilang
               </p>
             </div>
           </div>
