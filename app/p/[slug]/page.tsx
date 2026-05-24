@@ -5,6 +5,7 @@ import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags, scanLogs, emergencyInformation } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 import { logScan } from '@/app/actions/scan';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { PremiumGeolocation } from '@/components/premium-geolocation';
@@ -32,16 +33,67 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
+const getTagBySlug = unstable_cache(
+  async (slug: string) => {
+    return db.query.tags.findFirst({
+      where: eq(tags.slug, slug),
+    });
+  },
+  ['tag-by-slug'],
+  { revalidate: 300, tags: ['tags'] }
+);
+
+const getEmergencyInfo = unstable_cache(
+  async (tagId: string) => {
+    return db.query.emergencyInformation.findFirst({
+      where: eq(emergencyInformation.tagId, tagId),
+    });
+  },
+  ['emergency-info-by-tag'],
+  { revalidate: 300, tags: ['emergency-info'] }
+);
+
+const getRecentScans = unstable_cache(
+  async (tagId: string, isStickerTag: boolean, stickerHistoryCutoff: Date) => {
+    if (isStickerTag) {
+      return db.query.scanLogs.findMany({
+        where: and(eq(scanLogs.tagId, tagId), gte(scanLogs.scannedAt, stickerHistoryCutoff)),
+        orderBy: [desc(scanLogs.scannedAt)],
+        limit: 5,
+      });
+    }
+    return db.query.scanLogs.findMany({
+      where: eq(scanLogs.tagId, tagId),
+      orderBy: [desc(scanLogs.scannedAt)],
+      limit: 5,
+    });
+  },
+  ['recent-scans-by-tag'],
+  { revalidate: 60, tags: ['scan-logs'] }
+);
+
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { slug } = await params;
 
-  const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, slug),
-  });
+  const tag = await getTagBySlug(slug);
 
   if (!tag) {
     notFound();
   }
+
+  const isLost = tag.status === 'lost';
+  const isUnclaimed = !tag.ownerId;
+  const isFreeTag = isFreeProduct(tag);
+  const isStickerTag = isStickerProduct(tag);
+  const isAcrylicTag = isAcrylicProduct(tag);
+  const productLabel = getTagProductLabel(tag);
+  const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  // Batch parallel queries for better performance
+  const [emergencyInfo, recentScans] = await Promise.all([
+    getEmergencyInfo(tag.id),
+    isLost && !isFreeTag ? getRecentScans(tag.id, isStickerTag, stickerHistoryCutoff) : Promise.resolve([]),
+  ]);
 
   // Check ownership - if owner is viewing, redirect to private page
   // Skip redirect for unclaimed tags or if viewing from claim page
@@ -61,36 +113,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // For regular tags without tab 2, show public page (owner might want to see what others see)
   }
 
-  // Log scan if status is lost
-  if (tag.status === 'lost') {
-    // Run logging in background without blocking
+  // Log scan if status is lost (non-blocking)
+  if (isLost) {
     logScan(tag.id).catch(console.error);
   }
-
-  const isLost = tag.status === 'lost';
-  const isUnclaimed = !tag.ownerId;
-  const isFreeTag = isFreeProduct(tag);
-  const isStickerTag = isStickerProduct(tag);
-  const isAcrylicTag = isAcrylicProduct(tag);
-  const productLabel = getTagProductLabel(tag);
-  const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-  // Get recent scan logs for lost items
-  let recentScans: typeof scanLogs.$inferSelect[] = [];
-  if (isLost && !isFreeTag) {
-    recentScans = await db.query.scanLogs.findMany({
-      where: isStickerTag
-        ? and(eq(scanLogs.tagId, tag.id), gte(scanLogs.scannedAt, stickerHistoryCutoff))
-        : eq(scanLogs.tagId, tag.id),
-      orderBy: [desc(scanLogs.scannedAt)],
-      limit: 5,
-    });
-  }
-
-  // Get emergency information for this tag
-  const emergencyInfo = await db.query.emergencyInformation.findFirst({
-    where: eq(emergencyInformation.tagId, tag.id),
-  });
 
   // Check if tag is premium for geolocation feature
   const isPremium = tag.tier === 'premium' || tag.productType === 'acrylic' || tag.productType === 'sticker';
@@ -122,8 +148,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         )}
       </div>
 
-      {/* Emergency Information */}
-      {emergencyInfo && <EmergencyInfoDisplay emergencyInfo={emergencyInfo || null} />}
+      {/* Emergency Information - restricted to tag owner only */}
+      {emergencyInfo && session?.user?.id === tag.ownerId && <EmergencyInfoDisplay emergencyInfo={emergencyInfo} />}
 
       {/* Main Card */}
       <Card className={isLost ? 'border-red-200 shadow-red-100' : ''}>

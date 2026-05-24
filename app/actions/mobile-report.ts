@@ -37,11 +37,9 @@ export async function reportFoundItem(params: ReportFoundItemParams) {
       deviceInfo: message ? `Finder message: ${message}` : 'Found item report via mobile',
     });
 
-    // If the tag is lost, send notification to owner
     if (tag.status === 'lost' && tag.contactWhatsapp) {
       // TODO: Implement WhatsApp notification
       // For now, just log that notification should be sent
-      console.log('[REPORT] Tag is lost, should notify owner:', tag.contactWhatsapp);
     }
 
     revalidatePath(`/p/${tag.slug}`);
@@ -54,7 +52,6 @@ export async function reportFoundItem(params: ReportFoundItemParams) {
       message: 'Laporan berhasil dikirim',
     };
   } catch (error) {
-    console.error('[REPORT] Error reporting found item:', error);
     return {
       success: false,
       error: 'Terjadi kesalahan saat mengirim laporan',
@@ -88,7 +85,6 @@ export async function getTagByQR(qrCode: string) {
       },
     };
   } catch (error) {
-    console.error('[REPORT] Error getting tag:', error);
     return {
       success: false,
       error: 'Terjadi kesalahan',

@@ -11,7 +11,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test:email": "tsx scripts/test-email.ts",
-    "diagnose": "tsx scripts/diagnose-db.js"
+    "diagnose": "tsx scripts/diagnose-db.js",
+    "lighthouse": "lhci autorun",
+    "lighthouse:collect": "lhci collect"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -51,6 +53,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.4",
+    "@lhci/cli": "^0.15.1",
     "@types/jspdf": "^1.3.3",
     "@types/node": "^22",
     "@types/qrcode": "^1.5.6",

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import {
   User,
   Settings,
@@ -100,8 +99,7 @@ export function MobileProfile() {
     try {
       await signOut();
       router.push('/sign-in');
-    } catch (error) {
-      console.error('Sign out error:', error);
+    } catch {
       setIsSigningOut(false);
     }
   };

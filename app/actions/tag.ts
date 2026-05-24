@@ -10,6 +10,55 @@ import { redirect } from 'next/navigation';
 import { FREE_TAG_LIMIT } from '@/lib/constants';
 import { ProductType } from '@/lib/product';
 
+// Validation functions
+function validateTagName(name: string): string {
+  if (!name || name.trim().length === 0) {
+    throw new Error('Nama tag wajib diisi');
+  }
+  if (name.length > 100) {
+    throw new Error('Nama tag maksimal 100 karakter');
+  }
+  // Allow alphanumeric, spaces, and common punctuation
+  if (!/^[a-zA-Z0-9一-鿿ऀ-ॿ\s\-_.,!?@#$%&*()]+$/.test(name)) {
+    throw new Error('Nama tag mengandung karakter tidak valid');
+  }
+  return name.trim();
+}
+
+function validateWhatsAppNumber(phone: string): string {
+  if (!phone || phone.trim().length === 0) {
+    throw new Error('Nomor WhatsApp wajib diisi');
+  }
+  // Allow Indonesian phone format: +62 or 62 or 0 followed by 9-12 digits
+  const phoneRegex = /^(\+62|62|0)[0-9]{9,12}$/;
+  if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+    throw new Error('Format nomor WhatsApp tidak valid. Gunakan format: +62812XXXXXXX, 62812XXXXXXX, atau 0812XXXXXXX');
+  }
+  return phone.replace(/\s/g, '');
+}
+
+function validateCustomMessage(message?: string | null): string | null {
+  if (!message) return null;
+  if (message.length > 500) {
+    throw new Error('Pesan custom maksimal 500 karakter');
+  }
+  return message.trim();
+}
+
+function validateRewardNote(note?: string | null): string | null {
+  if (!note) return null;
+  if (note.length > 200) {
+    throw new Error('Catatan imbalan maksimal 200 karakter');
+  }
+  return note.trim();
+}
+
+function sanitizeInput(input: string): string {
+  return input
+    .replace(/[<>]/g, '') // Remove < and >
+    .trim();
+}
+
 export interface CreateTagInput {
   name: string;
   contactWhatsapp: string;
@@ -33,6 +82,17 @@ export async function createTag(data: CreateTagInput) {
     throw new Error('Unauthorized');
   }
 
+  // Validate inputs
+  const validatedName = validateTagName(data.name);
+  const validatedPhone = validateWhatsAppNumber(data.contactWhatsapp);
+  const validatedCustomMessage = validateCustomMessage(data.customMessage);
+  const validatedRewardNote = validateRewardNote(data.rewardNote);
+
+  // Sanitize inputs
+  const sanitizedName = sanitizeInput(validatedName);
+  const sanitizedCustomMessage = validatedCustomMessage ? sanitizeInput(validatedCustomMessage) : null;
+  const sanitizedRewardNote = validatedRewardNote ? sanitizeInput(validatedRewardNote) : null;
+
   // Check free tier limit for users without premium tags
   if (!data.tier || data.tier === 'free') {
     const userTags = await db.query.tags.findMany({
@@ -43,7 +103,7 @@ export async function createTag(data: CreateTagInput) {
     const freeTagCount = userTags.filter(tag => tag.tier === 'free' || !tag.tier).length;
 
     if (!hasPremiumTag && freeTagCount >= FREE_TAG_LIMIT) {
-      throw new Error(`Free tier limit reached. Maximum ${FREE_TAG_LIMIT} tags allowed for free users. Please upgrade to premium for unlimited tags.`);
+      throw new Error(`Batas gratis tercapai. Maksimal ${FREE_TAG_LIMIT} tag untuk pengguna gratis. Silakan upgrade ke premium untuk tag tak terbatas.`);
     }
   }
 
@@ -58,12 +118,12 @@ export async function createTag(data: CreateTagInput) {
     : false;
 
   await db.insert(tags).values({
-    name: data.name,
+    name: sanitizedName,
     slug,
     ownerId: session.user.id,
-    contactWhatsapp: data.contactWhatsapp,
-    customMessage: data.customMessage || null,
-    rewardNote: data.rewardNote || null,
+    contactWhatsapp: validatedPhone,
+    customMessage: sanitizedCustomMessage,
+    rewardNote: sanitizedRewardNote,
     status: 'normal',
     tier: data.tier || (isPremium ? 'premium' : 'free'),
     productType,
@@ -175,12 +235,18 @@ export async function updateTag(tagId: string, data: Partial<CreateTagInput> & {
   const requestedWhatsAppAlertsEnabled = data.whatsappAlertsEnabled ?? tag.whatsappAlertsEnabled ?? isPremium;
   const nextWhatsAppAlertsEnabled = isPremium ? requestedWhatsAppAlertsEnabled : false;
 
+  // Validate and sanitize inputs
+  const validatedName = data.name ? validateTagName(data.name) : undefined;
+  const validatedPhone = data.contactWhatsapp ? validateWhatsAppNumber(data.contactWhatsapp) : undefined;
+  const validatedCustomMessage = data.customMessage !== undefined ? validateCustomMessage(data.customMessage) : undefined;
+  const validatedRewardNote = data.rewardNote !== undefined ? validateRewardNote(data.rewardNote) : undefined;
+
   await db.update(tags)
     .set({
-      name: data.name,
-      contactWhatsapp: data.contactWhatsapp,
-      customMessage: data.customMessage || null,
-      rewardNote: data.rewardNote || null,
+      name: validatedName,
+      contactWhatsapp: validatedPhone,
+      customMessage: validatedCustomMessage,
+      rewardNote: validatedRewardNote,
       tier: nextTier,
       productType: nextProductType,
       isVerified: data.isVerified,

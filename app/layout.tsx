@@ -76,35 +76,20 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
       </head>
       <body className="overflow-x-hidden antialiased">
+        {/* Skip-to-content link for keyboard users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <Providers>
-          {children}
+          <div id="main-content">
+            {children}
+          </div>
         </Providers>
         {/* Service Worker Cleanup Script - Removes old service workers that cause redirect errors */}
-        <Script
-          id="service-worker-cleanup"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                if ('serviceWorker' in navigator) {
-                  // Unregister all service workers untuk fix redirect error
-                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) {
-                      registration.unregister();
-                    });
-                  });
-                  // Clear all caches
-                  if ('caches' in window) {
-                    caches.keys().then(function(cacheNames) {
-                      cacheNames.forEach(function(cacheName) {
-                        caches.delete(cacheName);
-                      });
-                    });
-                  }
-                }
-              })();
-            `,
-          }}
-        />
+        <Script src="/service-worker-cleanup.js" id="service-worker-cleanup" />
       </body>
     </html>
   );
