@@ -15,6 +15,7 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export interface Product {
   name: string;
@@ -153,9 +154,11 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                             className="relative aspect-[4/3] cursor-pointer group"
                             onClick={() => setZoomedImage(product.images![currentImageIndices[index] || 0])}
                           >
-                            <img
+                            <Image
                               src={product.images[currentImageIndices[index] || 0]}
                               alt={`${product.name} - Image ${currentImageIndices[index] || 0 + 1}`}
+                              width={400}
+                              height={300}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
@@ -216,9 +219,11 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                                     : 'border-gray-200 hover:border-gray-300'
                                 }`}
                               >
-                                <img
+                                <Image
                                   src={image}
                                   alt={`${product.name} thumbnail ${imgIndex + 1}`}
+                                  width={64}
+                                  height={64}
                                   className="w-full h-full object-cover"
                                 />
                               </button>
@@ -355,18 +360,25 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
               onClick={() => setZoomedImage(null)}
               className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-pointer"
             >
-              <motion.img
+              <motion.div
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.8 }}
-                src={zoomedImage}
-                alt="Zoomed product image"
-                className="max-w-4xl max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                className="max-w-4xl max-h-[90vh] object-contain rounded-lg shadow-2xl relative"
                 onClick={(e) => e.stopPropagation()}
-              />
+              >
+                <Image
+                  src={zoomedImage}
+                  alt="Zoomed product image"
+                  width={1600}
+                  height={1200}
+                  className="max-w-4xl max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                />
+              </motion.div>
               <button
                 onClick={() => setZoomedImage(null)}
                 className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-all duration-200"
+                aria-label="Close zoom"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

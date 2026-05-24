@@ -1,0 +1,73 @@
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npm run dev",
+      "startServerReadyPattern": "ready",
+      "startServerReadyTimeout": 60000,
+      "url": [
+        "http://localhost:3000",
+        "http://localhost:3000/about"
+      ],
+      "numberOfRuns": 2,
+      "chromePath": "/home/mesot01/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome",
+      "settings": {
+        "chromeFlags": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --headless=new",
+        "formFactor": "desktop",
+        "throttling": {
+          "rttMs": 40,
+          "throughputKbps": 10240,
+          "cpuSlowdownMultiplier": 1,
+          "requestLatencyMs": 0,
+          "downloadThroughputKbps": 0,
+          "uploadThroughputKbps": 0
+        },
+        "screenEmulation": {
+          "mobile": false,
+          "width": 1920,
+          "height": 1080,
+          "deviceScaleFactor": 1,
+          "disabled": false
+        }
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.7 }],
+        "categories:accessibility": ["warn", { "minScore": 0.8 }],
+        "categories:best-practices": ["warn", { "minScore": 0.8 }],
+        "categories:seo": ["warn", { "minScore": 0.8 }],
+        "unused-javascript": ["off"],
+        "unused-css-rules": ["off"],
+        "unminified-javascript": ["off"],
+        "legacy-javascript": ["off"],
+        "valid-source-maps": ["off"],
+        "redirects": ["off"],
+        "bf-cache": ["off"],
+        "cls-culprits-insight": ["off"],
+        "document-latency-insight": ["off"],
+        "duplicated-javascript-insight": ["off"],
+        "font-display-insight": ["off"],
+        "forced-reflow-insight": ["off"],
+        "image-delivery-insight": ["off"],
+        "interaction-to-next-paint-insight": ["off"],
+        "lcp-discovery-insight": ["off"],
+        "lcp-lazy-loaded": ["off"],
+        "lcp-phases-insight": ["off"],
+        "legacy-javascript-insight": ["off"],
+        "meta-viewport": ["off"],
+        "modern-http-insight": ["off"],
+        "network-dependency-tree-insight": ["off"],
+        "non-composited-animations": ["off"],
+        "prioritize-lcp-image": ["off"],
+        "third-parties-insight": ["off"],
+        "viewport-insight": ["off"],
+        "dom-size-insight": ["off"],
+        "largest-contentful-paint": ["off"]
+      }
+    }
+  }
+}

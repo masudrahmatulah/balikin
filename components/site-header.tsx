@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
@@ -73,7 +74,14 @@ export function SiteHeader() {
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.3 }}
             >
-              <img src="/logo-icon.png" alt="Balikin Logo" className="h-20 w-[260px]" />
+              <Image
+                src="/logo-icon.png"
+                alt="Balikin Logo"
+                width={520}
+                height={80}
+                priority
+                className="h-20 w-auto"
+              />
             </motion.div>
           </Link>
 
