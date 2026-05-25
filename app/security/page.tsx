@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-shell";
 import { buildMetadata } from "@/lib/seo";
 import { SecurityContent } from "./security-content";
+import { WebPageJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pusat Keamanan & Privasi",
@@ -12,11 +13,17 @@ export const metadata: Metadata = buildMetadata({
 
 export default function SecurityPage() {
   return (
-    <MarketingShell
-      title="Pusat Keamanan & Privasi"
-      description="Transparansi penuh tentang bagaimana kami melindungi data Anda dengan standar keamanan kelas dunia."
-    >
-      <SecurityContent />
-    </MarketingShell>
+    <>
+      <WebPageJsonLd
+        name="Pusat Keamanan & Privasi - Balikin"
+        description="Transparansi penuh tentang bagaimana kami melindungi data Anda dengan standar keamanan kelas dunia."
+      />
+      <MarketingShell
+        title="Pusat Keamanan & Privasi"
+        description="Transparansi penuh tentang bagaimana kami melindungi data Anda dengan standar keamanan kelas dunia."
+      >
+        <SecurityContent />
+      </MarketingShell>
+    </>
   );
 }

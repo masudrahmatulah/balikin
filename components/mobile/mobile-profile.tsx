@@ -1,23 +1,21 @@
 'use client';
 
 import {
-  User,
   Settings,
-  QrCode,
   Bell,
   Shield,
   HelpCircle,
   LogOut,
   ChevronRight,
-  Camera,
   Tag,
   AlertCircle,
-  Loader2
+  Loader2,
+  User
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 
 interface UserProfile {
   id: string;
@@ -74,27 +72,32 @@ const menuSections = [
 ];
 
 export function MobileProfile() {
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  useEffect(() => {
+  const fetchProfile = useCallback(async () => {
     if (session?.user?.id) {
-      fetch('/api/mobile/user-profile')
-        .then(res => res.json())
-        .then(data => {
+      try {
+        const res = await fetch('/api/mobile/user-profile', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
           setProfileData(data);
-          setIsLoading(false);
-        })
-        .catch(() => setIsLoading(false));
+        }
+      } catch {}
+      setIsLoading(false);
     } else {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [session?.user?.id]);
 
-  const handleSignOut = async () => {
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);
     try {
       await signOut();
@@ -102,24 +105,29 @@ export function MobileProfile() {
     } catch {
       setIsSigningOut(false);
     }
-  };
+  }, [router]);
 
   const displayName = session?.user?.name || profileData?.user?.name || 'Pengguna';
   const displayEmail = session?.user?.email || profileData?.user?.email || '';
   const stats = profileData?.stats || { activeTags: 0, totalTags: 0, totalScans: 0, returnedItems: 0 };
   const tagCount = stats.totalTags > 0 ? stats.totalTags : (profileData?.tags?.length || 0);
 
+  const lostTagsCount = useMemo(() => tagCount - stats.activeTags, [tagCount, stats.activeTags]);
+  const hasLostTags = lostTagsCount > 0;
+  const isVerifiedUser = profileData?.user?.isVerified;
+
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-mobile-primary animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" aria-live="polite">
+        <Loader2 className="h-8 w-8 text-mobile-primary animate-spin" aria-hidden="true" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
           <h1 className="text-xl font-bold text-gray-900">Profil</h1>
@@ -127,14 +135,8 @@ export function MobileProfile() {
       </header>
 
       <main className="px-4 py-6 space-y-6">
-        {/* Profile Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 relative overflow-hidden"
-        >
-          {/* Background decoration */}
-          <div className="absolute inset-0 opacity-10">
+        <div className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 relative overflow-hidden animate-fade-up-20">
+          <div className="absolute inset-0 opacity-10" aria-hidden="true">
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-white rounded-full" />
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white rounded-full" />
           </div>
@@ -142,12 +144,10 @@ export function MobileProfile() {
           <div className="relative flex items-center gap-4">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <span className="text-3xl font-bold text-white">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
+                <span className="text-3xl font-bold text-white">{avatarInitial}</span>
               </div>
-              {profileData?.user?.isVerified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-mobile-success rounded-full flex items-center justify-center border-2 border-white">
+              {isVerifiedUser && (
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-mobile-success rounded-full flex items-center justify-center border-2 border-white" aria-label="Verified user">
                   <Shield className="h-3 w-3 text-white" />
                 </div>
               )}
@@ -157,9 +157,9 @@ export function MobileProfile() {
               <h2 className="text-xl font-bold text-white truncate">{displayName}</h2>
               <p className="text-blue-100 text-sm truncate">{displayEmail}</p>
               <div className="mt-2 inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <Shield className="h-3 w-3 text-white" />
+                <Shield className="h-3 w-3 text-white" aria-hidden="true" />
                 <span className="text-xs text-white font-medium">
-                  {profileData?.user?.isVerified ? 'Verified User' : 'Free User'}
+                  {isVerifiedUser ? 'Verified User' : 'Free User'}
                 </span>
               </div>
             </div>
@@ -181,44 +181,33 @@ export function MobileProfile() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Lost Tags Alert */}
-        {stats.activeTags < tagCount && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-mobile-danger-lighter border border-mobile-danger-lighter rounded-2xl p-4"
-          >
+        {hasLostTags && (
+          <div className="bg-mobile-danger-lighter border border-mobile-danger-lighter rounded-2xl p-4 animate-fade-up-20 stagger-delay-1" role="alert" aria-live="assertive">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-mobile-danger" />
+              <AlertCircle className="h-5 w-5 text-mobile-danger flex-shrink-0" aria-hidden="true" />
               <div className="flex-1">
-                <p className="font-semibold text-mobile-danger">{tagCount - stats.activeTags} Tag Hilang</p>
+                <p className="font-semibold text-mobile-danger">{lostTagsCount} Tag Hilang</p>
                 <p className="text-xs text-mobile-danger">Segera cek dan aktifkan mode hilang</p>
               </div>
               <Link href="/mobile/lost-mode">
-                <div className="bg-mobile-danger text-white px-3 py-2 rounded-xl text-sm font-semibold">
+                <div className="bg-mobile-danger text-white px-3 py-2 rounded-xl text-sm font-semibold btn-press">
                   Cek
                 </div>
               </Link>
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* Menu Sections */}
         {menuSections.map((section, sectionIndex) => (
-          <motion.div
-            key={section.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: sectionIndex * 0.1 }}
-          >
+          <div key={section.title} className="animate-fade-up-20" style={{ animationDelay: `${sectionIndex * 0.05}s` }}>
             <h3 className="text-sm font-semibold text-gray-500 mb-3 px-1">{section.title}</h3>
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 overflow-hidden">
               {section.items.map((item, itemIndex) => (
-                <Link key={itemIndex} href={item.href}>
-                  <div className="flex items-center gap-4 p-4 hover:bg-gray-50/50 transition-colors active:bg-gray-100">
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg`}>
+                <Link key={item.href} href={item.href} className="block">
+                  <div className="flex items-center gap-4 p-4 hover:bg-gray-50/50 transition-colors active:bg-gray-100 btn-press">
+                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg`} aria-hidden="true">
                       <item.icon className="h-5 w-5 text-white" />
                     </div>
                     <div className="flex-1">
@@ -230,25 +219,23 @@ export function MobileProfile() {
                           {item.badge}
                         </span>
                       )}
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </div>
                   </div>
                 </Link>
               ))}
             </div>
-          </motion.div>
+          </div>
         ))}
 
-        {/* Logout Button */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+        <button
+          type="button"
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 flex items-center gap-4 hover:bg-mobile-danger-lighter/50 transition-colors group disabled:opacity-50"
+          className="w-full bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 flex items-center gap-4 hover:bg-mobile-danger-lighter/50 transition-colors group disabled:opacity-50 btn-press animate-fade-up-20"
+          aria-label={isSigningOut ? 'Keluar dari akun...' : 'Keluar dari akun'}
         >
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-mobile-danger-light to-mobile-danger flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-mobile-danger-light to-mobile-danger flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform" aria-hidden="true">
             {isSigningOut ? (
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             ) : (
@@ -258,20 +245,13 @@ export function MobileProfile() {
           <span className="font-semibold text-mobile-danger">
             {isSigningOut ? 'Keluar...' : 'Keluar'}
           </span>
-        </motion.button>
+        </button>
 
-        {/* App Info */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center py-6"
-        >
+        <div className="text-center py-6 animate-fade-up-20">
           <p className="text-sm text-gray-500">Balikin v1.0.0</p>
           <p className="text-xs text-gray-400 mt-1">Smart Lost & Found Platform Indonesia</p>
-        </motion.div>
+        </div>
 
-        {/* Bottom padding for navigation */}
         <div className="h-8" />
       </main>
     </div>
