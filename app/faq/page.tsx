@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-shell";
+import { FAQPageJsonLd } from "@/components/json-ld";
+import { FAQItem } from "@/components/faq-item";
 import { buildMetadata } from "@/lib/seo";
 import { faqItems } from "@/lib/site-content";
+import { cacheLife } from "next/cache";
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ Balikin",
@@ -11,18 +14,23 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["faq balikin", "pertanyaan qr code barang hilang", "faq smart lost and found"],
 });
 
-export default function FAQPage() {
+export default async function FAQPage() {
+  'use cache';
+  cacheLife('days');
+
   return (
-    <MarketingShell
-      title="FAQ Balikin"
-      description="Jawaban ringkas untuk pertanyaan yang paling sering diajukan calon pengguna Balikin."
-    >
-      {faqItems.map((item) => (
-        <section key={item.question} className="not-prose mb-8 rounded-2xl border bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-900">{item.question}</h2>
-          <p className="mt-3 text-gray-600">{item.answer}</p>
-        </section>
-      ))}
-    </MarketingShell>
+    <>
+      <FAQPageJsonLd questions={faqItems} />
+      <MarketingShell
+        title="FAQ Balikin"
+        description="Jawaban ringkas untuk pertanyaan yang paling sering diajukan calon pengguna Balikin."
+      >
+        <div className="not-prose space-y-1" role="list" aria-label="Pertanyaan yang sering diajukan">
+          {faqItems.map((item, index) => (
+            <FAQItem key={item.question} question={item.question} answer={item.answer} index={index} />
+          ))}
+        </div>
+      </MarketingShell>
+    </>
   );
 }

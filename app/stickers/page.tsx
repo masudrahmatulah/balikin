@@ -14,8 +14,37 @@ export const metadata: Metadata = buildMetadata({
   keywords: ['sticker vinyl qr', 'stiker barang hilang', 'sticker helm qr', 'sticker koper qr'],
 });
 
+const WHATSAPP_MESSAGE = 'Halo, saya tertarik pesan Sticker Vinyl Pack Balikin isi 6.';
+
+const features = [
+  {
+    icon: BadgeCheck,
+    label: 'Silver Verified Badge',
+    description: 'Meningkatkan kepercayaan penemu saat melihat halaman publik sticker Anda.',
+    color: 'text-slate-600',
+  },
+  {
+    icon: MessageCircle,
+    label: 'WhatsApp Scan Alert',
+    description: 'Begitu sticker di-scan saat mode hilang, Anda langsung dapat alert instan via WhatsApp.',
+    color: 'text-emerald-600',
+  },
+  {
+    icon: Droplets,
+    label: 'Waterproof',
+    description: 'Material vinyl tahan air untuk pemakaian harian di helm, botol, koper, dan gadget.',
+    color: 'text-blue-600',
+  },
+  {
+    icon: SunMedium,
+    label: 'Anti-UV',
+    description: 'Laminasi membantu QR tetap tajam dan tidak cepat pudar terkena matahari.',
+    color: 'text-amber-600',
+  },
+];
+
 export default function StickersPage() {
-  const whatsappHref = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent('Halo, saya tertarik pesan Sticker Vinyl Pack Balikin isi 6.')}`;
+  const whatsappHref = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
   return (
     <MarketingShell
@@ -26,7 +55,7 @@ export default function StickersPage() {
         <Card className="border-2 border-slate-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-2xl">
-              <Sticker className="h-6 w-6 text-emerald-600" />
+              <Sticker className="h-6 w-6 text-emerald-600" aria-hidden="true" />
               Sticker Vinyl Pack Isi {STICKER_PACK_SIZE}
             </CardTitle>
           </CardHeader>
@@ -36,34 +65,15 @@ export default function StickersPage() {
                 Cuma <span className="font-semibold text-slate-950">Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}</span> untuk satu pack isi {STICKER_PACK_SIZE} stiker. Artinya Anda bisa mengamankan lebih dari satu barang penting tanpa ribet.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 font-semibold text-slate-950">
-                    <BadgeCheck className="h-4 w-4 text-slate-600" />
-                    Silver Verified Badge
+                {features.map((feature) => (
+                  <div key={feature.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center gap-2 font-semibold text-slate-950">
+                      <feature.icon className={`h-4 w-4 ${feature.color}`} aria-hidden="true" />
+                      {feature.label}
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">{feature.description}</p>
                   </div>
-                  <p className="mt-2 text-sm text-slate-600">Meningkatkan kepercayaan penemu saat melihat halaman publik sticker Anda.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 font-semibold text-slate-950">
-                    <MessageCircle className="h-4 w-4 text-emerald-600" />
-                    WhatsApp Scan Alert
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">Begitu sticker di-scan saat mode hilang, Anda langsung dapat alert instan via WhatsApp.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 font-semibold text-slate-950">
-                    <Droplets className="h-4 w-4 text-blue-600" />
-                    Waterproof
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">Material vinyl tahan air untuk pemakaian harian di helm, botol, koper, dan gadget.</p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 font-semibold text-slate-950">
-                    <SunMedium className="h-4 w-4 text-amber-600" />
-                    Anti-UV
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">Laminasi membantu QR tetap tajam dan tidak cepat pudar terkena matahari.</p>
-                </div>
+                ))}
               </div>
             </div>
 
@@ -72,16 +82,29 @@ export default function StickersPage() {
               <p className="mt-3 text-4xl font-bold text-slate-950">Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}</p>
               <p className="mt-2 text-sm text-slate-600">1 pack isi {STICKER_PACK_SIZE} stiker vinyl dengan QR unik masing-masing.</p>
               <ul className="mt-5 space-y-2 text-sm text-slate-700">
-                <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600" /> Cocok untuk helm, laptop, koper, dan botol minum</li>
-                <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600" /> Aktivasi satu per satu sesuai barang yang Anda pilih</li>
-                <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600" /> Riwayat scan 30 hari untuk sticker</li>
+                <li className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600 flex-shrink-0" aria-hidden="true" />
+                  <span>Cocok untuk helm, laptop, koper, dan botol minum</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600 flex-shrink-0" aria-hidden="true" />
+                  <span>Aktivasi satu per satu sesuai barang yang Anda pilih</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-600 flex-shrink-0" aria-hidden="true" />
+                  <span>Riwayat scan 30 hari untuk sticker</span>
+                </li>
               </ul>
               <div className="mt-6 space-y-3">
-                <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                   <Link href="/stickers/checkout">Amankan Barang Saya Sekarang</Link>
                 </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer">Tanya via WhatsApp</a>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                >
+                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer external">Tanya via WhatsApp</a>
                 </Button>
               </div>
               <p className="mt-4 text-xs text-slate-500">Pembayaran awal memakai QRIS manual dan diverifikasi admin Balikin.</p>
