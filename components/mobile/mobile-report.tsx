@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Camera,
   MapPin,
@@ -26,6 +26,10 @@ interface TagInfo {
   status: string;
 }
 
+const MAX_QR_LENGTH = 20;
+const MAX_LOCATION_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 500;
+
 export function MobileReport() {
   const [formData, setFormData] = useState<FormData>({
     qrCode: '',
@@ -38,8 +42,12 @@ export function MobileReport() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLookupQR = async () => {
-    if (!formData.qrCode.trim()) {
+  const isQRValid = formData.qrCode.trim().length > 0 && formData.qrCode.length <= MAX_QR_LENGTH;
+  const isLocationValid = formData.location.trim().length > 0 && formData.location.length <= MAX_LOCATION_LENGTH;
+  const canSubmit = isQRValid && isLocationValid && !isSubmitting;
+
+  const handleLookupQR = useCallback(async () => {
+    if (!isQRValid) {
       setError('Masukkan kode QR terlebih dahulu');
       return;
     }
@@ -61,17 +69,17 @@ export function MobileReport() {
     }
 
     setIsLookingUp(false);
-  };
+  }, [isQRValid, formData.qrCode]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.qrCode.trim()) {
+    if (!isQRValid) {
       setError('Masukkan kode QR terlebih dahulu');
       return;
     }
 
-    if (!formData.location.trim()) {
+    if (!isLocationValid) {
       setError('Masukkan lokasi penemuan');
       return;
     }
@@ -92,14 +100,89 @@ export function MobileReport() {
     } else {
       setError(result.error || 'Terjadi kesalahan');
     }
-  };
+  }, [isQRValid, isLocationValid, formData]);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setShowSuccess(false);
     setFormData({ qrCode: '', location: '', message: '' });
     setTagInfo(null);
     setError(null);
-  };
+  }, []);
+
+  const handleQRChange = useCallback((value: string) => {
+    if (value.length <= MAX_QR_LENGTH) {
+      setFormData(prev => ({ ...prev, qrCode: value }));
+      setError(null);
+    }
+  }, []);
+
+  const handleLocationChange = useCallback((value: string) => {
+    if (value.length <= MAX_LOCATION_LENGTH) {
+      setFormData(prev => ({ ...prev, location: value }));
+    }
+  }, []);
+
+  const handleMessageChange = useCallback((value: string) => {
+    if (value.length <= MAX_MESSAGE_LENGTH) {
+      setFormData(prev => ({ ...prev, message: value }));
+    }
+  }, []);
+
+  const tagStatusAlert = useMemo(() => {
+    if (!tagInfo || tagInfo.status !== 'lost') return null;
+    return (
+      <div className="bg-mobile-primary-lighter rounded-2xl p-4 mb-6" role="alert" aria-live="polite">
+        <p className="text-sm text-mobile-primary">
+          Barang ini dalam status <strong>HILANG</strong>. Pemilik sangat membutuhkan bantuan Anda!
+        </p>
+      </div>
+    );
+  }, [tagInfo]);
+
+  const tagInfoDisplay = useMemo(() => {
+    if (!tagInfo) return null;
+    const isLost = tagInfo.status === 'lost';
+    return (
+      <div
+        className={`mt-4 p-4 rounded-xl animate-fade-up-20 ${
+          isLost
+            ? 'bg-mobile-danger-lighter border border-mobile-danger-lighter'
+            : 'bg-mobile-success-lighter border border-mobile-success-lighter'
+        }`}
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex items-center gap-2">
+          {isLost ? (
+            <AlertCircle className="h-5 w-5 text-mobile-danger" aria-hidden="true" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5 text-mobile-success" aria-hidden="true" />
+          )}
+          <div>
+            <p className="font-semibold text-gray-900">{tagInfo.name}</p>
+            <p className="text-xs text-gray-500">
+              {isLost ? 'Status: HILANG' : 'Status: Normal'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }, [tagInfo]);
+
+  const errorDisplay = useMemo(() => {
+    if (!error) return null;
+    return (
+      <div
+        id="qr-error"
+        className="mt-4 p-3 bg-red-50 rounded-xl flex items-center gap-2"
+        role="alert"
+        aria-live="assertive"
+      >
+        <AlertCircle className="h-4 w-4 text-mobile-danger flex-shrink-0" aria-hidden="true" />
+        <p className="text-sm text-mobile-danger">{error}</p>
+      </div>
+    );
+  }, [error]);
 
   if (showSuccess) {
     return (
@@ -113,13 +196,7 @@ export function MobileReport() {
             Terima kasih telah melaporkan temuan barang. Pemilik akan dihubungi segera.
           </p>
 
-          {tagInfo?.status === 'lost' && (
-            <div className="bg-mobile-primary-lighter rounded-2xl p-4 mb-6" role="alert" aria-live="polite">
-              <p className="text-sm text-mobile-primary">
-                Barang ini dalam status <strong>HILANG</strong>. Pemilik sangat membutuhkan bantuan Anda!
-              </p>
-            </div>
-          )}
+          {tagStatusAlert}
 
           <div className="space-y-3">
             <button
@@ -129,10 +206,11 @@ export function MobileReport() {
             >
               Laporkan Lainnya
             </button>
-            <Link href="/mobile" className="block">
-              <button className="w-full bg-gray-100 text-gray-700 rounded-2xl py-4 font-semibold btn-press">
-                Kembali ke Beranda
-              </button>
+            <Link
+              href="/mobile"
+              className="block w-full bg-gray-100 text-gray-700 rounded-2xl py-4 font-semibold btn-press text-center"
+            >
+              Kembali ke Beranda
             </Link>
           </div>
         </div>
@@ -172,15 +250,16 @@ export function MobileReport() {
                 autoComplete="off"
                 placeholder="Contoh: ABC123XYZ"
                 value={formData.qrCode}
-                onChange={(e) => setFormData({ ...formData, qrCode: e.target.value })}
+                onChange={(e) => handleQRChange(e.target.value)}
                 className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none transition-all"
                 aria-invalid={!!error}
                 aria-describedby={error ? 'qr-error' : undefined}
+                maxLength={MAX_QR_LENGTH}
               />
               <button
                 type="button"
                 onClick={handleLookupQR}
-                disabled={isLookingUp || !formData.qrCode.trim()}
+                disabled={isLookingUp || !isQRValid}
                 className="bg-mobile-primary text-white px-4 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 btn-press"
                 aria-label="Cek kode QR"
               >
@@ -192,43 +271,8 @@ export function MobileReport() {
               </button>
             </div>
 
-            {tagInfo && (
-              <div
-                className={`mt-4 p-4 rounded-xl animate-fade-up-20 ${
-                  tagInfo.status === 'lost'
-                    ? 'bg-mobile-danger-lighter border border-mobile-danger-lighter'
-                    : 'bg-mobile-success-lighter border border-mobile-success-lighter'
-                }`}
-                role="status"
-                aria-live="polite"
-              >
-                <div className="flex items-center gap-2">
-                  {tagInfo.status === 'lost' ? (
-                    <AlertCircle className="h-5 w-5 text-mobile-danger" aria-hidden="true" />
-                  ) : (
-                    <CheckCircle2 className="h-5 w-5 text-mobile-success" aria-hidden="true" />
-                  )}
-                  <div>
-                    <p className="font-semibold text-gray-900">{tagInfo.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {tagInfo.status === 'lost' ? 'Status: HILANG' : 'Status: Normal'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div
-                id="qr-error"
-                className="mt-4 p-3 bg-red-50 rounded-xl flex items-center gap-2"
-                role="alert"
-                aria-live="assertive"
-              >
-                <AlertCircle className="h-4 w-4 text-mobile-danger flex-shrink-0" aria-hidden="true" />
-                <p className="text-sm text-mobile-danger">{error}</p>
-              </div>
-            )}
+            {tagInfoDisplay}
+            {errorDisplay}
           </div>
 
           <div
@@ -253,8 +297,9 @@ export function MobileReport() {
               autoComplete="off"
               placeholder="Contoh: Lobby Gedung A, Grand Indonesia..."
               value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              onChange={(e) => handleLocationChange(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-success focus:ring-2 focus:ring-mobile-success/20 outline-none transition-all"
+              maxLength={MAX_LOCATION_LENGTH}
             />
           </div>
 
@@ -276,16 +321,17 @@ export function MobileReport() {
               name="message"
               placeholder="Contoh: Barang ditemukan di bangku dekat toilet lantai 2..."
               value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) => handleMessageChange(e.target.value)}
               rows={4}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-info focus:ring-2 focus:ring-mobile-info/20 outline-none transition-all resize-none"
+              maxLength={MAX_MESSAGE_LENGTH}
             />
           </div>
 
           <div className="pt-4 animate-fade-up-20 stagger-delay-3">
             <button
               type="submit"
-              disabled={isSubmitting || !formData.qrCode.trim() || !formData.location.trim()}
+              disabled={!canSubmit}
               className="w-full bg-gradient-to-r from-mobile-primary-light to-mobile-primary text-white rounded-2xl py-5 font-semibold shadow-xl shadow-mobile-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 btn-press"
             >
               {isSubmitting ? (
