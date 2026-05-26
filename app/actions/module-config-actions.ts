@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import type { ModuleType } from '@/lib/admin-modules';
+import { revalidateModuleCaches } from '@/app/admin/modules/data-access';
 
 /**
  * Helper function to get authenticated session
@@ -152,6 +153,7 @@ export async function updateModuleConfig({
 
   revalidatePath('/admin/modules');
   revalidatePath('/dashboard/modules');
+  await revalidateModuleCaches(moduleType);
 
   return { success: true };
 }
@@ -203,6 +205,7 @@ export async function toggleModuleStatus(moduleType: string, isEnabled: boolean)
 
   revalidatePath('/admin/modules');
   revalidatePath('/dashboard/modules');
+  await revalidateModuleCaches(moduleType);
 
   return { success: true };
 }

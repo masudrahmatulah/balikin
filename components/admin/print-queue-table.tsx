@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -13,17 +13,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
-import { Download, Filter, Search, Package, RotateCw, Clock, X, CheckSquare2, Square } from "lucide-react";
-import { useAutoRefresh } from "@/hooks/use-auto-refresh";
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { Download, Filter, Search, Package, RotateCw, Clock, X, CheckSquare2 } from 'lucide-react';
+import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 
 interface PrintQueueItem {
   id: string;
@@ -46,93 +46,82 @@ interface PrintQueueItem {
 
 interface PrintQueueTableProps {
   items: PrintQueueItem[];
+  stats?: Record<string, number>;
   adminId: string;
 }
 
-export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
+export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableProps) {
   const router = useRouter();
   const [updating, setUpdating] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentItems, setCurrentItems] = useState(items);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Auto-refresh every 60 seconds
   const { isRefreshing, nextRefreshIn, refresh } = useAutoRefresh({
-    interval: 60000, // 60 seconds
+    interval: 60000,
     enabled: true,
     onRefresh: async () => {
-      // Refresh the page to get latest data
       router.refresh();
     },
-    immediate: false, // Don't refresh immediately on mount
+    immediate: false,
   });
 
-  const statusColors = {
-    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    printing: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-    quality_check: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-    ready_for_stock: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    completed: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  const statusColors: Record<string, string> = {
+    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    printing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+    quality_check: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+    ready_for_stock: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    completed: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
   };
 
-  const statusLabels = {
-    pending: "Pending",
-    printing: "Printing",
-    quality_check: "Quality Check",
-    ready_for_stock: "Ready for Stock",
-    completed: "Completed",
+  const statusLabels: Record<string, string> = {
+    pending: 'Pending',
+    printing: 'Printing',
+    quality_check: 'Quality Check',
+    ready_for_stock: 'Ready for Stock',
+    completed: 'Completed',
   };
 
-  const pendingCount = items.filter((i) => i.status === "pending").length;
-  const printingCount = items.filter((i) => i.status === "printing").length;
-  const qualityCheckCount = items.filter((i) => i.status === "quality_check").length;
-  const readyCount = items.filter((i) => i.status === "ready_for_stock").length;
+  const pendingCount = stats['pending'] ?? 0;
+  const printingCount = stats['printing'] ?? 0;
+  const qualityCheckCount = stats['quality_check'] ?? 0;
+  const readyCount = stats['ready_for_stock'] ?? 0;
 
-  // Update current items when props change
-  useEffect(() => {
-    setCurrentItems(items);
-  }, [items]);
-
-  // Filter items based on status and search query
-  const filteredItems = currentItems.filter((item) => {
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
-    const matchesSearch =
-      searchQuery === "" ||
-      item.batchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.batchId.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+      const matchesSearch =
+        searchQuery === '' ||
+        item.batchName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.batchId.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [items, filterStatus, searchQuery]);
 
   const allSelected = filteredItems.length > 0 && filteredItems.every(item => selectedIds.has(item.id));
   const someSelected = selectedIds.size > 0;
 
   const updateStatus = async (itemId: string, newStatus: string) => {
     setUpdating(itemId);
+    setError(null);
+
     try {
       const response = await fetch(`/admin/api/print-queue/${itemId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, adminId }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update status");
+        const data = await response.json();
+        throw new Error(data.error || 'Gagal mengupdate status');
       }
 
-      // Update local state and refresh the page
-      setCurrentItems(currentItems.map(item =>
-        item.id === itemId ? { ...item, status: newStatus } : item
-      ));
-
-      // Small delay then refresh page to get server-side updates
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Failed to update status. Please try again.");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal mengupdate status');
     } finally {
       setUpdating(null);
     }
@@ -140,23 +129,24 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
 
   const bulkUpdateStatus = async (newStatus: string) => {
     setBulkUpdating(true);
+    setError(null);
+
     try {
-      const response = await fetch("/admin/api/print-queue/bulk-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/admin/api/print-queue/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds), status: newStatus, adminId }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to bulk update status");
+        const data = await response.json();
+        throw new Error(data.error || 'Gagal update status');
       }
 
-      // Clear selection and refresh page
       setSelectedIds(new Set());
-      window.location.reload();
-    } catch (error) {
-      console.error("Error bulk updating status:", error);
-      alert("Failed to bulk update status. Please try again.");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal update status');
     } finally {
       setBulkUpdating(false);
     }
@@ -176,27 +166,36 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
 
   const toggleSelectAll = () => {
     const visibleIds = filteredItems.map(item => item.id);
-    const allSelected = visibleIds.every(id => selectedIds.has(id));
-    setSelectedIds(allSelected ? new Set() : new Set(visibleIds));
+    const allCurrentlySelected = visibleIds.every(id => selectedIds.has(id));
+    setSelectedIds(allCurrentlySelected ? new Set() : new Set(visibleIds));
   };
 
   const clearSelection = () => setSelectedIds(new Set());
 
   return (
     <div className="space-y-6">
-      {/* Auto-Refresh Indicator */}
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-400 px-4 py-3 rounded-lg"
+        >
+          {error}
+        </div>
+      )}
+
       <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
         <div className="flex items-center gap-2">
           {isRefreshing ? (
             <>
-              <RotateCw className="w-4 h-4 animate-spin" />
+              <RotateCw className="w-4 h-4 animate-spin" aria-hidden="true" />
               <span>Memperbarui data...</span>
             </>
           ) : (
             <>
-              <Clock className="w-4 h-4" />
+              <Clock className="w-4 h-4" aria-hidden="true" />
               <span>
-                Terakhir diperbarui: {new Date().toLocaleTimeString("id-ID")}
+                Terakhir diperbarui: {new Date().toLocaleTimeString('id-ID')}
                 {nextRefreshIn !== null && ` • Next refresh in ${nextRefreshIn}s`}
               </span>
             </>
@@ -208,13 +207,13 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
           onClick={refresh}
           disabled={isRefreshing}
           className="gap-1"
+          aria-label="Refresh data now"
         >
-          <RotateCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+          <RotateCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} aria-hidden="true" />
           Refresh Now
         </Button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Pending</p>
@@ -234,12 +233,17 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center gap-4">
+        <div
+          role="region"
+          aria-live="polite"
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center gap-4"
+        >
           <div className="flex items-center gap-2 text-sm font-medium text-blue-900 dark:text-blue-300">
-            <CheckSquare2 className="w-5 h-5" />
-            <span>{selectedIds.size} item{selectedIds.size > 1 ? 's' : ''} selected</span>
+            <CheckSquare2 className="w-5 h-5" aria-hidden="true" />
+            <span aria-live="polite">
+              {selectedIds.size} item{selectedIds.size > 1 ? 's' : ''} selected
+            </span>
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
@@ -249,7 +253,7 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
               disabled={bulkUpdating}
               value=""
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px]" aria-label="Select status for selected items">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -266,32 +270,31 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
               onClick={clearSelection}
               disabled={bulkUpdating}
               className="gap-1"
+              aria-label="Clear selection"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
               Clear
             </Button>
           </div>
         </div>
       )}
 
-      {/* Filter and Search Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Search */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
           <Input
             placeholder="Search by batch name or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            aria-label="Search print queue items"
           />
         </div>
 
-        {/* Status Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
+          <Filter className="w-4 h-4 text-gray-400" aria-hidden="true" />
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" aria-label="Filter by status">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -305,30 +308,28 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
           </Select>
         </div>
 
-        {/* Download All Button */}
         <Button
           variant="outline"
           className="gap-2"
           onClick={() => {
             filteredItems.forEach((item, index) => {
               setTimeout(() => {
-                window.open(`/admin/api/print-queue/${item.id}/download`, "_blank");
+                window.open(`/admin/api/print-queue/${item.id}/download`, '_blank');
               }, index * 300);
             });
           }}
           disabled={filteredItems.length === 0}
+          aria-label={`Download assets for ${filteredItems.length} items`}
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4" aria-hidden="true" />
           Download Assets ({filteredItems.length})
         </Button>
       </div>
 
-      {/* Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Results counter */}
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Package className="w-4 h-4" />
+            <Package className="w-4 h-4" aria-hidden="true" />
             <span>
               Showing {filteredItems.length} of {items.length} items
             </span>
@@ -343,7 +344,7 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={toggleSelectAll}
-                    aria-label="Select all"
+                    aria-label="Select all items"
                   />
                 </TableHead>
                 <TableHead>Batch Name</TableHead>
@@ -360,7 +361,7 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
               {filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    {items.length === 0 ? "No items in print queue" : "No items match your filters"}
+                    {items.length === 0 ? 'No items in print queue' : 'No items match your filters'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -380,13 +381,13 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusColors[item.status as keyof typeof statusColors]}>
-                        {statusLabels[item.status as keyof typeof statusLabels]}
+                      <Badge className={statusColors[item.status] || ''}>
+                        {statusLabels[item.status] || item.status}
                       </Badge>
                     </TableCell>
                     <TableCell>{item.itemCount}</TableCell>
                     <TableCell className="capitalize">{item.materialType}</TableCell>
-                    <TableCell>{item.materialUsed || "-"}</TableCell>
+                    <TableCell>{item.materialUsed || '-'}</TableCell>
                     <TableCell>
                       {item.printedByUser ? (
                         <div>
@@ -399,12 +400,12 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      {new Date(item.createdAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
+                      {new Date(item.createdAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </TableCell>
                     <TableCell className="text-right">
@@ -412,10 +413,11 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`/admin/api/print-queue/${item.id}/download`, "_blank")}
+                          onClick={() => window.open(`/admin/api/print-queue/${item.id}/download`, '_blank')}
                           className="gap-1"
+                          aria-label={`Download assets for ${item.batchName}`}
                         >
-                          <Download className="w-3 h-3" />
+                          <Download className="w-3 h-3" aria-hidden="true" />
                           Download
                         </Button>
                         <Select
@@ -423,7 +425,7 @@ export function PrintQueueTable({ items, adminId }: PrintQueueTableProps) {
                           onValueChange={(value) => updateStatus(item.id, value)}
                           disabled={updating === item.id}
                         >
-                          <SelectTrigger className="w-[140px]">
+                          <SelectTrigger className="w-[140px]" aria-label={`Update status for ${item.batchName}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

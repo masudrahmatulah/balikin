@@ -53,6 +53,7 @@ export function MarketingDashboard() {
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetchAnalytics();
@@ -60,14 +61,17 @@ export function MarketingDashboard() {
 
   const fetchAnalytics = async () => {
     setIsLoading(true);
+    setError(false);
     try {
       const response = await fetch(`/api/admin/marketing/analytics?timeRange=${timeRange}`);
       if (response.ok) {
         const analyticsData = await response.json();
         setData(analyticsData);
+      } else {
+        setError(true);
       }
     } catch (error) {
-      console.error("Failed to fetch analytics:", error);
+      setError(true);
     } finally {
       setIsLoading(false);
     }
@@ -75,16 +79,17 @@ export function MarketingDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center py-12" role="status" aria-live="polite">
+        <span className="sr-only">Loading analytics data</span>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" aria-hidden="true" />
       </div>
     );
   }
 
-  if (!data) {
+  if (error || !data) {
     return (
       <Card>
-        <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400">
+        <CardContent className="py-12 text-center text-gray-500 dark:text-gray-400" role="alert" aria-live="assertive">
           Failed to load analytics data
         </CardContent>
       </Card>
@@ -93,10 +98,9 @@ export function MarketingDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Time Range Selector */}
       <div className="flex justify-end">
-        <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
-          <SelectTrigger className="w-[180px]">
+        <Select value={timeRange} onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeRange(value)}>
+          <SelectTrigger className="w-[180px]" aria-label="Select time range">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -107,16 +111,15 @@ export function MarketingDashboard() {
         </Select>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" role="list" aria-label="Key metrics">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-500" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <Users className="w-5 h-5 text-blue-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white" aria-live="polite">
                 {data.conversionFunnel[0]?.count || 0}
               </span>
             </div>
@@ -129,8 +132,8 @@ export function MarketingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <TrendingUp className="w-5 h-5 text-green-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white" aria-live="polite">
                 {data.conversionFunnel[data.conversionFunnel.length - 1]?.count || 0}
               </span>
             </div>
@@ -143,8 +146,8 @@ export function MarketingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-purple-500" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <Target className="w-5 h-5 text-purple-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white" aria-live="polite">
                 {data.conversionFunnel[data.conversionFunnel.length - 1]?.conversionRate.toFixed(1)}%
               </span>
             </div>
@@ -157,8 +160,8 @@ export function MarketingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-orange-500" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+              <ShoppingCart className="w-5 h-5 text-orange-500" aria-hidden="true" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white" aria-live="polite">
                 Rp {(data.modulePerformance.reduce((sum, m) => sum + m.revenue, 0)).toLocaleString()}
               </span>
             </div>
@@ -166,17 +169,15 @@ export function MarketingDashboard() {
         </Card>
       </div>
 
-      {/* Tabs for Different Analytics */}
       <Tabs defaultValue="conversion" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-4" role="tablist" aria-label="Analytics tabs">
           <TabsTrigger value="conversion">Conversion Funnel</TabsTrigger>
           <TabsTrigger value="modules">Module Performance</TabsTrigger>
           <TabsTrigger value="finder">Finder to Buyer</TabsTrigger>
           <TabsTrigger value="trends">Trends</TabsTrigger>
         </TabsList>
 
-        {/* Conversion Funnel Tab */}
-        <TabsContent value="conversion" className="space-y-6">
+        <TabsContent value="conversion" className="space-y-6" role="tabpanel">
           <Card>
             <CardHeader>
               <CardTitle>Free-to-Premium Conversion Funnel</CardTitle>
@@ -185,22 +186,23 @@ export function MarketingDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.conversionFunnel}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="stage" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#3b82f6" name="Users" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div aria-label={`Bar chart showing conversion funnel with ${data.conversionFunnel.length} stages`}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={data.conversionFunnel}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="stage" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#3b82f6" name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Module Performance Tab */}
-        <TabsContent value="modules" className="space-y-6">
+        <TabsContent value="modules" className="space-y-6" role="tabpanel">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -212,17 +214,19 @@ export function MarketingDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.modulePerformance}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="module" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="activations" fill="#10b981" name="Activations" />
-                  <Bar dataKey="users" fill="#3b82f6" name="Users" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div aria-label={`Bar chart showing module performance with ${data.modulePerformance.length} modules`}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={data.modulePerformance}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="module" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="activations" fill="#10b981" name="Activations" />
+                    <Bar dataKey="users" fill="#3b82f6" name="Users" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -232,31 +236,32 @@ export function MarketingDashboard() {
               <CardDescription>Revenue breakdown by module type</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={data.modulePerformance}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(entry) => `${entry.module}: Rp${entry.revenue.toLocaleString()}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="revenue"
-                  >
-                    {data.modulePerformance.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div aria-label={`Pie chart showing revenue distribution by module`}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={data.modulePerformance}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.module}: Rp${entry.revenue.toLocaleString()}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="revenue"
+                    >
+                      {data.modulePerformance.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Finder to Buyer Tab */}
-        <TabsContent value="finder" className="space-y-6">
+        <TabsContent value="finder" className="space-y-6" role="tabpanel">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -268,17 +273,19 @@ export function MarketingDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data.finderToBuyer}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="finders" stroke="#3b82f6" strokeWidth={2} name="Finders" />
-                  <Line type="monotone" dataKey="signups" stroke="#10b981" strokeWidth={2} name="Signups" />
-                </LineChart>
-              </ResponsiveContainer>
+              <div aria-label={`Line chart showing finder to buyer conversion over ${data.finderToBuyer.length} periods`}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={data.finderToBuyer}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="period" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="finders" stroke="#3b82f6" strokeWidth={2} name="Finders" />
+                    <Line type="monotone" dataKey="signups" stroke="#10b981" strokeWidth={2} name="Signups" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -288,68 +295,71 @@ export function MarketingDashboard() {
               <CardDescription>Finder-to-buyer conversion rate percentage</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data.finderToBuyer}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="period" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="conversionRate"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    name="Conversion Rate (%)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div aria-label="Line chart showing conversion rate percentage over time">
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={data.finderToBuyer}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="period" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="conversionRate"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      name="Conversion Rate (%)"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Trends Tab */}
-        <TabsContent value="trends" className="space-y-6">
+        <TabsContent value="trends" className="space-y-6" role="tabpanel">
           <Card>
             <CardHeader>
               <CardTitle>User Growth & Revenue Trends</CardTitle>
               <CardDescription>Track new users and revenue over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={data.timeSeriesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="newUsers"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    name="New Users"
-                  />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="conversions"
-                    stroke="#10b981"
-                    strokeWidth={2}
-                    name="Conversions"
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#f59e0b"
-                    strokeWidth={2}
-                    name="Revenue"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div aria-label={`Line chart showing user growth and revenue trends over ${data.timeSeriesData.length} data points`}>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={data.timeSeriesData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="newUsers"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="New Users"
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="conversions"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      name="Conversions"
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      name="Revenue"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

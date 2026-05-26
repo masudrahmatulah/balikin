@@ -52,7 +52,6 @@ export function GenerateBundleButton({ orderId }: GenerateBundleButtonProps) {
       setOpen(false);
       router.push('/admin/layout-editor');
     } catch (err) {
-      console.error('Error generating bundle:', err);
       alert(err instanceof Error ? err.message : 'Gagal membuat bundle');
     } finally {
       setIsSubmitting(false);

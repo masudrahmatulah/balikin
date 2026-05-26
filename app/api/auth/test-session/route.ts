@@ -3,37 +3,21 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { cookies } from "next/headers";
 
-/**
- * Test endpoint to verify session and cookie status
- * GET /api/auth/test-session
- *
- * Returns detailed information about:
- * - Current session
- * - Cookies received
- * - Database user data
- */
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
-    // Get all cookies
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
     const cookieSummary = allCookies.map(c => ({
       name: c.name,
-      value: c.value.substring(0, 20) + '...', // Truncate for security
+      value: c.value.substring(0, 20) + '...',
     }));
 
-    console.log('[TEST-SESSION] Cookies received:', cookieSummary);
-
-    // Get session using Better Auth
     const headersList = await headers();
     const session = await auth.api.getSession({
       headers: headersList,
-    });
-
-    console.log('[TEST-SESSION] Session result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
     });
 
     if (!session?.user) {
@@ -45,7 +29,6 @@ export async function GET() {
       });
     }
 
-    // Get user from database
     const { db } = await import("@/db");
     const { user } = await import("@/db/schema");
     const { eq } = await import("drizzle-orm");
@@ -71,12 +54,16 @@ export async function GET() {
         division: dbUser.division,
       } : null,
     });
-  } catch (error: any) {
-    console.error('[TEST-SESSION] Error:', error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    const stack = error instanceof Error && process.env.NODE_ENV !== 'production'
+      ? error.stack
+      : undefined;
+
     return NextResponse.json({
       success: false,
-      error: error.message,
-      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined,
+      error: message,
+      stack,
     }, { status: 500 });
   }
 }

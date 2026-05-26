@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { tags, scanLogs } from '@/db/schema';
-import { eq, desc, and, gte, sql, inArray } from 'drizzle-orm';
+import { eq, desc, and, gte, sql, inArray, count } from 'drizzle-orm';
 import { subDays } from 'date-fns';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 /**
  * Get user's tags with optimized scan count queries.

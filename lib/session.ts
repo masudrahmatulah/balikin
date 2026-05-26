@@ -1,12 +1,7 @@
 import { headers } from 'next/headers';
 import { auth } from './auth';
 import type { Session } from './auth';
-import { cookies } from 'next/headers';
 
-/**
- * Get the current session on the server side
- * Use this in Server Components and Server Actions
- */
 export async function getSession(): Promise<Session | null> {
   try {
     const headersList = await headers();
@@ -14,24 +9,16 @@ export async function getSession(): Promise<Session | null> {
       headers: headersList,
     });
     return session as Session | null;
-  } catch (error) {
-    console.error('[getSession] Error:', error instanceof Error ? error.message : String(error));
+  } catch {
     return null;
   }
 }
 
-/**
- * Get the current user from session on the server side
- */
 export async function getUser() {
   const session = await getSession();
   return session?.user ?? null;
 }
 
-/**
- * Require authentication - redirects to sign-in if not authenticated
- * Use this in Server Components that require authentication
- */
 export async function requireAuth(): Promise<Session> {
   const session = await getSession();
   if (!session) {
