@@ -4,7 +4,6 @@ import { FAQPageJsonLd } from "@/components/json-ld";
 import { FAQItem } from "@/components/faq-item";
 import { buildMetadata } from "@/lib/seo";
 import { faqItems } from "@/lib/site-content";
-import { cacheLife } from "next/cache";
 
 export const metadata: Metadata = buildMetadata({
   title: "FAQ Balikin",
@@ -14,10 +13,7 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["faq balikin", "pertanyaan qr code barang hilang", "faq smart lost and found"],
 });
 
-export default async function FAQPage() {
-  'use cache';
-  cacheLife('days');
-
+export default function FAQPage() {
   return (
     <>
       <FAQPageJsonLd questions={faqItems} />

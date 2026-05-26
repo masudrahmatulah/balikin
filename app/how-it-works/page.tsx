@@ -3,7 +3,6 @@ import { MarketingShell } from "@/components/marketing-shell";
 import { HowToJsonLd } from "@/components/json-ld";
 import { buildMetadata } from "@/lib/seo";
 import { howItWorksSteps } from "@/lib/site-content";
-import { cacheLife } from "next/cache";
 
 export const metadata: Metadata = buildMetadata({
   title: "Cara Kerja Balikin",
@@ -13,10 +12,7 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["cara kerja qr code barang hilang", "cara kerja balikin", "lost and found qr code"],
 });
 
-export default async function HowItWorksPage() {
-  'use cache';
-  cacheLife('days');
-
+export default function HowItWorksPage() {
   return (
     <>
       <HowToJsonLd
