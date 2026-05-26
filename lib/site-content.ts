@@ -108,6 +108,57 @@ export const privacyPolicySections = [
   },
 ];
 
+export const termsOfServiceSections = [
+  {
+    id: "service-usage",
+    title: "Penggunaan Layanan",
+    content:
+      "Balikin disediakan untuk membantu pemilik barang mengelola tag QR code dan membantu penemu menghubungi pemilik. Pengguna bertanggung jawab atas data yang mereka masukkan ke dalam sistem.",
+  },
+  {
+    id: "tag-ownership",
+    title: "Kepemilikan Tag",
+    content:
+      "Tag yang belum diklaim dapat dihubungkan ke akun pengguna pertama yang melakukan proses klaim sesuai alur sistem yang berlaku.",
+  },
+  {
+    id: "liability",
+    title: "Batas Tanggung Jawab",
+    content:
+      "Balikin membantu mempertemukan penemu dan pemilik, tetapi tidak dapat menjamin bahwa setiap barang yang hilang akan kembali.",
+  },
+  {
+    id: "misuse",
+    title: "Penyalahgunaan",
+    content:
+      "Pengguna dilarang memakai layanan untuk penipuan, pelanggaran privasi, atau aktivitas yang melanggar hukum.",
+  },
+];
+
+export const contactSections = [
+  {
+    id: "whatsapp",
+    title: "WhatsApp",
+    description: "Pemesanan paling cepat bisa dilakukan lewat WhatsApp",
+    type: "contact",
+  },
+  {
+    id: "use-cases",
+    title: "Kebutuhan yang Bisa Dibantu",
+    items: [
+      "Pemesanan gantungan kunci atau stiker QR code premium.",
+      "Paket keluarga, sekolah, komunitas, dan corporate.",
+      "Pertanyaan seputar privasi, aktivasi, atau upgrade tag.",
+    ],
+  },
+  {
+    id: "response-time",
+    title: "Jam Respons",
+    content:
+      "Kami mengupayakan respons secepat mungkin pada jam kerja. Untuk kebutuhan pemesanan, sertakan nama, jumlah tag, dan tujuan penggunaan agar proses lebih cepat.",
+  },
+];
+
 export const securityCertifications = [
   {
     id: "soc2",

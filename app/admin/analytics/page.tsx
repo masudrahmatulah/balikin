@@ -1,17 +1,15 @@
-import { redirect } from "next/navigation";
-import { getAdminSession } from "@/lib/admin";
-import { MarketingDashboard } from "@/components/admin/marketing-dashboard";
-import { LostFoundSuccessRate, LostFoundSuccessRateSkeleton } from "@/components/admin/analytics/lost-found-success-rate";
-import { GeoScanHeatmap, GeoScanHeatmapSkeleton } from "@/components/admin/analytics/geo-scan-heatmap";
-import { BatchActivationMetrics, BatchActivationMetricsSkeleton } from "@/components/admin/analytics/batch-activation-metrics";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-export const dynamic = "force-dynamic";
+import { redirect } from 'next/navigation';
+import { getAdminSession } from '@/lib/admin';
+import { MarketingDashboard } from '@/components/admin/marketing-dashboard';
+import { LostFoundSuccessRate, LostFoundSuccessRateSkeleton } from '@/components/admin/analytics/lost-found-success-rate';
+import { GeoScanHeatmap, GeoScanHeatmapSkeleton } from '@/components/admin/analytics/geo-scan-heatmap';
+import { BatchActivationMetrics, BatchActivationMetricsSkeleton } from '@/components/admin/analytics/batch-activation-metrics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default async function AdminAnalyticsPage() {
   const session = await getAdminSession();
   if (!session) {
-    redirect("/sign-in?redirect=/admin/analytics");
+    redirect('/sign-in?redirect=/admin/analytics');
   }
 
   return (
@@ -24,18 +22,17 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4" role="tablist" aria-label="Analytics tabs">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="conversion">Conversion</TabsTrigger>
           <TabsTrigger value="recovery">Recovery</TabsTrigger>
           <TabsTrigger value="bundles">Bundles</TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab - Strategic Analytics */}
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent value="overview" className="space-y-6" role="tabpanel">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 bg-purple-600 rounded-full"></span>
+              <span className="w-1 h-5 bg-purple-600 rounded-full" aria-hidden="true"></span>
               Strategic Analytics Overview
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -45,33 +42,30 @@ export default async function AdminAnalyticsPage() {
           </div>
         </TabsContent>
 
-        {/* Conversion Funnel Tab */}
-        <TabsContent value="conversion" className="space-y-6">
+        <TabsContent value="conversion" className="space-y-6" role="tabpanel">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 bg-green-600 rounded-full"></span>
+              <span className="w-1 h-5 bg-green-600 rounded-full" aria-hidden="true"></span>
               Conversion Funnel
             </h2>
             <MarketingDashboard />
           </div>
         </TabsContent>
 
-        {/* Lost & Found Recovery Tab */}
-        <TabsContent value="recovery" className="space-y-6">
+        <TabsContent value="recovery" className="space-y-6" role="tabpanel">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 bg-red-600 rounded-full"></span>
+              <span className="w-1 h-5 bg-red-600 rounded-full" aria-hidden="true"></span>
               Lost & Found Success Rate
             </h2>
             <LostFoundSuccessRate />
           </div>
         </TabsContent>
 
-        {/* Bundle Activation Tab */}
-        <TabsContent value="bundles" className="space-y-6">
+        <TabsContent value="bundles" className="space-y-6" role="tabpanel">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="w-1 h-5 bg-amber-600 rounded-full"></span>
+              <span className="w-1 h-5 bg-amber-600 rounded-full" aria-hidden="true"></span>
               Batch Activation Metrics
             </h2>
             <BatchActivationMetrics />
@@ -82,7 +76,6 @@ export default async function AdminAnalyticsPage() {
   );
 }
 
-// Loading state
 export function AdminAnalyticsPageLoading() {
   return (
     <div className="container mx-auto px-4 py-8">

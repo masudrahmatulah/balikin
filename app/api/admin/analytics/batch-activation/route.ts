@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import { getBatchActivationMetrics } from "@/app/admin/actions/overview-actions";
+import { getBatchActivationMetricsCached } from "./data-access";
+
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const data = await getBatchActivationMetrics();
+    const data = await getBatchActivationMetricsCached();
 
     return NextResponse.json(data);
-  } catch (error) {
-    console.error("Failed to fetch batch activation metrics:", error);
+  } catch {
     return NextResponse.json(
-      { error: "Failed to fetch batch activation metrics" },
+      { error: "Gagal mengambil data batch activation" },
       { status: 500 }
     );
   }

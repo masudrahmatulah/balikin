@@ -6,40 +6,17 @@ import { sendOTPEmail } from "@/lib/email";
 import { sendWhatsAppOTP } from "@/lib/whatsapp";
 import { user, session, account, verification } from "@/db/schema";
 
-/**
- * Google OAuth Configuration
- * Credentials should be set in environment variables:
- * - GOOGLE_CLIENT_ID
- * - GOOGLE_CLIENT_SECRET
- */
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-if (process.env.NODE_ENV !== 'production' && !googleClientId) {
-  console.warn('[AUTH] GOOGLE_CLIENT_ID not set - Google SSO will not work');
-}
-if (process.env.NODE_ENV !== 'production' && !googleClientSecret) {
-  console.warn('[AUTH] GOOGLE_CLIENT_SECRET not set - Google SSO will not work');
-}
-
-/**
- * Helper function to check if an identifier is a WhatsApp number
- * WhatsApp numbers are stored with "@wa.dev" suffix to pass email validation
- */
 function isWhatsAppIdentifier(email: string): boolean {
   return email.endsWith('@wa.dev');
 }
 
-/**
- * Extract phone number from WhatsApp identifier
- */
 function extractPhoneNumber(email: string): string {
   return email.replace(/@wa\.dev$/, '');
 }
 
-/**
- * Unified OTP sender that routes to Email or WhatsApp based on identifier
- */
 async function sendOTP({
   email,
   otp,
@@ -49,20 +26,15 @@ async function sendOTP({
   otp: string;
   type: string;
 }) {
-  const startTime = Date.now();
-
   try {
     if (isWhatsAppIdentifier(email)) {
-      // Route to WhatsApp OTP
       const phoneNumber = extractPhoneNumber(email);
-
       await sendWhatsAppOTP({
         phoneNumber,
         otp,
         type: type as 'sign-in' | 'email-verification' | 'forget-password',
       });
     } else {
-      // Route to Email OTP
       await sendOTPEmail({
         email,
         otp,
@@ -70,22 +42,11 @@ async function sendOTP({
       });
     }
   } catch (error) {
-    // Log error without exposing sensitive email/OTP
-    console.error('[AUTH SERVICE] ERROR sending OTP:', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw error; // Re-throw to ensure better-auth sees the error
+    throw error;
   }
 }
 
-/**
- * Main Auth Instance
- * Handles both Email and WhatsApp OTP authentication
- */
 export const auth = betterAuth({
-  // Base URL is required for origin validation
-  // Use environment variable in production, localhost for development
-  // For Vercel deployments, BETTER_AUTH_URL should be set to the production domain
   baseURL: process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production' ? 'https://balikin.online' : 'http://localhost:3000'),
@@ -101,12 +62,10 @@ export const auth = betterAuth({
   appName: "Balikin",
   user: {
     additionalFields: {
-      // Define app_id field that exists in database schema
       app_id: {
         type: "string",
         defaultValue: "balikin_id",
       },
-      // Define role field that exists in database schema
       role: {
         type: "string",
         defaultValue: "user",
@@ -114,72 +73,44 @@ export const auth = betterAuth({
     },
   },
   session: {
-    expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
-    updateAge: 24 * 60 * 60, // 1 day - update session age
-    // Enable cookie cache for better performance
-    // Session data is cached in cookie with validation against database
+    expiresIn: 7 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
     cookieCache: {
       enabled: true,
-      maxAge: 7 * 24 * 60 * 60, // 7 days - same as session expiration
+      maxAge: 7 * 24 * 60 * 60,
     },
   },
-  // Account linking configuration - Disabled temporarily for testing
   account: {
     accountLinking: {
-      enabled: false, // Disabled to allow new user registration with Google SSO
+      enabled: false,
     },
   },
   advanced: {
     crossSubDomainCookies: {
-      enabled: false, // Disable for now to debug cookie issues
+      enabled: false,
     },
-    // Configure cookie settings
     cookiePrefix: 'better-auth',
-    useSecureCookies: false, // Use insecure cookies for localhost testing
-    // Configure SameSite for better cross-origin handling
+    useSecureCookies: false,
     sameSite: 'lax',
-    // Add explicit cookie attributes - simplified for debugging
     cookieAttributes: {
       path: '/',
     },
   },
-  // Enable Better Auth logger for debugging
   logger: {
-    enabled: true,
-    level: "debug", // Always debug for now to diagnose authentication issues
+    enabled: false,
   },
-  // Database hooks for handling user creation
   databaseHooks: {
     user: {
       create: {
         before: async (user) => {
-          console.log('[AUTH] Creating user:', {
-            email: user.email,
-            name: user.name,
-          });
-
-          // Normalize email for all auth methods
           if (user.email) {
             user.email = user.email.toLowerCase().trim();
           }
-
-          return {
-            data: user,
-          };
-        },
-        after: async (user) => {
-          console.log('[AUTH] User created successfully:', {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            app_id: user.app_id,
-            role: user.role,
-          });
+          return { data: user };
         },
       },
     },
   },
-  // Allow requests from localhost, devtunnel, and production domains
   trustedOrigins: [
     'http://localhost:3000',
     'http://localhost:3001',
@@ -192,7 +123,6 @@ export const auth = betterAuth({
     'https://*.euw.devtunnels.ms',
     'https://*.devtunnels.ms',
   ],
-  // Allow redirect URLs
   allowedRedirectURLs: [
     'http://localhost:3000',
     'http://localhost:3000/**',
@@ -215,12 +145,10 @@ export const auth = betterAuth({
     'https://*.devtunnels.ms',
     'https://*.devtunnels.ms/**',
   ],
-  // Verification configuration - store in plain text for WhatsApp support
   verification: {
-    storeIdentifier: "plain", // Use plain text instead of hashed (for @wa.dev support)
-    storeInDatabase: true, // Store OTPs in database
+    storeIdentifier: "plain",
+    storeInDatabase: true,
   },
-  // Social providers for SSO (Google)
   socialProviders: {
     google: {
       clientId: googleClientId || "",
@@ -230,14 +158,9 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       sendVerificationOTP: async ({ email, otp, type }) => {
-        try {
-          await sendOTP({ email, otp, type });
-        } catch (error) {
-          console.error('[BETTER_AUTH] sendVerificationOTP failed:', error);
-          throw error;
-        }
+        await sendOTP({ email, otp, type });
       },
-      expiresIn: 5 * 60, // 5 minutes in seconds
+      expiresIn: 5 * 60,
       allowedAttempts: 3,
     }),
   ],
@@ -245,5 +168,4 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session;
 
-// Export helpers for use in components
 export { isWhatsAppIdentifier, extractPhoneNumber };

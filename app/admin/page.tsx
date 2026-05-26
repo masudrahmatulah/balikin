@@ -12,25 +12,17 @@ import {
   ActivityFeedSkeleton,
   CriticalAlertsSkeleton,
 } from "@/components/admin/skeletons";
-import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer } from "@/app/admin/actions/stock-actions";
+import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer } from "./data-access";
 import { Download, Search } from "lucide-react";
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminPage() {
-  let session;
-  try {
-    session = await getAdminSession();
-  } catch (error) {
-    console.error('[ADMIN PAGE] Session check failed:', error);
-    redirect("/sign-in?redirect=/admin");
-  }
+  const session = await getAdminSession();
 
   if (!session) {
     redirect("/sign-in?redirect=/admin");
   }
 
-  // Fetch dashboard data using server actions
+  // Fetch dashboard data in parallel with error resilience
   const [dashboardStats, pendingCounts, recentTags] = await Promise.allSettled([
     getDashboardStatsServer(),
     getPendingCountsServer(),
@@ -52,40 +44,50 @@ export default async function AdminPage() {
   const recentTagsData = recentTags.status === "fulfilled" ? recentTags.value : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="main" aria-label="Admin Dashboard">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
           <p className="text-sm text-gray-500 mt-1">
             Real-time metrics and operational controls
           </p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
-            <Search size={16} />
+        <nav className="flex gap-3" aria-label="Dashboard actions">
+          <button
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+            aria-label="Search dashboard"
+            type="button"
+          >
+            <Search size={16} aria-hidden="true" />
             <span>Search</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
-            <Download size={16} />
+          <button
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-colors"
+            aria-label="Export dashboard data as CSV"
+            type="button"
+          >
+            <Download size={16} aria-hidden="true" />
             <span>Export CSV</span>
           </button>
-        </div>
-      </div>
+        </nav>
+      </header>
 
       {/* Dashboard Stats */}
-      <DashboardStats
-        totalUsers={stats.totalUsers}
-        totalTags={stats.totalTags}
-        lostTags={stats.lostTags}
-        revenue={stats.revenue}
-        materials={stats.materials}
-      />
+      <section aria-label="Key Metrics">
+        <DashboardStats
+          totalUsers={stats.totalUsers}
+          totalTags={stats.totalTags}
+          lostTags={stats.lostTags}
+          revenue={stats.revenue}
+          materials={stats.materials}
+        />
+      </section>
 
       {/* Operational Overview Section */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
+      <section aria-labelledby="operational-overview-heading">
+        <h2 id="operational-overview-heading" className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span className="w-1 h-5 bg-blue-600 rounded-full" aria-hidden="true"></span>
           Operational Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,15 +103,19 @@ export default async function AdminPage() {
           {/* Verification Queue - Customer Service & Admin */}
           <VerificationQueue />
         </div>
-      </div>
+      </section>
 
       {/* Dashboard Body - Main Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActivityFeed />
-        <CriticalAlerts
-          materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))}
-          recentTags={recentTagsData}
-        />
+        <section aria-label="Recent Activity">
+          <ActivityFeed />
+        </section>
+        <section aria-label="Critical Alerts">
+          <CriticalAlerts
+            materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))}
+            recentTags={recentTagsData}
+          />
+        </section>
       </div>
     </div>
   );

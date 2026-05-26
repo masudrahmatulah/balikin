@@ -102,7 +102,6 @@ export function useAutoRefresh({
       await onRefresh();
       setLastRefresh(new Date());
     } catch (error) {
-      console.error("Auto-refresh error:", error);
     } finally {
       setIsRefreshing(false);
     }

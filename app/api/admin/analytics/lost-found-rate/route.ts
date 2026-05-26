@@ -1,18 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLostFoundSuccessRate } from "@/app/admin/actions/overview-actions";
+import { z } from "zod";
+import { getLostFoundRateCached } from "./data-access";
+
+export const runtime = "nodejs";
+
+const daysSchema = z.coerce
+  .number()
+  .int()
+  .min(1, "Minimal 1 hari")
+  .max(365, "Maksimal 365 hari")
+  .default(30);
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const days = parseInt(searchParams.get("days") || "30", 10);
+    const daysResult = daysSchema.safeParse(searchParams.get("days"));
 
-    const data = await getLostFoundSuccessRate(days);
+    if (!daysResult.success) {
+      return NextResponse.json(
+        { error: daysResult.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    const days = daysResult.data;
+    const data = await getLostFoundRateCached(days);
 
     return NextResponse.json(data);
-  } catch (error) {
-    console.error("Failed to fetch lost & found rate:", error);
+  } catch {
     return NextResponse.json(
-      { error: "Failed to fetch lost & found rate" },
+      { error: "Gagal mengambil data lost & found" },
       { status: 500 }
     );
   }

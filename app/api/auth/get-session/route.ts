@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
-    // Use Better Auth's getSession API for proper session validation
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -17,8 +19,7 @@ export async function GET(request: NextRequest) {
       session: session,
       user: session.user,
     });
-  } catch (error: any) {
-    console.error("[GET-SESSION] Error:", error);
+  } catch {
     return NextResponse.json({ session: null, user: null }, { status: 200 });
   }
 }
