@@ -13,9 +13,38 @@ import {
   STICKER_PAYMENT_METHOD,
 } from '@/lib/constants';
 import { isAdmin } from '@/lib/admin';
-import { type StickerShape, type StickerSize } from '@/lib/sticker-template';
+import { revalidateTag } from 'next/cache';
 
-interface CreateStickerOrderInput {
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const ORDER_ID_REGEX = /^[a-zA-Z0-9_-]{15,50}$/;
+const PHONE_REGEX = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+const MAX_FIELD_LENGTH = {
+  recipientName: 100,
+  phone: 20,
+  addressLine: 200,
+  city: 100,
+  postalCode: 10,
+  notes: 500,
+} as const;
+
+const DEFAULT_TAG_CONFIG = {
+  customMessage: 'Scan saya jika menemukan barang ini.',
+  status: 'normal' as const,
+  tier: 'premium' as const,
+  productType: 'sticker' as const,
+  isVerified: true,
+  emailAlertsEnabled: false,
+  whatsappAlertsEnabled: true,
+} as const;
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface CreateStickerOrderInput {
   recipientName: string;
   phone: string;
   addressLine: string;
@@ -23,6 +52,31 @@ interface CreateStickerOrderInput {
   postalCode: string;
   notes?: string;
 }
+
+// ============================================================================
+// VALIDATION HELPERS
+// ============================================================================
+
+function validateOrderId(orderId: string): boolean {
+  return ORDER_ID_REGEX.test(orderId);
+}
+
+function validatePhone(phone: string): boolean {
+  const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+  return cleaned.length >= 10 && cleaned.length <= 15 && PHONE_REGEX.test(phone);
+}
+
+function sanitizeAndValidate(input: string, maxLength: number): string {
+  const trimmed = input.trim();
+  if (trimmed.length > maxLength) {
+    throw new Error(`Field exceeds maximum length of ${maxLength} characters`);
+  }
+  return trimmed;
+}
+
+// ============================================================================
+// SESSION HELPERS
+// ============================================================================
 
 async function requireSession() {
   const session = await auth.api.getSession({
@@ -36,18 +90,22 @@ async function requireSession() {
   return session;
 }
 
+// ============================================================================
+// ORDER ACTIONS
+// ============================================================================
+
 export async function createStickerOrder(input: CreateStickerOrderInput) {
   const session = await requireSession();
 
-  const recipientName = input.recipientName.trim();
-  const phone = input.phone.trim();
-  const addressLine = input.addressLine.trim();
-  const city = input.city.trim();
-  const postalCode = input.postalCode.trim();
-  const notes = input.notes?.trim();
+  const recipientName = sanitizeAndValidate(input.recipientName, MAX_FIELD_LENGTH.recipientName);
+  const phone = sanitizeAndValidate(input.phone, MAX_FIELD_LENGTH.phone);
+  const addressLine = sanitizeAndValidate(input.addressLine, MAX_FIELD_LENGTH.addressLine);
+  const city = sanitizeAndValidate(input.city, MAX_FIELD_LENGTH.city);
+  const postalCode = sanitizeAndValidate(input.postalCode, MAX_FIELD_LENGTH.postalCode);
+  const notes = input.notes ? sanitizeAndValidate(input.notes, MAX_FIELD_LENGTH.notes) : null;
 
-  if (!recipientName || !phone || !addressLine || !city || !postalCode) {
-    throw new Error('Data pengiriman belum lengkap');
+  if (!validatePhone(phone)) {
+    throw new Error('Nomor telepon tidak valid');
   }
 
   const [order] = await db.insert(stickerOrders).values({
@@ -57,7 +115,7 @@ export async function createStickerOrder(input: CreateStickerOrderInput) {
     addressLine,
     city,
     postalCode,
-    notes: notes || null,
+    notes,
     paymentMethod: STICKER_PAYMENT_METHOD,
     productType: 'sticker',
     packQuantity: 1,
@@ -65,17 +123,44 @@ export async function createStickerOrder(input: CreateStickerOrderInput) {
     totalAmount: STICKER_PACK_PRICE,
   }).returning();
 
+  revalidateTag('sticker-orders', 'max');
+  revalidateTag('user-orders', 'max');
+
   return order;
 }
 
 export async function getUserStickerOrders(userId: string) {
+  if (!userId || userId.length < 10 || userId.length > 50) {
+    return [];
+  }
+
   return db.query.stickerOrders.findMany({
     where: eq(stickerOrders.userId, userId),
     orderBy: [desc(stickerOrders.createdAt)],
+    columns: {
+      id: true,
+      status: true,
+      paymentStatus: true,
+      totalAmount: true,
+      createdAt: true,
+      verifiedAt: true,
+    },
     with: {
       bundles: {
+        columns: {
+          id: true,
+          itemCount: true,
+          status: true,
+        },
         with: {
-          tags: true,
+          tags: {
+            columns: {
+              id: true,
+              slug: true,
+              name: true,
+              status: true,
+            },
+          },
         },
       },
     },
@@ -83,6 +168,10 @@ export async function getUserStickerOrders(userId: string) {
 }
 
 export async function verifyStickerOrder(orderId: string) {
+  if (!validateOrderId(orderId)) {
+    throw new Error('Invalid order ID');
+  }
+
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized');
@@ -96,9 +185,16 @@ export async function verifyStickerOrder(orderId: string) {
       updatedAt: new Date(),
     })
     .where(eq(stickerOrders.id, orderId));
+
+  revalidateTag('sticker-orders', 'max');
+  revalidateTag('pending-orders', 'max');
 }
 
 export async function updateStickerOrderStatus(orderId: string, status: 'in_production' | 'shipped' | 'completed') {
+  if (!validateOrderId(orderId)) {
+    throw new Error('Invalid order ID');
+  }
+
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized');
@@ -110,13 +206,23 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
       updatedAt: new Date(),
     })
     .where(eq(stickerOrders.id, orderId));
+
+  revalidateTag('sticker-orders', 'max');
 }
+
+// ============================================================================
+// BUNDLE GENERATION
+// ============================================================================
 
 export async function generateStickerBundle(
   orderId: string,
-  stickerShape: StickerShape = 'circle',
-  stickerSize: StickerSize = 'medium'
+  stickerShape: import('@/lib/sticker-template').StickerShape = 'circle',
+  stickerSize: import('@/lib/sticker-template').StickerSize = 'medium'
 ) {
+  if (!validateOrderId(orderId)) {
+    throw new Error('Invalid order ID');
+  }
+
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized');
@@ -124,10 +230,18 @@ export async function generateStickerBundle(
 
   const order = await db.query.stickerOrders.findFirst({
     where: eq(stickerOrders.id, orderId),
+    columns: {
+      id: true,
+      userId: true,
+      paymentStatus: true,
+      phone: true,
+      status: true,
+    },
     with: {
       bundles: {
-        with: {
-          tags: true,
+        columns: {
+          id: true,
+          itemCount: true,
         },
       },
     },
@@ -154,20 +268,13 @@ export async function generateStickerBundle(
     stickerSize,
   }).returning();
 
-  const packTags = Array.from({ length: STICKER_PACK_SIZE }).map((_, index) => ({
+  const packTags = Array.from({ length: STICKER_PACK_SIZE }, (_, index) => ({
     slug: nanoid(12),
     bundleId: bundle.id,
     ownerId: order.userId,
     name: `Sticker Pack #${index + 1}`,
     contactWhatsapp: order.phone,
-    customMessage: 'Scan saya jika menemukan barang ini.',
-    rewardNote: null,
-    status: 'normal' as const,
-    tier: 'premium' as const,
-    productType: 'sticker' as const,
-    isVerified: true,
-    emailAlertsEnabled: false,
-    whatsappAlertsEnabled: true,
+    ...DEFAULT_TAG_CONFIG,
   }));
 
   await db.insert(tags).values(packTags);
@@ -178,6 +285,10 @@ export async function generateStickerBundle(
       updatedAt: new Date(),
     })
     .where(eq(stickerOrders.id, order.id));
+
+  revalidateTag('sticker-orders', 'max');
+  revalidateTag('recent-bundles', 'max');
+  revalidateTag('user-orders', 'max');
 
   return bundle;
 }

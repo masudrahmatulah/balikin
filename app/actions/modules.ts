@@ -8,9 +8,9 @@ import {
   userModuleSelections,
   tags,
 } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import {
   getStudentKitData as secureGetStudentKitData,
@@ -23,21 +23,68 @@ import {
   updateStudentKitNotificationSettings as secureUpdateStudentKitNotificationSettings,
 } from './student-kit-actions';
 
-/**
- * Helper function to get authenticated session
- */
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const TAG_ID_REGEX = /^[a-zA-Z0-9_-]{10,50}$/;
+const SHARE_CODE_REGEX = /^[a-zA-Z0-9_-]{8,20}$/;
+const MAX_MODULE_TYPES = 10;
+const DEFAULT_EMPTY_JSON = '{}';
+const DEFAULT_EMPTY_ARRAY = '[]';
+const MODULE_UPDATE_FIELDS = {
+  otomotif: ['stnkNumber', 'stnkExpiryDate', 'oilChangeSchedule', 'serviceHistory', 'insuranceNumber', 'insuranceProvider'] as const,
+  pertanian: ['hstCalculator', 'fertilizerSchedule', 'harvestLog', 'laborCostNotes'] as const,
+  emergency: ['bloodType', 'allergies', 'medicalConditions', 'emergencyContact', 'emergencyContactName'] as const,
+} as const;
+
+// ============================================================================
+// VALIDATION HELPERS
+// ============================================================================
+
+function validateTagId(tagId: string): boolean {
+  return TAG_ID_REGEX.test(tagId);
+}
+
+function validateShareCode(shareCode: string): boolean {
+  return SHARE_CODE_REGEX.test(shareCode);
+}
+
+function validateModuleTypes(moduleTypes: string[]): boolean {
+  if (!Array.isArray(moduleTypes) || moduleTypes.length > MAX_MODULE_TYPES) {
+    return false;
+  }
+  return moduleTypes.every(m => typeof m === 'string' && m.length > 0 && m.length <= 50);
+}
+
+// ============================================================================
+// SESSION HELPERS
+// ============================================================================
+
 async function getSession() {
   return await auth.api.getSession({
     headers: await headers(),
   });
 }
 
-/**
- * Helper function to check if user owns the tag
- */
+async function requireUserId(): Promise<string> {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+
+  return session.user.id;
+}
+
 async function verifyTagOwnership(tagId: string, userId: string): Promise<boolean> {
+  if (!validateTagId(tagId)) {
+    return false;
+  }
+
   const tag = await db.query.tags.findFirst({
     where: eq(tags.id, tagId),
+    columns: { ownerId: true },
   });
 
   return tag?.ownerId === userId;
@@ -47,18 +94,10 @@ async function verifyTagOwnership(tagId: string, userId: string): Promise<boolea
 // STUDENT KIT ACTIONS (SECURE - Delegating to student-kit-actions.ts)
 // ============================================================================
 
-/**
- * Get student kit data - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function getStudentKitData() {
   return secureGetStudentKitData();
 }
 
-/**
- * Update student kit data - Delegates to secure implementation with validation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function updateStudentKit(data: {
   classSchedule?: string;
   assignmentDeadlines?: string;
@@ -68,34 +107,18 @@ export async function updateStudentKit(data: {
   return secureUpdateStudentKit(data);
 }
 
-/**
- * Share schedule - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function shareSchedule() {
   return secureShareSchedule();
 }
 
-/**
- * Get schedule by share code - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function getScheduleByShareCode(shareCode: string) {
   return secureGetScheduleByShareCode(shareCode);
 }
 
-/**
- * Import schedule - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function importSchedule(shareCode: string) {
   return secureImportSchedule(shareCode);
 }
 
-/**
- * Update internship vCard - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function updateInternshipVCard(data: {
   fullName?: string;
   title?: string;
@@ -109,18 +132,10 @@ export async function updateInternshipVCard(data: {
   return secureUpdateInternshipVCard(data);
 }
 
-/**
- * Get vCard by share code - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function getVCardByShareCode(shareCode: string) {
   return secureGetVCardByShareCode(shareCode);
 }
 
-/**
- * Update notification settings - Delegates to secure implementation
- * @deprecated Import directly from student-kit-actions.ts for type safety
- */
 export async function updateStudentKitNotificationSettings(data: {
   whatsappNotificationsEnabled?: boolean;
   notificationPhoneNumber?: string;
@@ -133,17 +148,11 @@ export async function updateStudentKitNotificationSettings(data: {
 // ============================================================================
 
 export async function getOtomotifData() {
-  const session = await getSession();
+  const userId = await requireUserId();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  const data = await db.query.otomotifData.findFirst({
-    where: eq(otomotifData.userId, session.user.id),
+  return db.query.otomotifData.findFirst({
+    where: eq(otomotifData.userId, userId),
   });
-
-  return data;
 }
 
 export async function updateOtomotifData(data: {
@@ -154,44 +163,35 @@ export async function updateOtomotifData(data: {
   insuranceNumber?: string;
   insuranceProvider?: string;
 }) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  const userId = await requireUserId();
 
   const existingData = await db.query.otomotifData.findFirst({
-    where: eq(otomotifData.userId, session.user.id),
+    where: eq(otomotifData.userId, userId),
+    columns: { id: true },
   });
+
+  const updateValues: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  for (const field of MODULE_UPDATE_FIELDS.otomotif) {
+    if (data[field] !== undefined) {
+      updateValues[field] = data[field];
+    }
+  }
 
   if (existingData) {
     await db
       .update(otomotifData)
-      .set({
-        ...(data.stnkNumber !== undefined && { stnkNumber: data.stnkNumber }),
-        ...(data.stnkExpiryDate !== undefined && {
-          stnkExpiryDate: data.stnkExpiryDate,
-        }),
-        ...(data.oilChangeSchedule !== undefined && {
-          oilChangeSchedule: data.oilChangeSchedule,
-        }),
-        ...(data.serviceHistory !== undefined && { serviceHistory: data.serviceHistory }),
-        ...(data.insuranceNumber !== undefined && {
-          insuranceNumber: data.insuranceNumber,
-        }),
-        ...(data.insuranceProvider !== undefined && {
-          insuranceProvider: data.insuranceProvider,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(otomotifData.userId, session.user.id));
+      .set(updateValues)
+      .where(eq(otomotifData.id, existingData.id));
   } else {
     await db.insert(otomotifData).values({
-      userId: session.user.id,
+      userId,
       stnkNumber: data.stnkNumber || '',
       stnkExpiryDate: data.stnkExpiryDate || null,
-      oilChangeSchedule: data.oilChangeSchedule || '[]',
-      serviceHistory: data.serviceHistory || '[]',
+      oilChangeSchedule: data.oilChangeSchedule || DEFAULT_EMPTY_ARRAY,
+      serviceHistory: data.serviceHistory || DEFAULT_EMPTY_ARRAY,
       insuranceNumber: data.insuranceNumber || '',
       insuranceProvider: data.insuranceProvider || '',
     });
@@ -205,17 +205,11 @@ export async function updateOtomotifData(data: {
 // ============================================================================
 
 export async function getPertanianData() {
-  const session = await getSession();
+  const userId = await requireUserId();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  const data = await db.query.pertanianData.findFirst({
-    where: eq(pertanianData.userId, session.user.id),
+  return db.query.pertanianData.findFirst({
+    where: eq(pertanianData.userId, userId),
   });
-
-  return data;
 }
 
 export async function updatePertanianData(data: {
@@ -224,38 +218,35 @@ export async function updatePertanianData(data: {
   harvestLog?: string;
   laborCostNotes?: string;
 }) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  const userId = await requireUserId();
 
   const existingData = await db.query.pertanianData.findFirst({
-    where: eq(pertanianData.userId, session.user.id),
+    where: eq(pertanianData.userId, userId),
+    columns: { id: true },
   });
+
+  const updateValues: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  for (const field of MODULE_UPDATE_FIELDS.pertanian) {
+    if (data[field] !== undefined) {
+      updateValues[field] = data[field];
+    }
+  }
 
   if (existingData) {
     await db
       .update(pertanianData)
-      .set({
-        ...(data.hstCalculator !== undefined && { hstCalculator: data.hstCalculator }),
-        ...(data.fertilizerSchedule !== undefined && {
-          fertilizerSchedule: data.fertilizerSchedule,
-        }),
-        ...(data.harvestLog !== undefined && { harvestLog: data.harvestLog }),
-        ...(data.laborCostNotes !== undefined && {
-          laborCostNotes: data.laborCostNotes,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(pertanianData.userId, session.user.id));
+      .set(updateValues)
+      .where(eq(pertanianData.id, existingData.id));
   } else {
     await db.insert(pertanianData).values({
-      userId: session.user.id,
-      hstCalculator: data.hstCalculator || '{}',
-      fertilizerSchedule: data.fertilizerSchedule || '[]',
-      harvestLog: data.harvestLog || '[]',
-      laborCostNotes: data.laborCostNotes || '[]',
+      userId,
+      hstCalculator: data.hstCalculator || DEFAULT_EMPTY_JSON,
+      fertilizerSchedule: data.fertilizerSchedule || DEFAULT_EMPTY_ARRAY,
+      harvestLog: data.harvestLog || DEFAULT_EMPTY_ARRAY,
+      laborCostNotes: data.laborCostNotes || DEFAULT_EMPTY_ARRAY,
     });
   }
 
@@ -267,11 +258,13 @@ export async function updatePertanianData(data: {
 // ============================================================================
 
 export async function getEmergencyInformation(tagId: string) {
-  const data = await db.query.emergencyInformation.findFirst({
+  if (!validateTagId(tagId)) {
+    throw new Error('Invalid tag ID');
+  }
+
+  return db.query.emergencyInformation.findFirst({
     where: eq(emergencyInformation.tagId, tagId),
   });
-
-  return data;
 }
 
 export async function updateEmergencyInformation(tagId: string, data: {
@@ -281,40 +274,37 @@ export async function updateEmergencyInformation(tagId: string, data: {
   emergencyContact?: string;
   emergencyContactName?: string;
 }) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
+  if (!validateTagId(tagId)) {
+    throw new Error('Invalid tag ID');
   }
 
-  // Verify ownership
-  const isOwner = await verifyTagOwnership(tagId, session.user.id);
+  const userId = await requireUserId();
+  const isOwner = await verifyTagOwnership(tagId, userId);
+
   if (!isOwner) {
     throw new Error('Forbidden: You do not own this tag');
   }
 
   const existingData = await db.query.emergencyInformation.findFirst({
     where: eq(emergencyInformation.tagId, tagId),
+    columns: { id: true },
   });
+
+  const updateValues: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  for (const field of MODULE_UPDATE_FIELDS.emergency) {
+    if (data[field] !== undefined) {
+      updateValues[field] = data[field];
+    }
+  }
 
   if (existingData) {
     await db
       .update(emergencyInformation)
-      .set({
-        ...(data.bloodType !== undefined && { bloodType: data.bloodType }),
-        ...(data.allergies !== undefined && { allergies: data.allergies }),
-        ...(data.medicalConditions !== undefined && {
-          medicalConditions: data.medicalConditions,
-        }),
-        ...(data.emergencyContact !== undefined && {
-          emergencyContact: data.emergencyContact,
-        }),
-        ...(data.emergencyContactName !== undefined && {
-          emergencyContactName: data.emergencyContactName,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(emergencyInformation.tagId, tagId));
+      .set(updateValues)
+      .where(eq(emergencyInformation.id, existingData.id));
   } else {
     await db.insert(emergencyInformation).values({
       tagId,
@@ -326,8 +316,8 @@ export async function updateEmergencyInformation(tagId: string, data: {
     });
   }
 
-  // Revalidate the public page to show updated emergency info
   revalidatePath(`/p/[slug]`);
+  revalidateTag(`tag-${tagId}`, 'max');
 
   return { success: true };
 }
@@ -337,70 +327,86 @@ export async function updateEmergencyInformation(tagId: string, data: {
 // ============================================================================
 
 export async function getUserModuleSelections() {
-  const session = await getSession();
+  const userId = await requireUserId();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
-
-  const selections = await db.query.userModuleSelections.findMany({
+  return db.query.userModuleSelections.findMany({
     where: and(
-      eq(userModuleSelections.userId, session.user.id),
+      eq(userModuleSelections.userId, userId),
       eq(userModuleSelections.isActive, true)
     ),
   });
-
-  return selections;
 }
 
 export async function setUserModuleSelections(moduleTypes: string[]) {
-  const session = await getSession();
+  const userId = await requireUserId();
 
-  if (!session?.user) {
-    throw new Error('Unauthorized');
+  if (!validateModuleTypes(moduleTypes)) {
+    throw new Error('Invalid module types');
   }
 
-  // Deactivate all existing selections
-  await db
-    .update(userModuleSelections)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(userModuleSelections.userId, session.user.id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(userModuleSelections)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(userModuleSelections.userId, userId));
 
-  // Add or reactivate selected modules
-  for (const moduleType of moduleTypes) {
-    const existing = await db.query.userModuleSelections.findFirst({
+    if (moduleTypes.length === 0) {
+      return;
+    }
+
+    const existingSelections = await tx.query.userModuleSelections.findMany({
       where: and(
-        eq(userModuleSelections.userId, session.user.id),
-        eq(userModuleSelections.moduleType, moduleType)
+        eq(userModuleSelections.userId, userId),
+        inArray(userModuleSelections.moduleType, moduleTypes)
       ),
+      columns: { id: true, moduleType: true },
     });
 
-    if (existing) {
-      await db
+    const existingModuleTypes = new Set(existingSelections.map(s => s.moduleType));
+    const modulesToCreate: string[] = [];
+    const modulesToUpdate: Array<{ id: string }> = [];
+
+    for (const moduleType of moduleTypes) {
+      const existing = existingSelections.find(s => s.moduleType === moduleType);
+      if (existing) {
+        modulesToUpdate.push({ id: existing.id });
+      } else {
+        modulesToCreate.push(moduleType);
+      }
+    }
+
+    if (modulesToUpdate.length > 0) {
+      await tx
         .update(userModuleSelections)
         .set({ isActive: true, updatedAt: new Date() })
-        .where(eq(userModuleSelections.id, existing.id));
-    } else {
-      await db.insert(userModuleSelections).values({
-        userId: session.user.id,
-        moduleType,
-        isActive: true,
-      });
+        .where(inArray(
+          userModuleSelections.id,
+          modulesToUpdate.map(m => m.id)
+        ));
     }
-  }
+
+    if (modulesToCreate.length > 0) {
+      await tx.insert(userModuleSelections).values(
+        modulesToCreate.map(moduleType => ({
+          userId,
+          moduleType,
+          isActive: true,
+        }))
+      );
+    }
+  });
 
   return { success: true };
 }
 
 export async function enableTabTwo(tagId: string) {
-  const session = await getSession();
-
-  if (!session?.user) {
-    throw new Error('Unauthorized');
+  if (!validateTagId(tagId)) {
+    throw new Error('Invalid tag ID');
   }
 
-  // Verify ownership
-  const isOwner = await verifyTagOwnership(tagId, session.user.id);
+  const userId = await requireUserId();
+  const isOwner = await verifyTagOwnership(tagId, userId);
+
   if (!isOwner) {
     throw new Error('Forbidden: You do not own this tag');
   }
@@ -411,7 +417,7 @@ export async function enableTabTwo(tagId: string) {
     .where(eq(tags.id, tagId));
 
   revalidatePath(`/p/[slug]`);
+  revalidateTag(`tag-${tagId}`, 'max');
 
   return { success: true };
 }
-
