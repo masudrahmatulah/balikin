@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Scroll, Scan, Calendar, MapPin, Smartphone, Eye, ChevronRight } from "lucide-react";
+import { Scroll, Scan, Calendar, MapPin, Eye, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
 interface ScanLog {
@@ -41,12 +41,52 @@ interface TagDetailSheetProps {
   trigger?: React.ReactNode;
 }
 
+// Constants
+const MAX_SCANS_DISPLAY = 10;
+
+// Memoized ScanItem component
+const ScanItem = memo(({
+  scan,
+  isSelected,
+  onSelect,
+}: {
+  scan: ScanLog;
+  isSelected: boolean;
+  onSelect: (scan: ScanLog) => void;
+}) => (
+  <button
+    onClick={() => onSelect(scan)}
+    className={`w-full text-left p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg transition-colors ${isSelected ? 'ring-2 ring-blue-500' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+    type="button"
+  >
+    <div className="flex items-start justify-between">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <Calendar className="w-3 h-3 text-gray-400" aria-hidden="true" />
+          <span className="text-xs text-gray-600 dark:text-gray-400">
+            {format(new Date(scan.createdAt), "MMM dd, HH:mm")}
+          </span>
+        </div>
+        {scan.location && (
+          <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+            <MapPin className="w-3 h-3" aria-hidden="true" />
+            <span className="truncate">{scan.location}</span>
+          </div>
+        )}
+      </div>
+      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" aria-hidden="true" />
+    </div>
+  </button>
+));
+
+ScanItem.displayName = 'ScanItem';
+
 /**
  * Tag Detail Sheet Component
  * Side-drawer for displaying comprehensive tag information
  * Shows scan logs, location data, and device information
  */
-export function TagDetailSheet({ tag, trigger }: TagDetailSheetProps) {
+export const TagDetailSheet = memo(({ tag, trigger }: TagDetailSheetProps) => {
   const [open, setOpen] = useState(false);
   const [selectedScan, setSelectedScan] = useState<ScanLog | null>(null);
 
@@ -61,8 +101,22 @@ export function TagDetailSheet({ tag, trigger }: TagDetailSheetProps) {
     premium: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
+  const handleSelectScan = useCallback((scan: ScanLog) => {
+    setSelectedScan(scan);
+  }, []);
+
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setSelectedScan(null);
+    }
+  }, []);
+
+  const displayScans = tag.scanLogs.slice(0, MAX_SCANS_DISPLAY);
+  const remainingCount = Math.max(0, tag.scanLogs.length - MAX_SCANS_DISPLAY);
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
@@ -141,34 +195,17 @@ export function TagDetailSheet({ tag, trigger }: TagDetailSheetProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                {tag.scanLogs.slice(0, 10).map((scan) => (
-                  <button
+                {displayScans.map((scan) => (
+                  <ScanItem
                     key={scan.id}
-                    onClick={() => setSelectedScan(scan)}
-                    className="w-full text-left p-3 bg-gray-50 dark:bg-gray-900/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Calendar className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            {format(new Date(scan.createdAt), "MMM dd, HH:mm")}
-                          </span>
-                        </div>
-                        {scan.location && (
-                          <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                            <MapPin className="w-3 h-3" />
-                            <span className="truncate">{scan.location}</span>
-                          </div>
-                        )}
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    </div>
-                  </button>
+                    scan={scan}
+                    isSelected={selectedScan?.id === scan.id}
+                    onSelect={handleSelectScan}
+                  />
                 ))}
-                {tag.scanLogs.length > 10 && (
+                {remainingCount > 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
-                    + {tag.scanLogs.length - 10} more scans
+                    + {remainingCount} more scans
                   </p>
                 )}
               </div>
@@ -186,6 +223,7 @@ export function TagDetailSheet({ tag, trigger }: TagDetailSheetProps) {
                   size="sm"
                   variant="ghost"
                   onClick={() => setSelectedScan(null)}
+                  aria-label="Close scan details"
                 >
                   Close
                 </Button>
@@ -249,4 +287,6 @@ export function TagDetailSheet({ tag, trigger }: TagDetailSheetProps) {
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+TagDetailSheet.displayName = 'TagDetailSheet';

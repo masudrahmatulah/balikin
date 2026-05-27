@@ -1,70 +1,92 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-// Mobile device detection patterns
-const mobileDevices = [
-  /Android/i,
-  /iPhone/i,
-  /iPad/i,
-  /iPod/i,
-  /BlackBerry/i,
-  /Windows Phone/i,
-  /webOS/i,
-  /Opera Mini/i,
-  /IEMobile/i,
-  /Mobile/i,
-]
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
-function isMobile(userAgent: string): boolean {
-  return mobileDevices.some((device) => device.test(userAgent))
+// Pre-compiled regex patterns for better performance
+const DEVICE_PATTERNS = [
+  /android/i,
+  /iphone/i,
+  /ipad/i,
+  /ipod/i,
+  /blackberry/i,
+  /windows phone/i,
+  /webos/i,
+  /opera mini/i,
+  /iemobile/i,
+  /mobile/i,
+] as const;
+
+const SKIP_PATHS = [
+  '/mobile',
+  '/api',
+  '/_next',
+  '/sign-in',
+  '/sign-up',
+];
+
+// File extensions to skip (public assets)
+const FILE_EXTENSIONS = [
+  '.js', '.css', '.json', '.ico', '.png', '.jpg', '.jpeg', '.gif',
+  '.svg', '.webp', '.woff', '.woff2', '.ttf', '.eot',
+] as const;
+
+// ============================================================================
+// VALIDATION
+// ============================================================================
+
+function sanitizeUserAgent(userAgent: string | null): string {
+  if (!userAgent) return '';
+  return userAgent.trim().slice(0, 500);
 }
 
-export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const userAgent = request.headers.get('user-agent') || ''
+function isMobileDevice(userAgent: string): boolean {
+  const sanitizedUA = userAgent.toLowerCase();
+  return DEVICE_PATTERNS.some((pattern) => pattern.test(sanitizedUA));
+}
 
-  // Skip if already on mobile pages, API routes, or auth pages
-  if (
-    pathname.startsWith('/mobile') ||
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/sign-in') ||
-    pathname.startsWith('/sign-up') ||
-    pathname.includes('.')
-  ) {
-    return
+function shouldSkipPath(pathname: string): boolean {
+  return SKIP_PATHS.some(path => pathname.startsWith(path)) ||
+         FILE_EXTENSIONS.some(ext => pathname.endsWith(ext));
+}
+
+// ============================================================================
+// PROXY FUNCTION
+// ============================================================================
+
+export function proxy(request: NextRequest): NextResponse | void {
+  const { pathname } = request.nextUrl;
+  const userAgent = sanitizeUserAgent(request.headers.get('user-agent'));
+
+  if (shouldSkipPath(pathname)) {
+    return;
   }
 
-  // Redirect /p/[slug] to mobile claim page for mobile users
+  const slugMatch = pathname.match(/^\/p\/([^/]+)/);
+  if (slugMatch && isMobileDevice(userAgent)) {
+    const slug = slugMatch[1];
+    if (!slug) return;
+
+    const url = request.nextUrl.clone();
+    url.pathname = `/mobile/claim/${slug}`;
+    return NextResponse.redirect(url);
+  }
+
   if (pathname.startsWith('/p/')) {
-    if (isMobile(userAgent)) {
-      const slug = pathname.split('/')[2]
-      const url = request.nextUrl.clone()
-      url.pathname = `/mobile/claim/${slug}`
-      return NextResponse.redirect(url)
-    }
-    return
+    return;
   }
 
-  // Check if user is on mobile device
-  if (isMobile(userAgent)) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/mobile'
-    return NextResponse.redirect(url)
+  if (isMobileDevice(userAgent)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mobile';
+    return NextResponse.redirect(url);
   }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images (public images)
-     * - icons (public icons)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico|images|icons|.*\\..*).*)',
   ],
-}
+};

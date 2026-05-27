@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { nanoid } from "nanoid";
 import type { User } from "@/db/schema";
@@ -13,6 +13,12 @@ interface CreateTagModalProps {
   users: UserWithTags[];
 }
 
+// Constants
+const MAX_TAG_NAME_LENGTH = 100;
+const MAX_WHATSAPP_LENGTH = 20;
+const MAX_CUSTOM_MESSAGE_LENGTH = 500;
+const MAX_REWARD_LENGTH = 200;
+
 export function CreateTagModal({ users }: CreateTagModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +28,24 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
   const [customMessage, setCustomMessage] = useState("");
   const [rewardNote, setRewardNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const selectedUser = users.find((u) => u.id === selectedUserId);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUserId || !tagName) return;
+    setError("");
+
+    if (!selectedUserId || !tagName) {
+      setError("Harap pilih klien dan isi nama tag");
+      return;
+    }
+
+    const sanitizedName = tagName.trim().slice(0, MAX_TAG_NAME_LENGTH);
+    if (!sanitizedName) {
+      setError("Nama tag tidak boleh kosong");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -37,15 +55,18 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ownerId: selectedUserId,
-          name: tagName,
+          name: sanitizedName,
           slug: nanoid(10),
-          contactWhatsapp,
-          customMessage,
-          rewardNote,
+          contactWhatsapp: contactWhatsapp.trim().slice(0, MAX_WHATSAPP_LENGTH) || null,
+          customMessage: customMessage.trim().slice(0, MAX_CUSTOM_MESSAGE_LENGTH) || null,
+          rewardNote: rewardNote.trim().slice(0, MAX_REWARD_LENGTH) || null,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create tag");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Gagal membuat tag");
+      }
 
       // Reset form
       setSelectedUserId("");
@@ -56,13 +77,19 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
       setIsOpen(false);
 
       router.refresh();
-    } catch (error) {
-      console.error("Error creating tag:", error);
-      alert("Gagal membuat tag. Silakan coba lagi.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal membuat tag. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [selectedUserId, tagName, contactWhatsapp, customMessage, rewardNote, router]);
+
+  const handleClose = useCallback(() => {
+    if (!isSubmitting) {
+      setIsOpen(false);
+      setError("");
+    }
+  }, [isSubmitting]);
 
   return (
     <>
@@ -94,6 +121,12 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <div className="mx-6 mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-900" role="alert">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Select User */}
@@ -180,14 +213,16 @@ export function CreateTagModal({ users }: CreateTagModalProps) {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || !selectedUserId || !tagName}
+                  aria-busy={isSubmitting}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {isSubmitting ? "Membuat..." : "Buat Tag"}
