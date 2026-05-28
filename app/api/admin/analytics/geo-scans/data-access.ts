@@ -59,7 +59,7 @@ const cachedGeoScanData = unstable_cache(
       topCities: [],
       allCities: [],
     };
-  },
+  }}),
   ['geo-scans'],
   { revalidate: 900, tags: ['admin-analytics', 'geo-scans'] }
 );
