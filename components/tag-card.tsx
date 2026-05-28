@@ -234,11 +234,17 @@ export const TagCard = memo(function TagCard({
 
   const createdLabel = useMemo(() => {
     if (!createdAt) return null;
-    return new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(createdAt);
+    try {
+      const date = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
+      if (isNaN(date.getTime())) return null;
+      return new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(date);
+    } catch {
+      return null;
+    }
   }, [createdAt]);
 
   const handleStatusToggle = useCallback(async (checked: boolean) => {
