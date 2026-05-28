@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  cacheComponents: false,
+  cacheComponents: true,
   typescript: {
     ignoreBuildErrors: true,
   },

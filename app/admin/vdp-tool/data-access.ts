@@ -9,7 +9,6 @@ import { desc, eq, sql, and, isNull, or } from 'drizzle-orm';
 const APP_ID = 'balikin_id';
 
 async function getVDPTagStatsCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('vdp-tag-stats', 'admin-vdp-tool');
 
@@ -43,7 +42,6 @@ async function getVDPTagStatsCore() {
 export const getVDPTagStats = cache(getVDPTagStatsCore);
 
 async function getVDPPrintQueueStatsCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('vdp-print-queue', 'admin-vdp-tool');
 
@@ -77,7 +75,6 @@ async function getVDPPrintQueueStatsCore() {
 export const getVDPPrintQueueStats = cache(getVDPPrintQueueStatsCore);
 
 async function getVDPRecentBatchesCore(limit: number = 5) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('vdp-recent-batches', 'admin-vdp-tool');
 

@@ -10,7 +10,6 @@ import { count, sql, desc, eq } from 'drizzle-orm';
  * Get bundle statistics with caching
  */
 async function getBundleStatsCore() {
-  'use cache';
   cacheLife('hours');
   cacheTag('bundle-stats', 'admin-bundles');
 
@@ -35,7 +34,6 @@ export const getBundleStats = cache(getBundleStatsCore);
  * Get recent bundle tags with caching
  */
 async function getRecentBundlesCore(limit: number = 10) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('recent-bundles', 'admin-bundles');
 

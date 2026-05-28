@@ -10,7 +10,6 @@ const APP_ID = 'balikin_id';
 const ORDERS_PER_PAGE = 20;
 
 async function getStickerOrdersCore(page: number = 1) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('sticker-orders', 'admin-sticker-orders');
 
@@ -39,7 +38,6 @@ async function getStickerOrdersCore(page: number = 1) {
 export const getStickerOrders = cache(getStickerOrdersCore);
 
 async function getStickerOrdersCountCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('sticker-orders-count', 'admin-sticker-orders');
 
@@ -73,7 +71,6 @@ async function getStickerOrderById(id: string) {
 }
 
 async function getPendingOrdersCountCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('pending-orders-count', 'admin-sticker-orders');
 

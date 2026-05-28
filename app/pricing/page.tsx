@@ -65,7 +65,6 @@ const pricingPlans: PricingPlan[] = [
 ];
 
 async function PricingPage() {
-  'use cache';
   cacheLife('days');
 
   const offers = pricingPlans.map((plan) => ({

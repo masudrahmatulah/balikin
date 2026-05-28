@@ -12,7 +12,6 @@ import { MODULES } from '@/lib/admin-modules';
  * Get all module configurations with caching
  */
 async function getAllModuleConfigsCore() {
-  'use cache';
   cacheLife('hours');
   cacheTag('module-configs', 'admin-modules');
 
@@ -32,7 +31,6 @@ export const getAllModuleConfigs = cache(getAllModuleConfigsCore);
  * Get module config by type (public - no auth required)
  */
 async function getModuleConfigByTypeCore(moduleType: string) {
-  'use cache';
   cacheLife('hours');
   cacheTag(`module-config-${moduleType}`);
 
@@ -52,7 +50,6 @@ export const getModuleConfigByType = cache(getModuleConfigByTypeCore);
  * Get all active module configs (for catalog)
  */
 async function getActiveModuleConfigsCore() {
-  'use cache';
   cacheLife('hours');
   cacheTag('module-configs', 'active-modules');
 
@@ -73,7 +70,6 @@ export const getActiveModuleConfigs = cache(getActiveModuleConfigsCore);
  * Get module statistics with caching
  */
 async function getModuleStatsCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('module-stats', 'admin-modules');
 

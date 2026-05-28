@@ -47,7 +47,6 @@ async function getAdminSession() {
  * Get all module permissions for a specific user (cached)
  */
 export async function getUserModulePermissions(userId: string) {
-  'use cache';
   cacheTag('user-module-permissions', `user-${userId}`);
 
   const adminSession = await getAdminSession();
@@ -147,7 +146,6 @@ export async function setUserModulePermission({
  * Get all users with their module permissions (cached)
  */
 export async function getUsersWithModulePermissions() {
-  'use cache';
   cacheTag('user-module-permissions');
 
   const adminSession = await getAdminSession();
