@@ -128,7 +128,7 @@ export const auth = betterAuth({
     updateAge: SESSION_UPDATE_AGE_SECONDS,
     cookieCache: {
       enabled: true,
-      maxAge: SESSION_EXPIRY_SECONDS,
+      maxAge: SESSION_UPDATE_AGE_SECONDS, // Use updateAge (1 day) instead of full session expiry
     },
   },
   account: {
