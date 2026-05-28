@@ -3,7 +3,6 @@
  * Provides institutional bundle order activation metrics
  */
 
-'use cache';
 
 import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '@/db';

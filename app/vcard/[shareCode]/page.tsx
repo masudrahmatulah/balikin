@@ -20,7 +20,6 @@ interface VCardPageProps {
 }
 
 async function getVCardData(shareCode: string) {
-  'use cache';
   cacheLife('hours');
   cacheTag('vcard', `vcard-${shareCode}`);
 

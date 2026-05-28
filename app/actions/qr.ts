@@ -13,7 +13,6 @@ import { cacheTag } from 'next/cache';
  * @returns Object with dataUrl and filename
  */
 export async function generateQRCodePNG(tagSlug: string) {
-  'use cache';
   cacheTag('qr-codes', `tag-${tagSlug}`);
 
   const session = await requireAuth();
@@ -44,7 +43,6 @@ export async function generateQRCodePNG(tagSlug: string) {
  * @returns SVG string
  */
 export async function generateQRCodeSVG(tagSlug: string) {
-  'use cache';
   cacheTag('qr-codes', `tag-${tagSlug}`);
 
   const session = await requireAuth();

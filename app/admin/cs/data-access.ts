@@ -9,7 +9,6 @@ import { desc, count, eq, and, sql } from 'drizzle-orm';
 const APP_ID = 'balikin_id';
 
 async function getCSPendingPaymentsCountCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('cs-pending-payments', 'admin-cs-dashboard');
 
@@ -29,7 +28,6 @@ async function getCSPendingPaymentsCountCore() {
 export const getCSPendingPaymentsCount = cache(getCSPendingPaymentsCountCore);
 
 async function getCSRecentOrdersCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('cs-recent-orders', 'admin-cs-dashboard');
 
@@ -51,7 +49,6 @@ async function getCSRecentOrdersCore() {
 export const getCSRecentOrders = cache(getCSRecentOrdersCore);
 
 async function getCSModuleRequestsSummaryCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('cs-module-requests', 'admin-cs-dashboard');
 
@@ -77,7 +74,6 @@ async function getCSModuleRequestsSummaryCore() {
 export const getCSModuleRequestsSummary = cache(getCSModuleRequestsSummaryCore);
 
 async function getCSRecentModuleRequestsCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('cs-recent-requests', 'admin-cs-dashboard');
 
@@ -96,7 +92,6 @@ async function getCSRecentModuleRequestsCore() {
 export const getCSRecentModuleRequests = cache(getCSRecentModuleRequestsCore);
 
 async function getCSDashboardCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('cs-dashboard', 'admin-cs-dashboard');
 

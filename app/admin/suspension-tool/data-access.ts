@@ -10,7 +10,6 @@ const APP_ID = 'balikin_id';
 const SUSPENSIONS_PER_PAGE = 25;
 
 async function getSuspensionsCore(page: number = 1) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('suspensions', 'admin-suspensions');
 
@@ -34,7 +33,6 @@ async function getSuspensionsCore(page: number = 1) {
 export const getSuspensions = cache(getSuspensionsCore);
 
 async function getSuspensionsCountCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('suspensions-count', 'admin-suspensions');
 
@@ -49,7 +47,6 @@ async function getSuspensionsCountCore() {
 export const getSuspensionsCount = cache(getSuspensionsCountCore);
 
 async function getSuspensionStatsCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('suspension-stats', 'admin-suspensions');
 

@@ -10,7 +10,6 @@ const APP_ID = 'balikin_id';
 const ITEMS_PER_PAGE = 25;
 
 async function getPrintQueueItemsCore(page: number = 1, status?: string) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('print-queue', 'admin-print-queue');
 
@@ -35,7 +34,6 @@ async function getPrintQueueItemsCore(page: number = 1, status?: string) {
 export const getPrintQueueItems = cache(getPrintQueueItemsCore);
 
 async function getPrintQueueItemsCountCore(status?: string) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('print-queue-count', 'admin-print-queue');
 
@@ -54,7 +52,6 @@ async function getPrintQueueItemsCountCore(status?: string) {
 export const getPrintQueueItemsCount = cache(getPrintQueueItemsCountCore);
 
 async function getPrintQueueStatsCore() {
-  'use cache';
   cacheLife('seconds');
   cacheTag('print-queue-stats', 'admin-print-queue');
 

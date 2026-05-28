@@ -13,7 +13,6 @@ import { getRevenueStats, getMaterialStockAlerts } from '@/lib/admin-dashboard';
  * Using 'use cache' directive for automatic key generation and tag-based invalidation
  */
 async function getDashboardStatsCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('dashboard-stats', 'admin-stats');
 
@@ -68,7 +67,6 @@ export const getDashboardStatsServer = cache(getDashboardStatsCore);
  * Get pending counts with caching
  */
 async function getPendingCountsCore() {
-  'use cache';
   cacheLife('minutes');
   cacheTag('pending-counts', 'admin-stats');
 
@@ -103,7 +101,6 @@ export const getPendingCountsServer = cache(getPendingCountsCore);
  * Get recent tags for admin dashboard with caching
  */
 async function getRecentTagsCore(limit: number = 4) {
-  'use cache';
   cacheLife('minutes');
   cacheTag('recent-tags', 'admin-stats');
 
