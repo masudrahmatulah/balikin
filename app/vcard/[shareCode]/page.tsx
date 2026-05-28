@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { cacheLife, cacheTag } from 'next/cache';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, Mail, Phone, Globe, Download } from 'lucide-react';
@@ -20,8 +19,6 @@ interface VCardPageProps {
 }
 
 async function getVCardData(shareCode: string) {
-  cacheLife('hours');
-  cacheTag('vcard', `vcard-${shareCode}`);
 
   const data = await getVCardByShareCode(shareCode);
   return data.vcardData;

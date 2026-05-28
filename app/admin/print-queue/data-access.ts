@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { printQueue } from '@/db/schema';
 import { desc, eq, sql, inArray, and } from 'drizzle-orm';
@@ -10,8 +9,6 @@ const APP_ID = 'balikin_id';
 const ITEMS_PER_PAGE = 25;
 
 async function getPrintQueueItemsCore(page: number = 1, status?: string) {
-  cacheLife('minutes');
-  cacheTag('print-queue', 'admin-print-queue');
 
   const offset = (page - 1) * ITEMS_PER_PAGE;
 
@@ -34,8 +31,6 @@ async function getPrintQueueItemsCore(page: number = 1, status?: string) {
 export const getPrintQueueItems = cache(getPrintQueueItemsCore);
 
 async function getPrintQueueItemsCountCore(status?: string) {
-  cacheLife('minutes');
-  cacheTag('print-queue-count', 'admin-print-queue');
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -52,8 +47,6 @@ async function getPrintQueueItemsCountCore(status?: string) {
 export const getPrintQueueItemsCount = cache(getPrintQueueItemsCountCore);
 
 async function getPrintQueueStatsCore() {
-  cacheLife('seconds');
-  cacheTag('print-queue-stats', 'admin-print-queue');
 
   const stats = await db
     .select({
@@ -85,8 +78,4 @@ async function getPrintQueueItemById(id: string) {
 }
 
 export async function revalidatePrintQueueCache() {
-  revalidateTag('print-queue', 'max');
-  revalidateTag('print-queue-count', 'max');
-  revalidateTag('print-queue-stats', 'max');
-  revalidateTag('admin-print-queue', 'max');
 }

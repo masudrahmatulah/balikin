@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cacheLife } from "next/cache";
 import { Check, MessageCircle } from "lucide-react";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
@@ -65,7 +64,6 @@ const pricingPlans: PricingPlan[] = [
 ];
 
 async function PricingPage() {
-  cacheLife('days');
 
   const offers = pricingPlans.map((plan) => ({
     name: plan.name,

@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { suspensionLog } from '@/db/schema';
 import { desc, eq, sql, and } from 'drizzle-orm';
@@ -10,8 +9,6 @@ const APP_ID = 'balikin_id';
 const SUSPENSIONS_PER_PAGE = 25;
 
 async function getSuspensionsCore(page: number = 1) {
-  cacheLife('minutes');
-  cacheTag('suspensions', 'admin-suspensions');
 
   const offset = (page - 1) * SUSPENSIONS_PER_PAGE;
 
@@ -33,8 +30,6 @@ async function getSuspensionsCore(page: number = 1) {
 export const getSuspensions = cache(getSuspensionsCore);
 
 async function getSuspensionsCountCore() {
-  cacheLife('minutes');
-  cacheTag('suspensions-count', 'admin-suspensions');
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -47,8 +42,6 @@ async function getSuspensionsCountCore() {
 export const getSuspensionsCount = cache(getSuspensionsCountCore);
 
 async function getSuspensionStatsCore() {
-  cacheLife('seconds');
-  cacheTag('suspension-stats', 'admin-suspensions');
 
   const [activeResult, liftedResult] = await Promise.all([
     db
@@ -87,8 +80,4 @@ async function getSuspensionById(id: string) {
 }
 
 export async function revalidateSuspensionCache() {
-  revalidateTag('suspensions', 'max');
-  revalidateTag('suspensions-count', 'max');
-  revalidateTag('suspension-stats', 'max');
-  revalidateTag('admin-suspensions', 'max');
 }

@@ -13,7 +13,6 @@ import {
   STICKER_PAYMENT_METHOD,
 } from '@/lib/constants';
 import { isAdmin } from '@/lib/admin';
-import { revalidateTag } from 'next/cache';
 
 // ============================================================================
 // CONSTANTS
@@ -123,8 +122,6 @@ export async function createStickerOrder(input: CreateStickerOrderInput) {
     totalAmount: STICKER_PACK_PRICE,
   }).returning();
 
-  revalidateTag('sticker-orders', 'max');
-  revalidateTag('user-orders', 'max');
 
   return order;
 }
@@ -186,8 +183,6 @@ export async function verifyStickerOrder(orderId: string) {
     })
     .where(eq(stickerOrders.id, orderId));
 
-  revalidateTag('sticker-orders', 'max');
-  revalidateTag('pending-orders', 'max');
 }
 
 export async function updateStickerOrderStatus(orderId: string, status: 'in_production' | 'shipped' | 'completed') {
@@ -207,7 +202,6 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
     })
     .where(eq(stickerOrders.id, orderId));
 
-  revalidateTag('sticker-orders', 'max');
 }
 
 // ============================================================================
@@ -286,9 +280,6 @@ export async function generateStickerBundle(
     })
     .where(eq(stickerOrders.id, order.id));
 
-  revalidateTag('sticker-orders', 'max');
-  revalidateTag('recent-bundles', 'max');
-  revalidateTag('user-orders', 'max');
 
   return bundle;
 }

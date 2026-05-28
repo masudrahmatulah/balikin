@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-shell";
 import { buildMetadata } from "@/lib/seo";
 import { termsOfServiceSections } from "@/lib/site-content";
-import { cacheLife } from "next/cache";
 import { WebPageJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({

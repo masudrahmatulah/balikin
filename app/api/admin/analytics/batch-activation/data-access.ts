@@ -4,13 +4,10 @@
  */
 
 
-import { cacheLife, cacheTag } from 'next/cache';
 import { db } from '@/db';
 import { tags, tagBundles, stickerOrders } from '@/db/schema';
 import { and, desc, sql, count, eq } from 'drizzle-orm';
 
-cacheLife('minutes');
-cacheTag('admin-analytics', 'batch-activation');
 
 interface BundleMetric {
   institution: string;
