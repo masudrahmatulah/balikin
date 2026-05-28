@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const currentItems = await db.query.printQueue.findMany({
-      where: and(inArray(printQueue.id, ids), eq(printQueue.appId, APP_ID)),
+      where: and(inArray(printQueue.id, ids), eq(printQueue.app_id, APP_ID)),
     });
 
     if (currentItems.length === 0) {

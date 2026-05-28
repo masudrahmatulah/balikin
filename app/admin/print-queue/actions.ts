@@ -33,7 +33,7 @@ export async function updatePrintQueueStatus(
   const currentItem = await db.query.printQueue.findFirst({
     where: and(
       eq(printQueue.id, itemId),
-      eq(printQueue.appId, APP_ID)
+      eq(printQueue.app_id, APP_ID)
     ),
   });
 
@@ -86,7 +86,7 @@ export async function bulkUpdatePrintQueueStatus(
   const currentItems = await db.query.printQueue.findMany({
     where: and(
       inArray(printQueue.id, ids),
-      eq(printQueue.appId, APP_ID)
+      eq(printQueue.app_id, APP_ID)
     ),
   });
 

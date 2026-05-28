@@ -99,7 +99,7 @@ async function getRecentTagsCore(limit: number = 4) {
 
   const recentTags = await withQueryTimeout(
     () => db.query.tags.findMany({
-      where: eq(tags.appId, 'balikin_id'),
+      where: eq(tags.app_id, 'balikin_id'),
       orderBy: [desc(tags.createdAt)],
       limit,
       columns: {

@@ -13,7 +13,7 @@ async function getStickerOrdersCore(page: number = 1) {
   const offset = (page - 1) * ORDERS_PER_PAGE;
 
   const orders = await db.query.stickerOrders.findMany({
-    where: eq(stickerOrders.appId, APP_ID),
+    where: eq(stickerOrders.app_id, APP_ID),
     orderBy: [desc(stickerOrders.createdAt)],
     with: {
       user: true,
@@ -39,7 +39,7 @@ async function getStickerOrdersCountCore() {
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(stickerOrders)
-    .where(eq(stickerOrders.appId, APP_ID));
+    .where(eq(stickerOrders.app_id, APP_ID));
 
   return count;
 }
@@ -50,7 +50,7 @@ async function getStickerOrderById(id: string) {
   const order = await db.query.stickerOrders.findFirst({
     where: and(
       eq(stickerOrders.id, id),
-      eq(stickerOrders.appId, APP_ID)
+      eq(stickerOrders.app_id, APP_ID)
     ),
     with: {
       user: true,
@@ -72,7 +72,7 @@ async function getPendingOrdersCountCore() {
     .from(stickerOrders)
     .where(
       and(
-        eq(stickerOrders.appId, APP_ID),
+        eq(stickerOrders.app_id, APP_ID),
         eq(stickerOrders.paymentStatus, 'pending')
       )
     );

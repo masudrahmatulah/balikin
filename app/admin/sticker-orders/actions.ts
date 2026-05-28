@@ -23,7 +23,7 @@ export async function verifyStickerOrder(orderId: string) {
   const order = await db.query.stickerOrders.findFirst({
     where: and(
       eq(stickerOrders.id, orderId),
-      eq(stickerOrders.appId, APP_ID)
+      eq(stickerOrders.app_id, APP_ID)
     ),
   });
 
@@ -52,7 +52,7 @@ export async function updateStickerOrderStatus(
   const order = await db.query.stickerOrders.findFirst({
     where: and(
       eq(stickerOrders.id, orderId),
-      eq(stickerOrders.appId, APP_ID)
+      eq(stickerOrders.app_id, APP_ID)
     ),
   });
 

@@ -13,20 +13,20 @@ async function getVDPTagStatsCore() {
     db
       .select({ count: sql<number>`count(*)` })
       .from(tags)
-      .where(eq(tags.appId, APP_ID)),
+      .where(eq(tags.app_id, APP_ID)),
     db
       .select({ count: sql<number>`count(*)` })
       .from(tags)
       .where(
         and(
-          eq(tags.appId, APP_ID),
+          eq(tags.app_id, APP_ID),
           isNull(tags.ownerId)
         )
       ),
     db
       .select({ count: sql<number>`count(*)` })
       .from(tagBundles)
-      .where(eq(tagBundles.appId, APP_ID)),
+      .where(eq(tagBundles.app_id, APP_ID)),
   ]);
 
   return {
@@ -46,7 +46,7 @@ async function getVDPPrintQueueStatsCore() {
       .from(printQueue)
       .where(
         and(
-          eq(printQueue.appId, APP_ID),
+          eq(printQueue.app_id, APP_ID),
           eq(printQueue.status, 'pending')
         )
       ),
@@ -55,7 +55,7 @@ async function getVDPPrintQueueStatsCore() {
       .from(printQueue)
       .where(
         and(
-          eq(printQueue.appId, APP_ID),
+          eq(printQueue.app_id, APP_ID),
           eq(printQueue.status, 'printing')
         )
       ),
@@ -72,7 +72,7 @@ export const getVDPPrintQueueStats = cache(getVDPPrintQueueStatsCore);
 async function getVDPRecentBatchesCore(limit: number = 5) {
 
   const batches = await db.query.tagBundles.findMany({
-    where: eq(tagBundles.appId, APP_ID),
+    where: eq(tagBundles.app_id, APP_ID),
     orderBy: [desc(tagBundles.createdAt)],
     with: {
       tags: {

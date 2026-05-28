@@ -38,7 +38,7 @@ export async function PATCH(
     const currentItem = await db.query.printQueue.findFirst({
       where: and(
         eq(printQueue.id, params.id),
-        eq(printQueue.appId, APP_ID)
+        eq(printQueue.app_id, APP_ID)
       ),
     });
 

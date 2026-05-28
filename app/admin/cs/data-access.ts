@@ -14,7 +14,7 @@ async function getCSPendingPaymentsCountCore() {
     .from(stickerOrders)
     .where(
       and(
-        eq(stickerOrders.appId, APP_ID),
+        eq(stickerOrders.app_id, APP_ID),
         eq(stickerOrders.paymentStatus, 'pending')
       )
     );
@@ -28,7 +28,7 @@ async function getCSRecentOrdersCore() {
 
   const orders = await db.query.stickerOrders.findMany({
     where: and(
-      eq(stickerOrders.appId, APP_ID),
+      eq(stickerOrders.app_id, APP_ID),
       eq(stickerOrders.paymentStatus, 'pending')
     ),
     orderBy: [desc(stickerOrders.createdAt)],
@@ -49,12 +49,12 @@ async function getCSModuleRequestsSummaryCore() {
     db
       .select({ count: sql<number>`count(*)` })
       .from(moduleRequests)
-      .where(eq(moduleRequests.appId, APP_ID)),
+      .where(eq(moduleRequests.app_id, APP_ID)),
     db
       .select({ count: sql<number>`count(*)` })
       .from(moduleRequests)
       .where(
-        and(eq(moduleRequests.appId, APP_ID), eq(moduleRequests.status, 'pending'))
+        and(eq(moduleRequests.app_id, APP_ID), eq(moduleRequests.status, 'pending'))
       ),
   ]);
 
@@ -69,7 +69,7 @@ export const getCSModuleRequestsSummary = cache(getCSModuleRequestsSummaryCore);
 async function getCSRecentModuleRequestsCore() {
 
   const requests = await db.query.moduleRequests.findMany({
-    where: eq(moduleRequests.appId, APP_ID),
+    where: eq(moduleRequests.app_id, APP_ID),
     orderBy: [desc(moduleRequests.createdAt)],
     with: {
       user: true,
