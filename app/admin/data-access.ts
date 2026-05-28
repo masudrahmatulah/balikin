@@ -6,7 +6,7 @@ import { db } from '@/db';
 import { user, tags, stickerOrders, materialInventory, modulePurchaseOrders } from '@/db/schema';
 import { count, eq, sql, desc } from 'drizzle-orm';
 import { getTagsApproximateCount, withQueryTimeout } from '@/lib/postgres-utils';
-import { adminDashboard } from '@/lib/admin-dashboard';
+import { getRevenueStats, getMaterialStockAlerts } from '@/lib/admin-dashboard';
 
 /**
  * Get dashboard statistics with Next.js 16 cache components
@@ -41,9 +41,9 @@ async function getDashboardStatsCore() {
 
   // Get revenue and material stats in parallel
   const [dailyRevenue, monthlyRevenue, materialAlerts] = await Promise.all([
-    adminDashboard.getRevenueStats('daily'),
-    adminDashboard.getRevenueStats('monthly'),
-    adminDashboard.getMaterialStockAlerts(),
+    getRevenueStats('daily'),
+    getRevenueStats('monthly'),
+    getMaterialStockAlerts(),
   ]);
 
   return {
