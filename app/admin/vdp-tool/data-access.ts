@@ -82,7 +82,7 @@ async function getVDPRecentBatchesCore(limit: number = 5) {
     limit,
   });
 
-  return bundles;
+  return batches;
 }
 
 export const getVDPRecentBatches = cache(getVDPRecentBatchesCore.bind(null, 5));
