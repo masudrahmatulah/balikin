@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { stickerOrders, moduleRequests, user } from '@/db/schema';
 import { desc, count, eq, and, sql } from 'drizzle-orm';
@@ -9,8 +8,6 @@ import { desc, count, eq, and, sql } from 'drizzle-orm';
 const APP_ID = 'balikin_id';
 
 async function getCSPendingPaymentsCountCore() {
-  cacheLife('seconds');
-  cacheTag('cs-pending-payments', 'admin-cs-dashboard');
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -28,8 +25,6 @@ async function getCSPendingPaymentsCountCore() {
 export const getCSPendingPaymentsCount = cache(getCSPendingPaymentsCountCore);
 
 async function getCSRecentOrdersCore() {
-  cacheLife('seconds');
-  cacheTag('cs-recent-orders', 'admin-cs-dashboard');
 
   const orders = await db.query.stickerOrders.findMany({
     where: and(
@@ -49,8 +44,6 @@ async function getCSRecentOrdersCore() {
 export const getCSRecentOrders = cache(getCSRecentOrdersCore);
 
 async function getCSModuleRequestsSummaryCore() {
-  cacheLife('seconds');
-  cacheTag('cs-module-requests', 'admin-cs-dashboard');
 
   const [totalResult, pendingResult] = await Promise.all([
     db
@@ -74,8 +67,6 @@ async function getCSModuleRequestsSummaryCore() {
 export const getCSModuleRequestsSummary = cache(getCSModuleRequestsSummaryCore);
 
 async function getCSRecentModuleRequestsCore() {
-  cacheLife('seconds');
-  cacheTag('cs-recent-requests', 'admin-cs-dashboard');
 
   const requests = await db.query.moduleRequests.findMany({
     where: eq(moduleRequests.appId, APP_ID),
@@ -92,8 +83,6 @@ async function getCSRecentModuleRequestsCore() {
 export const getCSRecentModuleRequests = cache(getCSRecentModuleRequestsCore);
 
 async function getCSDashboardCore() {
-  cacheLife('seconds');
-  cacheTag('cs-dashboard', 'admin-cs-dashboard');
 
   const [pendingPaymentsCount, recentOrders, moduleRequestsSummary, recentRequests] = await Promise.all([
     getCSPendingPaymentsCount(),
@@ -113,10 +102,4 @@ async function getCSDashboardCore() {
 export const getCSDashboard = cache(getCSDashboardCore);
 
 export async function revalidateCSDashboardCache() {
-  revalidateTag('cs-pending-payments', 'max');
-  revalidateTag('cs-recent-orders', 'max');
-  revalidateTag('cs-module-requests', 'max');
-  revalidateTag('cs-recent-requests', 'max');
-  revalidateTag('cs-dashboard', 'max');
-  revalidateTag('admin-cs-dashboard', 'max');
 }

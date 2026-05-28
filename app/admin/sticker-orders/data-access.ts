@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
 import { desc, eq, sql, and } from 'drizzle-orm';
@@ -10,8 +9,6 @@ const APP_ID = 'balikin_id';
 const ORDERS_PER_PAGE = 20;
 
 async function getStickerOrdersCore(page: number = 1) {
-  cacheLife('minutes');
-  cacheTag('sticker-orders', 'admin-sticker-orders');
 
   const offset = (page - 1) * ORDERS_PER_PAGE;
 
@@ -38,8 +35,6 @@ async function getStickerOrdersCore(page: number = 1) {
 export const getStickerOrders = cache(getStickerOrdersCore);
 
 async function getStickerOrdersCountCore() {
-  cacheLife('minutes');
-  cacheTag('sticker-orders-count', 'admin-sticker-orders');
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -71,8 +66,6 @@ async function getStickerOrderById(id: string) {
 }
 
 async function getPendingOrdersCountCore() {
-  cacheLife('seconds');
-  cacheTag('pending-orders-count', 'admin-sticker-orders');
 
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
@@ -90,8 +83,4 @@ async function getPendingOrdersCountCore() {
 export const getPendingOrdersCount = cache(getPendingOrdersCountCore);
 
 export async function revalidateStickerOrdersCache() {
-  revalidateTag('sticker-orders', 'max');
-  revalidateTag('sticker-orders-count', 'max');
-  revalidateTag('pending-orders-count', 'max');
-  revalidateTag('admin-sticker-orders', 'max');
 }

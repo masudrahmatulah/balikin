@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { tags, tagBundles, printQueue } from '@/db/schema';
 import { desc, eq, sql, and, isNull, or } from 'drizzle-orm';
@@ -9,8 +8,6 @@ import { desc, eq, sql, and, isNull, or } from 'drizzle-orm';
 const APP_ID = 'balikin_id';
 
 async function getVDPTagStatsCore() {
-  cacheLife('minutes');
-  cacheTag('vdp-tag-stats', 'admin-vdp-tool');
 
   const [totalResult, unassignedResult, batchResult] = await Promise.all([
     db
@@ -42,8 +39,6 @@ async function getVDPTagStatsCore() {
 export const getVDPTagStats = cache(getVDPTagStatsCore);
 
 async function getVDPPrintQueueStatsCore() {
-  cacheLife('seconds');
-  cacheTag('vdp-print-queue', 'admin-vdp-tool');
 
   const [pendingResult, printingResult] = await Promise.all([
     db
@@ -75,8 +70,6 @@ async function getVDPPrintQueueStatsCore() {
 export const getVDPPrintQueueStats = cache(getVDPPrintQueueStatsCore);
 
 async function getVDPRecentBatchesCore(limit: number = 5) {
-  cacheLife('minutes');
-  cacheTag('vdp-recent-batches', 'admin-vdp-tool');
 
   const batches = await db.query.tagBundles.findMany({
     where: eq(tagBundles.appId, APP_ID),
@@ -95,8 +88,4 @@ async function getVDPRecentBatchesCore(limit: number = 5) {
 export const getVDPRecentBatches = cache(getVDPRecentBatchesCore.bind(null, 5));
 
 export async function revalidateVDPCache() {
-  revalidateTag('vdp-tag-stats', 'max');
-  revalidateTag('vdp-print-queue', 'max');
-  revalidateTag('vdp-recent-batches', 'max');
-  revalidateTag('admin-vdp-tool', 'max');
 }

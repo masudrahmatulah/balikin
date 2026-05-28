@@ -6,7 +6,6 @@ import { scanLogs } from '@/db/schema';
 import { handleScanAlert } from '@/lib/notifications';
 import { checkScanRateLimit } from '@/lib/rate-limit';
 import { eq, and, desc, gt } from 'drizzle-orm';
-import { revalidateTag } from 'next/cache';
 
 // ============================================================================
 // TYPES
@@ -138,7 +137,6 @@ export async function logScan(tagId: string, clientLocation?: ClientLocation): P
     if (scanLogId) {
       handleScanAlert(tagId, scanLogId).catch(() => {
       });
-      revalidateTag(`tag-${tagId}`);
       return { success: true, scanLogId };
     }
 
@@ -216,7 +214,6 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
       })
       .where(eq(scanLogs.id, latestScanId));
 
-    revalidateTag(`tag-${tagId}`);
     return { success: true, scanId: latestScanId };
   } catch {
     return { success: false, error: 'Database error' };

@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { moduleConfig, userModulePermissions, modulePurchaseOrders, user } from '@/db/schema';
 import { eq, and, desc, count } from 'drizzle-orm';
@@ -12,8 +11,6 @@ import { MODULES } from '@/lib/admin-modules';
  * Get all module configurations with caching
  */
 async function getAllModuleConfigsCore() {
-  cacheLife('hours');
-  cacheTag('module-configs', 'admin-modules');
 
   const configs = await db.query.moduleConfig.findMany({
     orderBy: [moduleConfig.sortOrder, moduleConfig.moduleType],
@@ -31,8 +28,6 @@ export const getAllModuleConfigs = cache(getAllModuleConfigsCore);
  * Get module config by type (public - no auth required)
  */
 async function getModuleConfigByTypeCore(moduleType: string) {
-  cacheLife('hours');
-  cacheTag(`module-config-${moduleType}`);
 
   const config = await db.query.moduleConfig.findFirst({
     where: eq(moduleConfig.moduleType, moduleType),
@@ -50,8 +45,6 @@ export const getModuleConfigByType = cache(getModuleConfigByTypeCore);
  * Get all active module configs (for catalog)
  */
 async function getActiveModuleConfigsCore() {
-  cacheLife('hours');
-  cacheTag('module-configs', 'active-modules');
 
   const configs = await db.query.moduleConfig.findMany({
     where: eq(moduleConfig.isEnabled, true),
@@ -70,8 +63,6 @@ export const getActiveModuleConfigs = cache(getActiveModuleConfigsCore);
  * Get module statistics with caching
  */
 async function getModuleStatsCore() {
-  cacheLife('minutes');
-  cacheTag('module-stats', 'admin-modules');
 
   const configs = await db.query.moduleConfig.findMany();
 
@@ -162,12 +153,7 @@ export async function getModuleListWithStats() {
  * Call this after any module configuration change
  */
 export async function revalidateModuleCaches(moduleType?: string) {
-  revalidateTag('module-configs', 'max');
-  revalidateTag('module-stats', 'max');
-  revalidateTag('admin-modules', 'max');
-  revalidateTag('active-modules', 'max');
 
   if (moduleType) {
-    revalidateTag(`module-config-${moduleType}`, 'max');
   }
 }

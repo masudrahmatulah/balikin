@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { user, tags, stickerOrders, materialInventory, modulePurchaseOrders } from '@/db/schema';
 import { count, eq, sql, desc } from 'drizzle-orm';
@@ -13,8 +12,6 @@ import { getRevenueStats, getMaterialStockAlerts } from '@/lib/admin-dashboard';
  * Using 'use cache' directive for automatic key generation and tag-based invalidation
  */
 async function getDashboardStatsCore() {
-  cacheLife('minutes');
-  cacheTag('dashboard-stats', 'admin-stats');
 
   // Use approximate count for tags (large table) - instant, no table scan
   const tagsCount = await getTagsApproximateCount();
@@ -67,8 +64,6 @@ export const getDashboardStatsServer = cache(getDashboardStatsCore);
  * Get pending counts with caching
  */
 async function getPendingCountsCore() {
-  cacheLife('minutes');
-  cacheTag('pending-counts', 'admin-stats');
 
   const [pendingOrders, pendingRequests] = await Promise.all([
     withQueryTimeout(
@@ -101,8 +96,6 @@ export const getPendingCountsServer = cache(getPendingCountsCore);
  * Get recent tags for admin dashboard with caching
  */
 async function getRecentTagsCore(limit: number = 4) {
-  cacheLife('minutes');
-  cacheTag('recent-tags', 'admin-stats');
 
   const recentTags = await withQueryTimeout(
     () => db.query.tags.findMany({
@@ -142,15 +135,10 @@ export const getRecentTagsServer = cache(getRecentTagsCore);
  * Call this after any admin operation that changes data
  */
 export async function revalidateAdminStats() {
-  revalidateTag('dashboard-stats', 'max');
-  revalidateTag('pending-counts', 'max');
-  revalidateTag('recent-tags', 'max');
-  revalidateTag('admin-stats', 'max');
 }
 
 /**
  * Invalidate specific cache tag
  */
 export async function revalidateAdminTag(tag: string) {
-  revalidateTag(tag, 'max');
 }

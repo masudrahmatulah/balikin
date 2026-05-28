@@ -10,7 +10,6 @@ import {
 } from '@/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { revalidatePath, revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import {
   getStudentKitData as secureGetStudentKitData,
@@ -317,7 +316,6 @@ export async function updateEmergencyInformation(tagId: string, data: {
   }
 
   revalidatePath(`/p/[slug]`);
-  revalidateTag(`tag-${tagId}`, 'max');
 
   return { success: true };
 }
@@ -417,7 +415,6 @@ export async function enableTabTwo(tagId: string) {
     .where(eq(tags.id, tagId));
 
   revalidatePath(`/p/[slug]`);
-  revalidateTag(`tag-${tagId}`, 'max');
 
   return { success: true };
 }

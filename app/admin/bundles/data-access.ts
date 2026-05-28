@@ -1,7 +1,6 @@
 'use server';
 
 import { cache } from 'react';
-import { cacheLife, cacheTag, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
 import { count, sql, desc, eq } from 'drizzle-orm';
@@ -10,8 +9,6 @@ import { count, sql, desc, eq } from 'drizzle-orm';
  * Get bundle statistics with caching
  */
 async function getBundleStatsCore() {
-  cacheLife('hours');
-  cacheTag('bundle-stats', 'admin-bundles');
 
   const bundleStats = await db
     .select({
@@ -34,8 +31,6 @@ export const getBundleStats = cache(getBundleStatsCore);
  * Get recent bundle tags with caching
  */
 async function getRecentBundlesCore(limit: number = 10) {
-  cacheLife('minutes');
-  cacheTag('recent-bundles', 'admin-bundles');
 
   const recentBundles = await db.query.tags.findMany({
     where: sql`${tags.bundleType} IS NOT NULL AND ${tags.appId} = 'balikin_id'`,
@@ -80,9 +75,6 @@ export async function getBundlePageData() {
  * Call this after any bundle operation
  */
 export async function revalidateBundleCaches() {
-  revalidateTag('bundle-stats', 'max');
-  revalidateTag('recent-bundles', 'max');
-  revalidateTag('admin-bundles', 'max');
 }
 
 /**

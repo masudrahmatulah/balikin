@@ -6,7 +6,6 @@ import { userModulePermissions, user, moduleUsageAnalytics } from '@/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { revalidatePath, cacheTag } from 'next/cache';
 import type { ModuleType } from '@/lib/admin-modules';
 
 // Constants
@@ -47,7 +46,6 @@ async function getAdminSession() {
  * Get all module permissions for a specific user (cached)
  */
 export async function getUserModulePermissions(userId: string) {
-  cacheTag('user-module-permissions', `user-${userId}`);
 
   const adminSession = await getAdminSession();
 
@@ -146,7 +144,6 @@ export async function setUserModulePermission({
  * Get all users with their module permissions (cached)
  */
 export async function getUsersWithModulePermissions() {
-  cacheTag('user-module-permissions');
 
   const adminSession = await getAdminSession();
 

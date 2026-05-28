@@ -5,7 +5,6 @@ import { db } from '@/db';
 import { tags } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '@/lib/session';
-import { cacheTag } from 'next/cache';
 
 /**
  * Generate QR Code as PNG data URL
@@ -13,7 +12,6 @@ import { cacheTag } from 'next/cache';
  * @returns Object with dataUrl and filename
  */
 export async function generateQRCodePNG(tagSlug: string) {
-  cacheTag('qr-codes', `tag-${tagSlug}`);
 
   const session = await requireAuth();
 
@@ -43,7 +41,6 @@ export async function generateQRCodePNG(tagSlug: string) {
  * @returns SVG string
  */
 export async function generateQRCodeSVG(tagSlug: string) {
-  cacheTag('qr-codes', `tag-${tagSlug}`);
 
   const session = await requireAuth();
 
