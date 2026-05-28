@@ -254,6 +254,8 @@ export const ClientTagsList = memo(function ClientTagsList({ tags, clientId }: C
         a.click();
         document.body.removeChild(a);
       }
+    } catch (error) {
+      console.error("Failed to download QR:", error);
     }
   }, [selectedTag, qrDataUrl]);
 

@@ -88,6 +88,6 @@ export async function revalidateBundleCaches() {
 /**
  * Get bundle count by type
  */
-export function getBundleCountByType(bundleStats: Array<{ bundleType: string | null; count: number }>, type: string): number {
+export async function getBundleCountByType(bundleStats: Array<{ bundleType: string | null; count: number }>, type: string): Promise<number> {
   return bundleStats.find(s => s.bundleType === type)?.count || 0;
 }
