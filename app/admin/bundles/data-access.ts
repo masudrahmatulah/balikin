@@ -16,7 +16,7 @@ async function getBundleStatsCore() {
       count: count(),
     })
     .from(tags)
-    .where(sql`${tags.bundleType} IS NOT NULL AND ${tags.appId} = 'balikin_id'`)
+    .where(sql`${tags.bundleType} IS NOT NULL AND ${tags.app_id} = 'balikin_id'`)
     .groupBy(tags.bundleType);
 
   return bundleStats;
@@ -33,7 +33,7 @@ export const getBundleStats = cache(getBundleStatsCore);
 async function getRecentBundlesCore(limit: number = 10) {
 
   const recentBundles = await db.query.tags.findMany({
-    where: sql`${tags.bundleType} IS NOT NULL AND ${tags.appId} = 'balikin_id'`,
+    where: sql`${tags.bundleType} IS NOT NULL AND ${tags.app_id} = 'balikin_id'`,
     orderBy: [desc(tags.createdAt)],
     limit,
     columns: {

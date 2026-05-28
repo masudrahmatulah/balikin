@@ -36,7 +36,7 @@ export async function DELETE(
     }
 
     const currentSuspension = await db.query.suspensionLog.findFirst({
-      where: and(eq(suspensionLog.id, params.id), eq(suspensionLog.appId, APP_ID)),
+      where: and(eq(suspensionLog.id, params.id), eq(suspensionLog.app_id, APP_ID)),
     });
 
     if (!currentSuspension) {

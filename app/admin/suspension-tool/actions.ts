@@ -98,7 +98,7 @@ export async function liftSuspension(
   const currentSuspension = await db.query.suspensionLog.findFirst({
     where: and(
       eq(suspensionLog.id, suspensionId),
-      eq(suspensionLog.appId, APP_ID)
+      eq(suspensionLog.app_id, APP_ID)
     ),
   });
 

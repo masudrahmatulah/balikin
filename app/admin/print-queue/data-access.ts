@@ -14,8 +14,8 @@ async function getPrintQueueItemsCore(page: number = 1, status?: string) {
 
   const items = await db.query.printQueue.findMany({
     where: status
-      ? and(eq(printQueue.status, status), eq(printQueue.appId, APP_ID))
-      : eq(printQueue.appId, APP_ID),
+      ? and(eq(printQueue.status, status), eq(printQueue.app_id, APP_ID))
+      : eq(printQueue.app_id, APP_ID),
     orderBy: [desc(printQueue.createdAt)],
     with: {
       printedByUser: true,
@@ -37,8 +37,8 @@ async function getPrintQueueItemsCountCore(status?: string) {
     .from(printQueue)
     .where(
       status
-        ? and(eq(printQueue.status, status), eq(printQueue.appId, APP_ID))
-        : eq(printQueue.appId, APP_ID)
+        ? and(eq(printQueue.status, status), eq(printQueue.app_id, APP_ID))
+        : eq(printQueue.app_id, APP_ID)
     );
 
   return count;
@@ -54,7 +54,7 @@ async function getPrintQueueStatsCore() {
       count: sql<number>`count(*)`,
     })
     .from(printQueue)
-    .where(eq(printQueue.appId, APP_ID))
+    .where(eq(printQueue.app_id, APP_ID))
     .groupBy(printQueue.status);
 
   return stats.reduce((acc, { status, count }) => {
@@ -67,7 +67,7 @@ export const getPrintQueueStats = cache(getPrintQueueStatsCore);
 
 async function getPrintQueueItemById(id: string) {
   const item = await db.query.printQueue.findFirst({
-    where: and(eq(printQueue.id, id), eq(printQueue.appId, APP_ID)),
+    where: and(eq(printQueue.id, id), eq(printQueue.app_id, APP_ID)),
     with: {
       printedByUser: true,
       materialInventory: true,

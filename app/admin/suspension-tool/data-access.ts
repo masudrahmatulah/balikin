@@ -13,7 +13,7 @@ async function getSuspensionsCore(page: number = 1) {
   const offset = (page - 1) * SUSPENSIONS_PER_PAGE;
 
   const suspensions = await db.query.suspensionLog.findMany({
-    where: eq(suspensionLog.appId, APP_ID),
+    where: eq(suspensionLog.app_id, APP_ID),
     orderBy: [desc(suspensionLog.suspendedAt)],
     with: {
       user: true,
@@ -34,7 +34,7 @@ async function getSuspensionsCountCore() {
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(suspensionLog)
-    .where(eq(suspensionLog.appId, APP_ID));
+    .where(eq(suspensionLog.app_id, APP_ID));
 
   return count;
 }
@@ -48,13 +48,13 @@ async function getSuspensionStatsCore() {
       .select({ count: sql<number>`count(*)` })
       .from(suspensionLog)
       .where(
-        and(eq(suspensionLog.appId, APP_ID), eq(suspensionLog.isActive, true))
+        and(eq(suspensionLog.app_id, APP_ID), eq(suspensionLog.isActive, true))
       ),
     db
       .select({ count: sql<number>`count(*)` })
       .from(suspensionLog)
       .where(
-        and(eq(suspensionLog.appId, APP_ID), eq(suspensionLog.isActive, false))
+        and(eq(suspensionLog.app_id, APP_ID), eq(suspensionLog.isActive, false))
       ),
   ]);
 
@@ -68,7 +68,7 @@ export const getSuspensionStats = cache(getSuspensionStatsCore);
 
 async function getSuspensionById(id: string) {
   const suspension = await db.query.suspensionLog.findFirst({
-    where: and(eq(suspensionLog.id, id), eq(suspensionLog.appId, APP_ID)),
+    where: and(eq(suspensionLog.id, id), eq(suspensionLog.app_id, APP_ID)),
     with: {
       user: true,
       suspendedByUser: true,
