@@ -67,4 +67,3 @@ const cachedGeoScanData = unstable_cache(
 export async function getGeoScanDataCached(days: number): Promise<GeoScanData> {
   return cachedGeoScanData(days);
 }
-}
