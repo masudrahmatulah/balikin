@@ -41,8 +41,9 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
       <nav className="fixed bottom-0 left-0 right-0 z-50">
         {/* Safe area padding for iOS */}
         <div className="pb-safe">
-          <div className="mx-2 mb-2 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-mobile-primary/10 border border-white/20">
-            <div className="flex items-center justify-evenly py-3">
+          <div className="max-w-md mx-auto px-2 mb-2">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-mobile-primary/10 border border-white/20">
+              <div className="flex items-center justify-evenly py-3">
               {tabs.map((tab) => {
                 const isActive = currentTab === tab.id;
                 const Icon = tab.icon;
