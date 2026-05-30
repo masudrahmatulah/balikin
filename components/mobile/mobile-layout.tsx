@@ -89,6 +89,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
             </div>
           </div>
         </div>
+        </div>
       </nav>
     </div>
   );
