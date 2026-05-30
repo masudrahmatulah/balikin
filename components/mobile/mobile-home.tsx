@@ -137,7 +137,7 @@ export function MobileHome() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col">
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
