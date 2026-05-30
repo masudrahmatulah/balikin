@@ -33,15 +33,15 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
   return (
     <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       {/* Main Content Area */}
-      <div className="pb-24 min-h-screen">
+      <div className="max-w-md mx-auto pb-24 min-h-screen">
         {children}
       </div>
 
       {/* Bottom Navigation Bar with Glassmorphism */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
         {/* Safe area padding for iOS */}
-        <div className="pb-safe">
-          <div className="max-w-md mx-auto px-2 mb-2">
+        <div className="pb-safe w-full max-w-md">
+          <div className="px-2 mb-2">
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-mobile-primary/10 border border-white/20">
               <div className="flex items-center justify-evenly py-3">
               {tabs.map((tab) => {
