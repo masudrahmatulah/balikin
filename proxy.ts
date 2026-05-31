@@ -25,6 +25,7 @@ const SKIP_PATHS = [
   '/_next',
   '/sign-in',
   '/sign-up',
+  '/dashboard',
 ];
 
 // File extensions to skip (public assets)

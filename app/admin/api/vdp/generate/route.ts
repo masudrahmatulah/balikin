@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 interface VDPGenerateRequest {
   batchName: string;
   quantity: number;
-  materialType: "sticker" | "acrylic";
+  materialType: "sticker" | "acrylic" | "acrylic-cutfold";
   productType: "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat";
   paperSize: "a4" | "a3";
   stickerShape?: "circle" | "square" | "rectangle";
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = await request.nextUrl.searchParams;
-    const filter = searchParams.get("filter") || "all"; // "all", "claimed", "unclaimed"
+    const filter = (await searchParams).get("filter") || "all"; // "all", "claimed", "unclaimed"
 
     let whereClause;
     if (filter === "claimed") {
@@ -78,7 +78,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const searchParams = await request.nextUrl.searchParams;
-    const tagId = searchParams.get("tagId");
+    const tagId = (await searchParams).get("tagId");
 
     if (!tagId) {
       return NextResponse.json({ error: "Missing tagId parameter" }, { status: 400 });
@@ -137,7 +137,8 @@ export async function POST(request: NextRequest) {
     }
 
     const batchId = randomUUID();
-    const zip = new JSZip();
+    const isCutFold = materialType === "acrylic-cutfold";
+    const zip = !isCutFold ? new JSZip() : null;
     const generatedTags = [];
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://balikin.id";
@@ -176,9 +177,11 @@ export async function POST(request: NextRequest) {
       const qrUrl = `${baseUrl}/p/${slug}`;
       const qrDataUrl = await generatePremiumQRDataURL(qrUrl, "standard", 600);
 
-      const base64Data = qrDataUrl.split(",")[1];
-      const buffer = Buffer.from(base64Data, "base64");
-      zip.file(`${singleTag.name}-${slug}.png`, buffer);
+      if (!isCutFold) {
+        const base64Data = qrDataUrl.split(",")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        zip!.file(`${singleTag.name}-${slug}.png`, buffer);
+      }
     } else {
       // Bulk tag creation
       for (let i = 0; i < quantity; i++) {
@@ -229,15 +232,23 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        const base64Data = qrDataUrl.split(",")[1];
-        const buffer = Buffer.from(base64Data, "base64");
-        zip.file(`${batchName}-${sequenceNumber}-${slug}.png`, buffer);
+        if (!isCutFold) {
+          const base64Data = qrDataUrl.split(",")[1];
+          const buffer = Buffer.from(base64Data, "base64");
+          zip!.file(`${batchName}-${sequenceNumber}-${slug}.png`, buffer);
+        }
       }
     }
 
-    const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-    const zipBase64 = zipBuffer.toString("base64");
-    const downloadUrl = `data:application/zip;base64,${zipBase64}`;
+    let downloadUrl: string;
+
+    if (isCutFold) {
+      downloadUrl = `/admin/api/vdp/cut-fold/${batchId}`;
+    } else {
+      const zipBuffer = await zip!.generateAsync({ type: "nodebuffer" });
+      const zipBase64 = zipBuffer.toString("base64");
+      downloadUrl = `data:application/zip;base64,${zipBase64}`;
+    }
 
     const itemsPerSheet = paperSize === "a4" ? 12 : 20;
     const estimatedSheets = Math.ceil(quantity / itemsPerSheet);
@@ -249,8 +260,8 @@ export async function POST(request: NextRequest) {
       batchName,
       status: "pending",
       itemCount: quantity,
-      materialType,
-      materialUsed: `${estimatedSheets} lembar ${paperSize.toUpperCase()} (${materialType})`,
+      materialType: isCutFold ? "acrylic" : materialType,
+      materialUsed: `${estimatedSheets} lembar ${paperSize.toUpperCase()} (${isCutFold ? "Cut & Fold" : materialType})`,
       printedBy: adminId,
     });
 
