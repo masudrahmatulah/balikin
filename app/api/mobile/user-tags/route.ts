@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { tags, scanLogs } from '@/db/schema';
-import { eq, count, desc, and, gte } from 'drizzle-orm';
+import { eq, desc, and, gte, sql, inArray, count } from 'drizzle-orm';
 import { subDays } from 'date-fns';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+/**
+ * Get user's tags with optimized scan count queries.
+ * Uses aggregate queries instead of per-tag loops for better performance.
+ */
 export async function GET() {
   try {
     const session = await getSession();
@@ -17,68 +25,81 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const thirtyDaysAgo = subDays(new Date(), 30);
 
-    // Get user's tags
+    // Get user's tags with scan counts in parallel
     const userTags = await db.query.tags.findMany({
       where: eq(tags.ownerId, userId),
       orderBy: [desc(tags.createdAt)],
     });
 
-    // Get scan count for each tag
-    const thirtyDaysAgo = subDays(new Date(), 30);
+    if (userTags.length === 0) {
+      return NextResponse.json([]);
+    }
 
-    const tagsWithScanCount = await Promise.all(
-      userTags.map(async (tag) => {
-        let scanCount = 0;
-        let lastScanned: Date | null = null;
+    const tagIds = userTags.map(tag => tag.id);
+    const stickerTagIds = userTags.filter(tag => tag.productType === 'sticker').map(tag => tag.id);
 
-        if (tag.productType === 'sticker') {
-          const scanResult = await db
-            .select({ count: count(), scannedAt: scanLogs.scannedAt })
-            .from(scanLogs)
-            .where(
-              and(
-                eq(scanLogs.tagId, tag.id),
-                gte(scanLogs.scannedAt, thirtyDaysAgo)
-              )
-            );
-          scanCount = scanResult[0]?.count || 0;
-          lastScanned = scanResult[0]?.scannedAt || null;
-        } else {
-          const scanResult = await db
-            .select({ count: count(), scannedAt: scanLogs.scannedAt })
-            .from(scanLogs)
-            .where(eq(scanLogs.tagId, tag.id))
-            .orderBy(desc(scanLogs.scannedAt))
-            .limit(1);
+    // Get all scan logs in parallel queries
+    const [recentScansResult, totalScansResult] = await Promise.all([
+      // Most recent scan for each tag
+      db
+        .select({
+          tagId: scanLogs.tagId,
+          scannedAt: scanLogs.scannedAt,
+        })
+        .from(scanLogs)
+        .where(inArray(scanLogs.tagId, tagIds))
+        .orderBy(desc(scanLogs.scannedAt)),
 
-          if (scanResult.length > 0) {
-            // Get total count
-            const totalResult = await db
-              .select({ count: count() })
-              .from(scanLogs)
-              .where(eq(scanLogs.tagId, tag.id));
-            scanCount = totalResult[0]?.count || 0;
-            lastScanned = scanResult[0]?.scannedAt || null;
-          }
-        }
+      // Scan counts for non-sticker tags (all time) and sticker tags (30 days)
+      db
+        .select({
+          tagId: scanLogs.tagId,
+          count: count(),
+        })
+        .from(scanLogs)
+        .where(
+          stickerTagIds.length > 0
+            ? inArray(scanLogs.tagId, stickerTagIds)
+              ? and(
+                  inArray(scanLogs.tagId, tagIds),
+                  gte(scanLogs.scannedAt, thirtyDaysAgo)
+                )
+              : inArray(scanLogs.tagId, tagIds)
+            : inArray(scanLogs.tagId, tagIds)
+        )
+        .groupBy(scanLogs.tagId),
+    ]);
 
-        return {
-          id: tag.id,
-          name: tag.name,
-          slug: tag.slug,
-          status: tag.status,
-          tier: tag.tier,
-          productType: tag.productType,
-          scanCount,
-          lastScanned,
-        };
-      })
-    );
+    // Map recent scans by tag (first one is the most recent)
+    const mostRecentScanByTag = new Map<string, Date | null>();
+    recentScansResult.forEach(scan => {
+      if (!mostRecentScanByTag.has(scan.tagId)) {
+        mostRecentScanByTag.set(scan.tagId, scan.scannedAt);
+      }
+    });
+
+    // Map scan counts by tag
+    const scanCountByTag = new Map<string, number>();
+    totalScansResult.forEach(result => {
+      scanCountByTag.set(result.tagId, result.count);
+    });
+
+    // Build response with computed scan data
+    const tagsWithScanCount = userTags.map(tag => ({
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+      status: tag.status,
+      tier: tag.tier,
+      productType: tag.productType,
+      scanCount: scanCountByTag.get(tag.id) || 0,
+      lastScanned: mostRecentScanByTag.get(tag.id) || null,
+    }));
 
     return NextResponse.json(tagsWithScanCount);
   } catch (error) {
-    console.error('[API] Error fetching user tags:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

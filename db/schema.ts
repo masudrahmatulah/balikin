@@ -13,6 +13,7 @@ export const user = pgTable('user', {
   emailVerified: boolean('email_verified').default(false),
   image: text('image'),
   role: text('role').default('user').notNull(), // 'admin' | 'user'
+  division: text('division'), // 'production' | 'customer_service' | 'marketing' | 'admin' | null
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -680,6 +681,21 @@ export const suspensionLogRelations = relations(suspensionLog, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const rateLimit = pgTable('rate_limit', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  identifier: text('identifier').notNull(), // IP:tagId combination
+  actionType: text('action_type').notNull(), // 'scan', 'login', etc.
+  requestCount: integer('request_count').default(1).notNull(),
+  windowStart: timestamp('window_start').notNull(), // Start of time window
+  windowEnd: timestamp('window_end').notNull(), // End of time window
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export type RateLimit = typeof rateLimit.$inferSelect;
+export type NewRateLimit = typeof rateLimit.$inferInsert;
 
 // ============================================================================
 // TYPE EXPORTS

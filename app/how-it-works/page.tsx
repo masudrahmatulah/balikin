@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-shell";
+import { HowToJsonLd } from "@/components/json-ld";
 import { buildMetadata } from "@/lib/seo";
+import { howItWorksSteps } from "@/lib/site-content";
 
 export const metadata: Metadata = buildMetadata({
   title: "Cara Kerja Balikin",
@@ -12,34 +14,30 @@ export const metadata: Metadata = buildMetadata({
 
 export default function HowItWorksPage() {
   return (
-    <MarketingShell
-      title="Cara Kerja Balikin"
-      description="Balikin dirancang agar mudah dipakai pemilik barang dan mudah dipahami oleh penemu."
-    >
-      <h2>1. Buat Tag</h2>
-      <p>
-        Daftar akun, buat tag untuk kunci, tas, dompet, koper, atau barang
-        pribadi lainnya. Sistem akan menghasilkan QR code unik yang terhubung ke
-        halaman publik tag Anda.
-      </p>
-      <h2>2. Tempel atau Pasang</h2>
-      <p>
-        Gunakan QR code digital atau upgrade ke gantungan kunci atau stiker
-        premium. QR yang sama tetap bisa dipakai walaupun Anda mengganti nomor
-        WhatsApp atau pesan yang ditampilkan.
-      </p>
-      <h2>3. Aktifkan Saat Dibutuhkan</h2>
-      <p>
-        Dari dashboard, Anda bisa mengubah status barang menjadi normal atau
-        hilang. Saat mode hilang aktif, halaman publik akan menampilkan tampilan
-        yang lebih menonjol agar penemu segera tahu bahwa barang sedang dicari.
-      </p>
-      <h2>4. Penemu Scan dan Menghubungi Pemilik</h2>
-      <p>
-        Penemu cukup scan QR code dengan kamera ponsel. Mereka akan melihat
-        halaman yang mengarahkan ke WhatsApp pemilik tanpa perlu melihat nomor
-        yang tercetak secara terbuka.
-      </p>
-    </MarketingShell>
+    <>
+      <HowToJsonLd
+        name="Cara Kerja Balikin"
+        description="Pelajari cara kerja Balikin dari pembuatan tag QR code, aktivasi mode hilang, hingga proses penemu menghubungi pemilik lewat WhatsApp."
+        steps={howItWorksSteps.map((s) => ({ name: s.title, text: s.description }))}
+      />
+      <MarketingShell
+        title="Cara Kerja Balikin"
+        description="Balikin dirancang agar mudah dipakai pemilik barang dan mudah dipahami oleh penemu."
+      >
+        <ol className="list-none space-y-8" aria-label="Langkah-langkah penggunaan Balikin">
+          {howItWorksSteps.map((step) => (
+            <li key={step.step} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white" aria-hidden="true">
+                  {step.step}
+                </span>
+                <h3 className="text-xl font-semibold text-gray-900">{step.title}</h3>
+              </div>
+              <p className="pl-11 text-gray-600">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </MarketingShell>
+    </>
   );
 }

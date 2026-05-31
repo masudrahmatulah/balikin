@@ -3,12 +3,17 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { GlobalSearch } from "./global-search";
+import { WITAClock } from "./wita-clock";
+import { Bell, LogOut, User } from "lucide-react";
 
 interface AdminUser {
   id: string;
   email: string;
   name?: string | null;
   role: string;
+  division?: string | null;
 }
 
 interface AdminSession {
@@ -26,127 +31,132 @@ interface AdminHeaderProps {
   showMobileMenu?: boolean;
 }
 
-export function AdminHeader({ session, pendingOrdersCount = 0, pendingRequestsCount = 0, showMobileMenu = false }: AdminHeaderProps) {
+export function AdminHeader({
+  session,
+  pendingOrdersCount = 0,
+  pendingRequestsCount = 0,
+  showMobileMenu = false,
+}: AdminHeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
     try {
-      // Use Better Auth's signOut method
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            // Force full page reload to clear all client state
             window.location.href = "/";
           },
         },
       });
     } catch (error) {
       console.error("Sign out error:", error);
-      // Still redirect even if there's an error
       window.location.href = "/";
     }
   };
 
+  const divisionBadge = {
+    admin: "Super Admin",
+    production: "Production",
+    "customer_service": "Customer Service",
+    marketing: "Marketing",
+  }[session.user.division || "admin"] || "Admin";
+
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Mobile Menu Toggle & Logo */}
-          <div className="flex min-w-0 items-center gap-3">
-            {showMobileMenu && (
-              <button
-                onClick={() => {
-                  // Toggle sidebar by dispatching custom event
-                  window.dispatchEvent(new CustomEvent("toggle-sidebar"));
-                }}
-                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
+    <header className="fixed top-0 right-0 left-0 h-16 bg-white border-b border-gray-200 flex justify-between items-center px-6 z-40">
+      {/* Left Section: Search & Nav */}
+      <div className="flex items-center gap-4 flex-1">
+        {/* Mobile Menu Toggle */}
+        {showMobileMenu && (
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("toggle-sidebar"));
+            }}
+            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+
+        {/* Global Search */}
+        <div className="hidden md:block flex-1 max-w-md">
+          <GlobalSearch className="w-full" />
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden xl:flex items-center gap-1">
+          <Link
+            href="/admin/sticker-orders"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-gray-700 hover:bg-gray-100"
             )}
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+          >
+            Orders
+            {pendingOrdersCount > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
+                {pendingOrdersCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            href="/admin/analytics"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-gray-700 hover:bg-gray-100"
+            )}
+          >
+            Analytics
+          </Link>
+        </nav>
+      </div>
+
+      {/* Right Section: Notifications, Actions, Profile */}
+      <div className="flex items-center gap-3">
+        {/* WITA Clock */}
+        <div className="hidden lg:flex items-center gap-3 mr-2">
+          <WITAClock />
+        </div>
+
+        {/* Notifications */}
+        <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+          <Bell size={20} />
+          {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
+          )}
+        </button>
+
+        {/* Divider */}
+        <div className="hidden sm:block w-[1px] h-6 bg-gray-200" />
+
+        {/* User Profile */}
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+              {session.user.name?.[0] || session.user.email[0].toUpperCase()}
             </div>
-            <div className="min-w-0">
-              <h1 className="truncate text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
-                Balikin Admin
-              </h1>
-              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                Panel Manajemen Klien & QR Tag
+            <div className="text-left">
+              <p className="text-sm font-medium text-gray-900">
+                {session.user.name || "Admin User"}
               </p>
+              <p className="text-xs text-gray-500">{divisionBadge}</p>
             </div>
           </div>
 
-          {/* Admin Badge & Menu */}
-          <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-            {/* Navigation Links */}
-            <nav className="hidden sm:flex items-center gap-2">
-              <Link
-                href="/admin"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Klien
-              </Link>
-              <Link
-                href="/admin/sticker-orders"
-                className="relative px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Orders
-                {pendingOrdersCount > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
-                    {pendingOrdersCount > 9 ? '9+' : pendingOrdersCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/admin/qr-stok"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                QR Stok
-              </Link>
-              <Link
-                href="/admin/bundles"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Bundles
-              </Link>
-              <Link
-                href="/admin/layout-editor"
-                className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Layout Editor
-              </Link>
-            </nav>
+          <button
+            onClick={handleSignOut}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Sign out"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
 
-            <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Admin
-            </span>
-            <div className="flex min-w-0 items-center gap-2 border-gray-200 dark:border-gray-700 sm:border-l sm:pl-4">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {session.user.name?.[0] || session.user.email[0].toUpperCase()}
-                </span>
-              </div>
-              <span className="max-w-[160px] truncate text-sm text-gray-600 dark:text-gray-400">
-                {session.user.name || session.user.email}
-              </span>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              title="Keluar"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
+        {/* Mobile Profile Button */}
+        <div className="sm:hidden flex items-center gap-2">
+          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+            {session.user.name?.[0] || session.user.email[0].toUpperCase()}
           </div>
         </div>
       </div>

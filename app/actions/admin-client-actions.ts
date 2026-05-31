@@ -2,10 +2,26 @@
 
 import { db } from '@/db';
 import { user, tags } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+
+// Constants
+const MAX_NAME_LENGTH = 100;
+const MAX_EMAIL_LENGTH = 254;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Validation helpers
+ */
+function validateEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email);
+}
+
+function sanitizeInput(input: string, maxLength: number): string {
+  return input.trim().slice(0, maxLength);
+}
 
 export interface CreateClientInput {
   name: string | null;
@@ -34,7 +50,7 @@ async function getAdminSession() {
 
   // Query database to get the user's role (better-auth doesn't return custom fields)
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.appId, 'balikin_id')),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -55,39 +71,44 @@ async function getAdminSession() {
  * Create a new client/user
  */
 export async function createClient(data: CreateClientInput) {
-  console.log('[createClient] Creating client:', data.email);
-
   try {
     const adminSession = await getAdminSession();
 
     if (!adminSession) {
-      console.error('[createClient] No admin session');
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    // Check email uniqueness
-    const existing = await db.select().from(user).where(eq(user.email, data.email)).limit(1);
+    // Sanitize and validate input
+    const sanitizedName = sanitizeInput(data.name || '', MAX_NAME_LENGTH);
+    const sanitizedEmail = sanitizeInput(data.email, MAX_EMAIL_LENGTH);
 
-    if (existing && existing.length > 0) {
-      console.error('[createClient] Email exists:', data.email);
+    if (!sanitizedEmail || !validateEmail(sanitizedEmail)) {
+      return { error: 'Format email tidak valid' };
+    }
+
+    // Check email uniqueness with count query
+    const emailCount = await db.select({ count: count() })
+      .from(user)
+      .where(and(eq(user.email, sanitizedEmail), eq(user.appId, 'balikin_id')))
+      .then(rows => rows[0]?.count || 0);
+
+    if (emailCount > 0) {
       return { error: 'Email sudah terdaftar' };
     }
 
     // Create user
     await db.insert(user).values({
       id: crypto.randomUUID(),
-      app_id: 'balikin_id',
-      name: data.name,
-      email: data.email,
+      appId: 'balikin_id',
+      name: sanitizedName || null,
+      email: sanitizedEmail,
       role: data.role,
       emailVerified: false,
     });
 
-    console.log('[createClient] Success');
     revalidatePath('/admin');
     return { success: true };
   } catch (error) {
-    console.error('[createClient] Error:', error);
     return { error: 'Gagal membuat klien' };
   }
 }
@@ -96,46 +117,63 @@ export async function createClient(data: CreateClientInput) {
  * Update existing client/user
  */
 export async function updateClient(userId: string, data: UpdateClientInput) {
-  console.log('[updateClient] Updating user:', userId);
-
   try {
     const adminSession = await getAdminSession();
 
     if (!adminSession) {
-      console.error('[updateClient] No admin session');
       return { error: 'Unauthorized: Admin access required' };
     }
 
     // Check if updating self
     if (adminSession.user.id === userId) {
-      console.error('[updateClient] Cannot update self');
       return { error: 'Tidak bisa mengubah data sendiri' };
     }
 
-    // Check email uniqueness
-    const existing = await db.select().from(user).where(eq(user.email, data.email)).limit(1);
+    // Sanitize and validate input
+    const sanitizedName = sanitizeInput(data.name || '', MAX_NAME_LENGTH);
+    const sanitizedEmail = sanitizeInput(data.email, MAX_EMAIL_LENGTH);
 
-    if (existing && existing.length > 0 && existing[0].id !== userId) {
-      console.error('[updateClient] Email used by another user');
+    if (!sanitizedEmail || !validateEmail(sanitizedEmail)) {
+      return { error: 'Format email tidak valid' };
+    }
+
+    // Check email uniqueness with count query (excluding current user)
+    const emailCount = await db.select({ count: count() })
+      .from(user)
+      .where(and(
+        eq(user.email, sanitizedEmail),
+        eq(user.appId, 'balikin_id'),
+        // Not using neq directly, using client-side check after query
+      ))
+      .then(rows => rows[0]?.count || 0);
+
+    const existingUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+    });
+
+    if (!existingUser) {
+      return { error: 'User tidak ditemukan' };
+    }
+
+    // If email is being changed and it's already used by another user
+    if (existingUser.email !== sanitizedEmail && emailCount > 0) {
       return { error: 'Email sudah digunakan user lain' };
     }
 
     // Update user
     await db.update(user)
       .set({
-        name: data.name,
-        email: data.email,
+        name: sanitizedName || null,
+        email: sanitizedEmail,
         role: data.role,
         updatedAt: new Date(),
       })
       .where(eq(user.id, userId));
 
-    console.log('[updateClient] Success');
     revalidatePath('/admin');
     revalidatePath(`/admin/client/${userId}`);
     return { success: true };
   } catch (error) {
-    console.error('[updateClient] Error:', error);
     return { error: 'Gagal mengupdate klien' };
   }
 }
@@ -144,62 +182,51 @@ export async function updateClient(userId: string, data: UpdateClientInput) {
  * Delete a client/user with cascade delete of their tags
  */
 export async function deleteClient(userId: string) {
-  console.log('[deleteClient] Starting deletion for user:', userId);
-
   try {
     const adminSession = await getAdminSession();
 
     if (!adminSession) {
-      console.error('[deleteClient] No admin session found');
       return { error: 'Unauthorized: Admin access required' };
     }
 
-    console.log('[deleteClient] Admin session:', adminSession.user.id);
-
     // Check if deleting self
     if (adminSession.user.id === userId) {
-      console.error('[deleteClient] Attempting to delete self');
       return { error: 'Tidak bisa menghapus akun sendiri' };
     }
 
-    // Get user info
-    const clientUser = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+    // Get user info with count of tags
+    const clientUser = await db.query.user.findFirst({
+      where: and(eq(user.id, userId), eq(user.appId, 'balikin_id')),
+      with: {
+        tags: {
+          columns: { id: true },
+        },
+      },
+    });
 
-    if (!clientUser || clientUser.length === 0) {
-      console.error('[deleteClient] User not found:', userId);
+    if (!clientUser) {
       return { error: 'User tidak ditemukan' };
     }
 
-    console.log('[deleteClient] Found user:', clientUser[0].email);
+    const tagCount = clientUser.tags.length;
 
     // Cascade delete: delete all tags first (if any)
-    try {
+    if (tagCount > 0) {
       await db.delete(tags).where(eq(tags.ownerId, userId));
-      console.log('[deleteClient] Tags deleted successfully');
-    } catch (tagError) {
-      console.warn('[deleteClient] Warning deleting tags:', tagError);
-      // Continue with user deletion even if tag deletion fails
     }
 
     // Then delete the user
-    await db.delete(user).where(eq(user.id, userId));
-    console.log('[deleteClient] User deleted successfully');
+    await db.delete(user).where(and(eq(user.id, userId), eq(user.appId, 'balikin_id')));
 
     // Revalidate path
     revalidatePath('/admin');
-    console.log('[deleteClient] Path revalidated');
 
     return {
       success: true,
-      deletedUserName: clientUser[0].name || clientUser[0].email,
-      deletedTagCount: 0, // Skip counting for now
+      deletedUserName: clientUser.name || clientUser.email,
+      deletedTagCount: tagCount,
     };
   } catch (error) {
-    console.error('[deleteClient] Error:', error);
-    if (error instanceof Error) {
-      console.error('[deleteClient] Error message:', error.message);
-      console.error('[deleteClient] Error stack:', error.stack);
-    }
     return { error: 'Gagal menghapus klien. Silakan coba lagi.' };
   }
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { HomePage } from "@/components/home-page";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { faqItems } from "@/lib/site-content";
+import { JsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
   title: "Gantungan Kunci QR Code untuk Barang Hilang",
@@ -45,11 +45,7 @@ const homeSchema = {
 export default function Page() {
   return (
     <>
-      <Script
-        id="home-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeSchema) }}
-      />
+      <JsonLd id="home-schema" data={homeSchema} />
       <HomePage />
     </>
   );

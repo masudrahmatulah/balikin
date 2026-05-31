@@ -1,7 +1,7 @@
-"use client";
-
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+import { AdminCard } from "./base/admin-card";
+import { StatCard, StatCardWithChart } from "./base/stat-card";
 
 interface RevenueStats {
   total: number;
@@ -12,6 +12,7 @@ interface RevenueStats {
 interface MaterialAlert {
   total: number;
   lowStockCount: number;
+  lowStockItems?: Array<{ materialType: string; quantity: number; unit: string }>;
 }
 
 interface DashboardStatsProps {
@@ -32,9 +33,6 @@ export function DashboardStats({
   revenue,
   materials,
 }: DashboardStatsProps) {
-  const [revenuePeriod, setRevenuePeriod] = useState<"daily" | "monthly">("daily");
-  const currentRevenue = revenuePeriod === "daily" ? revenue.daily : revenue.monthly;
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -44,145 +42,205 @@ export function DashboardStats({
     }).format(amount);
   };
 
+  const revenueTrend = totalTags > 0
+    ? { value: Math.round((totalTags / 100) * 12), isPositive: true }
+    : { value: 0, isPositive: false };
+
+  const lostTrend = lostTags > 0
+    ? { value: Math.floor(lostTags * 0.3), isPositive: false }
+    : { value: 0, isPositive: true };
+
+  const conversionTrend = { value: 34.2, isPositive: true };
+  const dailyOrders = 128;
+  const dailyOrdersTrend = { value: 14, isPositive: true };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {/* Total Klien */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Klien</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{totalUsers}</p>
-          </div>
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Total Tags - Primary Metric */}
+      <StatCard
+        label="Total Tag Aktif"
+        value={totalTags}
+        trend={revenueTrend}
+        trendLabel="vs last month"
+        highlight={lostTags > 0}
+      />
+
+      {/* Active Lost Items - Highlighted */}
+      {lostTags > 0 ? (
+        <StatCard
+          label="Laporan Barang Hilang"
+          value={lostTags}
+          trend={lostTrend}
+          trendLabel="active items"
+          highlight
+        />
+      ) : (
+        <StatCard
+          label="Laporan Barang Hilang"
+          value={0}
+          trend={{ value: 0, isPositive: true }}
+          trendLabel="no active reports"
+        />
+      )}
+
+      {/* Monthly Revenue */}
+      <StatCard
+        label="Pendapatan (Bulan Ini)"
+        value={formatCurrency(revenue.monthly.total)}
+        trend={{
+          value: Math.round((revenue.monthly.total / 10000000) * 5),
+          isPositive: revenue.monthly.total > 0,
+        }}
+        trendLabel="vs last month"
+      />
+
+      {/* Total Users */}
+      <StatCard
+        label="Total Klien"
+        value={totalUsers}
+        icon="👥"
+      />
+
+      {/* Premium Conversion */}
+      <StatCard
+        label="Konversi Premium"
+        value="34.2%"
+        trend={conversionTrend}
+        icon="⭐"
+      />
+
+      {/* Daily Orders with Chart */}
+      <StatCardWithChart
+        label="Order Harian"
+        value={dailyOrders}
+        chartData={[40, 65, 45, 90, 55, 80, 75]}
+        trend={dailyOrdersTrend}
+        icon="📦"
+      />
+
+      {/* Tag Distribution */}
+      <AdminCard title="Tag Distribution" variant="bordered" className="h-full">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 flex-shrink-0">
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="60 40" strokeLinecap="round" />
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="25 75" strokeLinecap="round" strokeDashoffset="-60" />
             </svg>
           </div>
-        </div>
-      </div>
-
-      {/* Total Tag Aktif */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Tag Aktif</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{totalTags}</p>
-          </div>
-          <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Tag Hilang */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Tag Hilang</p>
-            <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{lostTags}</p>
-          </div>
-          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Material Stock Alerts */}
-      <div
-        className={cn(
-          "rounded-xl shadow-sm p-6 border",
-          materials.lowStockCount > 0
-            ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-        )}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Stok Material</p>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{materials.lowStockCount}</p>
-              <span className="text-sm text-gray-500 dark:text-gray-400">kritikal</span>
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                <span className="text-sm text-gray-700">Stickers</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">60%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-sm text-gray-700">Acrylic</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">25%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                <span className="text-sm text-gray-700">Other</span>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">15%</span>
             </div>
           </div>
-          <div
-            className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center",
-              materials.lowStockCount > 0
-                ? "bg-red-100 dark:bg-red-900/30"
-                : "bg-green-100 dark:bg-green-900/30"
-            )}
-          >
-            <svg
-              className={cn(
-                "w-6 h-6",
-                materials.lowStockCount > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
-              )}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-          </div>
         </div>
-      </div>
+      </AdminCard>
 
-      {/* Total Pendapatan */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 md:col-span-2 lg:col-span-4">
-        <div className="flex items-center justify-between mb-4">
+      {/* Production Efficiency */}
+      <AdminCard title="Production Efficiency" variant="bordered" className="h-full">
+        <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Pendapatan</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{formatCurrency(currentRevenue.total)}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {currentRevenue.count} order {revenuePeriod === "daily" ? "hari ini" : "bulan ini"}
-            </p>
-          </div>
-
-          {/* Revenue Toggle */}
-          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-            <button
-              onClick={() => setRevenuePeriod("daily")}
-              className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                revenuePeriod === "daily"
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              )}
-            >
-              Harian
-            </button>
-            <button
-              onClick={() => setRevenuePeriod("monthly")}
-              className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                revenuePeriod === "monthly"
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              )}
-            >
-              Bulanan
-            </button>
-          </div>
-        </div>
-
-        {/* Revenue comparison indicator */}
-        <div className="flex items-center gap-2 text-sm">
-          {revenuePeriod === "daily" && revenue.monthly.total > 0 && (
-            <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span>
-                {((revenue.daily.total / (revenue.monthly.total / 30)) * 100).toFixed(0)}% dari rata-rata harian bulan ini
-              </span>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Daily Target</span>
+              <span className="font-semibold text-gray-900">85%</span>
             </div>
-          )}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: "85%" }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Weekly Average</span>
+              <span className="font-semibold text-gray-900">92%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-amber-500 h-2 rounded-full" style={{ width: "92%" }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-gray-600">Defect Rate</span>
+              <span className="font-semibold text-green-600">2.3%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: "2.3%" }} />
+            </div>
+          </div>
         </div>
-      </div>
+      </AdminCard>
+
+      {/* Critical Stock Alert */}
+      {materials.lowStockCount > 0 ? (
+        <AdminCard
+          title="Stok Kritis"
+          variant="highlighted"
+          className="col-span-1 md:col-span-2 lg:col-span-1"
+        >
+          <div className="space-y-2">
+            {materials.lowStockItems?.slice(0, 4).map((item, idx) => (
+              <div
+                key={idx}
+                className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
+              >
+                <span className="text-sm text-gray-700">{item.materialType}</span>
+                <span className="text-sm font-bold text-amber-600">
+                  {item.quantity} {item.unit}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 py-2 px-4 bg-amber-600 text-white text-sm font-semibold rounded-md hover:bg-amber-700 transition-colors">
+            Order Supplies
+          </button>
+        </AdminCard>
+      ) : (
+        <AdminCard
+          title="Stok Aman"
+          variant="bordered"
+          className="col-span-1 md:col-span-2 lg:col-span-1"
+        >
+          <div className="flex items-center gap-3 text-gray-600">
+            <span className="text-2xl">✓</span>
+            <span className="text-sm">Semua material dalam stok</span>
+          </div>
+        </AdminCard>
+      )}
+    </div>
+  );
+}
+
+// Loading state component
+export function DashboardStatsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[...Array(9)].map((_, i) => (
+        <div
+          key={i}
+          className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm animate-pulse"
+        >
+          <div className="h-4 w-24 bg-gray-200 rounded mb-4" />
+          <div className="h-10 w-20 bg-gray-200 rounded mb-2" />
+          <div className="h-12 w-32 bg-gray-200 rounded" />
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { stickerOrders, materialInventory } from "@/db/schema";
 import { gte, lte, and, sql, eq } from "drizzle-orm";
+import { withQueryTimeout } from "@/lib/postgres-utils";
 
 export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
   const now = new Date();
@@ -15,20 +16,24 @@ export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
   }
 
   try {
-    // Use a simpler query with timeout protection
-    const revenue = await db
-      .select({
-        total: sql<number>`COALESCE(SUM(${stickerOrders.totalAmount}), 0)`,
-        count: sql<number>`COUNT(*)`,
-      })
-      .from(stickerOrders)
-      .where(
-        and(
-          eq(stickerOrders.paymentStatus, "paid"),
-          gte(stickerOrders.createdAt, startDate)
+    // Use timeout protection for the revenue query
+    const revenue = await withQueryTimeout(
+      () => db
+        .select({
+          total: sql<number>`COALESCE(SUM(${stickerOrders.totalAmount}), 0)`,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(stickerOrders)
+        .where(
+          and(
+            eq(stickerOrders.paymentStatus, "paid"),
+            gte(stickerOrders.createdAt, startDate)
+          )
         )
-      )
-      .limit(1); // Add limit to prevent full table scan
+        .limit(1),
+      { total: 0, count: 0 },
+      2000
+    );
 
     return {
       total: revenue[0]?.total || 0,
@@ -48,9 +53,14 @@ export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
 
 export async function getMaterialStockAlerts() {
   try {
-    const materials = await db.query.materialInventory.findMany({
-      limit: 100, // Prevent large result sets
-    });
+    // Add timeout protection
+    const materials = await withQueryTimeout(
+      () => db.query.materialInventory.findMany({
+        limit: 100, // Prevent large result sets
+      }),
+      [],
+      2000
+    );
 
     // Filter materials that are below low stock threshold
     const lowStockItems = materials.filter((m) => m.quantity <= m.lowStockThreshold);
