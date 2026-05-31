@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { isAdmin } from '@/lib/admin';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
-import { nanoid } from 'nanoid';
 import { BUNDLE_CONFIGS, type BundleType } from '@/lib/bundles';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check admin authorization
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // FIXED: Use centralized isAdmin() function for consistent authorization
+    const adminCheck = await isAdmin();
+    if (!adminCheck) {
+      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 401 });
     }
 
     const body = await request.json();

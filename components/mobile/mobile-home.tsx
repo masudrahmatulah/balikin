@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import {
   QrCode,
   Shield,
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useSession } from '@/lib/auth-client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface TagData {
   id: string;
@@ -47,11 +45,9 @@ interface ScanLog {
   status: 'success' | 'warning' | 'info';
 }
 
-async function getUserStats(userId: string): Promise<StatsData> {
+async function getUserStats(): Promise<StatsData> {
   try {
-    const response = await fetch('/api/mobile/user-stats', {
-      cache: 'no-store'
-    });
+    const response = await fetch('/api/mobile/user-stats');
     if (!response.ok) return { totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 };
     return await response.json();
   } catch {
@@ -59,11 +55,9 @@ async function getUserStats(userId: string): Promise<StatsData> {
   }
 }
 
-async function getUserTags(userId: string): Promise<TagData[]> {
+async function getUserTags(): Promise<TagData[]> {
   try {
-    const response = await fetch('/api/mobile/user-tags', {
-      cache: 'no-store'
-    });
+    const response = await fetch('/api/mobile/user-tags');
     if (!response.ok) return [];
     return await response.json();
   } catch {
@@ -71,11 +65,9 @@ async function getUserTags(userId: string): Promise<TagData[]> {
   }
 }
 
-async function getRecentActivity(userId: string): Promise<ScanLog[]> {
+async function getRecentActivity(): Promise<ScanLog[]> {
   try {
-    const response = await fetch('/api/mobile/recent-activity', {
-      cache: 'no-store'
-    });
+    const response = await fetch('/api/mobile/recent-activity');
     if (!response.ok) return [];
     return await response.json();
   } catch {
@@ -89,34 +81,33 @@ const quickActions = [
     description: 'Scan untuk melihat info pemilik',
     icon: Search,
     href: '/scan',
-    color: 'from-blue-500 to-cyan-500',
+    color: 'from-cyan-400 to-mobile-primary',
   },
   {
     title: 'Riwayat Scan',
     description: 'Lacak lokasi terakhir',
     icon: MapPin,
     href: '/mobile/history',
-    color: 'from-emerald-500 to-emerald-600',
+    color: 'from-mobile-success-light to-mobile-success',
   },
   {
     title: 'Notifikasi',
     description: 'Alert aktivitas tag',
     icon: Bell,
     href: '/mobile/notifications',
-    color: 'from-orange-500 to-amber-500',
+    color: 'from-mobile-warning-light to-mobile-warning',
   },
   {
     title: 'Mode Hilang',
     description: 'Aktifkan status darurat',
     icon: Shield,
     href: '/mobile/lost-mode',
-    color: 'from-rose-500 to-rose-600',
+    color: 'from-mobile-danger-light to-mobile-danger',
   },
 ];
 
 export function MobileHome() {
   const { data: session } = useSession();
-  const router = useRouter();
   const [stats, setStats] = useState<StatsData>({ totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 });
   const [tags, setTags] = useState<TagData[]>([]);
   const [recentActivity, setRecentActivity] = useState<ScanLog[]>([]);
@@ -125,9 +116,9 @@ export function MobileHome() {
   useEffect(() => {
     if (session?.user?.id) {
       Promise.all([
-        getUserStats(session.user.id),
-        getUserTags(session.user.id),
-        getRecentActivity(session.user.id)
+        getUserStats(),
+        getUserTags(),
+        getRecentActivity()
       ]).then(([statsData, tagsData, activityData]) => {
         setStats(statsData);
         setTags(tagsData);
@@ -140,13 +131,13 @@ export function MobileHome() {
   }, [session]);
 
   const statsDisplay = [
-    { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-blue-500 to-blue-600' },
-    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-emerald-500 to-emerald-600' },
-    { value: `${stats.returnRate}%`, label: 'Tingkat Kembali', icon: TrendingUp, color: 'from-purple-500 to-purple-600' },
+    { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-mobile-primary-light to-mobile-primary' },
+    { value: `${stats.returnedItems}`, label: 'Barang Kembali', icon: CheckCircle2, color: 'from-mobile-success-light to-mobile-success' },
+    { value: `${stats.returnRate}%`, label: 'Tingkat Kembali', icon: TrendingUp, color: 'from-mobile-info-light to-mobile-info' },
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col">
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
@@ -158,7 +149,7 @@ export function MobileHome() {
               <h1 className="text-xl font-bold text-gray-900">Balikin</h1>
             </div>
             <Link href="/mobile/profile">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-mobile-primary-light to-mobile-primary flex items-center justify-center shadow-lg shadow-mobile-primary/30">
                 <span className="text-white font-bold text-lg">
                   {session?.user?.name?.charAt(0).toUpperCase() || session?.user?.email?.charAt(0).toUpperCase() || 'U'}
                 </span>
@@ -171,40 +162,31 @@ export function MobileHome() {
       <main className="px-4 py-6 space-y-6">
         {/* Lost Items Alert */}
         {stats.lostTags > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-3xl p-5 shadow-xl shadow-rose-500/30 border border-white/20 relative overflow-hidden"
-          >
+          <div className="bg-gradient-to-br from-mobile-danger-light to-mobile-danger rounded-3xl p-5 shadow-xl shadow-mobile-danger/30 border border-white/20 relative overflow-hidden animate-fade-up-20">
             <div className="relative flex items-center gap-3">
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-white" />
+                <AlertTriangle className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
               <div className="flex-1">
                 <p className="text-white font-bold">{stats.lostTags} Tag Hilang</p>
                 <p className="text-rose-100 text-sm">Segera cek dan aktifkan mode hilang</p>
               </div>
               <Link href="/mobile/lost-mode">
-                <div className="bg-white text-rose-600 rounded-xl px-4 py-2 font-semibold text-sm">
+                <div className="bg-white text-mobile-danger rounded-xl px-4 py-2 font-semibold text-sm">
                   Cek
                 </div>
               </Link>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Main CTA - Laporkan Temuan Barang */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative"
-        >
+        <div className="relative animate-fade-up-20 stagger-delay-1">
           {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl blur-2xl opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-mobile-primary-light to-mobile-primary rounded-3xl blur-2xl opacity-20" />
 
           <Link href="/mobile/report" className="relative block">
-            <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-3xl p-6 shadow-2xl shadow-blue-500/30 border border-white/20 overflow-hidden">
+            <div className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 overflow-hidden">
               {/* Animated background pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -214,15 +196,11 @@ export function MobileHome() {
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
-                    <QrCode className="h-8 w-8 text-white" />
+                    <QrCode className="h-8 w-8 text-white" aria-hidden="true" />
                   </div>
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"
-                  >
+                  <div className="bg-mobile-danger text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse-slow">
                     URGENT
-                  </motion.div>
+                  </div>
                 </div>
 
                 <h2 className="text-2xl font-bold text-white mb-2">
@@ -234,53 +212,44 @@ export function MobileHome() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-white/80 text-sm">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-4 w-4" aria-hidden="true" />
                     <span>24/7 Aktif</span>
                   </div>
-                  <div className="bg-white text-blue-600 rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
+                  <div className="bg-white text-mobile-primary rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
                     Laporkan Sekarang
-                    <ArrowRight className="h-5 w-5" />
+                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
                   </div>
                 </div>
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Stats Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-3 gap-3"
-        >
+        <div className="grid grid-cols-3 gap-3 animate-fade-up-20 stagger-delay-2">
           {statsDisplay.map((stat, index) => (
             <div
               key={index}
               className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 text-center"
             >
               <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} text-white mb-2 shadow-lg`}>
-                <stat.icon className="h-5 w-5" />
+                <stat.icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <p className="text-lg font-bold text-gray-900">{stat.value}</p>
               <p className="text-xs text-gray-500">{stat.label}</p>
             </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Quick Actions Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        <div className="animate-fade-up-20 stagger-delay-3">
           <h3 className="text-lg font-bold text-gray-900 mb-4 px-1">Aksi Cepat</h3>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => (
               <Link key={index} href={action.href}>
-                <div className="group bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 text-center">
+                <div className="group bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg shadow-gray-200/50 border border-white/20 hover:shadow-xl hover:shadow-mobile-primary/10 transition-all duration-300 hover:-translate-y-1 text-center card-touch">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} text-white mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <action.icon className="h-6 w-6" />
+                    <action.icon className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <h4 className="font-semibold text-gray-900 mb-1 text-center">{action.title}</h4>
                   <p className="text-xs text-gray-500 text-center">{action.description}</p>
@@ -288,18 +257,14 @@ export function MobileHome() {
               </Link>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* My Tags Section */}
         {session?.user?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-          >
+          <div className="animate-fade-up-20 stagger-delay-4">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Tag Saya</h3>
-              <Link href="/mobile/profile/tags" className="text-sm text-blue-600 font-medium">
+              <Link href="/mobile/profile/tags" className="text-sm text-mobile-primary font-medium">
                 Lihat Semua
               </Link>
             </div>
@@ -307,11 +272,11 @@ export function MobileHome() {
             {tags.length === 0 ? (
               <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg shadow-gray-200/50 border border-white/20 text-center">
                 <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-100 rounded-2xl mb-3">
-                  <Tag className="h-7 w-7 text-gray-400" />
+                  <Tag className="h-7 w-7 text-gray-400" aria-hidden="true" />
                 </div>
                 <p className="text-gray-500 text-sm mb-3">Belum ada tag</p>
                 <Link href="/dashboard/new">
-                  <div className="inline-block bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                  <div className="inline-block bg-mobile-primary text-white px-4 py-2 rounded-xl text-sm font-semibold btn-press">
                     Buat Tag Sekarang
                   </div>
                 </Link>
@@ -326,16 +291,16 @@ export function MobileHome() {
                       <div className="flex items-center gap-3">
                         <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
                           tag.status === 'lost'
-                            ? 'bg-rose-100 text-rose-600'
-                            : 'bg-blue-100 text-blue-600'
+                            ? 'bg-mobile-danger-lighter text-mobile-danger'
+                            : 'bg-mobile-primary-lighter text-mobile-primary'
                         }`}>
-                          <QrCode className="h-5 w-5" />
+                          <QrCode className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-semibold text-gray-900 truncate">{tag.name}</h4>
                             {tag.status === 'lost' && (
-                              <span className="text-xs bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full">HILANG</span>
+                              <span className="text-xs bg-mobile-danger-lighter text-mobile-danger px-2 py-0.5 rounded-full">HILANG</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">
@@ -348,19 +313,15 @@ export function MobileHome() {
                 ))}
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
+          <div className="animate-fade-up-20 stagger-delay-5">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Aktivitas Terkini</h3>
-              <Link href="/mobile/history" className="text-sm text-blue-600 font-medium">
+              <Link href="/mobile/history" className="text-sm text-mobile-primary font-medium">
                 Lihat Semua
               </Link>
             </div>
@@ -374,17 +335,17 @@ export function MobileHome() {
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                       activity.status === 'success'
-                        ? 'bg-emerald-100 text-emerald-600'
+                        ? 'bg-mobile-success-lighter text-mobile-success'
                         : activity.status === 'warning'
-                        ? 'bg-rose-100 text-rose-600'
-                        : 'bg-blue-100 text-blue-600'
+                        ? 'bg-mobile-danger-lighter text-mobile-danger'
+                        : 'bg-mobile-primary-lighter text-mobile-primary'
                     }`}>
                       {activity.status === 'success' ? (
-                        <CheckCircle2 className="h-6 w-6" />
+                        <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
                       ) : activity.status === 'warning' ? (
-                        <Shield className="h-6 w-6" />
+                        <Shield className="h-6 w-6" aria-hidden="true" />
                       ) : (
-                        <MapPin className="h-6 w-6" />
+                        <MapPin className="h-6 w-6" aria-hidden="true" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -400,7 +361,7 @@ export function MobileHome() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Bottom padding for navigation */}

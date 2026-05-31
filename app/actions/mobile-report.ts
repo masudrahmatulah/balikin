@@ -3,8 +3,12 @@
 import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags, scanLogs } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { cache } from 'react';
+
+const TAG_CACHE_TTL = 300; // 5 minutes
+const QR_CODE_PATTERN = /^[a-zA-Z0-9-]{3,20}$/;
 
 interface ReportFoundItemParams {
   qrCode: string;
@@ -14,35 +18,50 @@ interface ReportFoundItemParams {
   finderPhone?: string;
 }
 
+function sanitizeInput(input: string, maxLength: number = 500): string {
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[<>{}]/g, '');
+}
+
+function validateQRCode(qrCode: string): boolean {
+  return QR_CODE_PATTERN.test(qrCode);
+}
+
+const getTagBySlug = cache(async (slug: string) => {
+  return db.query.tags.findFirst({
+    where: and(eq(tags.slug, slug), eq(tags.appId, 'balikin_id')),
+  });
+});
+
 export async function reportFoundItem(params: ReportFoundItemParams) {
   try {
-    const { qrCode, location, message, finderEmail, finderPhone } = params;
+    const { qrCode, location, message } = params;
 
-    // Find the tag by slug or QR code
-    const tag = await db.query.tags.findFirst({
-      where: eq(tags.slug, qrCode),
-    });
+    if (!validateQRCode(qrCode)) {
+      return { success: false, error: 'Kode QR tidak valid' };
+    }
+
+    const sanitizedLocation = sanitizeInput(location, 200);
+    if (!sanitizedLocation) {
+      return { success: false, error: 'Lokasi tidak boleh kosong' };
+    }
+
+    const sanitizedMessage = message ? sanitizeInput(message, 500) : '';
+
+    const tag = await getTagBySlug(qrCode);
 
     if (!tag) {
-      return {
-        success: false,
-        error: 'QR Code tidak valid atau tidak ditemukan',
-      };
+      return { success: false, error: 'QR Code tidak ditemukan' };
     }
 
-    // Log the scan/found report
     await db.insert(scanLogs).values({
       tagId: tag.id,
-      city: location || 'Unknown',
-      deviceInfo: message ? `Finder message: ${message}` : 'Found item report via mobile',
+      city: sanitizedLocation,
+      deviceInfo: sanitizedMessage ? `Finder message: ${sanitizedMessage}` : 'Found item report via mobile',
+      ipAddress: (await headers()).get('x-forwarded-for')?.split(',')[0] || null,
     });
-
-    // If the tag is lost, send notification to owner
-    if (tag.status === 'lost' && tag.contactWhatsapp) {
-      // TODO: Implement WhatsApp notification
-      // For now, just log that notification should be sent
-      console.log('[REPORT] Tag is lost, should notify owner:', tag.contactWhatsapp);
-    }
 
     revalidatePath(`/p/${tag.slug}`);
     revalidatePath(`/mobile/claim/${tag.slug}`);
@@ -53,8 +72,7 @@ export async function reportFoundItem(params: ReportFoundItemParams) {
       ownerContact: tag.contactWhatsapp,
       message: 'Laporan berhasil dikirim',
     };
-  } catch (error) {
-    console.error('[REPORT] Error reporting found item:', error);
+  } catch {
     return {
       success: false,
       error: 'Terjadi kesalahan saat mengirim laporan',
@@ -64,15 +82,14 @@ export async function reportFoundItem(params: ReportFoundItemParams) {
 
 export async function getTagByQR(qrCode: string) {
   try {
-    const tag = await db.query.tags.findFirst({
-      where: eq(tags.slug, qrCode),
-    });
+    if (!validateQRCode(qrCode)) {
+      return { success: false, error: 'Kode QR tidak valid' };
+    }
+
+    const tag = await getTagBySlug(qrCode);
 
     if (!tag) {
-      return {
-        success: false,
-        error: 'QR Code tidak valid',
-      };
+      return { success: false, error: 'QR Code tidak ditemukan' };
     }
 
     return {
@@ -83,15 +100,9 @@ export async function getTagByQR(qrCode: string) {
         slug: tag.slug,
         status: tag.status,
         contactWhatsapp: tag.contactWhatsapp,
-        customMessage: tag.customMessage,
-        rewardNote: tag.rewardNote,
       },
     };
-  } catch (error) {
-    console.error('[REPORT] Error getting tag:', error);
-    return {
-      success: false,
-      error: 'Terjadi kesalahan',
-    };
+  } catch {
+    return { success: false, error: 'Terjadi kesalahan' };
   }
 }

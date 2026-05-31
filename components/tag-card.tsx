@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +45,138 @@ import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct }
 import type { ProductType } from '@/lib/product';
 import { GraduationCap } from 'lucide-react';
 
+// Constants
+const MAX_INPUT_LENGTH = {
+  name: 100,
+  whatsapp: 20,
+  message: 500,
+  reward: 200,
+};
+
+// Memoized components
+const TagHeader = memo(({
+  name,
+  slug,
+  status,
+  tier,
+  productType,
+  isVerified,
+  isFreeTag,
+  productLabel,
+  scanCount,
+  hasTabTwoEnabled,
+  isOpen,
+}: {
+  name: string;
+  slug: string;
+  status: string;
+  tier?: string | null;
+  productType?: string | null;
+  isVerified?: boolean | null;
+  isFreeTag: boolean;
+  productLabel: string;
+  scanCount: number;
+  hasTabTwoEnabled?: boolean | null;
+  isOpen: boolean;
+}) => (
+  <CardHeader className={`cursor-pointer transition-colors hover:bg-slate-50/50 ${isOpen ? 'border-b border-slate-100' : 'pb-4'}`}>
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className={`rounded-xl p-2 flex-shrink-0 ${status === 'lost' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+          {status === 'lost' ? <AlertTriangle className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-slate-950 truncate">
+              {name}
+            </CardTitle>
+            <Badge variant={status === 'lost' ? 'destructive' : 'success'} className={`px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 ${status !== 'lost' ? 'bg-emerald-600' : ''}`}>
+              {status === 'lost' ? 'Hilang' : 'Normal'}
+            </Badge>
+            {hasTabTwoEnabled && (
+              <Badge variant="default" className="px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 bg-purple-600 text-white">
+                <Lock className="w-3 h-3 mr-1" />
+                Tab 2
+              </Badge>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="font-mono text-xs text-slate-500">/p/{slug}</span>
+            <VerifiedBadge
+              tier={tier as 'free' | 'premium' | null}
+              productType={productType as ProductType | null}
+              isVerified={isVerified}
+              size="sm"
+              showTier={isFreeTag}
+            />
+            <Badge variant="outline" className="border-slate-200 bg-white text-slate-600 text-xs">
+              {productLabel}
+            </Badge>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="text-right">
+          <p className="text-xs text-slate-500">{scanCount} scans</p>
+        </div>
+        <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+    </div>
+  </CardHeader>
+));
+
+TagHeader.displayName = 'TagHeader';
+
+const InsightSection = memo(({
+  isLost,
+  scanCount,
+  isFreeTag,
+  isStickerTag,
+}: {
+  isLost: boolean;
+  scanCount: number;
+  isFreeTag: boolean;
+  isStickerTag: boolean;
+}) => {
+  const insightText = useMemo(() => {
+    if (isLost) {
+      return 'Mode hilang aktif. Penemu akan melihat status darurat saat scan.';
+    }
+    if (scanCount > 0) {
+      if (isFreeTag) {
+        return `Tag digital ini sudah dipindai ${scanCount} kali. Upgrade ke sticker vinyl untuk hasil fisik yang lebih tahan air dan lebih meyakinkan.`;
+      }
+      if (isStickerTag) {
+        return `Sticker ini sudah dipindai ${scanCount} kali dan tetap siap dipakai di helm, laptop, atau koper.`;
+      }
+      return `Tag ini sudah dipindai ${scanCount} kali dan tetap siap dihubungi.`;
+    }
+    if (isFreeTag) {
+      return 'Digital tag ini siap dipakai untuk wallpaper lockscreen atau cetak mandiri.';
+    }
+    if (isStickerTag) {
+      return 'Sticker vinyl ini siap dipakai di barang favorit Anda dengan tampilan yang lebih meyakinkan.';
+    }
+    return 'Belum pernah discan. Tag ini siap dipakai kapan pun dibutuhkan.';
+  }, [isLost, scanCount, isFreeTag, isStickerTag]);
+
+  return (
+    <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
+      <div className="flex items-start gap-3">
+        <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+          {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+InsightSection.displayName = 'InsightSection';
+
 interface TagCardProps {
   id: string;
   slug: string;
@@ -65,7 +197,7 @@ interface TagCardProps {
   hasStudentKit?: boolean | null;
 }
 
-export function TagCard({
+export const TagCard = memo(function TagCard({
   id,
   slug,
   name,
@@ -99,41 +231,35 @@ export function TagCard({
   const [editReward, setEditReward] = useState(rewardNote || '');
   const [editEmailAlertsEnabled, setEditEmailAlertsEnabled] = useState(emailAlertsEnabled ?? isFreeTag);
   const [editWhatsAppAlertsEnabled, setEditWhatsAppAlertsEnabled] = useState(whatsappAlertsEnabled ?? !isFreeTag);
-  const insightText = isLost
-    ? 'Mode hilang aktif. Penemu akan melihat status darurat saat scan.'
-    : scanCount > 0
-      ? isFreeTag
-        ? `Tag digital ini sudah dipindai ${scanCount} kali. Upgrade ke sticker vinyl untuk hasil fisik yang lebih tahan air dan lebih meyakinkan.`
-        : isStickerTag
-          ? `Sticker ini sudah dipindai ${scanCount} kali dan tetap siap dipakai di helm, laptop, atau koper.`
-          : `Tag ini sudah dipindai ${scanCount} kali dan tetap siap dihubungi.`
-      : isFreeTag
-        ? 'Digital tag ini siap dipakai untuk wallpaper lockscreen atau cetak mandiri.'
-        : isStickerTag
-          ? 'Sticker vinyl ini siap dipakai di barang favorit Anda dengan tampilan yang lebih meyakinkan.'
-          : 'Belum pernah discan. Tag ini siap dipakai kapan pun dibutuhkan.';
-  const createdLabel = createdAt
-    ? new Intl.DateTimeFormat('id-ID', {
+
+  const createdLabel = useMemo(() => {
+    if (!createdAt) return null;
+    try {
+      const date = typeof createdAt === 'string' ? new Date(createdAt) : createdAt;
+      if (isNaN(date.getTime())) return null;
+      return new Intl.DateTimeFormat('id-ID', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
-      }).format(createdAt)
-    : null;
+      }).format(date);
+    } catch {
+      return null;
+    }
+  }, [createdAt]);
 
-  const handleStatusToggle = async (checked: boolean) => {
+  const handleStatusToggle = useCallback(async (checked: boolean) => {
     setIsLoading(true);
     try {
       await updateTagStatus(id, checked ? 'lost' : 'normal');
       router.refresh();
     } catch (error) {
-      console.error('Failed to update status:', error);
       alert('Gagal mengupdate status');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, router]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setIsLoading(true);
     try {
       await updateTag(id, {
@@ -147,14 +273,13 @@ export function TagCard({
       setIsEditing(false);
       router.refresh();
     } catch (error) {
-      console.error('Failed to update tag:', error);
       alert('Gagal mengupdate tag');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, editName, editWhatsapp, editMessage, editReward, editEmailAlertsEnabled, editWhatsAppAlertsEnabled, isFreeTag, router]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!confirm('Yakin ingin menghapus tag ini?')) return;
 
     setIsLoading(true);
@@ -162,12 +287,11 @@ export function TagCard({
       await deleteTag(id);
       router.refresh();
     } catch (error) {
-      console.error('Failed to delete tag:', error);
       alert('Gagal menghapus tag');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, router]);
 
   if (isEditing) {
     return (
@@ -181,9 +305,10 @@ export function TagCard({
             <Input
               id="edit-name"
               value={editName}
-              onChange={(e) => setEditName(e.target.value)}
+              onChange={(e) => setEditName(e.target.value.slice(0, MAX_INPUT_LENGTH.name))}
               inputMode="text"
               autoComplete="off"
+              maxLength={MAX_INPUT_LENGTH.name}
             />
           </div>
           <div>
@@ -191,10 +316,11 @@ export function TagCard({
             <Input
               id="edit-whatsapp"
               value={editWhatsapp}
-              onChange={(e) => setEditWhatsapp(e.target.value)}
+              onChange={(e) => setEditWhatsapp(e.target.value.slice(0, MAX_INPUT_LENGTH.whatsapp))}
               placeholder="628123456789"
               inputMode="tel"
               autoComplete="tel"
+              maxLength={MAX_INPUT_LENGTH.whatsapp}
             />
           </div>
           <div>
@@ -202,10 +328,11 @@ export function TagCard({
             <Textarea
               id="edit-message"
               value={editMessage}
-              onChange={(e) => setEditMessage(e.target.value)}
+              onChange={(e) => setEditMessage(e.target.value.slice(0, MAX_INPUT_LENGTH.message))}
               placeholder="Contoh: Kunci motor ini sangat penting bagi saya..."
               rows={3}
               className="text-base"
+              maxLength={MAX_INPUT_LENGTH.message}
             />
           </div>
           <div>
@@ -213,10 +340,11 @@ export function TagCard({
             <Input
               id="edit-reward"
               value={editReward}
-              onChange={(e) => setEditReward(e.target.value)}
+              onChange={(e) => setEditReward(e.target.value.slice(0, MAX_INPUT_LENGTH.reward))}
               placeholder="Contoh: Rp 50.000"
               inputMode="text"
               autoComplete="off"
+              maxLength={MAX_INPUT_LENGTH.reward}
             />
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -356,184 +484,185 @@ export function TagCard({
         {/* Expanded Content - Only Visible When Open */}
         <CollapsibleContent>
           <CardContent className="space-y-4">
-        <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
-          <div className="flex items-start gap-3">
-            <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-              {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
-            </div>
-          </div>
-        </div>
-
-        {isLost && (
-          <Alert variant="destructive" className="border-red-200 bg-red-100/80 text-red-950">
-            <Gift className="h-4 w-4" />
-            <AlertDescription className="font-medium">
-              {rewardNote ? `Imbalan untuk penemu: ${rewardNote}` : 'Mode hilang aktif. Pastikan detail kontak Anda sudah akurat.'}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{isFreeTag ? 'Info scan' : 'Total scan'}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <ScanLine className="h-4 w-4 text-cyan-600" />
-              <p className="text-lg font-semibold text-slate-950">{scanCount}</p>
-            </div>
-            <p className="mt-1 text-sm text-slate-600">
-              {scanCount > 0
-                ? isFreeTag
-                  ? 'Aktivitas scan tercatat. Detail tracking lebih lengkap tersedia untuk premium.'
-                  : 'Ada aktivitas scan tercatat.'
-                : 'Belum ada aktivitas scan.'}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">WhatsApp owner</p>
-            <div className="mt-2 flex items-center gap-2">
-              <MessageCircle className="h-4 w-4 text-emerald-600" />
-              <p className="text-sm font-medium text-slate-950">{contactWhatsapp || 'Belum diisi'}</p>
-            </div>
-            <p className="mt-1 text-sm text-slate-600">
-              Kontak ini dipakai penemu untuk menghubungi Anda.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
-              <Mail className="h-4 w-4" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-950">Aturan notifikasi scan</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                {isFreeTag
-                  ? `Free hanya mengirim alert scan ke email akun Anda${ownerEmail ? ` (${ownerEmail})` : ''}.`
-                  : isStickerTag
-                    ? 'Sticker Vinyl mengirim alert scan via WhatsApp jalur standar secara default, dengan email sebagai opsi tambahan.'
-                    : 'Acrylic Premium mencoba jalur priority WhatsApp lebih dulu, lalu fallback ke jalur standar, dengan email sebagai opsi tambahan.'}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge variant="outline" className={emailAlertsEnabled ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500'}>
-                  Email {emailAlertsEnabled ? 'Aktif' : 'Nonaktif'}
-                </Badge>
-                <Badge variant="outline" className={whatsappAlertsEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-500'}>
-                  WhatsApp {whatsappAlertsEnabled ? 'Aktif' : 'Nonaktif'}
-                </Badge>
-                {isAcrylicTag && whatsappAlertsEnabled && (
-                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-                    Priority Route
-                  </Badge>
-                )}
-              </div>
-              {!isFreeTag && !contactWhatsapp && (
-                <p className="mt-3 text-sm text-amber-700">
-                  Isi nomor WhatsApp agar alert {isStickerTag ? 'Sticker Vinyl' : 'Acrylic Premium'} bisa terkirim.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-red-50/70' : 'border-slate-200 bg-slate-50/90'}`}>
-          <div>
-            <Label htmlFor={`toggle-${id}`} className="text-sm font-semibold text-slate-950">
-              Status Hilang
-            </Label>
-            <p className="mt-1 text-sm text-slate-600">
-              Aktifkan saat barang benar-benar hilang agar halaman publik berubah jadi prioritas tinggi.
-            </p>
-          </div>
-          <Switch
-            id={`toggle-${id}`}
-            checked={isLost}
-            onCheckedChange={handleStatusToggle}
-            disabled={isLoading}
-            aria-label={`Ubah status hilang untuk ${name}`}
-          />
-        </div>
-
-        {customMessage && (
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/90 p-4">
-            <p className="text-sm font-semibold text-slate-950">{isFreeTag ? 'Pesan sapaan' : isStickerTag ? 'Pesan sticker' : 'Pesan personal'}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-700">{customMessage}</p>
-          </div>
-        )}
-
-        {isFreeTag && (
-          <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-yellow-50 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
               <div className="flex items-start gap-3">
-                <div className="rounded-2xl bg-amber-100 p-2.5">
-                  <Crown className="h-4 w-4 text-amber-700" />
+                <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-amber-950">Upgrade dari Digital Tag Free</p>
-                  <p className="mt-1 text-sm leading-6 text-amber-800">
-                    Ubah DIY digital tag ini jadi sticker vinyl isi 6 yang lebih tahan hujan, tahan pakai, dan langsung siap ditempel di helm, laptop, atau koper.
-                  </p>
+                  <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-amber-300 bg-white text-amber-800 hover:bg-amber-100"
-                onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(STICKER_ORDER_WHATSAPP_MESSAGE || UPGRADE_WHATSAPP_MESSAGE)}`, '_blank')}
-              >
-                Pesan Sticker
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
             </div>
-          </div>
-        )}
+
+            {isLost && (
+              <Alert variant="destructive" className="border-red-200 bg-red-100/80 text-red-950">
+                <Gift className="h-4 w-4" />
+                <AlertDescription className="font-medium">
+                  {rewardNote ? `Imbalan untuk penemu: ${rewardNote}` : 'Mode hilang aktif. Pastikan detail kontak Anda sudah akurat.'}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{isFreeTag ? 'Info scan' : 'Total scan'}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <ScanLine className="h-4 w-4 text-cyan-600" />
+                  <p className="text-lg font-semibold text-slate-950">{scanCount}</p>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  {scanCount > 0
+                    ? isFreeTag
+                      ? 'Aktivitas scan tercatat. Detail tracking lebih lengkap tersedia untuk premium.'
+                      : 'Ada aktivitas scan tercatat.'
+                    : 'Belum ada aktivitas scan.'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">WhatsApp owner</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-emerald-600" />
+                  <p className="text-sm font-medium text-slate-950">{contactWhatsapp || 'Belum diisi'}</p>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">
+                  Kontak ini dipakai penemu untuk menghubungi Anda.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-950">Aturan notifikasi scan</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    {isFreeTag
+                      ? `Free hanya mengirim alert scan ke email akun Anda${ownerEmail ? ` (${ownerEmail})` : ''}.`
+                      : isStickerTag
+                        ? 'Sticker Vinyl mengirim alert scan via WhatsApp jalur standar secara default, dengan email sebagai opsi tambahan.'
+                        : 'Acrylic Premium mencoba jalur priority WhatsApp lebih dulu, lalu fallback ke jalur standar, dengan email sebagai opsi tambahan.'}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Badge variant="outline" className={emailAlertsEnabled ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 text-slate-500'}>
+                      Email {emailAlertsEnabled ? 'Aktif' : 'Nonaktif'}
+                    </Badge>
+                    <Badge variant="outline" className={whatsappAlertsEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-500'}>
+                      WhatsApp {whatsappAlertsEnabled ? 'Aktif' : 'Nonaktif'}
+                    </Badge>
+                    {isAcrylicTag && whatsappAlertsEnabled && (
+                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+                        Priority Route
+                      </Badge>
+                    )}
+                  </div>
+                  {!isFreeTag && !contactWhatsapp && (
+                    <p className="mt-3 text-sm text-amber-700">
+                      Isi nomor WhatsApp agar alert {isStickerTag ? 'Sticker Vinyl' : 'Acrylic Premium'} bisa terkirim.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-red-50/70' : 'border-slate-200 bg-slate-50/90'}`}>
+              <div>
+                <Label htmlFor={`toggle-${id}`} className="text-sm font-semibold text-slate-950">
+                  Status Hilang
+                </Label>
+                <p className="mt-1 text-sm text-slate-600">
+                  Aktifkan saat barang benar-benar hilang agar halaman publik berubah jadi prioritas tinggi.
+                </p>
+              </div>
+              <Switch
+                id={`toggle-${id}`}
+                checked={isLost}
+                onCheckedChange={handleStatusToggle}
+                disabled={isLoading}
+                aria-label={`Ubah status hilang untuk ${name}`}
+              />
+            </div>
+
+            {customMessage && (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/90 p-4">
+                <p className="text-sm font-semibold text-slate-950">{isFreeTag ? 'Pesan sapaan' : isStickerTag ? 'Pesan sticker' : 'Pesan personal'}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">{customMessage}</p>
+              </div>
+            )}
+
+            {isFreeTag && (
+              <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-white to-yellow-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-2xl bg-amber-100 p-2.5">
+                      <Crown className="h-4 w-4 text-amber-700" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-amber-950">Upgrade dari Digital Tag Free</p>
+                      <p className="mt-1 text-sm leading-6 text-amber-800">
+                        Ubah DIY digital tag ini jadi sticker vinyl isi 6 yang lebih tahan hujan, tahan pakai, dan langsung siap ditempel di helm, laptop, atau koper.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-300 bg-white text-amber-800 hover:bg-amber-100"
+                    onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(STICKER_ORDER_WHATSAPP_MESSAGE || UPGRADE_WHATSAPP_MESSAGE)}`, '_blank')}
+                  >
+                    Pesan Sticker
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </CardContent>
 
           <CardFooter className="flex flex-col items-stretch justify-between gap-3 border-t border-slate-100 bg-white/70 pt-5 sm:flex-row sm:items-center">
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} disabled={isLoading}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Tag
-          </Button>
-          {hasTabTwoEnabled && hasStudentKit && (
-            <Button variant="default" size="sm" asChild className="bg-purple-600 hover:bg-purple-700">
-              <Link href={`/p/${slug}/private/student`}>
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Student Kit
-              </Link>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} disabled={isLoading}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Tag
+              </Button>
+              {hasTabTwoEnabled && hasStudentKit && (
+                <Button variant="default" size="sm" asChild className="bg-purple-600 hover:bg-purple-700">
+                  <Link href={`/p/${slug}/private/student`}>
+                    <GraduationCap className="mr-2 h-4 w-4" />
+                    Student Kit
+                  </Link>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" asChild disabled={isLoading}>
+                <Link href={`/dashboard/tag/${slug}`}>
+                  <QrCode className="mr-2 h-4 w-4" />
+                  Unduh QR Code
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                disabled={isLoading}
+                title="Download PDF"
+              >
+                <a href={`/dashboard/tag/${slug}/qr`} download>
+                  <FileText className="mr-2 h-4 w-4" />
+                  PDF
+                </a>
+              </Button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleDelete} disabled={isLoading} className="text-slate-500 hover:text-red-600">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Hapus
             </Button>
-          )}
-          <Button variant="ghost" size="sm" asChild disabled={isLoading}>
-            <Link href={`/dashboard/tag/${slug}`}>
-              <QrCode className="mr-2 h-4 w-4" />
-              Unduh QR Code
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            disabled={isLoading}
-            title="Download PDF"
-          >
-            <a href={`/dashboard/tag/${slug}/qr`} download>
-              <FileText className="mr-2 h-4 w-4" />
-              PDF
-            </a>
-          </Button>
-        </div>
-        <Button variant="ghost" size="sm" onClick={handleDelete} disabled={isLoading} className="text-slate-500 hover:text-red-600">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Hapus
-        </Button>
-      </CardFooter>
+          </CardFooter>
         </CollapsibleContent>
     </Card>
   </Collapsible>
   );
-}
+});

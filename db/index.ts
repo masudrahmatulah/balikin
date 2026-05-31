@@ -2,6 +2,20 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const DEFAULT_POOL_SIZE = 5;
+const DEFAULT_CONNECT_TIMEOUT_MS = 30_000;
+const DEFAULT_IDLE_TIMEOUT_MS = 20_000;
+const DEFAULT_MAX_LIFETIME_MS = 60 * 60_000;
+const DEFAULT_STATEMENT_TIMEOUT_MS = 10_000;
+
+// ============================================================================
+// DATABASE CONFIGURATION
+// ============================================================================
+
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
@@ -9,18 +23,22 @@ if (!connectionString) {
 }
 
 const isSupabase = connectionString.includes('supabase.com');
-const poolMax = Number(process.env.DATABASE_POOL_MAX || (isSupabase ? 1 : 5));
+const poolMax = Number(process.env.DATABASE_POOL_MAX) || DEFAULT_POOL_SIZE;
 
 const options = {
-  prepare: false,
+  prepare: true,
   ssl: isSupabase ? 'require' as const : undefined,
-  max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : 1,
-  connect_timeout: 30,
-  idle_timeout: 20,
-  max_lifetime: 60 * 30,
-  // Add retry logic for Supabase
-  onnotice: () => {},
-  onparameter: () => {},
+  max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : DEFAULT_POOL_SIZE,
+  connect_timeout: Number(process.env.DATABASE_CONNECT_TIMEOUT) || DEFAULT_CONNECT_TIMEOUT_MS,
+  idle_timeout: Number(process.env.DATABASE_IDLE_TIMEOUT) || DEFAULT_IDLE_TIMEOUT_MS,
+  max_lifetime: Number(process.env.DATABASE_MAX_LIFETIME) || DEFAULT_MAX_LIFETIME_MS,
+  statement_timeout: Number(process.env.DATABASE_STATEMENT_TIMEOUT) || DEFAULT_STATEMENT_TIMEOUT_MS,
+  types: {
+    date: {
+      to: 1184,
+      from: [1082, 1083, 1114, 1184],
+    },
+  },
 };
 
 const globalForDb = globalThis as typeof globalThis & {
@@ -34,3 +52,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const db = drizzle({ client, schema });
+
+// Re-export schema for convenience
+export * from './schema';

@@ -4,21 +4,130 @@ import { db } from "@/db";
 import { tags, printQueue } from "@/db/schema";
 import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
+import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
+import QRCode from "qrcode";
+import JSZip from "jszip";
+import { generatePremiumQRDataURL } from "@/lib/premium-qr-generator";
 
 export const dynamic = "force-dynamic";
 
+interface VDPGenerateRequest {
+  batchName: string;
+  quantity: number;
+  materialType: "sticker" | "acrylic" | "acrylic-cutfold";
+  productType: "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat";
+  paperSize: "a4" | "a3";
+  stickerShape?: "circle" | "square" | "rectangle";
+  stickerSize?: "small" | "medium" | "large";
+  adminId: string;
+  singleTag?: {
+    slug: string;
+    name: string;
+    contactWhatsapp: string | null;
+    customMessage: string | null;
+    rewardNote: string | null;
+  };
+}
+
+// GET - Fetch tags with optional filtering by claimed status
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const searchParams = await request.nextUrl.searchParams;
+    const filter = (await searchParams).get("filter") || "all"; // "all", "claimed", "unclaimed"
+
+    let whereClause;
+    if (filter === "claimed") {
+      whereClause = isNotNull(tags.ownerId);
+    } else if (filter === "unclaimed") {
+      whereClause = isNull(tags.ownerId);
+    } else {
+      whereClause = undefined;
+    }
+
+    const allTags = await db.query.tags.findMany({
+      where: whereClause,
+      orderBy: [desc(tags.createdAt)],
+    });
+
+    // Calculate stats
+    const total = allTags.length;
+    const claimed = allTags.filter(t => t.ownerId !== null).length;
+    const unclaimed = total - claimed;
+
+    return NextResponse.json({
+      tags: allTags,
+      stats: { total, claimed, unclaimed },
+    });
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return NextResponse.json({ error: "Failed to fetch tags" }, { status: 500 });
+  }
+}
+
+// DELETE - Delete an unclaimed tag
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getAdminSession();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const searchParams = await request.nextUrl.searchParams;
+    const tagId = (await searchParams).get("tagId");
+
+    if (!tagId) {
+      return NextResponse.json({ error: "Missing tagId parameter" }, { status: 400 });
+    }
+
+    const tag = await db.query.tags.findFirst({
+      where: eq(tags.id, tagId),
+    });
+
+    if (!tag) {
+      return NextResponse.json({ error: "Tag not found" }, { status: 404 });
+    }
+
+    if (tag.ownerId !== null) {
+      return NextResponse.json({ error: "Cannot delete claimed tags" }, { status: 400 });
+    }
+
+    await db.delete(tags).where(eq(tags.id, tagId));
+
+    const { ip, userAgent } = await getRequestContext();
+    await logAuditAction({
+      adminId: session.user.id,
+      action: "delete_tag",
+      entityType: "tag",
+      entityId: tagId,
+      originalValue: { name: tag.name, slug: tag.slug },
+      newValue: null,
+      ipAddress: ip,
+      userAgent,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting tag:", error);
+    return NextResponse.json({ error: "Failed to delete tag" }, { status: 500 });
+  }
+}
+
+// POST - Generate new tags batch with ZIP download
 export async function POST(request: NextRequest) {
   try {
-    // Check admin session
     const session = await getAdminSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { batchName, quantity, materialType, productType, paperSize, adminId } = body;
+    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, adminId, singleTag }: VDPGenerateRequest = body;
 
-    // Validate input
     if (!batchName || !quantity || !materialType || !productType || !paperSize) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
@@ -27,37 +136,120 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Quantity must be between 1 and 1000" }, { status: 400 });
     }
 
-    // Generate unique batch ID
     const batchId = randomUUID();
+    const isCutFold = materialType === "acrylic-cutfold";
+    const zip = !isCutFold ? new JSZip() : null;
+    const generatedTags = [];
 
-    // Create tags in bulk
-    const tagsToCreate = Array.from({ length: quantity }, (_, i) => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://balikin.id";
+
+    // Single tag creation with custom fields
+    if (singleTag && quantity === 1) {
       const tagId = randomUUID();
-      const slug = `${batchId}-${i + 1}`;
-      return {
+      const slug = singleTag.slug;
+
+      const newTag = {
         id: tagId,
         app_id: "balikin_id",
         slug,
-        ownerId: null, // Unclaimed
-        name: `Tag ${i + 1}`,
-        status: "unclaimed",
-        tier: "free",
-        productType,
-        bundleType: productType !== "standard" ? productType : null,
-        autoActivateModule: productType !== "standard" ? productType : null,
+        ownerId: null,
+        name: singleTag.name,
+        status: "normal",
+        tier: "premium",
+        productType: "acrylic",
+        bundleId: null,
+        contactWhatsapp: singleTag.contactWhatsapp,
+        customMessage: singleTag.customMessage,
+        rewardNote: singleTag.rewardNote,
         isVerified: false,
-        emailAlertsEnabled: true,
-        whatsappAlertsEnabled: false,
-        hasTabTwoEnabled: productType !== "standard",
-        welcomeShown: false,
-        onboardingCompleted: false,
+        emailAlertsEnabled: false,
+        whatsappAlertsEnabled: true,
       };
-    });
 
-    // Insert tags
-    await db.insert(tags).values(tagsToCreate);
+      await db.insert(tags).values(newTag);
 
-    // Add to print queue
+      generatedTags.push({
+        slug,
+        sequenceNumber: "001",
+        filename: `${singleTag.name}-${slug}.png`,
+      });
+
+      const qrUrl = `${baseUrl}/p/${slug}`;
+      const qrDataUrl = await generatePremiumQRDataURL(qrUrl, "standard", 600);
+
+      if (!isCutFold) {
+        const base64Data = qrDataUrl.split(",")[1];
+        const buffer = Buffer.from(base64Data, "base64");
+        zip!.file(`${singleTag.name}-${slug}.png`, buffer);
+      }
+    } else {
+      // Bulk tag creation
+      for (let i = 0; i < quantity; i++) {
+        const tagId = randomUUID();
+        const sequenceNumber = String(i + 1).padStart(3, "0");
+        const slug = `${batchId}-${sequenceNumber}`;
+
+        const tier = materialType === "acrylic" ? "premium" : "free";
+
+        const newTag = {
+          id: tagId,
+          app_id: "balikin_id",
+          slug,
+          ownerId: null,
+          name: `${batchName} ${sequenceNumber}`,
+          status: "normal",
+          tier,
+          productType: materialType,
+          bundleType: productType !== "standard" ? productType : null,
+          autoActivateModule: productType !== "standard" ? productType : null,
+          isVerified: false,
+          emailAlertsEnabled: true,
+          whatsappAlertsEnabled: false,
+          hasTabTwoEnabled: productType !== "standard",
+          welcomeShown: false,
+          onboardingCompleted: false,
+        };
+
+        await db.insert(tags).values(newTag);
+
+        generatedTags.push({
+          slug,
+          sequenceNumber,
+          filename: `${batchName}-${sequenceNumber}-${slug}.png`,
+        });
+
+        const qrUrl = `${baseUrl}/p/${slug}`;
+        let qrDataUrl: string;
+
+        // Use premium QR for acrylic, standard QR for sticker
+        if (tier === "premium") {
+          qrDataUrl = await generatePremiumQRDataURL(qrUrl, productType !== "standard" ? productType : "standard", 600);
+        } else {
+          qrDataUrl = await QRCode.toDataURL(qrUrl, {
+            width: 600,
+            margin: 4,
+            color: { dark: "#000000", light: "#ffffff" },
+          });
+        }
+
+        if (!isCutFold) {
+          const base64Data = qrDataUrl.split(",")[1];
+          const buffer = Buffer.from(base64Data, "base64");
+          zip!.file(`${batchName}-${sequenceNumber}-${slug}.png`, buffer);
+        }
+      }
+    }
+
+    let downloadUrl: string;
+
+    if (isCutFold) {
+      downloadUrl = `/admin/api/vdp/cut-fold/${batchId}`;
+    } else {
+      const zipBuffer = await zip!.generateAsync({ type: "nodebuffer" });
+      const zipBase64 = zipBuffer.toString("base64");
+      downloadUrl = `data:application/zip;base64,${zipBase64}`;
+    }
+
     const itemsPerSheet = paperSize === "a4" ? 12 : 20;
     const estimatedSheets = Math.ceil(quantity / itemsPerSheet);
 
@@ -68,12 +260,11 @@ export async function POST(request: NextRequest) {
       batchName,
       status: "pending",
       itemCount: quantity,
-      materialType,
-      materialUsed: `${estimatedSheets} lembar ${paperSize.toUpperCase()} (${materialType})`,
+      materialType: isCutFold ? "acrylic" : materialType,
+      materialUsed: `${estimatedSheets} lembar ${paperSize.toUpperCase()} (${isCutFold ? "Cut & Fold" : materialType})`,
       printedBy: adminId,
     });
 
-    // Log the action
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
       adminId,
@@ -87,20 +278,19 @@ export async function POST(request: NextRequest) {
         materialType,
         productType,
         paperSize,
+        stickerShape,
+        stickerSize,
       },
       ipAddress: ip,
       userAgent,
     });
-
-    // Generate PDF (simplified - just return a success message for now)
-    // TODO: Implement actual PDF generation with jsPDF or similar library
-    const downloadUrl = `/admin/api/vdp/download/${batchId}`;
 
     return NextResponse.json({
       success: true,
       batchId,
       batchName,
       quantity,
+      tags: generatedTags,
       downloadUrl,
     });
   } catch (error) {

@@ -3,10 +3,13 @@ import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
-import { Geist } from "next/font/google";
+import { Geist, Fraunces, Public_Sans, Space_Grotesk } from "next/font/google";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" });
+const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-body" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-label" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -65,42 +68,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
+    <html lang="id" suppressHydrationWarning className={cn("font-sans", geist.variable, fraunces.variable, publicSans.variable, spaceGrotesk.variable)}>
       <head>
         <link rel="icon" href="/favicon.png" />
         <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
       </head>
       <body className="overflow-x-hidden antialiased">
+        {/* Skip-to-content link for keyboard users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <Providers>
-          {children}
+          <div id="main-content">
+            {children}
+          </div>
         </Providers>
         {/* Service Worker Cleanup Script - Removes old service workers that cause redirect errors */}
-        <Script
-          id="service-worker-cleanup"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                if ('serviceWorker' in navigator) {
-                  // Unregister all service workers untuk fix redirect error
-                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) {
-                      registration.unregister();
-                    });
-                  });
-                  // Clear all caches
-                  if ('caches' in window) {
-                    caches.keys().then(function(cacheNames) {
-                      cacheNames.forEach(function(cacheName) {
-                        caches.delete(cacheName);
-                      });
-                    });
-                  }
-                }
-              })();
-            `,
-          }}
-        />
+        <Script src="/service-worker-cleanup.js" id="service-worker-cleanup" />
       </body>
     </html>
   );

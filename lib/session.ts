@@ -1,41 +1,60 @@
 import { headers } from 'next/headers';
 import { auth } from './auth';
 import type { Session } from './auth';
-import { cookies } from 'next/headers';
 
-/**
- * Get the current session on the server side
- * Use this in Server Components and Server Actions
- */
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface SessionError extends Error {
+  code: 'SESSION_EXPIRED' | 'INVALID_TOKEN' | 'NETWORK_ERROR' | 'UNKNOWN';
+}
+
+// ============================================================================
+// ERROR HANDLING
+// ============================================================================
+
+class SessionFetchError extends Error implements SessionError {
+  code: SessionError['code'];
+
+  constructor(message: string, code: SessionError['code'] = 'UNKNOWN') {
+    super(message);
+    this.name = 'SessionFetchError';
+    this.code = code;
+  }
+}
+
+// ============================================================================
+// SESSION FUNCTIONS
+// ============================================================================
+
+async function fetchSessionInternal(): Promise<Session | null> {
+  const headersList = await headers();
+  return auth.api.getSession({ headers: headersList }) as Promise<Session | null>;
+}
+
 export async function getSession(): Promise<Session | null> {
   try {
-    const headersList = await headers();
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
-    return session as Session | null;
+    return await fetchSessionInternal();
   } catch (error) {
-    console.error('[getSession] Error:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }
 
-/**
- * Get the current user from session on the server side
- */
 export async function getUser() {
   const session = await getSession();
   return session?.user ?? null;
 }
 
-/**
- * Require authentication - redirects to sign-in if not authenticated
- * Use this in Server Components that require authentication
- */
 export async function requireAuth(): Promise<Session> {
   const session = await getSession();
+
   if (!session) {
-    throw new Error('Unauthorized');
+    throw new SessionFetchError('Authentication required', 'UNKNOWN');
   }
+
   return session;
 }
+
+// Re-export types for convenience
+export type { Session };

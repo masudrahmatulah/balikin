@@ -31,18 +31,19 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       {/* Main Content Area */}
-      <div className="pb-24 min-h-screen">
+      <div className="max-w-md mx-auto pb-24 min-h-screen">
         {children}
       </div>
 
       {/* Bottom Navigation Bar with Glassmorphism */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
         {/* Safe area padding for iOS */}
-        <div className="pb-safe">
-          <div className="mx-2 mb-2 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-blue-900/10 border border-white/20">
-            <div className="flex items-center justify-around py-3">
+        <div className="pb-safe max-w-md w-full mx-auto">
+          <div className="px-2 mb-2">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-mobile-primary/10 border border-white/20">
+              <div className="flex items-center justify-evenly py-3">
               {tabs.map((tab) => {
                 const isActive = currentTab === tab.id;
                 const Icon = tab.icon;
@@ -55,13 +56,13 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
                     >
                     {/* Active indicator glow */}
                     {isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl opacity-10 blur-lg" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-mobile-primary-light to-mobile-primary rounded-xl opacity-10 blur-lg" />
                     )}
 
                     {/* Icon with animated background */}
                     <div className={`relative transition-all duration-300 ${
                       isActive
-                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
+                        ? 'bg-gradient-to-br from-mobile-primary-light to-mobile-primary text-white shadow-lg shadow-mobile-primary/30'
                         : 'text-gray-400'
                     } rounded-2xl p-3`}>
                       <Icon className={`h-6 w-6 transition-transform duration-300 ${
@@ -71,7 +72,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
 
                     {/* Label */}
                     <span className={`text-xs font-medium transition-colors duration-300 ${
-                      isActive ? 'text-blue-600' : 'text-gray-400'
+                      isActive ? 'text-mobile-primary' : 'text-gray-400'
                     }`}>
                       {tab.label}
                     </span>
@@ -79,7 +80,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
                     {/* Active dot indicator */}
                     {isActive && (
                       <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                        <div className="w-1.5 h-1.5 bg-mobile-primary rounded-full animate-pulse" />
                       </div>
                     )}
                   </button>
@@ -87,6 +88,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
               })}
             </div>
           </div>
+        </div>
         </div>
       </nav>
     </div>

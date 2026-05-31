@@ -2,8 +2,11 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { tags, scanLogs } from '@/db/schema';
-import { eq, count, and, gte, desc } from 'drizzle-orm';
+import { eq, count, and, gte, desc, inArray, sql } from 'drizzle-orm';
 import { subDays } from 'date-fns';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export async function GET() {
   try {
@@ -17,43 +20,76 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const thirtyDaysAgo = subDays(new Date(), 30);
 
-    // Get user's tags
     const userTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
+      where: and(eq(tags.ownerId, userId), eq(tags.appId, 'balikin_id')),
+      columns: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+        tier: true,
+        productType: true,
+        isVerified: true,
+      },
       orderBy: [desc(tags.createdAt)],
     });
 
-    // Calculate stats
-    const activeTagCount = userTags.filter(tag => tag.status !== 'lost').length;
-    const lostTagCount = userTags.filter(tag => tag.status === 'lost').length;
-
-    // Get total scans
-    let totalScans = 0;
-    const thirtyDaysAgo = subDays(new Date(), 30);
-
-    for (const tag of userTags) {
-      if (tag.productType === 'sticker') {
-        const stickerScans = await db
-          .select({ count: count() })
-          .from(scanLogs)
-          .where(
-            and(
-              eq(scanLogs.tagId, tag.id),
-              gte(scanLogs.scannedAt, thirtyDaysAgo)
-            )
-          );
-        totalScans += stickerScans[0]?.count || 0;
-      } else {
-        const tagScans = await db
-          .select({ count: count() })
-          .from(scanLogs)
-          .where(eq(scanLogs.tagId, tag.id));
-        totalScans += tagScans[0]?.count || 0;
-      }
+    if (userTags.length === 0) {
+      return NextResponse.json({
+        user: {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+          isVerified: false,
+        },
+        stats: {
+          activeTags: 0,
+          totalTags: 0,
+          totalScans: 0,
+          returnedItems: 0,
+        },
+        tags: [],
+      });
     }
 
-    // Calculate returned items (simplified)
+    const activeTagCount = userTags.filter(tag => tag.status !== 'lost').length;
+
+    const tagIds = userTags.map(tag => tag.id);
+
+    const stickerTagIds = userTags
+      .filter(tag => tag.productType === 'sticker')
+      .map(tag => tag.id);
+
+    let totalScans = 0;
+
+    if (stickerTagIds.length > 0) {
+      const stickerScans = await db
+        .select({ count: count() })
+        .from(scanLogs)
+        .where(
+          and(
+            inArray(scanLogs.tagId, stickerTagIds),
+            gte(scanLogs.scannedAt, thirtyDaysAgo)
+          )
+        );
+      totalScans += stickerScans[0]?.count || 0;
+    }
+
+    const nonStickerTagIds = userTags
+      .filter(tag => tag.productType !== 'sticker')
+      .map(tag => tag.id);
+
+    if (nonStickerTagIds.length > 0) {
+      const allTimeScans = await db
+        .select({ count: count() })
+        .from(scanLogs)
+        .where(inArray(scanLogs.tagId, nonStickerTagIds));
+      totalScans += allTimeScans[0]?.count || 0;
+    }
+
     const returnedItems = Math.max(0, Math.floor(totalScans * 0.2));
 
     return NextResponse.json({
@@ -70,18 +106,9 @@ export async function GET() {
         totalScans,
         returnedItems,
       },
-      tags: userTags.map(tag => ({
-        id: tag.id,
-        name: tag.name,
-        slug: tag.slug,
-        status: tag.status,
-        tier: tag.tier,
-        productType: tag.productType,
-        isVerified: tag.isVerified,
-      })),
+      tags: userTags,
     });
-  } catch (error) {
-    console.error('[API] Error fetching user profile:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

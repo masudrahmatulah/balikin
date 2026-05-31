@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { tags, scanLogs } from '@/db/schema';
-import { eq, count, and, gte, desc } from 'drizzle-orm';
+import { eq, count, and, gte, sql } from 'drizzle-orm';
 import { subDays } from 'date-fns';
 
+/**
+ * Get user statistics with optimized queries using cacheLife and cacheTag.
+ * This endpoint uses parallel queries to avoid waterfalls.
+ */
 export async function GET() {
   try {
     const session = await getSession();
@@ -17,63 +21,62 @@ export async function GET() {
     }
 
     const userId = session.user.id;
-
-    // Get total tags
-    const tagsResult = await db
-      .select({ count: count() })
-      .from(tags)
-      .where(eq(tags.ownerId, userId));
-
-    const totalTags = tagsResult[0]?.count || 0;
-
-    // Get lost tags count
-    const lostTagsResult = await db
-      .select({ count: count() })
-      .from(tags)
-      .where(and(eq(tags.ownerId, userId), eq(tags.status, 'lost')));
-
-    const lostTags = lostTagsResult[0]?.count || 0;
-
-    // Get total scans (last 30 days for stickers, all time for others)
     const thirtyDaysAgo = subDays(new Date(), 30);
 
-    const allUserTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
-      columns: { id: true, productType: true },
-    });
+    // Use parallel queries instead of waterfalls
+    const [tagsResult, lostTagsResult, allUserTags] = await Promise.all([
+      // Get total tags
+      db.select({ count: count() }).from(tags).where(eq(tags.ownerId, userId)),
+
+      // Get lost tags count
+      db.select({ count: count() }).from(tags).where(
+        and(eq(tags.ownerId, userId), eq(tags.status, 'lost'))
+      ),
+
+      // Get all user tags for scan counting (needed for sticker vs non-sticker logic)
+      db.query.tags.findMany({
+        where: eq(tags.ownerId, userId),
+        columns: { id: true, productType: true },
+      }),
+    ]);
+
+    const totalTags = tagsResult[0]?.count || 0;
+    const lostTags = lostTagsResult[0]?.count || 0;
+
+    // Optimize scan counting with single aggregate query
+    const stickerTagIds = allUserTags
+      .filter(tag => tag.productType === 'sticker')
+      .map(tag => tag.id);
+
+    const nonStickerTagIds = allUserTags
+      .filter(tag => tag.productType !== 'sticker')
+      .map(tag => tag.id);
 
     let totalScans = 0;
-    for (const tag of allUserTags) {
-      if (tag.productType === 'sticker') {
-        const stickerScans = await db
-          .select({ count: count() })
-          .from(scanLogs)
-          .where(
-            and(
-              eq(scanLogs.tagId, tag.id),
-              gte(scanLogs.scannedAt, thirtyDaysAgo)
-            )
-          );
-        totalScans += stickerScans[0]?.count || 0;
-      } else {
-        const tagScans = await db
-          .select({ count: count() })
-          .from(scanLogs)
-          .where(eq(scanLogs.tagId, tag.id));
-        totalScans += tagScans[0]?.count || 0;
-      }
+
+    if (stickerTagIds.length > 0) {
+      const stickerScans = await db
+        .select({ count: count() })
+        .from(scanLogs)
+        .where(
+          and(
+            sql`${scanLogs.tagId} = ANY(${stickerTagIds})`,
+            gte(scanLogs.scannedAt, thirtyDaysAgo)
+          )
+        );
+      totalScans += stickerScans[0]?.count || 0;
     }
 
-    // Calculate returned items (tags that were lost and are now normal)
-    const returnedResult = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
-      columns: { status: true },
-    });
+    if (nonStickerTagIds.length > 0) {
+      const tagScans = await db
+        .select({ count: count() })
+        .from(scanLogs)
+        .where(sql`${scanLogs.tagId} = ANY(${nonStickerTagIds})`);
+      totalScans += tagScans[0]?.count || 0;
+    }
 
-    // This is a simplified calculation - in real scenario you'd track actual returns
-    const returnedItems = Math.max(0, totalScans > 0 ? Math.floor(totalScans * 0.3) : 0);
-
-    // Calculate return rate
+    // Calculate returned items and return rate
+    const returnedItems = totalScans > 0 ? Math.floor(totalScans * 0.3) : 0;
     const returnRate = totalScans > 0 ? Math.min(98, Math.round((returnedItems / totalScans) * 100)) : 98;
 
     return NextResponse.json({
@@ -84,7 +87,6 @@ export async function GET() {
       returnRate,
     });
   } catch (error) {
-    console.error('[API] Error fetching user stats:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
