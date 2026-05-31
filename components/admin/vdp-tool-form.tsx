@@ -59,7 +59,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [formData, setFormData] = useState({
     batchName: "",
     quantity: 100,
-    materialType: "sticker" as "sticker" | "acrylic",
+    materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a4" as "a4" | "a3",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
@@ -529,6 +529,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         <SelectContent className="font-body text-sm">
                           <SelectItem value="sticker">Stiker (Vinyl)</SelectItem>
                           <SelectItem value="acrylic">Akrilik (Premium)</SelectItem>
+                          <SelectItem value="acrylic-cutfold">Akrilik Cut & Fold (Portrait 3x3.7cm)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -581,7 +582,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                     </div>
                   </div>
 
-                  {/* Sticker Configuration - Only for stickers */}
+                  {/* Sticker Configuration - Only for stickers (not Cut & Fold) */}
                   {formData.materialType === "sticker" && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
                       <div className="space-y-2">
@@ -648,13 +649,17 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         onClick={() => {
                           const link = document.createElement("a");
                           link.href = downloadUrl;
-                          link.download = `${formData.batchName || 'batch'}-qr-codes.zip`;
+                          if (formData.materialType === "acrylic-cutfold") {
+                            link.download = `${formData.batchName || 'batch'}-cut-fold.pdf`;
+                          } else {
+                            link.download = `${formData.batchName || 'batch'}-qr-codes.zip`;
+                          }
                           link.click();
                         }}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download ZIP ({generatedTags.length} files)
+                        {formData.materialType === "acrylic-cutfold" ? "Download PDF" : "Download ZIP"} ({generatedTags.length} files)
                       </Button>
                       <Button
                         type="button"
@@ -720,7 +725,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <div className="min-w-0">
                         <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Material</p>
                         <p className="font-body text-xs font-medium capitalize truncate">
-                          {formData.materialType === "sticker" ? "Vinyl Sticker" : "Acrylic"}
+                          {formData.materialType === "sticker" ? "Vinyl Sticker" : formData.materialType === "acrylic" ? "Acrylic" : "Acrylic Cut & Fold"}
                           {formData.materialType === "sticker" && ` (${formData.stickerShape}, ${formData.stickerSize})`}
                         </p>
                       </div>
