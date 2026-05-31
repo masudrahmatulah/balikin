@@ -33,7 +33,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
   return (
     <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       {/* Main Content Area */}
-      <div className="max-w-md mx-auto pb-24 min-h-screen">
+      <div className="w-full max-w-md mx-auto pb-24 min-h-screen overflow-x-hidden">
         {children}
       </div>
 
