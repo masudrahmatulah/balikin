@@ -519,8 +519,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Label htmlFor="materialType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Material</Label>
                       <Select
                         value={formData.materialType}
-                        onValueChange={(value: "sticker" | "acrylic") =>
-                          setFormData({ ...formData, materialType: value })
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, materialType: value as "sticker" | "acrylic" | "acrylic-cutfold" })
                         }
                       >
                         <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
