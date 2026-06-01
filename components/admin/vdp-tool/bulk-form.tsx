@@ -24,7 +24,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [formData, setFormData] = useState({
     batchName: "",
     quantity: 100,
-    materialType: "sticker" as "sticker" | "acrylic",
+    materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a4" as "a4" | "a3",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
@@ -152,7 +152,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.materialType}
-                onValueChange={(value: "sticker" | "acrylic") =>
+                onValueChange={(value: "sticker" | "acrylic" | "acrylic-cutfold") =>
                   updateFormData({ materialType: value })
                 }
               >
@@ -162,6 +162,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 <SelectContent className="font-body text-sm">
                   <SelectItem value="sticker">Sticker (Vinyl)</SelectItem>
                   <SelectItem value="acrylic">Acrylic (Premium)</SelectItem>
+                  <SelectItem value="acrylic-cutfold">Akrilik Cut & Fold (Portrait 3x3.7cm)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
