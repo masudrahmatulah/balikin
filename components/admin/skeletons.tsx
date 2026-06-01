@@ -68,3 +68,73 @@ export function CriticalAlertsSkeleton() {
     </div>
   );
 }
+
+// Skeleton for tags table
+export function TagsTableSkeleton() {
+  return (
+    <div>
+      <div className="p-4 flex flex-col sm:flex-row gap-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex-1 h-10 bg-gray-200 rounded-lg animate-pulse" />
+        <div className="w-40 h-10 bg-gray-200 rounded-lg animate-pulse" />
+      </div>
+      <div className="hidden md:block">
+        <table className="w-full">
+          <thead className="bg-gray-50 dark:bg-gray-900/50">
+            <tr>
+              <th className="px-4 py-3 w-12">
+                <div className="w-5 h-5 bg-gray-200 rounded animate-pulse mx-auto" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+              </th>
+              <th className="px-6 py-3">
+                <div className="h-4 w-12 bg-gray-200 rounded animate-pulse ml-auto" />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...Array(5)].map((_, i) => (
+              <tr key={i} className="border-b border-gray-200 dark:border-gray-700">
+                <td className="px-4 py-4">
+                  <div className="w-5 h-5 bg-gray-200 rounded animate-pulse mx-auto" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-1" />
+                  <div className="h-3 w-24 bg-gray-100 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 w-28 bg-gray-200 rounded animate-pulse mb-1" />
+                  <div className="h-3 w-36 bg-gray-100 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-8 w-16 bg-gray-200 rounded animate-pulse ml-auto" />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
