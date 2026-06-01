@@ -200,6 +200,7 @@ export async function POST(request: NextRequest) {
           status: "normal",
           tier,
           productType: materialType,
+          bundleId: null,
           bundleType: productType !== "standard" ? productType : null,
           autoActivateModule: productType !== "standard" ? productType : null,
           isVerified: false,

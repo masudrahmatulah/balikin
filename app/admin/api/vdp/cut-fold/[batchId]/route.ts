@@ -8,17 +8,14 @@ export async function GET(
   try {
     const { batchId } = await params;
 
-    const pdfDataUri = await generateCutFoldPDFByBatchId(batchId);
+    const pdfBuffer = await generateCutFoldPDFByBatchId(batchId);
 
-    const base64Data = pdfDataUri.split(',')[1];
-    const buffer = Buffer.from(base64Data, 'base64');
-
-    return new NextResponse(buffer, {
+    return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="cut-fold-${batchId}.pdf"`,
-        'Content-Length': buffer.length.toString(),
+        'Content-Length': pdfBuffer.length.toString(),
       },
     });
   } catch (error) {
