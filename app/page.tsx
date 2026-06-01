@@ -5,7 +5,7 @@ import { faqItems } from "@/lib/site-content";
 import { JsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Gantungan Kunci QR Code untuk Barang Hilang",
+  title: "Balikin - Layanan QR Tag Pintar untuk Amankan Barang Berharga",
   description:
     "Balikin adalah smart lost & found berbasis QR code untuk kunci, tas, dompet, dan barang pribadi agar penemu bisa menghubungi pemilik lewat WhatsApp dengan aman.",
   path: "/",
