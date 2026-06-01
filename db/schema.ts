@@ -1,4 +1,4 @@
-import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase
@@ -156,7 +156,9 @@ export const scanLogs = pgTable('scan_logs', {
   latitude: text('latitude'),
   longitude: text('longitude'),
   deviceInfo: text('device_info'),
-});
+}, (table) => ({
+  tagIdx: index('idx_scan_logs_tag_id').on(table.tagId),
+}));
 
 export const scanLogsRelations = relations(scanLogs, ({ one, many }) => ({
   tag: one(tags, {
