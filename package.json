@@ -29,7 +29,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/qrcode.react": "^1.0.5",
     "@vercel/blob": "^2.3.3",
-    "better-auth": "^1.6.4",
+    "better-auth": "^1.6.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

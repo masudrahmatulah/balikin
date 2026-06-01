@@ -20,6 +20,9 @@ const BASE_URL = getBaseURL();
 export const authClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
+  sessionOptions: {
+    refetchInterval: 0, // Explicitly disable polling to prevent timeout overflow
+  },
   fetchOptions: {
     // Include credentials for all requests (required for cookies)
     credentials: 'include',
@@ -31,6 +34,9 @@ export const authClient = createAuthClient({
 export const whatsappAuthClient = createAuthClient({
   baseURL: BASE_URL,
   plugins: [emailOTPClient()],
+  sessionOptions: {
+    refetchInterval: 0, // Explicitly disable polling to prevent timeout overflow
+  },
   fetchOptions: {
     // Include credentials for all requests (required for cookies)
     credentials: 'include',
