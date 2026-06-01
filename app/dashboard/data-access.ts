@@ -58,7 +58,7 @@ async function getTagScanCountsUncached(tagIds: string[]): Promise<Map<string, n
 async function getTagScanCounts(tagIds: string[]): Promise<Map<string, number>> {
   const cacheKey = `scan-counts-${tagIds.sort().join('-')}`;
 
-  return unstable_cache(
+  const result = await unstable_cache(
     async () => getTagScanCountsUncached(tagIds),
     [cacheKey],
     {
@@ -66,6 +66,10 @@ async function getTagScanCounts(tagIds: string[]): Promise<Map<string, number>> 
       tags: ['scan-counts']
     }
   )();
+
+  return result instanceof Map
+    ? result
+    : new Map(Object.entries(result));
 }
 
 export async function getDashboardData(userId: string) {

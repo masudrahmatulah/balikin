@@ -484,17 +484,12 @@ export const TagCard = memo(function TagCard({
         {/* Expanded Content - Only Visible When Open */}
         <CollapsibleContent>
           <CardContent className="space-y-4">
-            <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
-              <div className="flex items-start gap-3">
-                <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
-                </div>
-              </div>
-            </div>
+            <InsightSection
+              isLost={isLost}
+              scanCount={scanCount}
+              isFreeTag={isFreeTag}
+              isStickerTag={isStickerTag}
+            />
 
             {isLost && (
               <Alert variant="destructive" className="border-red-200 bg-red-100/80 text-red-950">
