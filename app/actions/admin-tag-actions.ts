@@ -4,9 +4,13 @@ import { db } from '@/db';
 import { tags, user, scanLogs } from '@/db/schema';
 import { isAdmin } from '@/lib/admin';
 import { count, inArray } from 'drizzle-orm';
+import type { Tag } from '@/db/schema';
 
-export interface TagWithOwner extends typeof tags.$inferSelect {
-  owner: typeof user.$inferSelect | null;
+export interface TagWithOwner extends Tag {
+  owner: {
+    name: string | null;
+    email: string;
+  } | null;
   scanCount: number;
 }
 
