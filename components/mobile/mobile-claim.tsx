@@ -38,8 +38,7 @@ interface MobileClaimProps {
   }>;
   emergencyInfo: {
     emergencyContact: string | null;
-    emergencyRelation: string | null;
-    emergencyPhone: string | null;
+    emergencyContactName: string | null;
     bloodType: string | null;
     allergies: string | null;
     medicalConditions: string | null;
@@ -68,8 +67,8 @@ export function MobileClaim({
   };
 
   const handleEmergencyCall = () => {
-    if (emergencyInfo?.emergencyPhone) {
-      window.open(`tel:${emergencyInfo.emergencyPhone}`, '_blank');
+    if (emergencyInfo?.emergencyContact) {
+      window.open(`tel:${emergencyInfo.emergencyContact}`, '_blank');
     }
   };
 
@@ -161,25 +160,24 @@ export function MobileClaim({
               Info Darurat
             </h3>
             <div className="space-y-3">
-              {emergencyInfo.emergencyContact && (
+              {emergencyInfo.emergencyContactName && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Kontak Darurat</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {emergencyInfo.emergencyContact}
-                    {emergencyInfo.emergencyRelation && ` (${emergencyInfo.emergencyRelation})`}
+                    {emergencyInfo.emergencyContactName}
                   </span>
                 </div>
               )}
-              {emergencyInfo.emergencyPhone && (
+              {emergencyInfo.emergencyContact && (
                 <button
                   onClick={handleEmergencyCall}
                   className="w-full flex items-center justify-between bg-mobile-success-lighter rounded-xl px-4 py-3 active:bg-mobile-success-lighter transition-colors btn-press"
-                  aria-label={`Panggil ${emergencyInfo.emergencyPhone}`}
+                  aria-label={`Panggil ${emergencyInfo.emergencyContact}`}
                 >
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-mobile-success" aria-hidden="true" />
                     <span className="text-sm font-medium text-mobile-success">
-                      {emergencyInfo.emergencyPhone}
+                      {emergencyInfo.emergencyContact}
                     </span>
                   </div>
                   <span className="text-xs text-mobile-success">Panggil</span>

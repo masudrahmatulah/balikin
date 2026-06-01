@@ -26,6 +26,7 @@ const SKIP_PATHS = [
   '/sign-in',
   '/sign-up',
   '/dashboard',
+  '/scan',
 ];
 
 // File extensions to skip (public assets)
@@ -79,7 +80,9 @@ export function proxy(request: NextRequest): NextResponse | void {
     return;
   }
 
-  if (isMobileDevice(userAgent)) {
+  // Don't redirect home page (/) - let mobile users see landing page
+  // Only redirect other pages to mobile view
+  if (pathname !== '/' && isMobileDevice(userAgent)) {
     const url = request.nextUrl.clone();
     url.pathname = '/mobile';
     return NextResponse.redirect(url);

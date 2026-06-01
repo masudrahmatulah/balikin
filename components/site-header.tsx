@@ -34,10 +34,12 @@ export function SiteHeader() {
 
     try {
       // Clear all better-auth cookies explicitly before signing out
+      // Use correct cookie prefix based on environment
+      const cookiePrefix = process.env.NODE_ENV === 'production' ? 'balikin_auth' : 'balikin_auth_dev';
       const cookies = document.cookie.split(';');
       cookies.forEach(cookie => {
         const cookieName = cookie.trim().split('=')[0];
-        if (cookieName.includes('better-auth') || cookieName.includes('session')) {
+        if (cookieName.startsWith(cookiePrefix) || cookieName.includes('session')) {
           // Clear cookie for current path and domain
           document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
           document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
@@ -48,19 +50,21 @@ export function SiteHeader() {
         }
       });
 
-      // Use Better Auth's signOut method
-      await authClient.signOut();
+      // Use Better Auth's signOut method with onSuccess callback
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            window.location.href = "/";
+          },
+        },
+      });
     } catch (error) {
       console.error("Sign out error:", error);
+      // Still redirect on error to ensure UI is updated
+      window.location.href = "/";
     } finally {
-      // Always redirect regardless of success/error
-      // This ensures UI is updated even if signOut API call fails
       setIsMobileMenuOpen(false);
       setIsSigningOut(false);
-      // Small delay to ensure cookies are cleared
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 100);
     }
   };
 
