@@ -14,10 +14,10 @@ export function PricingSection() {
       <ScrollReveal>
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Proteksi Gratis, Upgrade Premium
+            Proteksi Digital Gratis, Upgrade dengan Hardware Premium
           </h2>
           <p className="text-gray-600 mb-12 max-w-xl mx-auto">
-            Mulai gratis sekarang, upgrade kapan saja butuh produk fisik premium.
+            Mulai gratis dengan sistem digital lengkap, upgrade kapan saja untuk dapat hardware fisik premium.
           </p>
         </div>
       </ScrollReveal>
@@ -40,11 +40,12 @@ export function PricingSection() {
                 <CardContent className="text-left">
                   <ul className="space-y-3">
                     {[
+                      '🔒 Anonymous WhatsApp Gateway',
+                      '📍 Live Scan Location Tracking',
+                      '🚨 Lost Mode dengan info imbalan',
                       'Maksimal 2 Tag Digital',
                       'QR code generator high-quality',
-                      'Scan logging dengan lokasi',
                       'Alert scan via email',
-                      'Mode Hilang dengan info imbalan',
                       'Update data real-time',
                       'Dashboard user-friendly',
                     ].map((feature, i) => (
@@ -87,11 +88,12 @@ export function PricingSection() {
                   <ul className="space-y-3">
                     {[
                       'Semua fitur Gratis',
-                      'Gantungan kunci fisik premium (akrilik/vinyl)',
+                      '🔒 Anonymous WhatsApp Gateway (privasi 100%)',
+                      '📍 Live Scan Location Tracking',
+                      '🚨 Lost Mode dengan info imbalan',
+                      '🎁 Gantungan kunci fisik premium (akrilik/vinyl)',
                       'Verified Owner Badge khusus',
                       'Unlimited Tags',
-                      'Notifikasi WhatsApp instan',
-                      'Email alert opsional',
                       'Priority support',
                     ].map((feature, i) => (
                       <li key={i} className="flex items-center gap-2">

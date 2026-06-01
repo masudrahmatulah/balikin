@@ -7,10 +7,8 @@ import { PainPointsSection } from '@/components/landing/pain-points-section';
 import { SocialProofSection } from '@/components/landing/social-proof-section';
 import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { ScenariosSection } from '@/components/landing/scenarios-section';
-import { ProductShowcase } from '@/components/landing/product-showcase';
-import { ComparisonSection } from '@/components/landing/comparison-section';
-import { StoryTimelineSection } from '@/components/landing/story-timeline-section';
 import { BenefitsSection } from '@/components/landing/benefits-section';
+import { ProductShowcase } from '@/components/landing/product-showcase';
 import { BundleDeals } from '@/components/landing/bundle-deals';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FinalCTASection } from '@/components/landing/final-cta-section';
@@ -41,17 +39,11 @@ export function HomePage() {
       {/* Use Cases / Scenarios Section */}
       <ScenariosSection />
 
+      {/* Benefits Section - MOVED HERE: Audience understands technology value before pricing */}
+      <BenefitsSection />
+
       {/* Product Showcase Section */}
       <ProductShowcase />
-
-      {/* Comparison Section */}
-      <ComparisonSection />
-
-      {/* Before/After Story Section */}
-      <StoryTimelineSection />
-
-      {/* Benefits Section */}
-      <BenefitsSection />
 
       {/* Bundle Deals Section */}
       <BundleDeals />

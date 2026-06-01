@@ -6,14 +6,54 @@ export const siteConfig = {
   name: "Balikin",
   description:
     "Balikin adalah smart lost & found berbasis QR code untuk membantu barang hilang kembali ke pemilik dengan aman lewat WhatsApp.",
+  // SEO Note: Expanded keywords array covering branded, generic, tech, and commercial terms
   keywords: [
+    // Branded (High Priority)
     "Balikin",
+    "balikin smart tag",
+    "balikin qr code",
+    "aplikasi balikin",
+    "balikin lost and found",
+    "sistem balikin",
+    // Generic Fisik (Product-focused)
     "gantungan kunci qr code",
     "tag barang hilang",
     "smart lost and found",
     "qr code whatsapp",
     "label identitas barang",
     "gantungan kunci anti hilang",
+    "qr code barang hilang",
+    "qr code anti hilang",
+    "stiker qr code anti hilang",
+    "tag koper jamaah haji",
+    "label barang qr code",
+    "stiker qr code koper",
+    "gantungan kunci motor qr code",
+    // Tech Features
+    "qr code whatsapp anonim",
+    "lacak lokasi dari scan qr",
+    "sistem pelacakan qr code",
+    "mode hilang qr code",
+    "sistem lost and found",
+    "sistem pelacakan barang hilang",
+    "anonymous whatsapp gateway",
+    "scan logging dengan lokasi",
+    // Use Cases
+    "cara agar barang tidak hilang",
+    "pelacakan barang hilang",
+    "tag keamanan barang",
+    "keamanan koper traveling",
+    "keamanan dompet",
+    // Commercial
+    "harga smart tag balikin",
+    "beli gantungan balikin",
+    "paket keluarga anti hilang",
+    "qr code keamanan barang",
+    "tag qr code premium",
+    // Location/Target
+    "smart lost and found indonesia",
+    "smart lost and found jakarta",
+    "smart lost and found surabaya",
   ],
 };
 
