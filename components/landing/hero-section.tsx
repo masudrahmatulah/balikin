@@ -36,11 +36,12 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight"
         >
-          <span className="gradient-text">Kunci Hilang?</span>{' '}
+          {/* SEO Note: H1 includes branded keyword "Balikin Smart Tag" + generic keywords */}
+          <span className="gradient-text">Amankan Barang Berharga dengan Balikin Smart Tag</span>{' '}
           <br className="hidden md:block" />
-          Dompet Ketemu Tapi Bingung{' '}
+          QR Code Anti Hilang dengan{' '}
           <br className="hidden md:block" />
-          <span className="text-red-500">Hubungi Pemiliknya?</span>
+          <span className="text-red-500">Sistem Privasi 100% Anonim</span>
         </motion.h1>
 
         <motion.p
@@ -49,8 +50,10 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto"
         >
-          Pernah nemu barang tapi bingung gimana cara balikinnya?{' '}
-          <span className="font-semibold text-gray-800">Atau pernah hilang barang dan berharap ada yang baik mengembalikannya?</span>
+          {/* SEO Note: Keyword-rich sub-headline with "Smart Lost and Found Indonesia", "QR Code dinamis", "Anonymous Gateway" */}
+          <span className="font-semibold text-gray-800">Sistem Smart Lost and Found Indonesia</span> berbasis QR Code dinamis.
+          Penemu bisa <span className="font-semibold text-gray-800">WhatsApp Anda tanpa lihat nomor asli</span> (Anonymous Gateway).
+          Lacak lokasi scan, aktifkan Mode Hilang darurat.
         </motion.p>
 
         <motion.p
@@ -59,7 +62,9 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-lg text-gray-500 mb-8 max-w-xl mx-auto"
         >
-          Balikin hadir sebagai jembatan kebaikan. QR code dinamis yang menghubungkan barang hilang dengan pemiliknya—tanpa kompromi privasi.
+          {/* SEO Note: Privacy-focused copy with "sistem proteksi", "ketenangan pikiran" */}
+          Solusi <span className="font-semibold text-gray-700">gantungan kunci QR code anti hilang</span> dengan teknologi
+          <span className="font-semibold text-gray-700"> QR code WhatsApp anonim</span>. Sistem proteksi privasi untuk ketenangan pikiran Anda.
         </motion.p>
 
         <motion.div
@@ -73,7 +78,7 @@ export function HeroSection() {
               size="lg"
               className="text-lg px-8 py-6 shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all animate-glow-pulse"
             >
-              Mulai Sekarang, Gratis Selamanya
+              Dapatkan Proteksi Gratis Sekarang
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

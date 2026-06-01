@@ -16,10 +16,13 @@ export function HowItWorksSection() {
               Cara Kerja Simpel & Efektif
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Hanya 3 Langkah untuk Perlindungan Maksimal
+              Cara Kerja: Tanpa Aplikasi, 100% Anonim, Secure Gateway
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Setup cepat, proteksi panjang. Dalam 2 menit, barang berharga Anda sudah punya "jaminan" untuk kembali.
+              {/* SEO Note: Keywords: "sistem lost and found", "tanpa aplikasi", "Secure Gateway", "QR code WhatsApp anonim" */}
+              <span className="font-semibold text-gray-700">Sistem lost and found</span> kami dirancang agar mudah digunakan oleh siapa saja—
+              tanpa perlu install aplikasi, tanpa registrasi yang rumit. Penemu cukup scan dan langsung bisa hubungi Anda
+              melalui Secure Gateway (<span className="font-semibold text-gray-700">QR code WhatsApp anonim</span>).
             </p>
           </div>
         </ScrollReveal>
@@ -32,7 +35,7 @@ export function HowItWorksSection() {
                 icon: QrCode,
                 color: 'blue',
                 title: 'Buat & Pasang QR Tag',
-                desc: 'Daftar gratis, buat tag untuk barang Anda (kunci, tas, dompet), download QR code, dan tempel.',
+                desc: 'Daftar gratis, buat tag untuk barang Anda (kunci, tas, dompet, koper). Sistem lost and found dimulai dengan QR code dinamis.',
                 badge: '⏱️ 30 detik',
                 delay: 0.1,
               },
@@ -41,7 +44,7 @@ export function HowItWorksSection() {
                 icon: Scan,
                 color: 'green',
                 title: 'Orang Lain Scan QR',
-                desc: 'Jika barang hilang & ditemukan orang baik, mereka tinggal scan QR dengan kamera HP. Gampang!',
+                desc: 'Jika barang hilang & ditemukan orang baik, mereka tinggal scan QR dengan kamera HP. Tanpa aplikasi, camera HP langsung detect!',
                 badge: '📱 Tanpa aplikasi',
                 delay: 0.3,
               },
@@ -50,8 +53,8 @@ export function HowItWorksSection() {
                 icon: MessageCircle,
                 color: 'purple',
                 title: 'Hubungi & Kembali!',
-                desc: 'Penemu langsing bisa WhatsApp Anda tanpa lihat nomor asli. Koordinasi pengembalian lebih mudah!',
-                badge: '🔒 Privasi terjaga',
+                desc: 'Penemu langsung WhatsApp Anda tanpa lihat nomor asli. Secure Gateway menjamin privasi 100% anonim. Sistem juga lacak lokasi scan.',
+                badge: '🔒 Secure Gateway (Nomor Tersembunyi)',
                 delay: 0.6,
               },
             ].map((item) => (

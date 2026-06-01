@@ -40,55 +40,55 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
 
   const products: Product[] = [
     {
-      name: 'Gantungan Akrilik Premium',
+      name: 'Personal Protection Bundle',
       price: 'Rp 35.000',
       originalPrice: 'Rp 50.000',
-      icon: Package,
+      icon: Shield,
       features: [
-        'Material akrilik 3mm premium',
-        'Anti-pecah & anti-gores',
-        'Cetakan QR tajam & jelas',
-        'Custom foto/desain',
-        'Ukuran 4cm x 6cm',
-        'Tali gantungan kuat',
+        '🔒 Anonymous WhatsApp Gateway',
+        '📍 Live Scan Location Tracking',
+        '🚨 Lost Mode Emergency Display',
+        '📱 Real-time Alert System',
+        '∞ Unlimited Tags',
+        '🎁 INCLUDES: Gantungan Akrilik Premium (akrilik 3mm)',
       ],
       badge: 'Best Seller',
       badgeColor: 'bg-blue-600',
-      highlight: 'Kualitas premium, tahan lama',
+      highlight: 'Complete peace of mind package',
     },
     {
-      name: 'Stiker Vinyl Waterproof',
+      name: 'Universal Asset Shield',
       price: 'Rp 25.000',
       originalPrice: 'Rp 35.000',
-      icon: Sticker,
+      icon: Shield,
       features: [
-        'Vinyl premium waterproof',
-        'Laminasi UV anti-pudar',
-        'Cocok untuk helm, koper, laptop',
-        'Tahan cuaca ekstrem',
-        'Easy peel & stick',
-        'Tebal 2mm, durable',
+        '🔒 Anonymous WhatsApp Gateway',
+        '📍 Live Scan Location Tracking',
+        '🚨 Lost Mode Emergency Display',
+        '📱 Real-time Alert System',
+        '✨ Flexible untuk helm, koper, laptop',
+        '🎁 INCLUDES: Stiker Vinyl Waterproof',
       ],
       badge: 'Populer',
       badgeColor: 'bg-green-600',
-      highlight: 'Flexible & universal',
+      highlight: 'Universal protection for any surface',
       comingSoon: true,
     },
     {
-      name: 'Digital Tag (Free)',
+      name: 'Digital Guardian Free',
       price: 'Rp 0',
-      icon: QrCode,
+      icon: Shield,
       features: [
-        'QR code high-quality',
-        'Bisa download PNG/PDF',
-        'Cetak sendiri bebas',
-        'Maksimal 2 tag gratis',
-        'Full dashboard access',
-        'Scan logging aktif',
+        '🔒 Anonymous WhatsApp Gateway',
+        '📍 Live Scan Location Tracking',
+        '🚨 Lost Mode Emergency Display',
+        '📱 Real-time Email Alert',
+        '2 Tag Gratis',
+        '🎁 QR Code High-Quality (cetak sendiri)',
       ],
       badge: 'Gratis',
       badgeColor: 'bg-purple-600',
-      highlight: 'Mulai tanpa biaya',
+      highlight: 'Start free, upgrade anytime',
     },
   ];
 
@@ -103,14 +103,14 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Sparkles className="h-4 w-4" />
-            Pilihan Produk
+            <Shield className="h-4 w-4" />
+            Pilih Paket Proteksi
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Pilih Perlindungan yang Sesuai Kebutuhanmu
+            Pilih Sistem Keamanan Privasi yang Sesuai Kebutuhanmu
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Dari tag fisik premium hingga digital gratis, semua dirancang untuk membantu barang hilang kembali ke pemiliknya.
+            Setiap paket termasuk <span className="font-semibold">Anonymous Gateway, Live Tracking, dan Lost Mode</span>. Hardware fisik adalah bonus untuk memudahkan penggunaan.
           </p>
         </motion.div>
 
@@ -346,7 +346,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
         >
           <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-6 py-3 rounded-full">
             <Shield className="h-5 w-5" />
-            <span className="font-medium">Garansi kualitas - QR code teruji & mudah scan</span>
+            <span className="font-medium">Garansi Sistem - Secure Gateway aktif 24/7, privasi end-to-end encrypted</span>
           </div>
         </motion.div>
 
