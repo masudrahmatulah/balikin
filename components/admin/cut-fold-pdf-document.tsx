@@ -86,17 +86,26 @@ const styles = StyleSheet.create({
     borderRightStyle: 'dashed',
     flexDirection: 'column',
     alignItems: 'center',
-    paddingTop: '1.5mm',
+    paddingTop: '2mm',
     paddingHorizontal: '2.5mm',
+    backgroundColor: '#FFFFFF',
   },
 
-  // Teks "SCAN ME" di atas QR
+  // Badge "SCAN ME" hitam
+  scanMeBadge: {
+    backgroundColor: '#111111',
+    borderRadius: '2mm',
+    paddingHorizontal: '3mm',
+    paddingVertical: '1mm',
+    marginTop: '2mm',
+    marginBottom: '2mm',
+  },
+
+  // Teks "SCAN ME" putih di dalam badge
   scanMeText: {
     fontSize: '7pt',
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: '1mm',
-    color: '#111111',
+    color: '#FFFFFF',
   },
 
   // QR Code 30mm x 30mm
@@ -105,12 +114,12 @@ const styles = StyleSheet.create({
     height: '30mm',
   },
 
-  // Container teks dengan lebar penuh, tinggi untuk dua baris teks
-  textContainer: {
+  // Container teks bawah dengan jarak 3mm dari QR
+  leftTextContainer: {
     width: '100%',
-    height: '10mm',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: '3mm',
   },
 
   frontText1: {
@@ -141,31 +150,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    backgroundColor: '#121318',
   },
 
-  // Container untuk logo persegi 26mm x 26mm
-  logoContainer: {
-    width: '26mm',
-    height: '26mm',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: '4mm',
-    marginBottom: '2mm',
-  },
-
-  // Logo di dalam container - persegi sempurna
-  logo: {
+  // Logo persegi 26mm x 26mm dengan sudut melengkung
+  logoIcon: {
     width: '26mm',
     height: '26mm',
     objectFit: 'contain',
+    borderRadius: '4mm',
+    marginTop: '4mm',
+    marginBottom: '2mm',
   },
 
   subBrandText: {
     fontSize: '7pt',
     fontWeight: 'medium',
-    color: '#4b5563',
+    color: '#A1A1AA',
     width: '100%',
     textAlign: 'center',
+    letterSpacing: '0.3px',
   },
 
   // Footer
@@ -250,9 +254,11 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
 
                     {/* Sisi Kiri (Depan) */}
                     <View style={styles.leftSide}>
-                      <Text style={styles.scanMeText}>SCAN ME</Text>
+                      <View style={styles.scanMeBadge}>
+                        <Text style={styles.scanMeText}>SCAN ME</Text>
+                      </View>
                       <Image src={tag.qrDataUrl} style={styles.qrCode} />
-                      <View style={styles.textContainer}>
+                      <View style={styles.leftTextContainer}>
                         <Text style={styles.frontText1}>BANTU BALIKIN</Text>
                         <Text style={styles.frontText2}>Scan QR tuk WA pemiliknya</Text>
                       </View>
@@ -260,7 +266,7 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
 
                     {/* Sisi Kanan (Belakang) */}
                     <View style={styles.rightSide}>
-                      <Image src={`${baseUrl}/logo-diakrilik.png`} style={styles.logo} />
+                      <Image src={`${baseUrl}/logo-diakrilik.png`} style={styles.logoIcon} />
                       <Text style={styles.subBrandText}>Smart Lost & Found</Text>
                     </View>
                   </View>
