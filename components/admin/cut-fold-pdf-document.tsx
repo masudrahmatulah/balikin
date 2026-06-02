@@ -8,14 +8,14 @@ const A4_WIDTH = '210mm';
 const A4_HEIGHT = '297mm';
 const PAGE_MARGIN = '10mm';
 
-const TAG_WIDTH = '60mm';
-const TAG_HEIGHT = '37mm';
-const FOLD_POSITION = '30mm';
+const TAG_WIDTH = '70mm';
+const TAG_HEIGHT = '45mm';
+const FOLD_POSITION = '35mm';
 const GAP = '4mm';
 
-const COLS = 3;
-const ROWS = 7;
-const TAGS_PER_PAGE = 21;
+const COLS = 2;
+const ROWS = 5;
+const TAGS_PER_PAGE = 10;
 
 // ============================================================================
 // STYLES
@@ -69,13 +69,16 @@ const styles = StyleSheet.create({
     borderColor: '#cccccc',
     borderStyle: 'solid',
     position: 'relative',
+    margin: '2mm',
+    overflow: 'hidden',
   },
 
-  // Sisi Kiri (Depan) - 30mm x 37mm
+  // Sisi Kiri (Depan) - 35mm x 45mm
   leftSide: {
-    width: FOLD_POSITION,
-    minWidth: FOLD_POSITION,
-    maxWidth: FOLD_POSITION,
+    width: '35mm',
+    minWidth: '35mm',
+    maxWidth: '35mm',
+    height: TAG_HEIGHT,
     flexGrow: 0,
     flexShrink: 0,
     borderRightWidth: 0.3,
@@ -83,47 +86,56 @@ const styles = StyleSheet.create({
     borderRightStyle: 'dashed',
     flexDirection: 'column',
     alignItems: 'center',
-    paddingTop: '2mm',
-    paddingHorizontal: '1.5mm',
+    paddingTop: '1.5mm',
+    paddingHorizontal: '2.5mm',
   },
 
-  // QR Code 24mm x 24mm
+  // Teks "SCAN ME" di atas QR
+  scanMeText: {
+    fontSize: '7pt',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: '1mm',
+    color: '#111111',
+  },
+
+  // QR Code 30mm x 30mm
   qrCode: {
-    width: '24mm',
-    height: '24mm',
+    width: '30mm',
+    height: '30mm',
   },
 
-  // Container teks dengan lebar penuh
+  // Container teks dengan lebar penuh, tinggi untuk dua baris teks
   textContainer: {
     width: '100%',
-    height: '9mm',
+    height: '10mm',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   frontText1: {
-    fontSize: '6.5pt',
+    fontSize: '7pt',
     fontWeight: 'bold',
     textAlign: 'center',
-    lineHeight: 1.0,
+    lineHeight: 1.1,
   },
 
   frontText2: {
-    fontSize: '5.5pt',
+    fontSize: '6pt',
     color: '#555555',
     textAlign: 'center',
-    marginTop: '1px',
-    lineHeight: 1.0,
+    marginTop: '2px',
+    lineHeight: 1.1,
   },
 
-  // Sisi Kanan (Belakang) - 30mm x 37mm (ABSOLUTE POSITIONING)
+  // Sisi Kanan (Belakang) - 35mm x 45mm (ABSOLUTE POSITIONING)
   rightSide: {
     position: 'absolute',
     top: 0,
     right: 0,
-    width: '30mm',
-    minWidth: '30mm',
-    maxWidth: '30mm',
+    width: '35mm',
+    minWidth: '35mm',
+    maxWidth: '35mm',
     height: TAG_HEIGHT,
     flexDirection: 'column',
     justifyContent: 'center',
@@ -131,25 +143,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Container untuk logo
+  // Container untuk logo persegi 26mm x 26mm
   logoContainer: {
-    width: '18.5mm',
-    height: '6mm',
+    width: '26mm',
+    height: '26mm',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '3mm',
+    marginTop: '4mm',
+    marginBottom: '2mm',
   },
 
-  // Logo di dalam container
+  // Logo di dalam container - persegi sempurna
   logo: {
-    width: '100%',
-    height: '100%',
+    width: '26mm',
+    height: '26mm',
     objectFit: 'contain',
   },
 
   subBrandText: {
-    fontSize: '6pt',
-    color: '#777777',
+    fontSize: '7pt',
+    fontWeight: 'medium',
+    color: '#4b5563',
     width: '100%',
     textAlign: 'center',
   },
@@ -187,38 +201,6 @@ interface CutFoldPDFDocumentProps {
 // ============================================================================
 // COMPONENTS
 // ============================================================================
-
-function CutFoldTag({ slug, qrDataUrl }: TagItem) {
-  return (
-    <View style={styles.tagContainer}>
-      {/* Cutting Marks */}
-      <View style={styles.cuttingMark} />
-
-      {/* Folding Mark */}
-      <View style={styles.foldingMark} />
-
-      {/* Front Side (Left) */}
-      <View style={styles.frontSide}>
-        <Image src={qrDataUrl} style={styles.qrCode} />
-        <View style={styles.frontTextContainer}>
-          <Text style={styles.frontText1}>BANTU BALIKIN</Text>
-          <Text style={styles.frontText2}>Scan QR tuk WA pemiliknya</Text>
-        </View>
-      </View>
-
-      {/* Back Side (Right) */}
-      <View style={styles.rightSide}>
-        <View style={styles.logoContainer}>
-          <Image src="/logo-balikin-icon-128.png" style={styles.logo} />
-        </View>
-        <View style={styles.brandContainer}>
-          <Text style={styles.brandText}>BALIKIN</Text>
-          <Text style={styles.subBrandText}>Smart Lost & Found</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
 
 export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id' }: CutFoldPDFDocumentProps) {
   // Create all pages
@@ -260,8 +242,15 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
               {rowTags.map((tag, colIndex) => (
                 tag.slug ? (
                   <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} wrap={false}>
+                    {/* Cutting Marks */}
+                    <View style={styles.cuttingMark} />
+
+                    {/* Folding Mark */}
+                    <View style={styles.foldingMark} />
+
                     {/* Sisi Kiri (Depan) */}
                     <View style={styles.leftSide}>
+                      <Text style={styles.scanMeText}>SCAN ME</Text>
                       <Image src={tag.qrDataUrl} style={styles.qrCode} />
                       <View style={styles.textContainer}>
                         <Text style={styles.frontText1}>BANTU BALIKIN</Text>
@@ -271,9 +260,7 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
 
                     {/* Sisi Kanan (Belakang) */}
                     <View style={styles.rightSide}>
-                      <View style={styles.logoContainer}>
-                        <Image src={`${baseUrl}/logo-icon.png`} style={styles.logo} />
-                      </View>
+                      <Image src={`${baseUrl}/logo-diakrilik.png`} style={styles.logo} />
                       <Text style={styles.subBrandText}>Smart Lost & Found</Text>
                     </View>
                   </View>
