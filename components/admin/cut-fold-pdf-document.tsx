@@ -256,10 +256,10 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
       <Page size="A4" style={styles.page} key={`page-${pageNum}`}>
         <View style={styles.grid}>
           {rows.map((rowTags, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
+            <View key={rowIndex} style={styles.row} wrap={false}>
               {rowTags.map((tag, colIndex) => (
                 tag.slug ? (
-                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper}>
+                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} wrap={false}>
                     {/* Sisi Kiri (Depan) */}
                     <View style={styles.leftSide}>
                       <Image src={tag.qrDataUrl} style={styles.qrCode} />
@@ -278,7 +278,7 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
                     </View>
                   </View>
                 ) : (
-                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} />
+                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} wrap={false} />
                 )
               ))}
             </View>
