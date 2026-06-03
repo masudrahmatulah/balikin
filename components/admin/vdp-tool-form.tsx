@@ -506,7 +506,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         type="number"
                         min="1"
                         max="1000"
-                        step="10"
+                        step="1"
                         className="font-body text-sm rounded-sm border-secondary/20 h-10"
                         value={formData.quantity}
                         onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
