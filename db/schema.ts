@@ -122,6 +122,10 @@ export const tags = pgTable('tags', {
 });
 
 export const tagsRelations = relations(tags, ({ many, one }) => ({
+  owner: one(user, {
+    fields: [tags.ownerId],
+    references: [user.id],
+  }),
   scanLogs: many(scanLogs),
   notificationLogs: many(notificationLogs),
   bundle: one(tagBundles, {
