@@ -31,6 +31,7 @@ export function FooterSection() {
               <li><Link href="/contact" className="hover:text-blue-600">Kontak</Link></li>
               <li><Link href="/about" className="hover:text-blue-600">Tentang Kami</Link></li>
               <li><Link href="/privacy-policy" className="hover:text-blue-600">Kebijakan Privasi</Link></li>
+              <li><Link href="/terms-of-service" className="hover:text-blue-600">Syarat & Ketentuan</Link></li>
             </ul>
           </div>
         </div>
