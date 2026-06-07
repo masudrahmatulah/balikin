@@ -3,6 +3,7 @@
  * Run this to identify slow queries and performance bottlenecks
  */
 
+import 'dotenv/config';
 const { performance } = require('perf_hooks');
 
 async function diagnoseDatabase() {

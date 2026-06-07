@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, CheckCircle2, TrendingUp, Users } from 'lucide-react';
@@ -115,7 +116,7 @@ export function HeroSection() {
                 value: 1000,
                 suffix: '+',
                 label: 'Tag Terdaftar',
-                icon: <QrCode className="h-6 w-6 text-blue-600" aria-hidden="true" />,
+                icon: <Image src="/icons/icon-72x72.png" alt="Logo" width={24} height={24} aria-hidden="true" />,
               },
               {
                 value: 100,

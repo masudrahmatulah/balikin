@@ -13,6 +13,9 @@ const MAX_API_REQUESTS = 100;
 const MAX_QR_REQUESTS = 50;
 const MAX_SEARCH_REQUESTS = 10;
 const MAX_AUTH_REQUESTS = 5;
+const MAX_BLOG_COMMENT_REQUESTS = 5;
+const MAX_BLOG_QUIZ_REQUESTS = 3;
+const MAX_BLOG_STORY_REQUESTS = 2;
 
 const RATE_LIMIT_CONFIGS = {
   scan: { windowMs: WINDOW_MS, maxRequests: MAX_SCAN_REQUESTS },
@@ -20,6 +23,9 @@ const RATE_LIMIT_CONFIGS = {
   qr: { windowMs: WINDOW_MS, maxRequests: MAX_QR_REQUESTS },
   search: { windowMs: WINDOW_MS, maxRequests: MAX_SEARCH_REQUESTS },
   auth: { windowMs: WINDOW_MS, maxRequests: MAX_AUTH_REQUESTS },
+  blog_comment: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_COMMENT_REQUESTS },
+  blog_quiz: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_QUIZ_REQUESTS },
+  blog_story: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_STORY_REQUESTS },
 } as const;
 
 type RateLimitType = keyof typeof RATE_LIMIT_CONFIGS;
@@ -126,6 +132,33 @@ export async function checkRateLimitByType(
 ): Promise<RateLimitResult> {
   const config = RATE_LIMIT_CONFIGS[type];
   return checkRateLimit(identifier, type, config);
+}
+
+/**
+ * Check rate limit for blog comments
+ */
+export async function checkBlogCommentRateLimit(
+  identifier: string
+): Promise<RateLimitResult> {
+  return checkRateLimitByType(identifier, 'blog_comment');
+}
+
+/**
+ * Check rate limit for blog quiz claims
+ */
+export async function checkBlogQuizRateLimit(
+  identifier: string
+): Promise<RateLimitResult> {
+  return checkRateLimitByType(identifier, 'blog_quiz');
+}
+
+/**
+ * Check rate limit for true story submissions
+ */
+export async function checkBlogStoryRateLimit(
+  identifier: string
+): Promise<RateLimitResult> {
+  return checkRateLimitByType(identifier, 'blog_story');
 }
 
 /**

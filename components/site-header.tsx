@@ -98,6 +98,16 @@ export function SiteHeader() {
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
+          {/* Navigation Links - Desktop */}
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link href="/blog" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+              Blog
+            </Link>
+            <Link href="/faq" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
+              FAQ
+            </Link>
+          </nav>
+
           {/* Auth Buttons - Kondisional */}
           <div className="hidden items-center gap-3 md:flex">
             {isPending ? (
@@ -134,6 +144,23 @@ export function SiteHeader() {
         </div>
 
         <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'}`}>
+          {/* Blog Link - Mobile */}
+          <Link
+            href="/blog"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-center py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+          >
+            Blog
+          </Link>
+          {/* FAQ Link - Mobile */}
+          <Link
+            href="/faq"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="block text-center py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+          >
+            FAQ
+          </Link>
+
           {isPending ? (
             <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
           ) : isValidSession ? (

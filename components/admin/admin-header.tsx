@@ -87,6 +87,15 @@ export function AdminHeader({
         {/* Desktop Navigation */}
         <nav className="hidden xl:flex items-center gap-1">
           <Link
+            href="/admin/blog"
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              "text-gray-700 hover:bg-gray-100"
+            )}
+          >
+            Blog
+          </Link>
+          <Link
             href="/admin/sticker-orders"
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",

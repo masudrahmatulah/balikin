@@ -1,5 +1,5 @@
 import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, desc } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase
 const pgTable = pgTableCreator((name) => `balikin_${name}`);
@@ -12,8 +12,17 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').default(false),
   image: text('image'),
-  role: text('role').default('user').notNull(), // 'admin' | 'user'
+  role: text('role').default('user').notNull(), // 'admin' | 'editor' | 'user'
   division: text('division'), // 'production' | 'customer_service' | 'marketing' | 'admin' | null
+  blogPermissions: jsonb('blog_permissions').default({ canCreatePosts: false, canEditOwnPosts: false, canPublishPosts: false, canModerateComments: false }).$type<{
+    canCreatePosts?: boolean;
+    canEditOwnPosts?: boolean;
+    canEditAnyPost?: boolean;
+    canPublishPosts?: boolean;
+    canModerateComments?: boolean;
+    canManageGiveaway?: boolean;
+    canReviewStories?: boolean;
+  }>(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -702,6 +711,337 @@ export const rateLimit = pgTable('rate_limit', {
 
 export type RateLimit = typeof rateLimit.$inferSelect;
 export type NewRateLimit = typeof rateLimit.$inferInsert;
+
+// ============================================================================
+// BLOG SYSTEM TABLES
+// ============================================================================
+
+// Blog posts - main content storage
+export const blogPosts = pgTable('blog_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  title: text('title').notNull(),
+  slug: text('slug').notNull().unique(),
+  summary: text('summary').notNull(),
+  coverImage: text('cover_image'),
+  content: text('content').notNull(), // Markdown format
+  modules: jsonb('modules').default([]).$type<Array<any>>(), // Array of dynamic modules
+  // E-E-A-T signals
+  authorName: text('author_name').default('Tim Penulis BALIKIN').notNull(),
+  authorAvatar: text('author_avatar'),
+  authorId: text('author_id').references(() => user.id, { onDelete: 'set null' }),
+  reviewedBy: text('reviewed_by'),
+  reviewedByTitle: text('reviewed_by_title'),
+  reviewedById: text('reviewed_by_id').references(() => user.id, { onDelete: 'set null' }),
+  // SEO metadata
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  focusKeyword: text('focus_keyword'),
+  // Publishing
+  isPublished: boolean('is_published').default(false).notNull(),
+  publishedAt: timestamp('published_at'),
+  scheduledAt: timestamp('scheduled_at'), // For scheduled publishing
+  // Soft delete
+  deletedAt: timestamp('deleted_at'),
+  deletedBy: text('deleted_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  slugIdx: index('idx_blog_posts_slug').on(table.slug),
+  publishedIdx: index('idx_blog_posts_published').on(table.isPublished),
+  slugPublishedIdx: index('idx_blog_posts_slug_published').on(table.slug, table.isPublished),
+  createdAtDescIdx: index('idx_blog_posts_created_desc').on(table.createdAt),
+  deletedAtIdx: index('idx_blog_posts_deleted_at').on(table.deletedAt),
+}));
+
+export const blogPostsRelations = relations(blogPosts, ({ one, many }) => ({
+  author: one(user, {
+    fields: [blogPosts.authorId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [blogPosts.reviewedById],
+    references: [user.id],
+  }),
+  deletedByUser: one(user, {
+    fields: [blogPosts.deletedBy],
+    references: [user.id],
+  }),
+  comments: many(blogComments),
+  giveawayClaims: many(giveawayClaims),
+  locationReports: many(lostLocationsReport),
+  pollVotes: many(pollVotes),
+  analytics: many(blogPostsAnalytics),
+  revisions: many(blogPostRevisions),
+}));
+
+// Giveaway claims - from quiz completion
+export const giveawayClaims = pgTable('giveaway_claims', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  quizId: text('quiz_id').notNull(),
+  fullName: text('full_name').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(),
+  shippingAddress: text('shipping_address').notNull(),
+  score: integer('score').notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'approved' | 'shipped' | 'rejected'
+  trackingNumber: text('tracking_number'),
+  notes: text('notes'),
+  processedBy: text('processed_by').references(() => user.id, { onDelete: 'set null' }),
+  processedAt: timestamp('processed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_giveaway_claims_post').on(table.postId),
+  statusIdx: index('idx_giveaway_claims_status').on(table.status),
+  statusCreatedAtDescIdx: index('idx_giveaway_claims_status_created_desc').on(table.status, desc(table.createdAt)),
+}));
+
+export const giveawayClaimsRelations = relations(giveawayClaims, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [giveawayClaims.postId],
+    references: [blogPosts.id],
+  }),
+  processor: one(user, {
+    fields: [giveawayClaims.processedBy],
+    references: [user.id],
+  }),
+}));
+
+// Blog comments - public discussions & giveaway entries
+export const blogComments = pgTable('blog_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  parentId: uuid('parent_id').references(() => blogComments.id, { onDelete: 'cascade' }), // For threading/replies
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // Optional - if logged in
+  name: text('name').notNull(),
+  commentText: text('comment_text').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(), // Hidden from public
+  isApproved: boolean('is_approved').default(true).notNull(),
+  isGiveawayWinner: boolean('is_giveaway_winner').default(false).notNull(),
+  hasHeroBadge: boolean('has_hero_badge').default(false).notNull(), // If user is a True Story alumni
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_comments_post').on(table.postId),
+  approvedIdx: index('idx_blog_comments_approved').on(table.isApproved),
+  postCreatedAtDescIdx: index('idx_blog_comments_post_created_desc').on(table.postId, desc(table.createdAt)),
+  parentIdx: index('idx_blog_comments_parent').on(table.parentId),
+}));
+
+export const blogCommentsRelations = relations(blogComments, ({ one, many }) => ({
+  post: one(blogPosts, {
+    fields: [blogComments.postId],
+    references: [blogPosts.id],
+  }),
+  user: one(user, {
+    fields: [blogComments.userId],
+    references: [user.id],
+  }),
+  parent: one(blogComments, {
+    fields: [blogComments.parentId],
+    references: [blogComments.id],
+  }),
+  replies: many(blogComments),
+}));
+
+// True story submissions - video testimonials for jacket giveaway
+export const trueStorySubmissions = pgTable('true_story_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // Optional - if logged in
+  fullName: text('full_name').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(),
+  balikinTagId: text('balikin_tag_id').notNull(), // Validation against physical tag
+  storyTitle: text('story_title').notNull(),
+  storyText: text('story_text').notNull(),
+  videoUrl: text('video_url').notNull(), // TikTok/Reels/Drive link
+  jacketSize: text('jacket_size').notNull(), // 'S' | 'M' | 'L' | 'XL' | 'XXL'
+  shippingAddress: text('shipping_address').notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'verified' | 'winner_jacket' | 'rejected'
+  trackingNumber: text('tracking_number'),
+  reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp('reviewed_at'),
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index('idx_true_story_status').on(table.status),
+}));
+
+export const trueStorySubmissionsRelations = relations(trueStorySubmissions, ({ one }) => ({
+  user: one(user, {
+    fields: [trueStorySubmissions.userId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [trueStorySubmissions.reviewedBy],
+    references: [user.id],
+  }),
+}));
+
+// Lost location reports - crowdsourced danger zone data
+export const lostLocationsReport = pgTable('lost_locations_report', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  locationName: text('location_name').notNull(), // "Parkiran Stasiun Kandangan"
+  locationType: text('location_type').notNull(), // "Parkiran" | "Kafe" | "Stasiun"
+  cityName: text('city_name').notNull(), // "Kandangan"
+  lostItemType: text('lost_item_type').notNull(), // "Kunci Motor"
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_lost_locations_post').on(table.postId),
+  cityIdx: index('idx_lost_locations_city').on(table.cityName),
+}));
+
+export const lostLocationsReportRelations = relations(lostLocationsReport, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [lostLocationsReport.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Poll votes - real-time voting data
+export const pollVotes = pgTable('poll_votes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  pollId: text('poll_id').notNull(),
+  selectedOptionIndex: integer('selected_option_index').notNull(),
+  ipAddress: text('ip_address'), // Basic duplicate prevention
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postPollIdx: index('idx_poll_votes_post_poll').on(table.postId, table.pollId),
+}));
+
+export const pollVotesRelations = relations(pollVotes, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [pollVotes.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Setup Gallery Submissions - user-submitted setup photos for discount incentive
+export const setupGallerySubmissions = pgTable('setup_gallery_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  galleryId: text('gallery_id').notNull(), // Links to module
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+  userName: text('user_name').notNull(),
+  userEmail: text('user_email'),
+  photoUrl: text('photo_url').notNull(), // Vercel Blob URL
+  description: text('description'),
+  isApproved: boolean('is_approved').default(false),
+  discountCode: text('discount_code'), // Generated incentive code
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_setup_gallery_post').on(table.postId),
+  galleryIdIdx: index('idx_setup_gallery_gallery').on(table.galleryId),
+  approvedIdx: index('idx_setup_gallery_approved').on(table.isApproved),
+}));
+
+export const setupGallerySubmissionsRelations = relations(setupGallerySubmissions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [setupGallerySubmissions.postId],
+    references: [blogPosts.id],
+  }),
+  user: one(user, {
+    fields: [setupGallerySubmissions.userId],
+    references: [user.id],
+  }),
+}));
+
+// Blog Posts Analytics - track page views and engagement
+export const blogPostsAnalytics = pgTable('blog_posts_analytics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  ipAddress: text('ip_address'),
+  viewType: text('view_type').notNull(), // 'page_view' | 'engagement' (comment, quiz, poll, etc.)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_analytics_post').on(table.postId),
+  viewTypeIdx: index('idx_blog_analytics_view_type').on(table.viewType),
+  createdAtIdx: index('idx_blog_analytics_created').on(table.createdAt),
+}));
+
+export const blogPostsAnalyticsRelations = relations(blogPostsAnalytics, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostsAnalytics.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Blog Post Revisions - track all changes for audit trail and rollback
+export const blogPostRevisions = pgTable('blog_post_revisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  revisionNumber: integer('revision_number').notNull(), // Increment for each edit
+  // Snapshot of post data at revision time
+  title: text('title').notNull(),
+  slug: text('slug').notNull(),
+  summary: text('summary').notNull(),
+  coverImage: text('cover_image'),
+  content: text('content').notNull(),
+  modules: jsonb('modules').default([]).$type<Array<any>>(),
+  authorName: text('author_name').notNull(),
+  authorAvatar: text('author_avatar'),
+  reviewedBy: text('reviewed_by'),
+  reviewedByTitle: text('reviewed_by_title'),
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  focusKeyword: text('focus_keyword'),
+  isPublished: boolean('is_published').notNull(),
+  publishedAt: timestamp('published_at'),
+  // Change metadata
+  changedBy: text('changed_by').references(() => user.id, { onDelete: 'set null' }), // Who made this change
+  changeReason: text('change_reason'), // Optional reason for edit
+  changeType: text('change_type').notNull(), // 'create' | 'update' | 'publish' | 'unpublish' | 'delete'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_revisions_post').on(table.postId),
+  postRevisionIdx: index('idx_blog_revisions_post_revision').on(table.postId, table.revisionNumber),
+  changedByIdx: index('idx_blog_revisions_changed_by').on(table.changedBy),
+  createdAtDescIdx: index('idx_blog_revisions_created_desc').on(table.createdAt),
+}));
+
+export const blogPostRevisionsRelations = relations(blogPostRevisions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostRevisions.postId],
+    references: [blogPosts.id],
+  }),
+  changedByUser: one(user, {
+    fields: [blogPostRevisions.changedBy],
+    references: [user.id],
+  }),
+}));
+
+// ============================================================================
+// BLOG TYPE EXPORTS
+// ============================================================================
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type NewBlogPost = typeof blogPosts.$inferInsert;
+export type GiveawayClaim = typeof giveawayClaims.$inferSelect;
+export type NewGiveawayClaim = typeof giveawayClaims.$inferInsert;
+export type BlogComment = typeof blogComments.$inferSelect;
+export type NewBlogComment = typeof blogComments.$inferInsert;
+export type TrueStorySubmission = typeof trueStorySubmissions.$inferSelect;
+export type NewTrueStorySubmission = typeof trueStorySubmissions.$inferInsert;
+export type LostLocationReport = typeof lostLocationsReport.$inferSelect;
+export type NewLostLocationReport = typeof lostLocationsReport.$inferInsert;
+export type PollVote = typeof pollVotes.$inferSelect;
+export type NewPollVote = typeof pollVotes.$inferInsert;
+export type SetupGallerySubmission = typeof setupGallerySubmissions.$inferSelect;
+export type NewSetupGallerySubmission = typeof setupGallerySubmissions.$inferInsert;
+export type BlogPostAnalytics = typeof blogPostsAnalytics.$inferSelect;
+export type NewBlogPostAnalytics = typeof blogPostsAnalytics.$inferInsert;
+export type BlogPostRevision = typeof blogPostRevisions.$inferSelect;
+export type NewBlogPostRevision = typeof blogPostRevisions.$inferInsert;
 
 // ============================================================================
 // TYPE EXPORTS
