@@ -121,6 +121,12 @@ export const auth = betterAuth({
         type: "string",
         defaultValue: "user",
       },
+      division: {
+        type: "string",
+      },
+      blogPermissions: {
+        type: "json",
+      },
     },
   },
   session: {

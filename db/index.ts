@@ -10,7 +10,7 @@ import * as schema from './schema';
 const DEFAULT_POOL_SIZE = 5;
 const DEFAULT_CONNECT_TIMEOUT_MS = 30_000;
 const DEFAULT_IDLE_TIMEOUT_MS = 20_000;
-const DEFAULT_MAX_LIFETIME_MS = 60 * 60_000;
+const DEFAULT_MAX_LIFETIME_S = 60 * 60; // 1 hour in seconds (postgres.js uses seconds for max_lifetime)
 const DEFAULT_STATEMENT_TIMEOUT_MS = 10_000;
 
 // ============================================================================
@@ -32,7 +32,7 @@ const options = {
   max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : DEFAULT_POOL_SIZE,
   connect_timeout: Number(process.env.DATABASE_CONNECT_TIMEOUT) || DEFAULT_CONNECT_TIMEOUT_MS,
   idle_timeout: Number(process.env.DATABASE_IDLE_TIMEOUT) || DEFAULT_IDLE_TIMEOUT_MS,
-  max_lifetime: Number(process.env.DATABASE_MAX_LIFETIME) || DEFAULT_MAX_LIFETIME_MS,
+  max_lifetime: Number(process.env.DATABASE_MAX_LIFETIME) || DEFAULT_MAX_LIFETIME_S,
   statement_timeout: Number(process.env.DATABASE_STATEMENT_TIMEOUT) || DEFAULT_STATEMENT_TIMEOUT_MS,
   types: {
     date: {
