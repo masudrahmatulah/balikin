@@ -29,7 +29,10 @@ export async function GET() {
 
     // Get user's tags with scan counts in parallel
     const userTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
+      where: and(
+        eq(tags.ownerId, userId),
+        eq(tags.appId, 'balikin_id')
+      ),
       orderBy: [desc(tags.createdAt)],
     });
 

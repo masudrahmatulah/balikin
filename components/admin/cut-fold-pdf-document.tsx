@@ -8,14 +8,14 @@ const A4_WIDTH = '210mm';
 const A4_HEIGHT = '297mm';
 const PAGE_MARGIN = '10mm';
 
-const TAG_WIDTH = '70mm';
+const TAG_WIDTH = '58mm';
 const TAG_HEIGHT = '45mm';
-const FOLD_POSITION = '35mm';
+const FOLD_POSITION = '29mm';
 const GAP = '4mm';
 
-const COLS = 2;
+const COLS = 3;
 const ROWS = 5;
-const TAGS_PER_PAGE = 10;
+const TAGS_PER_PAGE = 15;
 
 // ============================================================================
 // STYLES
@@ -73,11 +73,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Sisi Kiri (Depan) - 35mm x 45mm
+  // Sisi Kiri (Depan) - 29mm x 45mm dengan space-between
   leftSide: {
-    width: '35mm',
-    minWidth: '35mm',
-    maxWidth: '35mm',
+    width: '29mm',
+    minWidth: '29mm',
+    maxWidth: '29mm',
     height: TAG_HEIGHT,
     flexGrow: 0,
     flexShrink: 0,
@@ -85,91 +85,77 @@ const styles = StyleSheet.create({
     borderRightColor: '#999999',
     borderRightStyle: 'dashed',
     flexDirection: 'column',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: '2mm',
-    paddingHorizontal: '2.5mm',
     backgroundColor: '#FFFFFF',
   },
 
-  // Badge "SCAN ME" hitam
-  scanMeBadge: {
-    backgroundColor: '#111111',
-    borderRadius: '2mm',
-    paddingHorizontal: '3mm',
-    paddingVertical: '1mm',
-    marginTop: '2mm',
-    marginBottom: '2mm',
+  // SCAN ME Header Container - Cyberpunk Glow (Blue Electric)
+  scanMeHeader: {
+    width: '29mm',
+    height: '6mm',
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  // Teks "SCAN ME" putih di dalam badge
+  // Teks "SCAN ME" putih tebal
   scanMeText: {
-    fontSize: '7pt',
+    fontSize: '6.5pt',
     fontWeight: 'bold',
     color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
 
-  // QR Code 30mm x 30mm
+  // QR Code 25mm x 25mm - otomatis di tengah karena space-between
   qrCode: {
-    width: '30mm',
-    height: '30mm',
+    width: '25mm',
+    height: '25mm',
   },
 
-  // Container teks bawah dengan jarak 3mm dari QR
+  // Container teks bawah dengan marginBottom sebagai padding pengaman
   leftTextContainer: {
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '3mm',
+    marginBottom: '2mm',
   },
 
   frontText1: {
-    fontSize: '7pt',
+    fontSize: '6.5pt',
     fontWeight: 'bold',
+    color: '#7C3AED',
     textAlign: 'center',
-    lineHeight: 1.1,
+    lineHeight: 1.0,
   },
 
   frontText2: {
-    fontSize: '6pt',
-    color: '#555555',
+    fontSize: '5.5pt',
+    color: '#4b5563',
     textAlign: 'center',
     marginTop: '2px',
-    lineHeight: 1.1,
+    lineHeight: 1.0,
   },
 
-  // Sisi Kanan (Belakang) - 35mm x 45mm (ABSOLUTE POSITIONING)
+  // Sisi Kanan (Belakang) - 29mm x 45mm (FULL SCREEN IMAGE)
   rightSide: {
     position: 'absolute',
     top: 0,
     right: 0,
-    width: '35mm',
-    minWidth: '35mm',
-    maxWidth: '35mm',
+    width: '29mm',
+    minWidth: '29mm',
+    maxWidth: '29mm',
     height: TAG_HEIGHT,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
     overflow: 'hidden',
-    backgroundColor: '#121318',
+    backgroundColor: '#FFFFFF',
   },
 
-  // Logo persegi 26mm x 26mm dengan sudut melengkung
-  logoIcon: {
-    width: '26mm',
-    height: '26mm',
-    objectFit: 'contain',
-    borderRadius: '4mm',
-    marginTop: '4mm',
-    marginBottom: '2mm',
-  },
-
-  subBrandText: {
-    fontSize: '7pt',
-    fontWeight: 'medium',
-    color: '#A1A1AA',
-    width: '100%',
-    textAlign: 'center',
-    letterSpacing: '0.3px',
+  // Logo Full Screen Portrait - objectFit cover untuk fill penuh
+  logoFull: {
+    width: '29mm',
+    height: '45mm',
+    objectFit: 'cover',
   },
 
   // Footer
@@ -252,22 +238,26 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
                     {/* Folding Mark */}
                     <View style={styles.foldingMark} />
 
-                    {/* Sisi Kiri (Depan) */}
+                    {/* Sisi Kiri (Depan) - space-between untuk distribusi vertikal sempurna */}
                     <View style={styles.leftSide}>
-                      <View style={styles.scanMeBadge}>
+                      {/* TOP: SCAN ME Header */}
+                      <View style={styles.scanMeHeader}>
                         <Text style={styles.scanMeText}>SCAN ME</Text>
                       </View>
+
+                      {/* CENTER: QR Code - otomatis di tengah karena space-between */}
                       <Image src={tag.qrDataUrl} style={styles.qrCode} />
+
+                      {/* BOTTOM: Teks Bawah */}
                       <View style={styles.leftTextContainer}>
                         <Text style={styles.frontText1}>BANTU BALIKIN</Text>
                         <Text style={styles.frontText2}>Scan QR tuk WA pemiliknya</Text>
                       </View>
                     </View>
 
-                    {/* Sisi Kanan (Belakang) */}
+                    {/* Sisi Kanan (Belakang) - Full Screen Logo */}
                     <View style={styles.rightSide}>
-                      <Image src={`${baseUrl}/logo-diakrilik.png`} style={styles.logoIcon} />
-                      <Text style={styles.subBrandText}>Smart Lost & Found</Text>
+                      <Image src={`${baseUrl}/gantungan kunci logo.png`} style={styles.logoFull} />
                     </View>
                   </View>
                 ) : (
