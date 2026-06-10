@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   QrCode,
@@ -15,7 +16,6 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useSession } from '@/lib/auth-client';
-import { useEffect, useState } from 'react';
 
 interface TagData {
   id: string;
@@ -45,34 +45,10 @@ interface ScanLog {
   status: 'success' | 'warning' | 'info';
 }
 
-async function getUserStats(): Promise<StatsData> {
-  try {
-    const response = await fetch('/api/mobile/user-stats');
-    if (!response.ok) return { totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 };
-    return await response.json();
-  } catch {
-    return { totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 };
-  }
-}
-
-async function getUserTags(): Promise<TagData[]> {
-  try {
-    const response = await fetch('/api/mobile/user-tags');
-    if (!response.ok) return [];
-    return await response.json();
-  } catch {
-    return [];
-  }
-}
-
-async function getRecentActivity(): Promise<ScanLog[]> {
-  try {
-    const response = await fetch('/api/mobile/recent-activity');
-    if (!response.ok) return [];
-    return await response.json();
-  } catch {
-    return [];
-  }
+interface MobileHomeProps {
+  initialStats: StatsData;
+  initialTags: TagData[];
+  initialRecentActivity: ScanLog[];
 }
 
 const quickActions = [
@@ -106,29 +82,11 @@ const quickActions = [
   },
 ];
 
-export function MobileHome() {
+export function MobileHome({ initialStats, initialTags, initialRecentActivity }: MobileHomeProps) {
   const { data: session } = useSession();
-  const [stats, setStats] = useState<StatsData>({ totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 });
-  const [tags, setTags] = useState<TagData[]>([]);
-  const [recentActivity, setRecentActivity] = useState<ScanLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      Promise.all([
-        getUserStats(),
-        getUserTags(),
-        getRecentActivity()
-      ]).then(([statsData, tagsData, activityData]) => {
-        setStats(statsData);
-        setTags(tagsData);
-        setRecentActivity(activityData);
-        setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
-  }, [session]);
+  const [stats] = useState<StatsData>(initialStats);
+  const [tags] = useState<TagData[]>(initialTags);
+  const [recentActivity] = useState<ScanLog[]>(initialRecentActivity);
 
   const statsDisplay = [
     { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-mobile-primary-light to-mobile-primary' },

@@ -7,15 +7,17 @@ import { isAdmin } from '@/lib/admin';
 import { db } from '@/db';
 import { tagBundles, tags } from '@/db/schema';
 import {
-  A3_WIDTH,
-  A3_HEIGHT,
+  PAPER_DIMENSIONS,
   BLEED,
   SPACING,
   HEADER_HEIGHT,
   getStickerDimensions,
   calculateGridPositions,
+  getPaperDimensions,
   type StickerShape,
   type StickerSize,
+  type PaperSize,
+  type Orientation,
 } from '@/lib/sticker-template';
 import { unstable_cache as cache } from 'next/cache';
 
@@ -29,12 +31,15 @@ const COLOR_BORDER_BLUE = [3, 105, 161] as const;
 const COLOR_WHITE = [255, 255, 255] as const;
 const COLOR_GRAY = [150, 150, 150] as const;
 
-const REG_MARKS: ReadonlyArray<[number, number]> = [
-  [10, 10],
-  [A3_WIDTH - 10, 10],
-  [10, A3_HEIGHT - 10],
-  [A3_WIDTH - 10, A3_HEIGHT - 10],
-] as const;
+// Generate registration marks dynamically based on paper dimensions
+function getRegistrationMarks(width: number, height: number): [number, number][] {
+  return [
+    [10, 10],
+    [width - 10, 10],
+    [10, height - 10],
+    [width - 10, height - 10],
+  ] as const;
+}
 
 const TEXT_CONTENT = {
   header: 'BALIKIN - Smart Lost & Found',
@@ -65,29 +70,30 @@ function validateBundleId(bundleId: string): boolean {
 // PDF DRAWING HELPERS
 // ============================================================================
 
-function addRegistrationMarks(doc: jsPDF): void {
+function addRegistrationMarks(doc: jsPDF, width: number, height: number): void {
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.3);
 
-  for (const [x, y] of REG_MARKS) {
+  const regMarks = getRegistrationMarks(width, height);
+  for (const [x, y] of regMarks) {
     doc.circle(x, y, 2.5, 'S');
     doc.line(x - 4, y, x + 4, y);
     doc.line(x, y - 4, x, y + 4);
   }
 }
 
-function addHeaderBar(doc: jsPDF): void {
+function addHeaderBar(doc: jsPDF, width: number): void {
   doc.setFillColor(...COLOR_BG_BLUE);
-  doc.rect(0, 20, A3_WIDTH, HEADER_HEIGHT, 'F');
+  doc.rect(0, 20, width, HEADER_HEIGHT, 'F');
 
   doc.setDrawColor(...COLOR_BORDER_BLUE);
   doc.setLineWidth(0.5);
-  doc.line(0, 20 + HEADER_HEIGHT, A3_WIDTH, 20 + HEADER_HEIGHT);
+  doc.line(0, 20 + HEADER_HEIGHT, width, 20 + HEADER_HEIGHT);
 
   doc.setTextColor(...COLOR_WHITE);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(TEXT_CONTENT.header, A3_WIDTH / 2, 20 + HEADER_HEIGHT / 2 + 2, { align: 'center' });
+  doc.text(TEXT_CONTENT.header, width / 2, 20 + HEADER_HEIGHT / 2 + 2, { align: 'center' });
 }
 
 function addBleedLine(doc: jsPDF, x: number, y: number, width: number, height: number, shape: StickerShape): void {
@@ -305,7 +311,11 @@ async function addSticker(
 // PDF GENERATION
 // ============================================================================
 
-export async function generateBundlePDF(bundleId: string) {
+export async function generateBundlePDF(
+  bundleId: string,
+  paperSize: PaperSize = 'a3',
+  orientation: Orientation = 'landscape'
+) {
   if (!validateBundleId(bundleId)) {
     throw new Error('Invalid bundle ID');
   }
@@ -340,22 +350,27 @@ export async function generateBundlePDF(bundleId: string) {
 
   const stickerShape = (bundle.stickerShape as StickerShape) || 'circle';
   const stickerSize = (bundle.stickerSize as StickerSize) || 'medium';
-  const positions = calculateGridPositions(stickerShape, stickerSize);
+
+  // Calculate grid positions with dynamic paper size
+  const positions = calculateGridPositions(stickerShape, stickerSize, paperSize, orientation);
+
+  // Get paper dimensions
+  const [paperWidth, paperHeight] = getPaperDimensions(paperSize, orientation);
 
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation,
     unit: 'mm',
-    format: 'a3',
+    format: paperSize,
   });
 
-  addRegistrationMarks(doc);
-  addHeaderBar(doc);
+  addRegistrationMarks(doc, paperWidth, paperHeight);
+  addHeaderBar(doc, paperWidth);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...COLOR_GRAY);
-  doc.text(`Bundle: ${bundle.id}`, 15, A3_HEIGHT - 10);
-  doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, A3_WIDTH - 15, A3_HEIGHT - 10, { align: 'right' });
+  doc.text(`Bundle: ${bundle.id}`, 15, paperHeight - 10);
+  doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, paperWidth - 15, paperHeight - 10, { align: 'right' });
 
   for (let i = 0; i < Math.min(positions.length, bundle.tags.length); i++) {
     const [x, y] = positions[i];

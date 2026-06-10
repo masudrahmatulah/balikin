@@ -5,6 +5,8 @@
 
 export type StickerShape = 'circle' | 'square' | 'rectangle';
 export type StickerSize = 'small' | 'medium' | 'large';
+export type PaperSize = 'a3' | 'a4';
+export type Orientation = 'landscape' | 'portrait';
 
 export interface StickerTemplate {
   shape: StickerShape;
@@ -18,8 +20,8 @@ export const SIZE_DIMENSIONS = {
   large: 50,
 } as const;
 
-// Grid layout configurations per shape/size
-export const GRID_CONFIGS = {
+// Grid layout configurations per shape/size for A3 (default)
+export const GRID_CONFIGS_A3 = {
   circle: {
     small: { rows: 4, cols: 5, total: 20 },
     medium: { rows: 3, cols: 4, total: 12 },
@@ -37,7 +39,35 @@ export const GRID_CONFIGS = {
   },
 } as const;
 
-// A3 landscape dimensions
+// Grid layout configurations per shape/size for A4 (smaller paper, fewer items)
+export const GRID_CONFIGS_A4 = {
+  circle: {
+    small: { rows: 3, cols: 4, total: 12 },
+    medium: { rows: 2, cols: 3, total: 6 },
+    large: { rows: 2, cols: 2, total: 4 },
+  },
+  square: {
+    small: { rows: 3, cols: 4, total: 12 },
+    medium: { rows: 2, cols: 3, total: 6 },
+    large: { rows: 2, cols: 2, total: 4 },
+  },
+  rectangle: {
+    small: { rows: 3, cols: 3, total: 9 },
+    medium: { rows: 2, cols: 2, total: 4 },
+    large: { rows: 1, cols: 2, total: 2 },
+  },
+} as const;
+
+// Legacy GRID_CONFIGS (deprecated, use GRID_CONFIGS_A3 or GRID_CONFIGS_A4)
+export const GRID_CONFIGS = GRID_CONFIGS_A3;
+
+// Paper dimensions in mm [width, height]
+export const PAPER_DIMENSIONS = {
+  a3: { landscape: [420, 297], portrait: [297, 420] },
+  a4: { landscape: [297, 210], portrait: [210, 297] },
+} as const;
+
+// Legacy constants (deprecated, use PAPER_DIMENSIONS instead)
 export const A3_WIDTH = 420;
 export const A3_HEIGHT = 297;
 
@@ -74,20 +104,42 @@ export function getStickerDimensions(shape: StickerShape, size: StickerSize) {
 }
 
 /**
- * Calculate grid positions for stickers on A3 page
+ * Get paper dimensions for a given size and orientation
  */
-export function calculateGridPositions(shape: StickerShape, size: StickerSize): [number, number][] {
-  const config = GRID_CONFIGS[shape][size];
+export function getPaperDimensions(paperSize: PaperSize, orientation: Orientation): [number, number] {
+  const dims = PAPER_DIMENSIONS[paperSize][orientation];
+  return [dims[0], dims[1]] as [number, number];
+}
+
+/**
+ * Calculate grid positions for stickers on a page
+ * @param shape - Sticker shape
+ * @param size - Sticker size
+ * @param paperSize - Paper size (default: 'a3')
+ * @param orientation - Page orientation (default: 'landscape')
+ */
+export function calculateGridPositions(
+  shape: StickerShape,
+  size: StickerSize,
+  paperSize: PaperSize = 'a3',
+  orientation: Orientation = 'landscape'
+): [number, number][] {
+  // Select appropriate grid config based on paper size
+  const gridConfigs = paperSize === 'a4' ? GRID_CONFIGS_A4 : GRID_CONFIGS_A3;
+  const config = gridConfigs[shape][size];
   const dimensions = getStickerDimensions(shape, size);
 
   const positions: [number, number][] = [];
+
+  // Get paper dimensions
+  const [paperWidth, paperHeight] = getPaperDimensions(paperSize, orientation);
 
   // Calculate margins to center the grid
   const totalGridWidth = config.cols * dimensions.printableWidth + (config.cols - 1) * SPACING;
   const totalGridHeight = config.rows * dimensions.printableHeight + (config.rows - 1) * SPACING;
 
-  const startX = (A3_WIDTH - totalGridWidth) / 2;
-  const startY = HEADER_HEIGHT + 20 + ((A3_HEIGHT - HEADER_HEIGHT - 20 - totalGridHeight) / 2);
+  const startX = (paperWidth - totalGridWidth) / 2;
+  const startY = HEADER_HEIGHT + 20 + ((paperHeight - HEADER_HEIGHT - 20 - totalGridHeight) / 2);
 
   for (let row = 0; row < config.rows; row++) {
     for (let col = 0; col < config.cols; col++) {

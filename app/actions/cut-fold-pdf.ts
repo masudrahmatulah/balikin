@@ -8,12 +8,15 @@ import { tags } from '@/db/schema';
 import { unstable_cache as cache } from 'next/cache';
 import { pdf } from '@react-pdf/renderer';
 import React from 'react';
+import { calculateGridPositions, type PaperSize } from '@/lib/sticker-template';
 
 // ============================================================================
-// CONSTANTS
+// DEFAULTS
 // ============================================================================
 
-const TAGS_PER_PAGE = 21;
+const DEFAULT_PAPER_SIZE: PaperSize = 'a3';
+const DEFAULT_SHAPE = 'circle';
+const DEFAULT_SIZE = 'medium';
 
 // ============================================================================
 // VALIDATION
@@ -48,7 +51,10 @@ async function generateQRCodeCached(qrUrl: string): Promise<string> {
 // PDF GENERATION
 // ============================================================================
 
-export async function generateCutFoldPDF(tagSlugs: string[]): Promise<Uint8Array> {
+export async function generateCutFoldPDF(
+  tagSlugs: string[],
+  paperSize: PaperSize = DEFAULT_PAPER_SIZE
+): Promise<Uint8Array> {
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized: Admin access required');
@@ -58,7 +64,10 @@ export async function generateCutFoldPDF(tagSlugs: string[]): Promise<Uint8Array
     throw new Error('No tags provided');
   }
 
-  const totalPages = Math.ceil(tagSlugs.length / TAGS_PER_PAGE);
+  // Calculate items per sheet dynamically based on paper size
+  const gridPositions = calculateGridPositions(DEFAULT_SHAPE, DEFAULT_SIZE, paperSize, 'landscape');
+  const tagsPerPage = gridPositions.length;
+  const totalPages = Math.ceil(tagSlugs.length / tagsPerPage);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
 
   // Generate QR codes for all tags
@@ -79,6 +88,7 @@ export async function generateCutFoldPDF(tagSlugs: string[]): Promise<Uint8Array
       tags,
       totalPages,
       baseUrl,
+      paperSize,
     })
   ).toBlob();
 
@@ -87,7 +97,10 @@ export async function generateCutFoldPDF(tagSlugs: string[]): Promise<Uint8Array
   return new Uint8Array(arrayBuffer);
 }
 
-export async function generateCutFoldPDFByBatchId(batchId: string): Promise<string> {
+export async function generateCutFoldPDFByBatchId(
+  batchId: string,
+  paperSize: PaperSize = DEFAULT_PAPER_SIZE
+): Promise<Uint8Array> {
   if (!validateBatchId(batchId)) {
     throw new Error('Invalid batch ID');
   }
@@ -108,5 +121,5 @@ export async function generateCutFoldPDFByBatchId(batchId: string): Promise<stri
   }
 
   const tagSlugs = batchTags.map(tag => tag.slug);
-  return generateCutFoldPDF(tagSlugs);
+  return generateCutFoldPDF(tagSlugs, paperSize);
 }

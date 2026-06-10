@@ -25,7 +25,6 @@ const SKIP_PATHS = [
   '/_next',
   '/sign-in',
   '/sign-up',
-  '/dashboard',
   '/scan',
 ];
 
