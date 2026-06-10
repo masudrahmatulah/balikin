@@ -37,9 +37,12 @@ export async function GET(
     const isCutFold = queueItem.materialUsed?.toLowerCase().includes("cut & fold");
 
     if (isCutFold) {
+      // Detect paper size from materialUsed field
+      const paperSize = queueItem.materialUsed?.toLowerCase().includes("a3") ? "a3" : "a4";
+
       // Use Cut & Fold PDF generator (same as VDP tool)
       const { generateCutFoldPDFByBatchId } = await import('@/app/actions/cut-fold-pdf');
-      const pdfBuffer = await generateCutFoldPDFByBatchId(queueItem.batchId);
+      const pdfBuffer = await generateCutFoldPDFByBatchId(queueItem.batchId, paperSize);
 
       return new NextResponse(Buffer.from(pdfBuffer), {
         headers: {

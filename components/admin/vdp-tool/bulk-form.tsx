@@ -45,8 +45,18 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [generatedCount, setGeneratedCount] = useState(0);
 
   const getEstimatedSheets = () => {
-    const itemsPerSheet = formData.paperSize === "a4" ? 12 : 20;
+    const itemsPerSheet = formData.paperSize === "a4" ? 15 : 32; // A4: 3×5=15, A3: 4×8=32
     return Math.ceil(formData.quantity / itemsPerSheet);
+  };
+
+  const getQuantityValidation = () => {
+    if (formData.paperSize === "a3" && formData.quantity % 4 !== 0) {
+      return {
+        valid: false,
+        message: `Quantity harus kelipatan 4 untuk A3 (terdekat: ${Math.ceil(formData.quantity / 4) * 4})`,
+      };
+    }
+    return { valid: true, message: "" };
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -137,13 +147,15 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 type="number"
                 min="1"
                 max="1000"
-                step="10"
+                step={formData.paperSize === "a3" ? "4" : "10"}
                 className="font-body text-sm rounded-sm border-secondary/20 h-10"
                 value={formData.quantity}
                 onChange={(e) => updateFormData({ quantity: parseInt(e.target.value) || 1 })}
                 required
               />
-              <p className="font-body text-[10px] text-secondary/60">Max 1000</p>
+              <p className="font-body text-[10px] text-secondary/60">
+                Max 1000 {formData.paperSize === "a3" && "| Kelipatan 4 untuk A3"}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -197,14 +209,20 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.paperSize}
-                onValueChange={(value: "a4" | "a3") => updateFormData({ paperSize: value })}
+                onValueChange={(value: "a4" | "a3") => {
+                  // Auto-adjust quantity untuk A3 (kelipatan 4)
+                  const newQuantity = value === "a3" && formData.quantity % 4 !== 0
+                    ? Math.ceil(formData.quantity / 4) * 4
+                    : formData.quantity;
+                  updateFormData({ paperSize: value, quantity: newQuantity });
+                }}
               >
                 <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="font-body text-sm">
                   <SelectItem value="a4">A4 (21 x 29.7 cm)</SelectItem>
-                  <SelectItem value="a3">A3 (29.7 x 42 cm)</SelectItem>
+                  <SelectItem value="a3">A3 (29.7 x 42 cm) - 32/hlm</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -317,7 +335,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
           {/* Generate Button */}
           <Button
             type="submit"
-            disabled={isGenerating || !formData.batchName}
+            disabled={isGenerating || !formData.batchName || !getQuantityValidation().valid}
             className="w-full bg-tertiary text-surface hover:brightness-110 h-12 font-label text-xs uppercase tracking-[0.2em] font-bold"
           >
             {isGenerating ? (
@@ -332,6 +350,13 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </>
             )}
           </Button>
+
+          {/* Validation Warning */}
+          {!getQuantityValidation().valid && (
+            <p className="font-body text-[10px] text-amber-600 dark:text-amber-400">
+              ⚠️ {getQuantityValidation().message}
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

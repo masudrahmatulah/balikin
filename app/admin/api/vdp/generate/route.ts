@@ -8,6 +8,7 @@ import { eq, and, desc, isNull, isNotNull } from "drizzle-orm";
 import QRCode from "qrcode";
 import JSZip from "jszip";
 import { generatePremiumQRDataURL } from "@/lib/premium-qr-generator";
+import { calculateGridPositions, type StickerShape, type StickerSize } from "@/lib/sticker-template";
 
 export const dynamic = "force-dynamic";
 
@@ -244,14 +245,19 @@ export async function POST(request: NextRequest) {
     let downloadUrl: string;
 
     if (isCutFold) {
-      downloadUrl = `/admin/api/vdp/cut-fold/${batchId}`;
+      // Include paperSize as query parameter for cut-fold PDF download
+      downloadUrl = `/admin/api/vdp/cut-fold/${batchId}?paperSize=${paperSize}`;
     } else {
       const zipBuffer = await zip!.generateAsync({ type: "nodebuffer" });
       const zipBase64 = zipBuffer.toString("base64");
       downloadUrl = `data:application/zip;base64,${zipBase64}`;
     }
 
-    const itemsPerSheet = paperSize === "a4" ? 12 : 20;
+    // Calculate items per sheet dynamically based on paper size, shape, and size
+    const shape: StickerShape = (stickerShape as StickerShape) || "circle";
+    const size: StickerSize = (stickerSize as StickerSize) || "medium";
+    const gridPositions = calculateGridPositions(shape, size, paperSize, "landscape");
+    const itemsPerSheet = gridPositions.length;
     const estimatedSheets = Math.ceil(quantity / itemsPerSheet);
 
     await db.insert(printQueue).values({

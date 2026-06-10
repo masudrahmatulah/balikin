@@ -1,177 +1,224 @@
 import { Document, Page, Image, Text, View, StyleSheet } from '@react-pdf/renderer';
+import type { PaperSize } from '@/lib/sticker-template';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const A4_WIDTH = '210mm';
-const A4_HEIGHT = '297mm';
-const PAGE_MARGIN = '10mm';
+// Tag dimensions - FIXED untuk presisi
+// Setiap sisi: 30mm kiri (QR) + 30mm kanan (logo) = 60mm content
+// Cutting mark menggunakan inset positioning (tidak menambah lebar)
+// TOTAL TAG WIDTH = 60mm (presisi, tanpa overflow)
 
-const TAG_WIDTH = '58mm';
+const TAG_WIDTH = '60mm';
 const TAG_HEIGHT = '45mm';
-const FOLD_POSITION = '29mm';
-const GAP = '4mm';
+const FOLD_POSITION = '30mm';  // Posisi lipat di tengah (30mm konten)
+const TAG_LEFT_SIDE = '30mm';
+const TAG_RIGHT_SIDE = '30mm';
 
-const COLS = 3;
-const ROWS = 5;
-const TAGS_PER_PAGE = 15;
+// Paper-specific configurations dengan calculated gaps
+// Menggunakan LANDSCAPE orientation: width > height
+const PAPER_CONFIGS = {
+  a4: {
+    // A4 landscape: 297mm width × 210mm height
+    width: '297mm',
+    height: '210mm',
+    margin: '12mm',
+    rows: 5,
+    cols: 3,
+    rowGap: '3mm',
+    // Perhitungan: (273 - 3*2) / 3 = 89.6mm slot per kolom
+    // Tag 60mm + gap 2mm = 62mm ✅ MUAT!
+    colGap: '2mm',
+  },
+  a3: {
+    // A3 portrait: 297mm width × 420mm height (React-PDF default orientation)
+    width: '297mm',
+    height: '420mm',
+    margin: '8mm',
+    rows: 8,
+    cols: 4,
+    rowGap: '5mm',
+    // Perhitungan OPTIMAL: (420 - 16) / 8 = 50.5mm slot per baris
+    // Tag 45mm + gap 1mm = 46mm ✅ MUAT!
+    // Width: (297 - 16) / 4 = 70.25mm slot per kolom
+    // Tag 60mm + gap 6mm = 66mm ✅ AMAN!
+    // 4 kolom × 8 baris = 32 tags per halaman
+    colGap: '6mm',
+  },
+} as const;
+
+const PAGE_MARGIN = '10mm';
 
 // ============================================================================
 // STYLES
 // ============================================================================
 
-const styles = StyleSheet.create({
-  page: {
-    width: A4_WIDTH,
-    height: A4_HEIGHT,
-    padding: PAGE_MARGIN,
-    flexDirection: 'column',
-  },
+function createStyles(paperSize: PaperSize) {
+  const config = PAPER_CONFIGS[paperSize];
 
-  grid: {
-    flexDirection: 'column',
-    flex: 1,
-  },
+  return StyleSheet.create({
+    page: {
+      width: config.width,
+      height: config.height,
+      padding: config.margin,
+      flexDirection: 'column',
+    },
 
-  // Cutting mark (border luar)
-  cuttingMark: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderWidth: 0.3,
-    borderColor: '#cccccc',
-    borderStyle: 'solid',
-  },
+    grid: {
+      flexDirection: 'column',
+      flex: 1,
+    },
 
-  // Folding mark (garis lipat tengah)
-  foldingMark: {
-    position: 'absolute',
-    top: 0,
-    left: FOLD_POSITION,
-    width: '0.3mm',
-    height: TAG_HEIGHT,
-    backgroundColor: '#999999',
-  },
+    // Cutting mark (border inset untuk avoid overflow)
+    cuttingMark: {
+      position: 'absolute',
+      top: '0.15mm',
+      left: '0.15mm',
+      right: '0.15mm',
+      bottom: '0.15mm',
+      borderWidth: 0.15,
+      borderColor: '#cccccc',
+      borderStyle: 'solid',
+    },
 
-  row: {
-    flexDirection: 'row',
-    marginBottom: GAP,
-  },
+    // Folding mark (garis lipat tengah)
+    foldingMark: {
+      position: 'absolute',
+      top: 0,
+      left: FOLD_POSITION,
+      width: '0.3mm',
+      height: TAG_HEIGHT,
+      backgroundColor: '#999999',
+    },
 
-  tagWrapper: {
-    width: TAG_WIDTH,
-    height: TAG_HEIGHT,
-    flexDirection: 'row',
-    borderWidth: 0.3,
-    borderColor: '#cccccc',
-    borderStyle: 'solid',
-    position: 'relative',
-    margin: '2mm',
-    overflow: 'hidden',
-  },
+    row: {
+      flexDirection: 'row',
+      marginBottom: config.rowGap,
+    },
 
-  // Sisi Kiri (Depan) - 29mm x 45mm dengan space-between
-  leftSide: {
-    width: '29mm',
-    minWidth: '29mm',
-    maxWidth: '29mm',
-    height: TAG_HEIGHT,
-    flexGrow: 0,
-    flexShrink: 0,
-    borderRightWidth: 0.3,
-    borderRightColor: '#999999',
-    borderRightStyle: 'dashed',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
+    tagWrapper: {
+      width: TAG_WIDTH,
+      height: TAG_HEIGHT,
+      flexDirection: 'row',
+      position: 'relative',
+      marginRight: config.colGap,
+      overflow: 'hidden',
+    },
 
-  // SCAN ME Header Container - Cyberpunk Glow (Blue Electric)
-  scanMeHeader: {
-    width: '29mm',
-    height: '6mm',
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    // Override margin for last item in row
+    tagWrapperLast: {
+      width: TAG_WIDTH,
+      height: TAG_HEIGHT,
+      flexDirection: 'row',
+      position: 'relative',
+      marginRight: 0,
+      overflow: 'hidden',
+    },
 
-  // Teks "SCAN ME" putih tebal
-  scanMeText: {
-    fontSize: '6.5pt',
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
+    // Container utama untuk kedua sisi (tanpa padding)
+    tagContent: {
+      flexDirection: 'row',
+      width: '100%',
+      height: '100%',
+    },
 
-  // QR Code 25mm x 25mm - otomatis di tengah karena space-between
-  qrCode: {
-    width: '25mm',
-    height: '25mm',
-  },
+    // Sisi Kiri (Depan) - 30mm x 45mm
+    leftSide: {
+      width: TAG_LEFT_SIDE,
+      height: TAG_HEIGHT,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+    },
 
-  // Container teks bawah dengan marginBottom sebagai padding pengaman
-  leftTextContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '2mm',
-  },
+    // SCAN ME Header Container
+    scanMeHeader: {
+      width: TAG_LEFT_SIDE,
+      height: '6mm',
+      backgroundColor: '#2563EB',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  frontText1: {
-    fontSize: '6.5pt',
-    fontWeight: 'bold',
-    color: '#7C3AED',
-    textAlign: 'center',
-    lineHeight: 1.0,
-  },
+    // Teks "SCAN ME"
+    scanMeText: {
+      fontSize: '6.5pt',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      textAlign: 'center',
+      letterSpacing: 0.5,
+    },
 
-  frontText2: {
-    fontSize: '5.5pt',
-    color: '#4b5563',
-    textAlign: 'center',
-    marginTop: '2px',
-    lineHeight: 1.0,
-  },
+    // QR Code area - SQUARE (25mm x 25mm)
+    qrCodeWrapper: {
+      width: '25mm',
+      height: '25mm',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  // Sisi Kanan (Belakang) - 29mm x 45mm (FULL SCREEN IMAGE)
-  rightSide: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: '29mm',
-    minWidth: '29mm',
-    maxWidth: '29mm',
-    height: TAG_HEIGHT,
-    overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-  },
+    qrCode: {
+      width: '100%',
+      height: '100%',
+    },
 
-  // Logo Full Screen Portrait - objectFit cover untuk fill penuh
-  logoFull: {
-    width: '29mm',
-    height: '45mm',
-    objectFit: 'cover',
-  },
+    // Container teks bawah
+    leftTextContainer: {
+      width: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: '2mm',
+    },
 
-  // Footer
-  footer: {
-    position: 'absolute',
-    bottom: '3mm',
-    left: 0,
-    right: 0,
-    textAlign: 'center',
-  },
+    frontText1: {
+      fontSize: '6.5pt',
+      fontWeight: 'bold',
+      color: '#7C3AED',
+      textAlign: 'center',
+      lineHeight: 1.0,
+    },
 
-  footerText: {
-    fontSize: '8pt',
-    color: '#777777',
-  },
-});
+    frontText2: {
+      fontSize: '5.5pt',
+      color: '#4b5563',
+      textAlign: 'center',
+      marginTop: '2px',
+      lineHeight: 1.0,
+    },
+
+    // Sisi Kanan (Belakang) - 30mm x 45mm
+    rightSide: {
+      width: TAG_RIGHT_SIDE,
+      height: TAG_HEIGHT,
+      overflow: 'hidden',
+      backgroundColor: '#FFFFFF',
+    },
+
+    // Logo Full Screen Portrait
+    logoFull: {
+      width: TAG_RIGHT_SIDE,
+      height: TAG_HEIGHT,
+      objectFit: 'contain',
+    },
+
+    // Footer
+    footer: {
+      position: 'absolute',
+      bottom: '3mm',
+      left: 0,
+      right: 0,
+      textAlign: 'center',
+    },
+
+    footerText: {
+      fontSize: '8pt',
+      color: '#777777',
+    },
+  });
+}
 
 // ============================================================================
 // TYPES
@@ -186,82 +233,100 @@ interface CutFoldPDFDocumentProps {
   tags: TagItem[];
   totalPages: number;
   baseUrl?: string;
+  paperSize?: PaperSize;
 }
 
 // ============================================================================
 // COMPONENTS
 // ============================================================================
 
-export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id' }: CutFoldPDFDocumentProps) {
+export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id', paperSize = 'a4' }: CutFoldPDFDocumentProps) {
+  const config = PAPER_CONFIGS[paperSize];
+  const styles = createStyles(paperSize);
+  const { rows: ROWS, cols: COLS } = config;
+
   // Create all pages
   const pages = [];
 
   for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
     // Get tags for this page only
-    const startIndex = (pageNum - 1) * TAGS_PER_PAGE;
-    const endIndex = Math.min(startIndex + TAGS_PER_PAGE, tags.length);
+    const startIndex = (pageNum - 1) * (ROWS * COLS);
+    const endIndex = Math.min(startIndex + (ROWS * COLS), tags.length);
     const pageTags = tags.slice(startIndex, endIndex);
 
     // Calculate grid positions
-    const rows: Array<TagItem[]> = [];
+    const rows: Array<Array<{ tag: TagItem; isLast: boolean }>> = [];
 
     for (let row = 0; row < ROWS; row++) {
-      const rowTags: TagItem[] = [];
+      const rowItems: Array<{ tag: TagItem; isLast: boolean }> = [];
       for (let col = 0; col < COLS; col++) {
         const index = row * COLS + col;
+        const isLastInRow = col === COLS - 1;  // Mark last column for gap removal
+
         if (index < pageTags.length) {
-          rowTags.push(pageTags[index]);
+          rowItems.push({ tag: pageTags[index], isLast: isLastInRow });
         } else {
-          rowTags.push({ slug: '', qrDataUrl: '' });
+          rowItems.push({ tag: { slug: '', qrDataUrl: '' }, isLast: isLastInRow });
         }
       }
-      rows.push(rowTags);
-    }
-
-    // Remove last row if all empty
-    if (rows.length > 0 && rows[rows.length - 1].every(tag => !tag.slug)) {
-      rows.pop();
+      // Only add row if it has any actual tags
+      if (rowItems.some(item => item.tag.slug)) {
+        rows.push(rowItems);
+      }
     }
 
     // Create page content
     const pageContent = (
-      <Page size="A4" style={styles.page} key={`page-${pageNum}`}>
+      <Page size={paperSize.toUpperCase()} style={styles.page} key={`page-${pageNum}`}>
         <View style={styles.grid}>
-          {rows.map((rowTags, rowIndex) => (
+          {rows.map((rowItems, rowIndex) => (
             <View key={rowIndex} style={styles.row} wrap={false}>
-              {rowTags.map((tag, colIndex) => (
-                tag.slug ? (
-                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} wrap={false}>
+              {rowItems.map((item, colIndex) => (
+                item.tag.slug ? (
+                  <View
+                    key={`${rowIndex}-${colIndex}`}
+                    style={item.isLast ? styles.tagWrapperLast : styles.tagWrapper}
+                    wrap={false}
+                  >
                     {/* Cutting Marks */}
                     <View style={styles.cuttingMark} />
 
                     {/* Folding Mark */}
                     <View style={styles.foldingMark} />
 
-                    {/* Sisi Kiri (Depan) - space-between untuk distribusi vertikal sempurna */}
-                    <View style={styles.leftSide}>
-                      {/* TOP: SCAN ME Header */}
-                      <View style={styles.scanMeHeader}>
-                        <Text style={styles.scanMeText}>SCAN ME</Text>
+                    {/* Container untuk kedua sisi dengan Flexbox */}
+                    <View style={styles.tagContent}>
+                      {/* Sisi Kiri (Depan) */}
+                      <View style={styles.leftSide}>
+                        {/* TOP: SCAN ME Header */}
+                        <View style={styles.scanMeHeader}>
+                          <Text style={styles.scanMeText}>SCAN ME</Text>
+                        </View>
+
+                        {/* CENTER: QR Code */}
+                        <View style={styles.qrCodeWrapper}>
+                          <Image src={item.tag.qrDataUrl} style={styles.qrCode} />
+                        </View>
+
+                        {/* BOTTOM: Teks Bawah */}
+                        <View style={styles.leftTextContainer}>
+                          <Text style={styles.frontText1}>BANTU BALIKIN</Text>
+                          <Text style={styles.frontText2}>Scan QR tuk WA pemiliknya</Text>
+                        </View>
                       </View>
 
-                      {/* CENTER: QR Code - otomatis di tengah karena space-between */}
-                      <Image src={tag.qrDataUrl} style={styles.qrCode} />
-
-                      {/* BOTTOM: Teks Bawah */}
-                      <View style={styles.leftTextContainer}>
-                        <Text style={styles.frontText1}>BANTU BALIKIN</Text>
-                        <Text style={styles.frontText2}>Scan QR tuk WA pemiliknya</Text>
+                      {/* Sisi Kanan (Belakang) */}
+                      <View style={styles.rightSide}>
+                        <Image src={`${baseUrl}/gantungan kunci logo.png`} style={styles.logoFull} />
                       </View>
-                    </View>
-
-                    {/* Sisi Kanan (Belakang) - Full Screen Logo */}
-                    <View style={styles.rightSide}>
-                      <Image src={`${baseUrl}/gantungan kunci logo.png`} style={styles.logoFull} />
                     </View>
                   </View>
                 ) : (
-                  <View key={`${rowIndex}-${colIndex}`} style={styles.tagWrapper} wrap={false} />
+                  <View
+                    key={`${rowIndex}-${colIndex}`}
+                    style={item.isLast ? styles.tagWrapperLast : styles.tagWrapper}
+                    wrap={false}
+                  />
                 )
               ))}
             </View>
