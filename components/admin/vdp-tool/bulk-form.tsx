@@ -50,10 +50,10 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   };
 
   const getQuantityValidation = () => {
-    if (formData.paperSize === "a3" && formData.quantity % 4 !== 0) {
+    if (formData.quantity < 1) {
       return {
         valid: false,
-        message: `Quantity harus kelipatan 4 untuk A3 (terdekat: ${Math.ceil(formData.quantity / 4) * 4})`,
+        message: "Quantity minimal 1",
       };
     }
     return { valid: true, message: "" };
@@ -147,14 +147,14 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 type="number"
                 min="1"
                 max="1000"
-                step={formData.paperSize === "a3" ? "4" : "10"}
+                step="1"
                 className="font-body text-sm rounded-sm border-secondary/20 h-10"
                 value={formData.quantity}
                 onChange={(e) => updateFormData({ quantity: parseInt(e.target.value) || 1 })}
                 required
               />
               <p className="font-body text-[10px] text-secondary/60">
-                Max 1000 {formData.paperSize === "a3" && "| Kelipatan 4 untuk A3"}
+                Max 1000 tags per batch
               </p>
             </div>
 
@@ -210,11 +210,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               <Select
                 value={formData.paperSize}
                 onValueChange={(value: "a4" | "a3") => {
-                  // Auto-adjust quantity untuk A3 (kelipatan 4)
-                  const newQuantity = value === "a3" && formData.quantity % 4 !== 0
-                    ? Math.ceil(formData.quantity / 4) * 4
-                    : formData.quantity;
-                  updateFormData({ paperSize: value, quantity: newQuantity });
+                  updateFormData({ paperSize: value });
                 }}
               >
                 <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">

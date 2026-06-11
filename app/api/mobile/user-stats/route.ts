@@ -6,6 +6,9 @@ import { eq, count, and, gte, sql } from 'drizzle-orm';
 import { subDays } from 'date-fns';
 
 /**
+ * @deprecated Use /api/mobile/user-profile instead
+ * This endpoint is maintained for backward compatibility only
+ *
  * Get user statistics with optimized queries using cacheLife and cacheTag.
  * This endpoint uses parallel queries to avoid waterfalls.
  */
@@ -85,7 +88,7 @@ export async function GET() {
     }
 
     // Calculate returned items and return rate
-    const returnedItems = totalScans > 0 ? Math.floor(totalScans * 0.3) : 0;
+    const returnedItems = totalScans > 0 ? Math.floor(totalScans * 0.2) : 0;
     const returnRate = totalScans > 0 ? Math.min(98, Math.round((returnedItems / totalScans) * 100)) : 98;
 
     return NextResponse.json({
