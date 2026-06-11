@@ -48,6 +48,7 @@ export async function GET() {
         stats: {
           activeTags: 0,
           totalTags: 0,
+          lostTags: 0,
           totalScans: 0,
           returnedItems: 0,
         },
@@ -56,6 +57,7 @@ export async function GET() {
     }
 
     const activeTagCount = userTags.filter(tag => tag.status !== 'lost').length;
+    const lostTagCount = userTags.filter(tag => tag.status === 'lost').length;
 
     const tagIds = userTags.map(tag => tag.id);
 
@@ -103,6 +105,7 @@ export async function GET() {
       stats: {
         activeTags: activeTagCount,
         totalTags: userTags.length,
+        lostTags: lostTagCount,
         totalScans,
         returnedItems,
       },
