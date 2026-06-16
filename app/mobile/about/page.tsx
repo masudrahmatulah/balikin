@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Users, Shield, Smartphone, Heart } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Smartphone, Heart, Star } from 'lucide-react';
 
 export default function MobileAboutPage() {
   return (
@@ -72,7 +72,7 @@ export default function MobileAboutPage() {
             {[
               { icon: Shield, title: 'Keamanan Privasi', desc: 'Data pribadi Anda aman dan tidak ditampilkan ke publik.' },
               { icon: Smartphone, title: 'Kemudahan Akses', desc: 'Tanpa aplikasi, cukup scan QR code.' },
-              { icon: Infinite, title: 'Premium Lifetime', desc: 'Bayar sekali, nikmati selamanya.' },
+              { icon: Star, title: 'Premium Lifetime', desc: 'Bayar sekali, nikmati selamanya.' },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-mobile-primary-lighter text-mobile-primary rounded-lg flex items-center justify-center flex-shrink-0">
