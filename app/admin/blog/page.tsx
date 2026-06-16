@@ -13,25 +13,10 @@ async function getAdminData() {
   }
 
   const [posts, pendingClaims, pendingComments, pendingStories] = await Promise.all([
-    db.query.blogPosts.findMany({
-      orderBy: [desc(blogPosts.createdAt)],
-      limit: 10,
-    }),
-    db.query.giveawayClaims.findMany({
-      where: eq(giveawayClaims.status, 'pending'),
-      orderBy: [desc(giveawayClaims.createdAt)],
-      limit: 5,
-    }),
-    db.query.blogComments.findMany({
-      where: eq(blogComments.isApproved, true),
-      orderBy: [desc(blogComments.createdAt)],
-      limit: 5,
-    }),
-    db.query.trueStorySubmissions.findMany({
-      where: eq(trueStorySubmissions.status, 'pending'),
-      orderBy: [desc(trueStorySubmissions.createdAt)],
-      limit: 5,
-    }),
+    db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt)).limit(10),
+    db.select().from(giveawayClaims).where(eq(giveawayClaims.status, 'pending')).orderBy(desc(giveawayClaims.createdAt)).limit(5),
+    db.select().from(blogComments).where(eq(blogComments.isApproved, true)).orderBy(desc(blogComments.createdAt)).limit(5),
+    db.select().from(trueStorySubmissions).where(eq(trueStorySubmissions.status, 'pending')).orderBy(desc(trueStorySubmissions.createdAt)).limit(5),
   ]);
 
   return {
