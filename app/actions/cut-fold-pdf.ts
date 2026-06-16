@@ -1,6 +1,6 @@
 'use server';
 
-import { eq, like } from 'drizzle-orm';
+import { eq, like, and } from 'drizzle-orm';
 import { toDataURL } from 'qrcode';
 import { isAdmin } from '@/lib/admin';
 import { db } from '@/db';
@@ -70,12 +70,51 @@ export async function generateCutFoldPDF(
   const totalPages = Math.ceil(tagSlugs.length / tagsPerPage);
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
 
-  // Generate QR codes for all tags
+  // Generate QR codes for all tags (main + activation)
   const tags = await Promise.all(
     tagSlugs.map(async (slug) => {
       const qrUrl = `${baseUrl}/p/${slug}`;
       const qrDataUrl = await generateQRCodeCached(qrUrl);
       return { slug, qrDataUrl };
+    })
+  );
+
+  // Fetch activation data from database for all tags
+  const { tags: tagsTable } = await import('@/db/schema');
+  const tagsWithActivation = await Promise.all(
+    tags.map(async (tag) => {
+      const tagData = await db.query.tags.findFirst({
+        where: eq(tagsTable.slug, tag.slug),
+        columns: {
+          activationTokenHash: true,
+          activationPinPlain: true,
+          serialNumber: true,
+          isCustom: true,
+          customPhotoUrl: true,
+        },
+      });
+
+      if (tagData?.activationTokenHash) {
+        const activationQrDataUrl = await generateQRCodeCached(
+          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData.activationTokenHash}`
+        );
+        return {
+          ...tag,
+          activationQrDataUrl,
+          activationPinPlain: tagData.activationPinPlain || '',
+          serialNumber: tagData.serialNumber || '',
+          isCustom: tagData.isCustom || false,
+          customPhotoUrl: tagData.customPhotoUrl,
+        };
+      }
+
+      return {
+        ...tag,
+        activationQrDataUrl: '',
+        activationPinPlain: '',
+        serialNumber: '',
+        isCustom: false,
+      };
     })
   );
 
@@ -85,7 +124,7 @@ export async function generateCutFoldPDF(
   // Generate PDF using React component with all pages
   const pdfBlob = await pdf(
     React.createElement(CutFoldPDFDocument, {
-      tags,
+      tags: tagsWithActivation,
       totalPages,
       baseUrl,
       paperSize,
@@ -112,7 +151,15 @@ export async function generateCutFoldPDFByBatchId(
 
   const batchTags = await db.query.tags.findMany({
     where: like(tags.slug, `${batchId}-%`),
-    columns: { id: true, slug: true },
+    columns: {
+      id: true,
+      slug: true,
+      activationTokenHash: true,
+      activationPinPlain: true,
+      serialNumber: true,
+      isCustom: true,
+      customPhotoUrl: true,
+    },
     orderBy: (tags, { asc }) => [asc(tags.slug)],
   });
 
