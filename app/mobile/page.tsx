@@ -41,19 +41,19 @@ async function getUserStats(userId: string): Promise<StatsData> {
 
     const [tagsResult, lostTagsResult, allUserTags] = await Promise.all([
       db.select({ count: count() }).from(tags).where(
-        and(eq(tags.ownerId, userId), eq(tags.appId, 'balikin_id'))
+        and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id'))
       ),
       db.select({ count: count() }).from(tags).where(
         and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id'),
+          eq(tags.app_id, 'balikin_id'),
           eq(tags.status, 'lost')
         )
       ),
       db.query.tags.findMany({
         where: and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id')
+          eq(tags.app_id, 'balikin_id')
         ),
         columns: { id: true, productType: true },
       }),
@@ -109,7 +109,7 @@ async function getUserTags(userId: string): Promise<TagData[]> {
     const userTags = await db.query.tags.findMany({
       where: and(
         eq(tags.ownerId, userId),
-        eq(tags.appId, 'balikin_id')
+        eq(tags.app_id, 'balikin_id')
       ),
       orderBy: [desc(tags.createdAt)],
     });
@@ -183,7 +183,7 @@ async function getRecentActivity(userId: string): Promise<ScanLog[]> {
       db.query.tags.findMany({
         where: and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id')
+          eq(tags.app_id, 'balikin_id')
         ),
         columns: { id: true, name: true, status: true },
       }),
