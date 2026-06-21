@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Package, X, CheckCircle } from "lucide-react";
+import { Download, Package, X, CheckCircle, Upload, Image as ImageIcon } from "lucide-react";
 
 interface BulkFormProps {
   adminId: string;
@@ -29,6 +29,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     paperSize: "a4" as "a4" | "a3",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
+    isCustom: false,
+    customPhotoData: "" as string,
   });
 
   const updateFormData = (updates: any) => {
@@ -43,9 +45,13 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [generatedCount, setGeneratedCount] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const getEstimatedSheets = () => {
-    const itemsPerSheet = formData.paperSize === "a4" ? 15 : 32; // A4: 3×5=15, A3: 4×8=32
+    // Based on PRD v3 specifications
+    // A3 Landscape: 4 cols × 5 rows = 20 packets per sheet
+    // A4 Landscape: 3 cols × 4 rows = 12 packets per sheet
+    const itemsPerSheet = formData.paperSize === "a4" ? 12 : 20;
     return Math.ceil(formData.quantity / itemsPerSheet);
   };
 
@@ -57,6 +63,36 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
       };
     }
     return { valid: true, message: "" };
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setFormData({ ...formData, customPhotoData: base64 });
+      setPreviewImage(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearCustomPhoto = () => {
+    setFormData({ ...formData, customPhotoData: "" });
+    setPreviewImage(null);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -99,7 +135,10 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         paperSize: "a4",
         stickerShape: "circle",
         stickerSize: "medium",
+        isCustom: false,
+        customPhotoData: "",
       });
+      setPreviewImage(null);
     } catch (error) {
       console.error("Error generating batch:", error);
       alert("Failed to generate batch. Please try again.");
@@ -179,6 +218,88 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Select>
             </div>
           </div>
+
+          {/* Custom Order Toggle */}
+          <div className="flex items-center justify-between p-3 bg-neutral/10 rounded-sm border border-secondary/10">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="w-5 h-5 text-tertiary" />
+              <div>
+                <p className="font-label text-sm font-bold text-primary">Custom Photo Order</p>
+                <p className="font-body text-[10px] text-secondary/60">
+                  Replace logo with custom photo (layout: QR Utama + Foto + QR Aktivasi)
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newValue = !formData.isCustom;
+                setFormData({ ...formData, isCustom: newValue });
+                if (!newValue) {
+                  clearCustomPhoto();
+                }
+              }}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                formData.isCustom ? "bg-tertiary" : "bg-secondary/30"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formData.isCustom ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Custom Photo Upload - Only show when isCustom is true */}
+          {formData.isCustom && (
+            <div className="space-y-2 p-3 bg-tertiary/5 rounded-sm border border-tertiary/20">
+              <Label htmlFor="customPhoto" className="font-label text-[10px] uppercase tracking-widest font-bold text-primary">
+                Custom Photo <span className="text-red-500">*</span>
+              </Label>
+
+              {previewImage ? (
+                <div className="space-y-2">
+                  <div className="relative w-full h-32 bg-white rounded-sm overflow-hidden border border-secondary/20">
+                    <img src={previewImage} alt="Preview" className="w-full h-full object-contain" />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearCustomPhoto}
+                    className="w-full h-8 text-xs"
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Remove Photo
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    id="customPhoto"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex items-center justify-center gap-2 w-full h-24 bg-white rounded-sm border-2 border-dashed border-secondary/30 hover:border-tertiary/50 transition-colors">
+                    <Upload className="w-5 h-5 text-secondary/40" />
+                    <div className="text-center">
+                      <p className="font-body text-sm text-secondary/60">Click to upload photo</p>
+                      <p className="font-body text-[10px] text-secondary/40">PNG, JPG up to 5MB</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {formData.isCustom && !formData.customPhotoData && (
+                <p className="font-body text-[10px] text-amber-600 dark:text-amber-400">
+                  ⚠️ Custom photo is required for custom orders
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Product Type & Paper Size - 2 columns */}
           <div className="grid grid-cols-2 gap-4">
@@ -331,7 +452,12 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
           {/* Generate Button */}
           <Button
             type="submit"
-            disabled={isGenerating || !formData.batchName || !getQuantityValidation().valid}
+            disabled={
+              isGenerating ||
+              !formData.batchName ||
+              !getQuantityValidation().valid ||
+              (formData.isCustom && !formData.customPhotoData)
+            }
             className="w-full bg-tertiary text-surface hover:brightness-110 h-12 font-label text-xs uppercase tracking-[0.2em] font-bold"
           >
             {isGenerating ? (

@@ -103,12 +103,46 @@ export const tagBundles = pgTable('tag_bundles', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Print Batches - Track A3 print sheets for physical QC codes (PRD v2)
+export const printBatches = pgTable('print_batches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  batchNumber: text('batch_number').unique().notNull(), // e.g., "B01-001"
+  serialNumberRange: text('serial_number_range'), // "B01-001 to B01-100"
+  totalStickers: integer('total_stickers').default(0).notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'printing' | 'ready' | 'completed'
+  printedAt: timestamp('printed_at'),
+  completedAt: timestamp('completed_at'),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const printBatchesRelations = relations(printBatches, ({ one, many }) => ({
+	creator: one(user, {
+		fields: [printBatches.createdBy],
+		references: [user.id],
+	}),
+	tags: many(tags),
+}));
+
 export const tags = pgTable('tags', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   slug: text('slug').unique().notNull(),
   ownerId: text('owner_id'),
   bundleId: uuid('bundle_id').references(() => tagBundles.id, { onDelete: 'set null' }),
+  // Activation security fields (PRD v2) - nullable for existing tags
+  activationToken: text('activation_token'), // Plain token for QR generation
+  activationTokenHash: text('activation_token_hash'), // SHA-256 hash for QR activation
+  activationPinHash: text('activation_pin_hash'), // SHA-256 hash for PIN manual fallback
+  activationPinPlain: text('activation_pin_plain'), // Plain PIN for VDP printing only
+  serialNumber: text('serial_number'), // Physical QC code (e.g., "B01-042")
+  isCustom: boolean('is_custom').default(false).notNull(), // Custom photo order flag
+  customPhotoUrl: text('custom_photo_url'), // Vercel Blob URL for custom photo
+  batchId: uuid('batch_id').references(() => printBatches.id, { onDelete: 'set null' }),
+  // Existing fields
   name: text('name').notNull(),
   status: text('status').default('normal').notNull(),
   contactWhatsapp: text('contact_whatsapp'),
@@ -140,6 +174,10 @@ export const tagsRelations = relations(tags, ({ many, one }) => ({
   bundle: one(tagBundles, {
     fields: [tags.bundleId],
     references: [tagBundles.id],
+  }),
+  batch: one(printBatches, {
+    fields: [tags.batchId],
+    references: [printBatches.id],
   }),
 }));
 
@@ -204,6 +242,38 @@ export const notificationLogsRelations = relations(notificationLogs, ({ one }) =
     fields: [notificationLogs.scanLogId],
     references: [scanLogs.id],
   }),
+}));
+
+// ============================================================================
+// ANONYMOUS CHAT SYSTEM (PRD v2)
+// ============================================================================
+
+// Chat Rooms - Manage anonymous chat sessions between owners and finders
+export const chatRooms = pgTable('chat_rooms', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  isActive: boolean('is_active').default(true).notNull(),
+  finderFingerprint: text('finder_fingerprint'), // Optional: track anonymous finder session
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  tagIdx: index('idx_chat_rooms_tag_id').on(table.tagId),
+  activeIdx: index('idx_chat_rooms_active').on(table.isActive),
+}));
+
+// Messages - Store chat message history
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  roomId: uuid('room_id').notNull().references(() => chatRooms.id, { onDelete: 'cascade' }),
+  senderType: text('sender_type').notNull(), // 'owner' | 'finder'
+  messageText: text('message_text').notNull(),
+  isReadByOwner: boolean('is_read_by_owner').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  roomIdx: index('idx_messages_room_id').on(table.roomId),
+  createdAtIdx: index('idx_messages_created_at').on(table.createdAt),
 }));
 
 // ============================================================================
@@ -466,6 +536,12 @@ export const tagDocumentsRelations = relations(tagDocuments, ({ one }) => ({
 
 export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
+export type PrintBatch = typeof printBatches.$inferSelect;
+export type NewPrintBatch = typeof printBatches.$inferInsert;
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type NewChatRoom = typeof chatRooms.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
 export type ScanLog = typeof scanLogs.$inferSelect;
 export type NewScanLog = typeof scanLogs.$inferInsert;
 export type User = typeof user.$inferSelect;
