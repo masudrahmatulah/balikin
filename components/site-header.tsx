@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,9 @@ import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 
 export function SiteHeader() {
-  // Better Auth 1.6+ useSession no longer accepts options
-  const { data: session, isPending, refetch } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-
-  // Refetch session on mount to ensure fresh data
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
 
   // Validate session has required user data
   const isValidSession = session && session.user && session.user.id;
@@ -33,38 +27,20 @@ export function SiteHeader() {
     setIsSigningOut(true);
 
     try {
-      // Clear all better-auth cookies explicitly before signing out
-      // Use correct cookie prefix based on environment
-      const cookiePrefix = process.env.NODE_ENV === 'production' ? 'balikin_auth' : 'balikin_auth_dev';
-      const cookies = document.cookie.split(';');
-      cookies.forEach(cookie => {
-        const cookieName = cookie.trim().split('=')[0];
-        if (cookieName.startsWith(cookiePrefix) || cookieName.includes('session')) {
-          // Clear cookie for current path and domain
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
-          // Also try with . prefix for subdomain cookies
-          if (window.location.hostname.includes('.')) {
-            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
-          }
-        }
-      });
-
-      // Use Better Auth's signOut method with onSuccess callback
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
             window.location.href = "/";
           },
+          onError: () => {
+            setIsSigningOut(false);
+            setIsMobileMenuOpen(false);
+          },
         },
       });
-    } catch (error) {
-      console.error("Sign out error:", error);
-      // Still redirect on error to ensure UI is updated
-      window.location.href = "/";
-    } finally {
-      setIsMobileMenuOpen(false);
+    } catch {
       setIsSigningOut(false);
+      setIsMobileMenuOpen(false);
     }
   };
 
