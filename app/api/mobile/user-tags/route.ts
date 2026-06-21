@@ -31,7 +31,7 @@ export async function GET() {
     const userTags = await db.query.tags.findMany({
       where: and(
         eq(tags.ownerId, userId),
-        eq(tags.appId, 'balikin_id')
+        eq(tags.app_id, 'balikin_id')
       ),
       orderBy: [desc(tags.createdAt)],
     });
@@ -64,12 +64,10 @@ export async function GET() {
         .from(scanLogs)
         .where(
           stickerTagIds.length > 0
-            ? inArray(scanLogs.tagId, stickerTagIds)
-              ? and(
-                  inArray(scanLogs.tagId, tagIds),
-                  gte(scanLogs.scannedAt, thirtyDaysAgo)
-                )
-              : inArray(scanLogs.tagId, tagIds)
+            ? and(
+                inArray(scanLogs.tagId, stickerTagIds),
+                gte(scanLogs.scannedAt, thirtyDaysAgo)
+              )
             : inArray(scanLogs.tagId, tagIds)
         )
         .groupBy(scanLogs.tagId),
