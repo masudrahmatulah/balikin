@@ -23,7 +23,7 @@ export async function GET() {
     const thirtyDaysAgo = subDays(new Date(), 30);
 
     const userTags = await db.query.tags.findMany({
-      where: and(eq(tags.ownerId, userId), eq(tags.appId, 'balikin_id')),
+      where: and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')),
       columns: {
         id: true,
         name: true,
