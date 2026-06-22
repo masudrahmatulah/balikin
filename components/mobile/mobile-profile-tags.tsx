@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { QrCode, Shield, Search, Plus } from 'lucide-react';
+import { QrCode, Shield, Search, Plus, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
+import { updateTagStatus } from '@/app/actions/tag';
+import { useRouter } from 'next/navigation';
 
 interface TagData {
   id: string;
@@ -28,10 +30,28 @@ async function getUserTags(): Promise<TagData[]> {
 
 export function MobileProfileTags() {
   const { data: session } = authClient.useSession();
+  const router = useRouter();
   const [tags, setTags] = useState<TagData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'normal' | 'lost'>('all');
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const handleToggleLost = useCallback(async (e: React.MouseEvent, tag: TagData) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (togglingId) return;
+    setTogglingId(tag.id);
+    const nextStatus = tag.status === 'lost' ? 'normal' : 'lost';
+    try {
+      await updateTagStatus(tag.id, nextStatus);
+      setTags(prev => prev.map(t => t.id === tag.id ? { ...t, status: nextStatus } : t));
+    } catch {
+      // silently fail, user can retry
+    } finally {
+      setTogglingId(null);
+    }
+  }, [togglingId]);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -158,41 +178,58 @@ export function MobileProfileTags() {
         ) : (
           <div className="space-y-3">
             {filteredTags.map((tag) => (
-              <Link
+              <div
                 key={tag.id}
-                href={`/dashboard/tag/${tag.slug}`}
-                className={`block bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 hover:shadow-xl transition-shadow ${
+                className={`bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 overflow-hidden ${
                   tag.status === 'lost' ? 'border-l-4 border-l-rose-500' : ''
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    tag.status === 'lost'
-                      ? 'bg-mobile-danger-lighter text-mobile-danger'
-                      : 'bg-mobile-primary-lighter text-mobile-primary'
-                  }`}>
-                    <QrCode className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-semibold text-gray-900 truncate">{tag.name}</h4>
-                      {tag.status === 'lost' && (
-                        <span className="text-xs bg-mobile-danger-lighter text-mobile-danger px-2 py-0.5 rounded-full ml-2 flex-shrink-0">
-                          HILANG
-                        </span>
+                <div className="flex items-center gap-3 p-4">
+                  {/* Navigasi ke detail tag */}
+                  <Link href={`/mobile/tag/${tag.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      tag.status === 'lost'
+                        ? 'bg-mobile-danger-lighter text-mobile-danger'
+                        : 'bg-mobile-primary-lighter text-mobile-primary'
+                    }`}>
+                      <QrCode className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-900 truncate text-sm">{tag.name}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {tag.scanCount} scan • {tag.productType === 'free' ? 'Free' : tag.productType === 'sticker' ? 'Stiker' : 'Premium'}
+                      </p>
+                      {tag.lastScanned && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(tag.lastScanned).toLocaleDateString('id-ID')}
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {tag.scanCount} scan • {tag.productType === 'free' ? 'Free' : tag.productType === 'sticker' ? 'Stiker' : 'Premium'}
-                    </p>
-                    {tag.lastScanned && (
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Terakhir: {new Date(tag.lastScanned).toLocaleDateString('id-ID')}
-                      </p>
+                  </Link>
+
+                  {/* Toggle mode hilang */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleToggleLost(e, tag)}
+                    disabled={togglingId === tag.id}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 btn-press ${
+                      tag.status === 'lost'
+                        ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    aria-label={tag.status === 'lost' ? `Nonaktifkan mode hilang ${tag.name}` : `Aktifkan mode hilang ${tag.name}`}
+                  >
+                    {togglingId === tag.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : tag.status === 'lost' ? (
+                      <AlertTriangle className="h-4 w-4" />
+                    ) : (
+                      <CheckCircle2 className="h-4 w-4" />
                     )}
-                  </div>
+                    <span>{tag.status === 'lost' ? 'Hilang' : 'Aman'}</span>
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
