@@ -471,9 +471,26 @@ export const TagCard = memo(function TagCard({
                 </div>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <div className="text-right">
+                <div className="text-right hidden sm:block">
                   <p className="text-xs text-slate-500">{scanCount} scans</p>
                   {createdLabel && <p className="text-xs text-slate-400" suppressHydrationWarning>{createdLabel}</p>}
+                </div>
+                {/* Lost mode quick toggle — stop propagation so collapsible doesn't open */}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusToggle(!isLost)}
+                    disabled={isLoading}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                      isLost
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                    aria-label={isLost ? `Nonaktifkan mode hilang ${name}` : `Aktifkan mode hilang ${name}`}
+                  >
+                    <AlertTriangle className="h-3 w-3" />
+                    {isLost ? 'Hilang' : 'Normal'}
+                  </button>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>
