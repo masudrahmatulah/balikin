@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { QrCode, Shield, Search } from 'lucide-react';
+import { QrCode, Shield, Search, Plus } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 
 interface TagData {
@@ -60,11 +60,18 @@ export function MobileProfileTags() {
     <div className="flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
-        <div className="px-4 py-4">
-          <h1 className="text-xl font-bold text-gray-900">Tag Saya</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {tags.length > 0 ? `${tags.length} tag terdaftar` : 'Kelola semua tag Anda'}
-          </p>
+        <div className="px-4 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Tag Saya</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {tags.length > 0 ? `${tags.length} tag terdaftar` : 'Kelola semua tag Anda'}
+            </p>
+          </div>
+          <Link href="/dashboard/new">
+            <div className="w-10 h-10 rounded-xl bg-mobile-primary flex items-center justify-center shadow-lg shadow-mobile-primary/30 btn-press">
+              <Plus className="h-5 w-5 text-white" />
+            </div>
+          </Link>
         </div>
 
         {/* Search Bar */}

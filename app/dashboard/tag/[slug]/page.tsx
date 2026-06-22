@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MapPin, Calendar, ExternalLink, FileText, Smartphone, Crown, BellRing, GraduationCap } from 'lucide-react';
+import { TagEditPanel } from '@/components/tag-edit-panel';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { DownloadCenter } from '@/components/download-center';
@@ -212,6 +213,16 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                       : 'Sticker Vinyl memakai jalur WhatsApp standar dengan ringkasan notifikasi yang tetap cepat dan ringan.'}
                   </div>
                 )}
+                <div className="pt-2">
+                  <TagEditPanel
+                    tagId={tag.id}
+                    tagName={tag.name}
+                    contactWhatsapp={tag.contactWhatsapp ?? ''}
+                    customMessage={tag.customMessage ?? null}
+                    rewardNote={tag.rewardNote ?? null}
+                    variant="desktop"
+                  />
+                </div>
               </CardContent>
             </Card>
 
