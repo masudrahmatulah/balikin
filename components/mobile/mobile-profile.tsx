@@ -10,7 +10,6 @@ import {
   Tag,
   AlertCircle,
   Loader2,
-  User
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
@@ -83,52 +82,42 @@ const menuSections = [
 ];
 
 export function MobileProfile() {
-  const { data: session } = useSession();
+  const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    if (session?.user?.id) {
-      try {
-        const res = await fetch('/api/mobile/user-profile', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          setProfileData(data);
-        }
-      } catch {}
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
+  useEffect(() => {
+    if (!sessionLoading && !session?.user?.id) {
+      router.replace('/sign-in?redirect=/mobile/profile');
     }
+  }, [sessionLoading, session?.user?.id, router]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    setIsDataLoading(true);
+    fetch('/api/mobile/user-profile', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setProfileData(data); })
+      .catch(() => {})
+      .finally(() => setIsDataLoading(false));
   }, [session?.user?.id]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  useEffect(() => {
-    const fetchRecentActivity = async () => {
-      if (session?.user?.id) {
-        try {
-          const res = await fetch('/api/mobile/recent-activity', { cache: 'no-store' });
-          if (res.ok) {
-            const data = await res.json();
-            setRecentActivity(data);
-          }
-        } catch {}
-      }
-    };
-    fetchRecentActivity();
+    if (!session?.user?.id) return;
+    fetch('/api/mobile/recent-activity', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setRecentActivity(data); })
+      .catch(() => {});
   }, [session?.user?.id]);
 
   const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);
     try {
       await signOut();
-      router.push('/sign-in');
+      router.push('/sign-in?redirect=/mobile/profile');
     } catch {
       setIsSigningOut(false);
     }
@@ -145,7 +134,7 @@ export function MobileProfile() {
 
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
-  if (isLoading) {
+  if (sessionLoading || isDataLoading || (!session?.user?.id && !sessionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center" aria-live="polite">
         <Loader2 className="h-8 w-8 text-mobile-primary animate-spin" aria-hidden="true" />

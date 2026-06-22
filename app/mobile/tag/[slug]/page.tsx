@@ -4,6 +4,7 @@ import { tags, scanLogs, notificationLogs, userModuleSelections } from '@/db/sch
 import { eq, and, gte, desc } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { ArrowLeft, QrCode, MapPin, Calendar, Smartphone, BellRing, ExternalLink, FileText, GraduationCap, Crown, Shield } from 'lucide-react';
+import { TagEditPanel } from '@/components/tag-edit-panel';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct } from '@/lib/product';
@@ -178,6 +179,17 @@ export default async function MobileTagDetailPage({ params }: TagDetailPageProps
                 }) : '-'}
               </p>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <TagEditPanel
+              tagId={tag.id}
+              tagName={tag.name}
+              contactWhatsapp={tag.contactWhatsapp ?? ''}
+              customMessage={tag.customMessage ?? null}
+              rewardNote={tag.rewardNote ?? null}
+              variant="mobile"
+            />
           </div>
         </div>
 

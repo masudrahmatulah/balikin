@@ -75,7 +75,7 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/pricing" className="flex cursor-pointer items-center gap-2">
+                  <Link href="/help" className="flex cursor-pointer items-center gap-2">
                     <HelpCircle className="h-4 w-4" />
                     <span>Bantuan</span>
                   </Link>
@@ -122,7 +122,7 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
                 <span>Dashboard</span>
               </Link>
               <Link
-                href="/pricing"
+                href="/help"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-100"
               >

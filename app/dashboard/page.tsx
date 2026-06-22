@@ -39,6 +39,7 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
   const isAtLimit = !hasPremiumTag && freeTagCount >= FREE_TAG_LIMIT;
 
   const userEmail = session.user.email ?? 'Pengguna Balikin';
+  const displayName = session.user.name ?? userEmail.split('@')[0];
   const tagsWithOwnerEmail = tags.map((tag) => ({
     ...tag,
     ownerEmail: session.user.email ?? null,
@@ -49,6 +50,11 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
       <DashboardHeader userEmail={userEmail} />
 
       <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
+        <div className="mb-6">
+          <p className="text-sm text-slate-500">Selamat datang kembali</p>
+          <h2 className="text-2xl font-bold text-slate-900">{displayName} 👋</h2>
+        </div>
+
         <DashboardStatusBanner totalTags={tags.length} lostTags={lostTagCount} />
 
         <DashboardQuickActions canCreateMore={canCreateMore} />

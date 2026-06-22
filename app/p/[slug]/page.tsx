@@ -284,7 +284,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 <div className="text-center pt-4">
                   <WhatsAppButton
                     phone={tag.contactWhatsapp}
-                    message={`Halo, saya ingin bertanya tentang tag "${tag.name}".`}
+                    message={tag.customMessage || `Halo, saya ingin bertanya tentang tag "${tag.name}".`}
                     variant="outline"
                   />
                 </div>
