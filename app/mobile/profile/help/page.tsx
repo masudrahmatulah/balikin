@@ -126,7 +126,7 @@ export default function MobileHelpPage() {
             <h2 className="text-base font-bold text-gray-900 mb-3">Hubungi Kami</h2>
             <div className="space-y-3">
               <a
-                href="https://wa.me/6281234567890"
+                href="https://wa.me/6287883956811"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-emerald-500 text-white rounded-2xl p-4 shadow-lg"

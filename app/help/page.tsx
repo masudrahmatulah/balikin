@@ -107,7 +107,7 @@ export default function HelpPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Hubungi Kami</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <a
-              href="https://wa.me/6281234567890"
+              href="https://wa.me/6287883956811"
               target="_blank"
               rel="noopener noreferrer"
               className="block bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl p-6 shadow-md transition-colors"
