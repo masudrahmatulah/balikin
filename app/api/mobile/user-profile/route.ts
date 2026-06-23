@@ -6,7 +6,6 @@ import { eq, count, and, gte, desc, inArray, sql } from 'drizzle-orm';
 import { subDays } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 30;
 
 export async function GET() {
   try {
