@@ -25,7 +25,6 @@ const SKIP_PATHS = [
   '/_next',
   '/sign-in',
   '/sign-up',
-  '/scan',
 ];
 
 // File extensions to skip (public assets)
@@ -63,6 +62,12 @@ export function proxy(request: NextRequest): NextResponse | void {
 
   if (shouldSkipPath(pathname)) {
     return;
+  }
+
+  if (pathname === '/scan' && isMobileDevice(userAgent)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mobile/scan';
+    return NextResponse.redirect(url);
   }
 
   const slugMatch = pathname.match(/^\/p\/([^/]+)/);
