@@ -41,15 +41,13 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
   const products: Product[] = [
     {
       name: 'Personal Protection Bundle',
-      price: 'Rp 35.000',
-      originalPrice: 'Rp 50.000',
+      price: 'Rp 54.000',
       icon: Shield,
       features: [
         '🔒 Anonymous WhatsApp Gateway',
         '📍 Live Scan Location Tracking',
         '🚨 Lost Mode Emergency Display',
         '📱 Real-time Alert System',
-        '∞ Unlimited Tags',
         '🎁 INCLUDES: Gantungan Akrilik Premium (akrilik 3mm)',
       ],
       badge: 'Best Seller',
@@ -58,8 +56,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
     },
     {
       name: 'Universal Asset Shield',
-      price: 'Rp 25.000',
-      originalPrice: 'Rp 35.000',
+      price: 'Rp 35.000',
       icon: Shield,
       features: [
         '🔒 Anonymous WhatsApp Gateway',
@@ -72,7 +69,6 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badge: 'Populer',
       badgeColor: 'bg-green-600',
       highlight: 'Universal protection for any surface',
-      comingSoon: true,
     },
     {
       name: 'Digital Guardian Free',

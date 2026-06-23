@@ -15,6 +15,7 @@ export interface Bundle {
   icon: React.ElementType;
   features: string[];
   validUntil?: string;
+  comingSoon?: boolean;
 }
 
 interface BundleDealsProps {
@@ -27,8 +28,8 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
       name: 'Paket Keluarga',
       items: '3 Gantungan Kunci + 2 Stiker QR',
       originalPrice: 125000,
-      promoPrice: 85000,
-      discount: 'Hemat Rp 40.000',
+      promoPrice: 114000,
+      discount: 'Hemat Rp 11.000',
       popular: true,
       icon: Users,
       features: [
@@ -56,6 +57,7 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
         'Full dashboard access',
       ],
       validUntil: 'Terbatas 100 paket pertama',
+      comingSoon: true,
     },
   ];
 
@@ -203,12 +205,16 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
                     {/* CTA Button */}
                     <Button
                       className={`w-full ${
-                        bundle.popular
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                          : 'bg-gray-900 hover:bg-gray-800'
+                        bundle.comingSoon
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : bundle.popular
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                            : 'bg-gray-900 hover:bg-gray-800'
                       }`}
                       size="lg"
+                      disabled={bundle.comingSoon}
                       onClick={() =>
+                        !bundle.comingSoon &&
                         window.open(
                           `https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20${encodeURIComponent(
                             bundle.name
@@ -217,8 +223,8 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
                         )
                       }
                     >
-                      Ambil Promo Sekarang
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {bundle.comingSoon ? 'Coming Soon' : 'Ambil Promo Sekarang'}
+                      {!bundle.comingSoon && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Button>
                   </CardContent>
                 </Card>
