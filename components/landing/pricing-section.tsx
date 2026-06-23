@@ -81,7 +81,7 @@ export function PricingSection() {
                 </div>
                 <CardHeader className="text-center pb-4">
                   <div className="text-sm font-medium text-blue-600 mb-2">Premium</div>
-                  <div className="text-4xl font-bold gradient-text">Rp 35.000</div>
+                  <div className="text-4xl font-bold gradient-text">Rp 54.000</div>
                   <div className="text-gray-500">per tag, satu kali bayar</div>
                 </CardHeader>
                 <CardContent className="text-left">
@@ -93,7 +93,6 @@ export function PricingSection() {
                       '🚨 Lost Mode dengan info imbalan',
                       '🎁 Gantungan kunci fisik premium (akrilik/vinyl)',
                       'Verified Owner Badge khusus',
-                      'Unlimited Tags',
                       'Priority support',
                     ].map((feature, i) => (
                       <li key={i} className="flex items-center gap-2">
