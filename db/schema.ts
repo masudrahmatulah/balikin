@@ -1097,6 +1097,48 @@ export const blogPostRevisionsRelations = relations(blogPostRevisions, ({ one })
 }));
 
 // ============================================================================
+// REFERRAL SYSTEM
+// ============================================================================
+
+export const referralVouchers = pgTable('referral_vouchers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull(),
+  code: text('code').notNull().unique(),
+  usageCount: integer('usage_count').default(0).notNull(),
+  maxUsageTarget: integer('max_usage_target').default(10).notNull(),
+  // 'NOT_ELIGIBLE' | 'READY_TO_CLAIM' | 'PENDING_PROCESSING' | 'SUCCESS'
+  claimStatus: text('claim_status').default('NOT_ELIGIBLE').notNull(),
+  walletProvider: text('wallet_provider'), // GOPAY | OVO | DANA | SHOPEEPAY
+  walletNumber: text('wallet_number'),
+  claimedAt: timestamp('claimed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+export const referralUsages = pgTable('referral_usages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  voucherId: uuid('voucher_id').references(() => referralVouchers.id).notNull(),
+  buyerUserId: text('buyer_user_id').notNull(),
+  orderId: text('order_id'),
+  usedAt: timestamp('used_at').defaultNow().notNull(),
+});
+
+export const referralVouchersRelations = relations(referralVouchers, ({ many, one }) => ({
+  usages: many(referralUsages),
+  owner: one(user, { fields: [referralVouchers.userId], references: [user.id] }),
+}));
+
+export const referralUsagesRelations = relations(referralUsages, ({ one }) => ({
+  voucher: one(referralVouchers, { fields: [referralUsages.voucherId], references: [referralVouchers.id] }),
+}));
+
+export type ReferralVoucher = typeof referralVouchers.$inferSelect;
+export type NewReferralVoucher = typeof referralVouchers.$inferInsert;
+export type ReferralUsage = typeof referralUsages.$inferSelect;
+
+// ============================================================================
 // BLOG TYPE EXPORTS
 // ============================================================================
 
