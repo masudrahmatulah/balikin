@@ -220,6 +220,7 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                     contactWhatsapp={tag.contactWhatsapp ?? ''}
                     customMessage={tag.customMessage ?? null}
                     rewardNote={tag.rewardNote ?? null}
+                    isFree={isFreeTag}
                     variant="desktop"
                   />
                 </div>
