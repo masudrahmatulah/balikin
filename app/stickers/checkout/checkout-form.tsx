@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type ProductKey } from '@/lib/product-catalog';
 
 interface CheckoutFormProps {
   onSuccess: (orderId: string) => void;
+  productKey: ProductKey;
 }
 
 type FieldErrors = Record<string, string>;
@@ -23,7 +25,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
+export function CheckoutForm({ onSuccess, productKey }: CheckoutFormProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [segment, setSegment] = useState('');
@@ -42,6 +44,7 @@ export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
       notes: String(formData.get('notes') ?? ''),
       segment,
       voucherCode: String(formData.get('voucherCode') ?? ''),
+      productKey,
     };
 
     // Client-side guard untuk segment (wajib)

@@ -6,11 +6,8 @@ import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import { stickerOrders, referralVouchers } from '@/db/schema';
 import { eq, and, lt, gt, sql } from 'drizzle-orm';
-import {
-  STICKER_PACK_PRICE,
-  STICKER_PACK_SIZE,
-  STICKER_PAYMENT_METHOD,
-} from '@/lib/constants';
+import { STICKER_PAYMENT_METHOD } from '@/lib/constants';
+import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
 
 // ─── Batas panjang field ───────────────────────────────────────────────────
 const MAX_FIELD_LENGTHS = {
@@ -121,6 +118,7 @@ export interface CreateOrderInput {
   notes?: string;
   segment: string;
   voucherCode?: string;
+  productKey?: string;
 }
 
 // ─── Server Action ─────────────────────────────────────────────────────────
@@ -141,8 +139,10 @@ export async function createStickerOrder(input: CreateOrderInput) {
     ? stripHtml(validateField(input.notes, 'Catatan', MAX_FIELD_LENGTHS.notes))
     : null;
 
-  // Harga SELALU ditentukan server — tidak pernah dari client (checkout.md Section 2)
-  let basePrice = STICKER_PACK_PRICE;
+  // Harga & productType SELALU ditentukan server dari katalog — tidak pernah dari client
+  const catalogKey = resolveProductKey(input.productKey);
+  const catalogEntry = PRODUCT_CATALOG[catalogKey];
+  let basePrice = catalogEntry.price;
   let discountAmount = 0;
 
   // Validasi voucher (opsional) — atomic SQL anti-race-condition (checkout.md Section 4A)
@@ -165,9 +165,9 @@ export async function createStickerOrder(input: CreateOrderInput) {
       postalCode,
       notes,
       paymentMethod: STICKER_PAYMENT_METHOD,
-      productType: 'sticker',
+      productType: catalogEntry.productType,
       packQuantity: 1,
-      unitCountPerPack: STICKER_PACK_SIZE,
+      unitCountPerPack: catalogEntry.packSize,
       totalAmount,
     })
     .returning();

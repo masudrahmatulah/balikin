@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
-import { Check, MessageCircle } from 'lucide-react';
+import { Check, ShoppingCart } from 'lucide-react';
 import { SimpleUrgencyBadge } from '@/components/landing/urgency-badge';
 
 export function PricingSection() {
@@ -102,14 +102,15 @@ export function PricingSection() {
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    className="w-full bg-green-600 hover:bg-green-700 mt-6"
-                    onClick={() => window.open('https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20produk%20premium', '_blank')}
-                    size="lg"
-                  >
-                    <MessageCircle className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Pesan via WhatsApp
-                  </Button>
+                  <Link href="/stickers/checkout" className="block mt-6">
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      size="lg"
+                    >
+                      <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Pesan Sekarang
+                    </Button>
+                  </Link>
                   <p className="text-xs text-gray-600 text-center mt-3">
                     💝 Bonus: WhatsApp Gateway gratis selama 1 tahun setelah pembelian
                   </p>

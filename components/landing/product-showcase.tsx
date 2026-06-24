@@ -15,7 +15,9 @@ import {
   ZoomIn,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { type ProductKey } from '@/lib/product-catalog';
 
 export interface Product {
   name: string;
@@ -30,6 +32,7 @@ export interface Product {
   images?: string[];
   category?: string;
   savings?: string;
+  productKey?: ProductKey;
 }
 
 interface ProductShowcaseProps {
@@ -37,6 +40,7 @@ interface ProductShowcaseProps {
 }
 
 export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
+  const router = useRouter();
   const [currentImageIndices, setCurrentImageIndices] = useState<Record<number, number>>({});
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
@@ -72,6 +76,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badgeColor: 'bg-blue-600',
       highlight: 'Premium keychain untuk kunci motor/mobil',
       category: 'physical',
+      productKey: 'armor-tag',
     },
     // STICKER VARIANTS
     {
@@ -89,6 +94,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badgeColor: 'bg-indigo-600',
       highlight: 'Stiker besar untuk aset premium',
       category: 'sticker',
+      productKey: 'stiker-pro',
     },
     {
       name: 'Stiker Balikin Daily',
@@ -105,6 +111,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badgeColor: 'bg-green-600',
       highlight: 'Stiker sedang untuk kebutuhan harian',
       category: 'sticker',
+      productKey: 'stiker-daily',
     },
     {
       name: 'Stiker Balikin Micro',
@@ -121,6 +128,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       badgeColor: 'bg-pink-600',
       highlight: 'Stiker kecil untuk barang saku',
       category: 'sticker',
+      productKey: 'stiker-micro',
     },
     {
       name: 'Stiker Balikin Family',
@@ -139,6 +147,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       highlight: 'Paket stiker terlengkap & terhemat',
       savings: 'Hemat Rp 68.000',
       category: 'sticker',
+      productKey: 'stiker-family',
     },
     // BUNDLE PRODUCTS
     {
@@ -158,6 +167,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       highlight: 'Proteksi menyeluruh dengan harga hemat',
       savings: 'Hemat Rp 24.000',
       category: 'bundle',
+      productKey: 'ultimate-pack',
     },
     {
       name: 'Paket Keluarga',
@@ -176,6 +186,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       highlight: 'Perlindungan menyeluruh satu keluarga',
       savings: 'Hemat Rp 57.000',
       category: 'bundle',
+      productKey: 'paket-keluarga',
     },
     {
       name: 'Paket Traveller',
@@ -194,6 +205,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       highlight: 'Paket grosir untuk bisnis & reseller',
       savings: 'Hemat Rp 191.000',
       category: 'bundle',
+      productKey: 'paket-traveller',
     },
   ];
 
@@ -442,17 +454,13 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                       }`}
                       onClick={() => {
                         if (product.category === 'digital') {
-                          window.location.href = '/sign-up';
-                        } else {
-                          window.open(
-                            'https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20' +
-                              encodeURIComponent(product.name),
-                            '_blank'
-                          );
+                          router.push('/sign-up');
+                        } else if (product.productKey) {
+                          router.push(`/stickers/checkout?product=${product.productKey}`);
                         }
                       }}
                     >
-                      {product.comingSoon ? 'Coming Soon' : product.category === 'digital' ? 'Buat Gratis Sekarang' : 'Pesan via WhatsApp'}
+                      {product.comingSoon ? 'Coming Soon' : product.category === 'digital' ? 'Buat Gratis Sekarang' : 'Pesan Sekarang'}
                     </motion.button>
                   </CardContent>
                 </Card>

@@ -1,13 +1,15 @@
 import { QrCode, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  STICKER_PACK_PRICE,
-  STICKER_PACK_SIZE,
-  STICKER_PAYMENT_LABEL,
-  STICKER_QRIS_NOTES,
-} from '@/lib/constants';
+import { STICKER_PAYMENT_LABEL, STICKER_QRIS_NOTES } from '@/lib/constants';
+import { type PRODUCT_CATALOG } from '@/lib/product-catalog';
 
-export function OrderSummary() {
+type ProductEntry = (typeof PRODUCT_CATALOG)[keyof typeof PRODUCT_CATALOG];
+
+interface OrderSummaryProps {
+  product: ProductEntry;
+}
+
+export function OrderSummary({ product }: OrderSummaryProps) {
   return (
     <div className="space-y-4">
       {/* Ringkasan produk */}
@@ -21,19 +23,21 @@ export function OrderSummary() {
         <CardContent className="space-y-3 text-sm text-slate-700">
           <div className="flex justify-between gap-4">
             <span>Produk</span>
-            <span className="font-medium text-right">Stiker Balikin Family</span>
+            <span className="font-medium text-right">{product.name}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Isi Pack</span>
-            <span className="font-medium">{STICKER_PACK_SIZE} QR (campuran ukuran)</span>
+            <span className="font-medium">{product.packSize} unit</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Material</span>
-            <span className="font-medium">Vinyl Premium (UV Protected)</span>
+            <span className="font-medium">
+              {product.productType === 'acrylic' ? 'Akrilik Premium' : 'Vinyl Premium (UV Protected)'}
+            </span>
           </div>
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
             <span>Harga Produk</span>
-            <span className="font-medium">Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}</span>
+            <span className="font-medium">Rp{product.price.toLocaleString('id-ID')}</span>
           </div>
           <div className="flex justify-between gap-4 text-slate-500 text-xs">
             <span>Ongkir</span>
@@ -42,7 +46,7 @@ export function OrderSummary() {
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
             <span className="font-semibold">Total Produk</span>
             <span className="text-lg font-bold text-slate-950">
-              Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}
+              Rp{product.price.toLocaleString('id-ID')}
             </span>
           </div>
         </CardContent>
