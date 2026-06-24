@@ -27,6 +27,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 | **Daya Tahan** | Rendah (Tergantung cara cetak user) | Tinggi (Anti air, Anti pudar, UV Protected) |
 | **Scan History** | 7 hari | 30 hari (untuk stiker) |
 | **Module Access** | Terbatas | Full access (Student Kit, Otomotif, dll) |
+| **Janji Hadiah** | Terkunci (tampil preview dengan gembok) | Dropdown preset (Rp 25k/30k/40k) + input kustom |
 
 ---
 
@@ -70,6 +71,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **Slug Generator:** Menggunakan nanoid 12 karakter untuk keamanan dan ketidakprediktabilan.
 * **Verified Owner Badge:** Badge verifikasi untuk pemilik produk premium.
 * **Hero Finder Badge:** Badge "Pahlawan Penemu" untuk penemu barang yang menghubungi pemilik.
+* **Janji Hadiah (Premium):** Owner dapat menetapkan imbalan untuk penemu — pilihan dropdown preset (Rp 25.000, Rp 30.000, Rp 40.000) atau input kustom bebas (nominal uang, pulsa, top-up e-wallet, dll). Ditampilkan di halaman publik saat status hilang. User gratis melihat field ini terkunci dengan prompt upgrade: "🔒 Upgrade ke Premium untuk mengaktifkan fitur Janji Hadiah & tingkatkan peluang barang kembali hingga 80%!"
 
 ---
 
@@ -207,7 +209,7 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
 ## 11. Monetisasi (Revenue Streams)
 
-1. **Direct Sales:** Penjualan satuan gantungan kunci (Standard: Rp29.000, Premium: Rp35.000).
+1. **Direct Sales:** Penjualan satuan gantungan kunci ( Premium: Rp54.000).
 2. **Sticker Packs:** Stiker vinyl waterproof (Small: Rp25.000, Medium: Rp35.000, Large: Rp50.000).
 3. **Bundle Packages:** Paket tematik (Student Kit: Rp79.000, Otomotif: Rp59.000, Pertanian: Rp69.000, Diklat: Rp149.000).
 4. **Corporate/B2B:** Paket custom untuk sekolah, komunitas motor, tour & travel.
@@ -360,7 +362,7 @@ balikin_qr_stocks - QR stock management
      - Notifikasi ke pemilik via WhatsApp/email
 
 5. **Free Tier Limit:**
-   * User gratis maksimal 5 tag.
+   * User gratis maksimal 2 tag.
    * Premium unlimited sesuai pesanan.
 
 6. **Module Activation:**

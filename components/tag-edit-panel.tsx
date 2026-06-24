@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateTag } from '@/app/actions/tag';
-import { Edit2, Save, X, Loader2, MessageSquare, Phone, Tag } from 'lucide-react';
+import { Edit2, Save, X, Loader2, MessageSquare, Phone, Tag, Lock, Gift } from 'lucide-react';
+
+const REWARD_PRESETS = ['Rp 25.000', 'Rp 30.000', 'Rp 40.000'];
 
 interface TagEditPanelProps {
   tagId: string;
@@ -11,6 +13,7 @@ interface TagEditPanelProps {
   contactWhatsapp: string;
   customMessage: string | null;
   rewardNote: string | null;
+  isFree?: boolean;
   variant?: 'desktop' | 'mobile';
 }
 
@@ -20,6 +23,7 @@ export function TagEditPanel({
   contactWhatsapp,
   customMessage,
   rewardNote,
+  isFree = false,
   variant = 'desktop',
 }: TagEditPanelProps) {
   const router = useRouter();
@@ -31,13 +35,24 @@ export function TagEditPanel({
   const [name, setName] = useState(tagName);
   const [phone, setPhone] = useState(contactWhatsapp);
   const [message, setMessage] = useState(customMessage ?? '');
-  const [reward, setReward] = useState(rewardNote ?? '');
+
+  function derivePresetAndCustom(note: string | null) {
+    if (!note) return { preset: '', custom: '' };
+    if (REWARD_PRESETS.includes(note)) return { preset: note, custom: '' };
+    return { preset: 'custom', custom: note };
+  }
+
+  const initial = derivePresetAndCustom(rewardNote);
+  const [rewardPreset, setRewardPreset] = useState(initial.preset);
+  const [rewardCustom, setRewardCustom] = useState(initial.custom);
 
   function handleOpen() {
     setName(tagName);
     setPhone(contactWhatsapp);
     setMessage(customMessage ?? '');
-    setReward(rewardNote ?? '');
+    const derived = derivePresetAndCustom(rewardNote);
+    setRewardPreset(derived.preset);
+    setRewardCustom(derived.custom);
     setError(null);
     setSuccess(false);
     setIsOpen(true);
@@ -50,13 +65,14 @@ export function TagEditPanel({
 
   function handleSave() {
     setError(null);
+    const finalReward = rewardPreset === 'custom' ? rewardCustom.trim() : rewardPreset;
     startTransition(async () => {
       try {
         await updateTag(tagId, {
           name: name.trim() || undefined,
           contactWhatsapp: phone.trim() || undefined,
           customMessage: message.trim() || undefined,
-          rewardNote: reward.trim() || undefined,
+          ...(isFree ? {} : { rewardNote: finalReward || undefined }),
         });
         setSuccess(true);
         setIsOpen(false);
@@ -178,20 +194,46 @@ export function TagEditPanel({
         </p>
       </div>
 
-      {/* Imbalan */}
-      <div>
-        <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
-          Catatan Imbalan <span className="text-gray-400">(opsional)</span>
-        </label>
-        <input
-          type="text"
-          value={reward}
-          onChange={(e) => setReward(e.target.value)}
-          placeholder="Contoh: Ada imbalan bagi penemu yang jujur."
-          className={inputClass}
-          maxLength={200}
-        />
-      </div>
+      {/* Janji Hadiah */}
+      {isFree ? (
+        <div className={`rounded-lg border border-gray-200 bg-gray-50 p-3 ${isMobile ? 'rounded-xl' : ''}`}>
+          <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium mb-1">
+            <Lock className="h-3.5 w-3.5" />
+            Janji Hadiah
+          </div>
+          <p className="text-xs text-gray-400">
+            🔒 Upgrade ke Premium untuk mengaktifkan fitur Janji Hadiah &amp; tingkatkan peluang barang kembali hingga 80%!
+          </p>
+        </div>
+      ) : (
+        <div>
+          <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <Gift className="h-3.5 w-3.5" />
+            Janji Hadiah <span className="text-gray-400">(opsional)</span>
+          </label>
+          <select
+            value={rewardPreset}
+            onChange={(e) => setRewardPreset(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Tidak ada imbalan</option>
+            {REWARD_PRESETS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+            <option value="custom">Kustom...</option>
+          </select>
+          {rewardPreset === 'custom' && (
+            <input
+              type="text"
+              value={rewardCustom}
+              onChange={(e) => setRewardCustom(e.target.value)}
+              placeholder="Contoh: Pulsa Rp 25.000, top-up GoPay Rp 50.000, dll."
+              className={`${inputClass} mt-2`}
+              maxLength={200}
+            />
+          )}
+        </div>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>

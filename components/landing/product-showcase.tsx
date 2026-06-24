@@ -28,6 +28,8 @@ export interface Product {
   highlight: string;
   comingSoon?: boolean;
   images?: string[];
+  category?: string;
+  savings?: string;
 }
 
 interface ProductShowcaseProps {
@@ -39,52 +41,159 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const products: Product[] = [
+    // FREE & ANCHOR PRODUCTS
     {
-      name: 'Personal Protection Bundle',
-      price: 'Rp 54.000',
-      icon: Shield,
-      features: [
-        '🔒 Anonymous WhatsApp Gateway',
-        '📍 Live Scan Location Tracking',
-        '🚨 Lost Mode Emergency Display',
-        '📱 Real-time Alert System',
-        '🎁 INCLUDES: Gantungan Akrilik Premium (akrilik 3mm)',
-      ],
-      badge: 'Best Seller',
-      badgeColor: 'bg-blue-600',
-      highlight: 'Complete peace of mind package',
-    },
-    {
-      name: 'Universal Asset Shield',
-      price: 'Rp 35.000',
-      icon: Shield,
-      features: [
-        '🔒 Anonymous WhatsApp Gateway',
-        '📍 Live Scan Location Tracking',
-        '🚨 Lost Mode Emergency Display',
-        '📱 Real-time Alert System',
-        '✨ Flexible untuk helm, koper, laptop',
-        '🎁 INCLUDES: Stiker Vinyl Waterproof',
-      ],
-      badge: 'Populer',
-      badgeColor: 'bg-green-600',
-      highlight: 'Universal protection for any surface',
-    },
-    {
-      name: 'Digital Guardian Free',
+      name: 'Balikin Free Pass',
       price: 'Rp 0',
-      icon: Shield,
+      icon: QrCode,
       features: [
-        '🔒 Anonymous WhatsApp Gateway',
-        '📍 Live Scan Location Tracking',
-        '🚨 Lost Mode Emergency Display',
-        '📱 Real-time Email Alert',
-        '2 Tag Gratis',
-        '🎁 QR Code High-Quality (cetak sendiri)',
+        '📱 QR Code digital untuk dicetak sendiri',
+        '📧 Notifikasi scan via email',
+        '📍 Estimasi lokasi berdasarkan IP Address',
+        '🔒 Sistem Anonymous Gateway gratis',
       ],
       badge: 'Gratis',
       badgeColor: 'bg-purple-600',
-      highlight: 'Start free, upgrade anytime',
+      highlight: 'Mulai gratis, upgrade kapan saja',
+      category: 'digital',
+    },
+    {
+      name: 'Balikin Armor Tag',
+      price: 'Rp 54.000',
+      icon: Shield,
+      features: [
+        '🔑 Gantungan kunci akrilik premium',
+        '💪 Tahan benturan & cuaca ekstrem',
+        '📍 Live tracking dengan GPS',
+        '📱 Notifikasi WhatsApp real-time',
+        '🚨 Lost Mode emergency display',
+      ],
+      badge: 'The Anchor',
+      badgeColor: 'bg-blue-600',
+      highlight: 'Premium keychain untuk kunci motor/mobil',
+      category: 'physical',
+    },
+    // STICKER VARIANTS
+    {
+      name: 'Stiker Balikin Pro',
+      price: 'Rp 59.000',
+      icon: Sticker,
+      features: [
+        '📦 1 Sheet A5 (Isi 6-8 QR)',
+        '📏 Ukuran Besar (3,5 × 3,5 cm)',
+        '💎 Vinyl Premium tahan air & UV',
+        '🎒 Ideal untuk laptop, helm, koper',
+        'Untuk professional dengan aset besar',
+      ],
+      badge: 'Profesional',
+      badgeColor: 'bg-indigo-600',
+      highlight: 'Stiker besar untuk aset premium',
+      category: 'sticker',
+    },
+    {
+      name: 'Stiker Balikin Daily',
+      price: 'Rp 59.000',
+      icon: Sticker,
+      features: [
+        '📦 1 Sheet A5 (Isi 12-15 QR)',
+        '📏 Ukuran Sedang (2,5 × 2,5 cm)',
+        '💎 Vinyl Premium tahan air & UV',
+        '🎒 Untuk botol, agenda, tablet, kamera',
+        'Amankan barang bawaan kantor/sekolah',
+      ],
+      badge: 'Sehari-hari',
+      badgeColor: 'bg-green-600',
+      highlight: 'Stiker sedang untuk kebutuhan harian',
+      category: 'sticker',
+    },
+    {
+      name: 'Stiker Balikin Micro',
+      price: 'Rp 59.000',
+      icon: Sticker,
+      features: [
+        '📦 1 Sheet A5 (Isi 20-24 QR)',
+        '📏 Ukuran Saku (1,8 × 1,8 cm)',
+        '💎 Vinyl Premium tahan air & UV',
+        '🎒 Untuk TWS, powerbank, charger, flashdisk',
+        'Proteksi barang mini yang rentan terselip',
+      ],
+      badge: 'Mini',
+      badgeColor: 'bg-pink-600',
+      highlight: 'Stiker kecil untuk barang saku',
+      category: 'sticker',
+    },
+    {
+      name: 'Stiker Balikin Family',
+      price: 'Rp 59.000',
+      originalPrice: 'Rp 127.000',
+      icon: Sticker,
+      features: [
+        '📦 1 Sheet A5 (Isi 12 QR Campuran)',
+        '📏 3 Besar + 4 Sedang + 5 Kecil',
+        '💎 Vinyl Premium multi-ukuran',
+        '🎁 Amankan semua jenis barang sekali',
+        'Hemat hingga Rp 68.000',
+      ],
+      badge: '⭐ BEST SELLER',
+      badgeColor: 'bg-yellow-600',
+      highlight: 'Paket stiker terlengkap & terhemat',
+      savings: 'Hemat Rp 68.000',
+      category: 'sticker',
+    },
+    // BUNDLE PRODUCTS
+    {
+      name: 'Balikin Ultimate Pack',
+      price: 'Rp 89.000',
+      originalPrice: 'Rp 113.000',
+      icon: Package,
+      features: [
+        '🎁 1 Gantungan Kunci Akrilik Premium',
+        '🎁 1 Sheet Stiker Family (12 QR)',
+        '📍 Full tracking + WhatsApp alerts',
+        '🚨 Lost Mode dengan reward system',
+        '⭐ Hemat Rp 24.000 vs beli eceran',
+      ],
+      badge: '⭐ BEST VALUE',
+      badgeColor: 'bg-red-600',
+      highlight: 'Proteksi menyeluruh dengan harga hemat',
+      savings: 'Hemat Rp 24.000',
+      category: 'bundle',
+    },
+    {
+      name: 'Paket Keluarga',
+      price: 'Rp 299.000',
+      originalPrice: 'Rp 356.000',
+      icon: Package,
+      features: [
+        '🏠 4 Set Ultimate Pack',
+        '👨‍👩‍👧‍👦 Dibagi untuk Ayah, Ibu, & 2 Anak',
+        '📍 Proteksi total untuk keluarga',
+        '💰 Hemat Rp 57.000',
+        'Tingkatkan basket size & margin keuntungan',
+      ],
+      badge: 'Keluarga',
+      badgeColor: 'bg-cyan-600',
+      highlight: 'Perlindungan menyeluruh satu keluarga',
+      savings: 'Hemat Rp 57.000',
+      category: 'bundle',
+    },
+    {
+      name: 'Paket Traveller',
+      price: 'Rp 699.000',
+      originalPrice: 'Rp 890.000',
+      icon: Package,
+      features: [
+        '🚀 10 Set Ultimate Pack',
+        '🤝 Untuk bisnis rental, trip, logistik',
+        '📊 Solusi B2B commercial',
+        '💰 Hemat Rp 191.000',
+        'Volume tinggi untuk reseller & business',
+      ],
+      badge: 'B2B',
+      badgeColor: 'bg-gray-700',
+      highlight: 'Paket grosir untuk bisnis & reseller',
+      savings: 'Hemat Rp 191.000',
+      category: 'bundle',
     },
   ];
 
@@ -100,18 +209,18 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
         >
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Shield className="h-4 w-4" />
-            Pilih Paket Proteksi
+            9 Produk untuk Semua Kebutuhan
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Pilih Sistem Keamanan Privasi yang Sesuai Kebutuhanmu
+            Paket Proteksi untuk Setiap Kebutuhan & Budget
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Setiap paket termasuk <span className="font-semibold">Anonymous Gateway, Live Tracking, dan Lost Mode</span>. Hardware fisik adalah bonus untuk memudahkan penggunaan.
+          <p className="text-gray-600 max-w-3xl mx-auto">
+            Dari gratis digital hingga paket B2B komersial. Setiap produk dilengkapi <span className="font-semibold">Anonymous WhatsApp Gateway, Live Tracking, Lost Mode, dan Reward System</span>. Pilih yang paling sesuai kebutuhanmu.
           </p>
         </motion.div>
 
         {/* Products Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-full mx-auto">
           {products.map((product, index) => {
             const Icon = product.icon;
             return (
@@ -132,12 +241,18 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                 )}
 
                 <Card
-                  className={`h-full hover-card-effect border-2 ${
-                    index === 0
+                  className={`h-full hover-card-effect border-2 transition-all duration-300 ${
+                    product.badge.includes('BEST') || product.badge.includes('⭐')
+                      ? 'shadow-lg'
+                      : ''
+                  } ${
+                    product.category === 'digital'
+                      ? 'border-purple-200'
+                      : product.category === 'physical'
                       ? 'border-blue-200 shadow-xl shadow-blue-600/10'
-                      : index === 1
+                      : product.category === 'sticker'
                       ? 'border-green-200'
-                      : 'border-purple-200'
+                      : 'border-orange-200'
                   }`}
                 >
                   <CardContent className="p-6">
@@ -237,11 +352,13 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                       >
                         <div
                           className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl ${
-                            index === 0
+                            product.category === 'digital'
+                              ? 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-600/30'
+                              : product.category === 'physical'
                               ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-600/30'
-                              : index === 1
+                              : product.category === 'sticker'
                               ? 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-600/30'
-                              : 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-600/30'
+                              : 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-600/30'
                           }`}
                         >
                           <Icon className="h-10 w-10 text-white" />
@@ -260,11 +377,13 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                     {/* Highlight */}
                     <p
                       className={`text-xs text-center mb-4 font-medium ${
-                        index === 0
+                        product.category === 'digital'
+                          ? 'text-purple-600'
+                          : product.category === 'physical'
                           ? 'text-blue-600'
-                          : index === 1
+                          : product.category === 'sticker'
                           ? 'text-green-600'
-                          : 'text-purple-600'
+                          : 'text-orange-600'
                       }`}
                     >
                       {product.highlight}
@@ -273,11 +392,18 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                     {/* Price */}
                     <div className="text-center mb-6">
                       {product.originalPrice && (
-                        <span className="text-sm text-gray-400 line-through mr-2">
-                          {product.originalPrice}
-                        </span>
+                        <div className="mb-2">
+                          <span className="text-sm text-gray-400 line-through">
+                            {product.originalPrice}
+                          </span>
+                        </div>
                       )}
                       <span className="text-2xl font-bold gradient-text">{product.price}</span>
+                      {product.savings && (
+                        <div className="text-xs text-green-600 font-semibold mt-2">
+                          ✓ {product.savings}
+                        </div>
+                      )}
                     </div>
 
                     {/* Features */}
@@ -286,11 +412,13 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                         <li key={i} className="flex items-start gap-2">
                           <Check
                             className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                              index === 0
+                              product.category === 'digital'
+                                ? 'text-purple-600'
+                                : product.category === 'physical'
                                 ? 'text-blue-600'
-                                : index === 1
+                                : product.category === 'sticker'
                                 ? 'text-green-600'
-                                : 'text-purple-600'
+                                : 'text-orange-600'
                             }`}
                           />
                           <span className="text-sm text-gray-600">{feature}</span>
@@ -304,17 +432,17 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                       whileTap={{ scale: 0.98 }}
                       disabled={product.comingSoon}
                       className={`w-full mt-6 py-3 rounded-lg font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                        index === 0
+                        product.category === 'digital'
+                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                          : product.category === 'physical'
                           ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
-                          : index === 1
+                          : product.category === 'sticker'
                           ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
-                          : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                          : 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
                       }`}
                       onClick={() => {
-                        if (index === 2) {
+                        if (product.category === 'digital') {
                           window.location.href = '/sign-up';
-                        } else if (index === 1) {
-                          window.location.href = '/stickers';
                         } else {
                           window.open(
                             'https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20' +
@@ -324,7 +452,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                         }
                       }}
                     >
-                      {product.comingSoon ? 'Coming Soon' : index === 2 ? 'Buat Gratis Sekarang' : 'Pesan via WhatsApp'}
+                      {product.comingSoon ? 'Coming Soon' : product.category === 'digital' ? 'Buat Gratis Sekarang' : 'Pesan via WhatsApp'}
                     </motion.button>
                   </CardContent>
                 </Card>
@@ -332,6 +460,37 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
             );
           })}
         </div>
+
+        {/* Product Categories Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 max-w-4xl mx-auto"
+        >
+          <div className="grid md:grid-cols-4 gap-4 text-center">
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="text-2xl mb-2">📱</div>
+              <p className="text-sm font-semibold text-purple-900">Digital</p>
+              <p className="text-xs text-gray-600">Free Pass</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-2xl mb-2">🔑</div>
+              <p className="text-sm font-semibold text-blue-900">Physical</p>
+              <p className="text-xs text-gray-600">Armor Tag</p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="text-2xl mb-2">🏷️</div>
+              <p className="text-sm font-semibold text-green-900">Stickers</p>
+              <p className="text-xs text-gray-600">4 Varian</p>
+            </div>
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="text-2xl mb-2">📦</div>
+              <p className="text-sm font-semibold text-orange-900">Bundles</p>
+              <p className="text-xs text-gray-600">3 Paket</p>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Trust Badge */}
         <motion.div
@@ -342,7 +501,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
         >
           <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-6 py-3 rounded-full">
             <Shield className="h-5 w-5" />
-            <span className="font-medium">Garansi Sistem - Secure Gateway aktif 24/7, privasi end-to-end encrypted</span>
+            <span className="font-medium">✓ Garansi: Sistem Anonymous Gateway aktif 24/7 & privasi end-to-end encrypted</span>
           </div>
         </motion.div>
 
