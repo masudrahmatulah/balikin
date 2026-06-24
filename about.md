@@ -61,11 +61,14 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ### Alur Aplikasi (Operational)
 
-1. **Pemesanan:** User memesan melalui landing page.
-2. **Generasi Tag:** Sistem membuat ID unik (nanoid 12 karakter) dan URL dinamis di database.
-3. **Produksi:** Admin/Vendor mencetak QR Code pada gantungan kunci.
-4. **Aktivasi:** User menerima barang, scan QR, dan melakukan klaim (registrasi) barang ke akun mereka.
-5. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
+1. **Pemesanan:** User memilih produk di landing page dan mengisi form checkout (Nama, WhatsApp, alamat, segmentasi CRM).
+2. **Kalkulasi Ongkir:** Sistem memanggil RajaOngkir/Biteship via cascading dropdown (Provinsi → Kota → Kecamatan), dengan fallback tarif flat jika API timeout.
+3. **Pembayaran:** User membayar via QRIS Midtrans (GoPay/ShopeePay). Di mobile, muncul tombol deep-link langsung ke aplikasi e-wallet.
+4. **Webhook Settlement:** Midtrans mengirim notifikasi → status order berubah ke `settlement` → PIN aktivasi di-generate → order diantrekan ke VDP Tool admin gudang.
+5. **Generasi Tag:** Sistem membuat short_code unik (nanoid) dan mencatat hubungan Sheet_ID ↔ array tag_id di tabel `sticker_sheets`.
+6. **Produksi & QC:** Admin mencetak stiker/akrilik via VDP Tool. Tim gudang scan barcode Sheet_ID untuk validasi integritas sebelum pengiriman.
+7. **Aktivasi:** User menerima barang, scan QR, login, input 6-digit PIN Aktivasi → tag berpindah status `unclaimed` → `claimed`. Sistem auto-set `premium_until = NOW() + 1 year`.
+8. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
 
 ### Alur User (Digital Journey)
 
@@ -218,8 +221,16 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **vCard Sharing:** Share vCard magang.
 * **QR Generation:** Generate QR untuk jadwal/vCard.
 
+### Checkout & Payment API
+* **Shipping Cost:** Kalkulasi ongkir via RajaOngkir/Biteship (cascading dropdown Province → City → District).
+* **Voucher Validation:** Validasi kode voucher dengan atomic SQL query (anti-race condition).
+* **Midtrans Webhook:** Terima notifikasi settlement, trigger PIN generation & VDP queue.
+* **Grand Total:** Kalkulasi server-side saja (`Base Price + Shipping - Discount`).
+
 ### Cron Jobs
 * **Deadline Reminders:** Pengingat deadline tugas (terjadwal).
+* **CRM H+3:** Kirim WA otomatis 3 hari setelah pembelian untuk panduan aktivasi PIN fisik.
+* **CRM H-30:** Kirim WA reminder perpanjangan cloud (Rp 15.000/tahun) 30 hari sebelum `premium_until` berakhir.
 
 ---
 
@@ -332,6 +343,15 @@ Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi **pri
   - Google OAuth support
   - WhatsApp OTP (custom integration)
 
+### Payment & Logistics
+* **Payment Gateway:** Midtrans (QRIS, GoPay, ShopeePay, Virtual Account)
+  - Snap Redirect untuk mobile deep-link e-wallet
+  - Webhook settlement untuk trigger post-payment automation
+* **Shipping:** RajaOngkir / Biteship API
+  - Timeout: 4 detik, fallback ke tarif flat
+  - Fallback: Kalimantan Selatan Rp 15.000, Luar Kalimantan Rp 35.000
+  - Origin: Gudang Hulu Sungai Selatan, Kalimantan Selatan
+
 ### QR Code & Generation
 * **QR Libraries:**
   - qrcode 1.5.4
@@ -418,12 +438,12 @@ balikin_student_modules - Student kit data
 balikin_emergency_info - Emergency medical data
 balikin_schedule_shares - Shared schedule codes
 
+// Checkout & Payments
+balikin_vouchers - Kode diskon (code, discount_type: fixed|percentage, discount_value, quota, used_count, expires_at)
+balikin_customer_segments - Segmentasi CRM (user_id, segment: pribadi|keluarga|bisnis)
+
 // Admin & Operations
 balikin_qr_stocks - QR stock management
-balikin_vouchers - Discount codes (code, discount_type, discount_value, quota, used_count, expires_at)
-
-// Marketing & CRM
-balikin_customer_segments - User segmentation (Pribadi/Keluarga/Bisnis)
 ```
 
 **Tag Lifecycle:**
@@ -471,6 +491,24 @@ balikin_customer_segments - User segmentation (Pribadi/Keluarga/Bisnis)
    * Modul aktif menampilkan konten tambahan di halaman profil.
    * Modul termasuk dalam akses premium (Student Kit, Otomotif, Pertanian, Diklat).
 
+8. **Checkout Security Rules:**
+   * **Anti-Race Condition (Voucher):** Validasi kuota dengan atomic PostgreSQL:
+     ```sql
+     UPDATE balikin_vouchers SET used_count = used_count + 1
+     WHERE code = $1 AND used_count < quota AND expires_at > NOW();
+     -- 0 rows affected → tolak diskon
+     ```
+   * **Server-side Pricing:** Grand Total wajib dihitung di Next.js backend, tidak boleh dari browser.
+   * **Anti-Enumeration:** `order_id` menggunakan nanoid (acak), bukan ID sequential.
+   * **RLS pada Orders:** `auth.uid() == user_id` — pembeli hanya bisa akses pesanannya sendiri.
+   * **Shipping Fallback:** Jika RajaOngkir/Biteship timeout (>4 detik), gunakan tarif flat cadangan.
+   * **Mobile Payment:** Deteksi perangkat mobile → tampilkan deep-link e-wallet, bukan gambar QRIS.
+
+9. **CRM & Retargeting Rules:**
+   * Segmentasi pengguna (Pribadi/Keluarga/Bisnis) wajib dikumpulkan saat checkout.
+   * Data email & WhatsApp digunakan untuk Custom Audiences di Meta/Google Ads.
+   * Pembelian dengan segmentasi "Bisnis" masuk ke pipeline penawaran kemitraan stiker custom.
+
 ---
 
 ## 15. Target Pengembangan MVP (Minimal Viable Product)
@@ -486,7 +524,9 @@ balikin_customer_segments - User segmentation (Pribadi/Keluarga/Bisnis)
 * **Mobile UI:** Responsive design untuk mobile.
 
 ### 🚧 Sedang Dalam Pengembangan
-* **Layout Editor:** Custom sticker design.
+* **Checkout System:** Halaman checkout dengan Midtrans QRIS, voucher, dan kalkulasi ongkir.
+* **CRM Automation:** Trigger WA H+3 aktivasi PIN dan H-30 reminder perpanjangan cloud.
+* **Layout Editor:** Custom sticker design via VDP Tool.
 * **Advanced Analytics:** Scan heatmap dan location tracking.
 * **Push Notifications:** Real-time scan alerts.
 
