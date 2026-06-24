@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { BadgePercent, Users, Plane, Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { type ProductKey } from '@/lib/product-catalog';
 
 export interface Bundle {
   name: string;
@@ -16,6 +18,7 @@ export interface Bundle {
   features: string[];
   validUntil?: string;
   comingSoon?: boolean;
+  productKey?: ProductKey;
 }
 
 interface BundleDealsProps {
@@ -23,6 +26,7 @@ interface BundleDealsProps {
 }
 
 export function BundleDeals({ className = '' }: BundleDealsProps) {
+  const router = useRouter();
   const bundles: Bundle[] = [
     {
       name: 'Paket Keluarga',
@@ -40,6 +44,7 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
         'Support prioritas',
       ],
       validUntil: 'Terbatas 50 paket pertama',
+      productKey: 'paket-keluarga',
     },
     {
       name: 'Paket Traveler',
@@ -58,6 +63,7 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
       ],
       validUntil: 'Terbatas 100 paket pertama',
       comingSoon: true,
+      productKey: 'paket-traveller',
     },
   ];
 
@@ -213,17 +219,13 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
                       }`}
                       size="lg"
                       disabled={bundle.comingSoon}
-                      onClick={() =>
-                        !bundle.comingSoon &&
-                        window.open(
-                          `https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20${encodeURIComponent(
-                            bundle.name
-                          )}`,
-                          '_blank'
-                        )
-                      }
+                      onClick={() => {
+                        if (!bundle.comingSoon && bundle.productKey) {
+                          router.push(`/stickers/checkout?product=${bundle.productKey}`);
+                        }
+                      }}
                     >
-                      {bundle.comingSoon ? 'Coming Soon' : 'Ambil Promo Sekarang'}
+                      {bundle.comingSoon ? 'Coming Soon' : 'Pesan Sekarang'}
                       {!bundle.comingSoon && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Button>
                   </CardContent>
