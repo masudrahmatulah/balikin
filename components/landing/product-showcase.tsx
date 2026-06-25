@@ -35,6 +35,14 @@ export interface Product {
   productKey?: ProductKey;
 }
 
+export interface ProductGroup {
+  id: string;
+  label: string;
+  emoji: string;
+  description?: string;
+  products: Product[];
+}
+
 interface ProductShowcaseProps {
   className?: string;
 }
@@ -44,168 +52,197 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
   const [currentImageIndices, setCurrentImageIndices] = useState<Record<number, number>>({});
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
-  const products: Product[] = [
-    // FREE & ANCHOR PRODUCTS
+  const productGroups: ProductGroup[] = [
     {
-      name: 'Balikin Free Pass',
-      price: 'Rp 0',
-      icon: QrCode,
-      features: [
-        '📱 QR Code digital untuk dicetak sendiri',
-        '📧 Notifikasi scan via email',
-        '📍 Estimasi lokasi berdasarkan IP Address',
-        '🔒 Sistem Anonymous Gateway gratis',
+      id: 'free-pass',
+      label: 'Free Pass',
+      emoji: '📱',
+      description: 'Mulai gratis, upgrade kapan saja',
+      products: [
+        {
+          name: 'Balikin Free Pass',
+          price: 'Rp 0',
+          icon: QrCode,
+          features: [
+            '📱 QR Code digital untuk dicetak sendiri',
+            '📧 Notifikasi scan via email',
+            '📍 Estimasi lokasi berdasarkan IP Address',
+            '🔒 Sistem Anonymous Gateway gratis',
+          ],
+          badge: 'Gratis',
+          badgeColor: 'bg-purple-600',
+          highlight: 'Mulai gratis, upgrade kapan saja',
+          category: 'digital',
+        },
       ],
-      badge: 'Gratis',
-      badgeColor: 'bg-purple-600',
-      highlight: 'Mulai gratis, upgrade kapan saja',
-      category: 'digital',
     },
     {
-      name: 'Balikin Armor Tag',
-      price: 'Rp 54.000',
-      icon: Shield,
-      features: [
-        '🔑 Gantungan kunci akrilik premium',
-        '💪 Tahan benturan & cuaca ekstrem',
-        '📍 Live tracking dengan GPS',
-        '📱 Notifikasi WhatsApp real-time',
-        '🚨 Lost Mode emergency display',
+      id: 'acrylic',
+      label: 'Gantungan Akrilik',
+      emoji: '🔑',
+      description: 'Premium keychains untuk proteksi maksimal',
+      products: [
+        {
+          name: 'Balikin Armor Tag',
+          price: 'Rp 54.000',
+          icon: Shield,
+          features: [
+            '🔑 Gantungan kunci akrilik premium',
+            '💪 Tahan benturan & cuaca ekstrem',
+            '📍 Live tracking dengan GPS',
+            '📱 Notifikasi WhatsApp real-time',
+            '🚨 Lost Mode emergency display',
+          ],
+          badge: 'The Anchor',
+          badgeColor: 'bg-blue-600',
+          highlight: 'Premium keychain untuk kunci motor/mobil',
+          category: 'physical',
+          productKey: 'armor-tag',
+        },
+        {
+          name: 'Balikin Ultimate Pack',
+          price: 'Rp 89.000',
+          originalPrice: 'Rp 113.000',
+          icon: Package,
+          features: [
+            '🎁 1 Gantungan Kunci Akrilik Premium',
+            '🎁 1 Sheet Stiker Family (12 QR)',
+            '📍 Full tracking + WhatsApp alerts',
+            '🚨 Lost Mode dengan reward system',
+            '⭐ Hemat Rp 24.000 vs beli eceran',
+          ],
+          badge: '⭐ BEST VALUE',
+          badgeColor: 'bg-red-600',
+          highlight: 'Proteksi menyeluruh dengan harga hemat',
+          savings: 'Hemat Rp 24.000',
+          category: 'bundle',
+          productKey: 'ultimate-pack',
+        },
       ],
-      badge: 'The Anchor',
-      badgeColor: 'bg-blue-600',
-      highlight: 'Premium keychain untuk kunci motor/mobil',
-      category: 'physical',
-      productKey: 'armor-tag',
-    },
-    // STICKER VARIANTS
-    {
-      name: 'Stiker Balikin Pro',
-      price: 'Rp 59.000',
-      icon: Sticker,
-      features: [
-        '📦 1 Sheet A5 (Isi 6-8 QR)',
-        '📏 Ukuran Besar (3,5 × 3,5 cm)',
-        '💎 Vinyl Premium tahan air & UV',
-        '🎒 Ideal untuk laptop, helm, koper',
-        'Untuk professional dengan aset besar',
-      ],
-      badge: 'Profesional',
-      badgeColor: 'bg-indigo-600',
-      highlight: 'Stiker besar untuk aset premium',
-      category: 'sticker',
-      productKey: 'stiker-pro',
-    },
-    {
-      name: 'Stiker Balikin Daily',
-      price: 'Rp 59.000',
-      icon: Sticker,
-      features: [
-        '📦 1 Sheet A5 (Isi 12-15 QR)',
-        '📏 Ukuran Sedang (2,5 × 2,5 cm)',
-        '💎 Vinyl Premium tahan air & UV',
-        '🎒 Untuk botol, agenda, tablet, kamera',
-        'Amankan barang bawaan kantor/sekolah',
-      ],
-      badge: 'Sehari-hari',
-      badgeColor: 'bg-green-600',
-      highlight: 'Stiker sedang untuk kebutuhan harian',
-      category: 'sticker',
-      productKey: 'stiker-daily',
     },
     {
-      name: 'Stiker Balikin Micro',
-      price: 'Rp 59.000',
-      icon: Sticker,
-      features: [
-        '📦 1 Sheet A5 (Isi 20-24 QR)',
-        '📏 Ukuran Saku (1,8 × 1,8 cm)',
-        '💎 Vinyl Premium tahan air & UV',
-        '🎒 Untuk TWS, powerbank, charger, flashdisk',
-        'Proteksi barang mini yang rentan terselip',
+      id: 'stickers',
+      label: 'Stiker QR Code',
+      emoji: '🏷️',
+      description: '4 varian ukuran untuk semua jenis barang',
+      products: [
+        {
+          name: 'Stiker Balikin Pro',
+          price: 'Rp 59.000',
+          icon: Sticker,
+          features: [
+            '📦 1 Sheet A5 (Isi 6-8 QR)',
+            '📏 Ukuran Besar (3,5 × 3,5 cm)',
+            '💎 Vinyl Premium tahan air & UV',
+            '🎒 Ideal untuk laptop, helm, koper',
+            'Untuk professional dengan aset besar',
+          ],
+          badge: 'Profesional',
+          badgeColor: 'bg-indigo-600',
+          highlight: 'Stiker besar untuk aset premium',
+          category: 'sticker',
+          productKey: 'stiker-pro',
+        },
+        {
+          name: 'Stiker Balikin Daily',
+          price: 'Rp 59.000',
+          icon: Sticker,
+          features: [
+            '📦 1 Sheet A5 (Isi 12-15 QR)',
+            '📏 Ukuran Sedang (2,5 × 2,5 cm)',
+            '💎 Vinyl Premium tahan air & UV',
+            '🎒 Untuk botol, agenda, tablet, kamera',
+            'Amankan barang bawaan kantor/sekolah',
+          ],
+          badge: 'Sehari-hari',
+          badgeColor: 'bg-green-600',
+          highlight: 'Stiker sedang untuk kebutuhan harian',
+          category: 'sticker',
+          productKey: 'stiker-daily',
+        },
+        {
+          name: 'Stiker Balikin Micro',
+          price: 'Rp 59.000',
+          icon: Sticker,
+          features: [
+            '📦 1 Sheet A5 (Isi 20-24 QR)',
+            '📏 Ukuran Saku (1,8 × 1,8 cm)',
+            '💎 Vinyl Premium tahan air & UV',
+            '🎒 Untuk TWS, powerbank, charger, flashdisk',
+            'Proteksi barang mini yang rentan terselip',
+          ],
+          badge: 'Mini',
+          badgeColor: 'bg-pink-600',
+          highlight: 'Stiker kecil untuk barang saku',
+          category: 'sticker',
+          productKey: 'stiker-micro',
+        },
+        {
+          name: 'Stiker Balikin Family',
+          price: 'Rp 59.000',
+          originalPrice: 'Rp 127.000',
+          icon: Sticker,
+          features: [
+            '📦 1 Sheet A5 (Isi 12 QR Campuran)',
+            '📏 3 Besar + 4 Sedang + 5 Kecil',
+            '💎 Vinyl Premium multi-ukuran',
+            '🎁 Amankan semua jenis barang sekali',
+            'Hemat hingga Rp 68.000',
+          ],
+          badge: '⭐ BEST SELLER',
+          badgeColor: 'bg-yellow-600',
+          highlight: 'Paket stiker terlengkap & terhemat',
+          savings: 'Hemat Rp 68.000',
+          category: 'sticker',
+          productKey: 'stiker-family',
+        },
       ],
-      badge: 'Mini',
-      badgeColor: 'bg-pink-600',
-      highlight: 'Stiker kecil untuk barang saku',
-      category: 'sticker',
-      productKey: 'stiker-micro',
     },
     {
-      name: 'Stiker Balikin Family',
-      price: 'Rp 59.000',
-      originalPrice: 'Rp 127.000',
-      icon: Sticker,
-      features: [
-        '📦 1 Sheet A5 (Isi 12 QR Campuran)',
-        '📏 3 Besar + 4 Sedang + 5 Kecil',
-        '💎 Vinyl Premium multi-ukuran',
-        '🎁 Amankan semua jenis barang sekali',
-        'Hemat hingga Rp 68.000',
+      id: 'bundles',
+      label: 'Paket Bundle',
+      emoji: '📦',
+      description: 'Hemat lebih banyak dengan paket B2B',
+      products: [
+        {
+          name: 'Paket Keluarga',
+          price: 'Rp 299.000',
+          originalPrice: 'Rp 356.000',
+          icon: Package,
+          features: [
+            '🏠 4 Set Ultimate Pack',
+            '👨‍👩‍👧‍👦 Dibagi untuk Ayah, Ibu, & 2 Anak',
+            '📍 Proteksi total untuk keluarga',
+            '💰 Hemat Rp 57.000',
+            'Tingkatkan basket size & margin keuntungan',
+          ],
+          badge: 'Keluarga',
+          badgeColor: 'bg-cyan-600',
+          highlight: 'Perlindungan menyeluruh satu keluarga',
+          savings: 'Hemat Rp 57.000',
+          category: 'bundle',
+          productKey: 'paket-keluarga',
+        },
+        {
+          name: 'Paket Traveller',
+          price: 'Rp 699.000',
+          originalPrice: 'Rp 890.000',
+          icon: Package,
+          features: [
+            '🚀 10 Set Ultimate Pack',
+            '🤝 Untuk bisnis rental, trip, logistik',
+            '📊 Solusi B2B commercial',
+            '💰 Hemat Rp 191.000',
+            'Volume tinggi untuk reseller & business',
+          ],
+          badge: 'B2B',
+          badgeColor: 'bg-gray-700',
+          highlight: 'Paket grosir untuk bisnis & reseller',
+          savings: 'Hemat Rp 191.000',
+          category: 'bundle',
+          productKey: 'paket-traveller',
+        },
       ],
-      badge: '⭐ BEST SELLER',
-      badgeColor: 'bg-yellow-600',
-      highlight: 'Paket stiker terlengkap & terhemat',
-      savings: 'Hemat Rp 68.000',
-      category: 'sticker',
-      productKey: 'stiker-family',
-    },
-    // BUNDLE PRODUCTS
-    {
-      name: 'Balikin Ultimate Pack',
-      price: 'Rp 89.000',
-      originalPrice: 'Rp 113.000',
-      icon: Package,
-      features: [
-        '🎁 1 Gantungan Kunci Akrilik Premium',
-        '🎁 1 Sheet Stiker Family (12 QR)',
-        '📍 Full tracking + WhatsApp alerts',
-        '🚨 Lost Mode dengan reward system',
-        '⭐ Hemat Rp 24.000 vs beli eceran',
-      ],
-      badge: '⭐ BEST VALUE',
-      badgeColor: 'bg-red-600',
-      highlight: 'Proteksi menyeluruh dengan harga hemat',
-      savings: 'Hemat Rp 24.000',
-      category: 'bundle',
-      productKey: 'ultimate-pack',
-    },
-    {
-      name: 'Paket Keluarga',
-      price: 'Rp 299.000',
-      originalPrice: 'Rp 356.000',
-      icon: Package,
-      features: [
-        '🏠 4 Set Ultimate Pack',
-        '👨‍👩‍👧‍👦 Dibagi untuk Ayah, Ibu, & 2 Anak',
-        '📍 Proteksi total untuk keluarga',
-        '💰 Hemat Rp 57.000',
-        'Tingkatkan basket size & margin keuntungan',
-      ],
-      badge: 'Keluarga',
-      badgeColor: 'bg-cyan-600',
-      highlight: 'Perlindungan menyeluruh satu keluarga',
-      savings: 'Hemat Rp 57.000',
-      category: 'bundle',
-      productKey: 'paket-keluarga',
-    },
-    {
-      name: 'Paket Traveller',
-      price: 'Rp 699.000',
-      originalPrice: 'Rp 890.000',
-      icon: Package,
-      features: [
-        '🚀 10 Set Ultimate Pack',
-        '🤝 Untuk bisnis rental, trip, logistik',
-        '📊 Solusi B2B commercial',
-        '💰 Hemat Rp 191.000',
-        'Volume tinggi untuk reseller & business',
-      ],
-      badge: 'B2B',
-      badgeColor: 'bg-gray-700',
-      highlight: 'Paket grosir untuk bisnis & reseller',
-      savings: 'Hemat Rp 191.000',
-      category: 'bundle',
-      productKey: 'paket-traveller',
     },
   ];
 
@@ -221,7 +258,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
         >
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Shield className="h-4 w-4" />
-            9 Produk untuk Semua Kebutuhan
+            4 Kategori Produk
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Paket Proteksi untuk Setiap Kebutuhan & Budget
@@ -231,19 +268,50 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           </p>
         </motion.div>
 
-        {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-full mx-auto">
-          {products.map((product, index) => {
-            const Icon = product.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="relative"
-              >
+        {/* Product Groups */}
+        {productGroups.map((group, groupIndex) => {
+          const gridColsClass = group.id === 'free-pass'
+            ? 'md:max-w-xs mx-auto'
+            : group.id === 'acrylic'
+            ? 'md:grid-cols-2'
+            : group.id === 'stickers'
+            ? 'md:grid-cols-2 lg:grid-cols-4'
+            : 'md:grid-cols-2';
+
+          return (
+            <motion.div
+              key={group.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: groupIndex * 0.15 }}
+              className="mb-16"
+            >
+              {/* Group Header */}
+              <div className="mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-3xl">{group.emoji}</span>
+                  <h3 className="text-2xl font-bold text-gray-900">{group.label}</h3>
+                </div>
+                {group.description && (
+                  <p className="text-gray-600 text-sm ml-12">{group.description}</p>
+                )}
+              </div>
+
+              {/* Group Products Grid */}
+              <div className={`grid gap-6 ${gridColsClass}`}>
+                {group.products.map((product, productIndex) => {
+                  const Icon = product.icon;
+                  const globalIndex = productGroups.slice(0, groupIndex).reduce((sum, g) => sum + g.products.length, 0) + productIndex;
+                  return (
+                    <motion.div
+                      key={productIndex}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: productIndex * 0.1 }}
+                      className="relative"
+                    >
                 {product.badge && (
                   <div className={`absolute -top-3 left-1/2 transform -translate-x-1/2 z-10`}>
                     <span className={`${product.badgeColor} text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg`}>
@@ -275,11 +343,11 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                           {/* Main Image */}
                           <div
                             className="relative aspect-[4/3] cursor-pointer group"
-                            onClick={() => setZoomedImage(product.images![currentImageIndices[index] || 0])}
+                            onClick={() => setZoomedImage(product.images![currentImageIndices[globalIndex] || 0])}
                           >
                             <Image
-                              src={product.images[currentImageIndices[index] || 0]}
-                              alt={`${product.name} - Image ${currentImageIndices[index] || 0 + 1}`}
+                              src={product.images[currentImageIndices[globalIndex] || 0]}
+                              alt={`${product.name} - Image ${currentImageIndices[globalIndex] || 0 + 1}`}
                               width={400}
                               height={300}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -297,7 +365,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                                   e.stopPropagation();
                                   setCurrentImageIndices((prev) => ({
                                     ...prev,
-                                    [index]: ((prev[index] || 0) - 1 + product.images!.length) % product.images!.length,
+                                    [globalIndex]: ((prev[globalIndex] || 0) - 1 + product.images!.length) % product.images!.length,
                                   }));
                                 }}
                                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
@@ -309,7 +377,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                                   e.stopPropagation();
                                   setCurrentImageIndices((prev) => ({
                                     ...prev,
-                                    [index]: ((prev[index] || 0) + 1) % product.images!.length,
+                                    [globalIndex]: ((prev[globalIndex] || 0) + 1) % product.images!.length,
                                   }));
                                 }}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
@@ -322,7 +390,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                           {/* Image Counter */}
                           {product.images.length > 1 && (
                             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                              {currentImageIndices[index] || 0 + 1} / {product.images.length}
+                              {(currentImageIndices[globalIndex] || 0) + 1} / {product.images.length}
                             </div>
                           )}
                         </div>
@@ -334,10 +402,10 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                               <button
                                 key={imgIndex}
                                 onClick={() =>
-                                  setCurrentImageIndices((prev) => ({ ...prev, [index]: imgIndex }))
+                                  setCurrentImageIndices((prev) => ({ ...prev, [globalIndex]: imgIndex }))
                                 }
                                 className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                                  (currentImageIndices[index] || 0) === imgIndex
+                                  (currentImageIndices[globalIndex] || 0) === imgIndex
                                     ? 'border-blue-500 scale-105'
                                     : 'border-gray-200 hover:border-gray-300'
                                 }`}
@@ -462,40 +530,44 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                     >
                       {product.comingSoon ? 'Coming Soon' : product.category === 'digital' ? 'Buat Gratis Sekarang' : 'Pesan Sekarang'}
                     </motion.button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+                })}
+              </div>
+            </motion.div>
+          );
+        })}
 
-        {/* Product Categories Info */}
+        {/* Product Categories Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 max-w-4xl mx-auto"
+          className="mt-20 pt-8 border-t border-gray-200"
         >
-          <div className="grid md:grid-cols-4 gap-4 text-center">
+          <h3 className="text-center text-lg font-semibold text-gray-900 mb-8">Kategori Produk Kami</h3>
+          <div className="grid md:grid-cols-4 gap-4 text-center max-w-4xl mx-auto">
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-              <div className="text-2xl mb-2">📱</div>
-              <p className="text-sm font-semibold text-purple-900">Digital</p>
-              <p className="text-xs text-gray-600">Free Pass</p>
+              <div className="text-3xl mb-2">📱</div>
+              <p className="text-sm font-semibold text-purple-900">Free Pass</p>
+              <p className="text-xs text-gray-600">Mulai Gratis</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="text-2xl mb-2">🔑</div>
-              <p className="text-sm font-semibold text-blue-900">Physical</p>
-              <p className="text-xs text-gray-600">Armor Tag</p>
+              <div className="text-3xl mb-2">🔑</div>
+              <p className="text-sm font-semibold text-blue-900">Gantungan Akrilik</p>
+              <p className="text-xs text-gray-600">2 Paket</p>
             </div>
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="text-2xl mb-2">🏷️</div>
-              <p className="text-sm font-semibold text-green-900">Stickers</p>
-              <p className="text-xs text-gray-600">4 Varian</p>
+              <div className="text-3xl mb-2">🏷️</div>
+              <p className="text-sm font-semibold text-green-900">Stiker QR Code</p>
+              <p className="text-xs text-gray-600">4 Varian Ukuran</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="text-2xl mb-2">📦</div>
-              <p className="text-sm font-semibold text-orange-900">Bundles</p>
-              <p className="text-xs text-gray-600">3 Paket</p>
+              <div className="text-3xl mb-2">📦</div>
+              <p className="text-sm font-semibold text-orange-900">Paket Bundle</p>
+              <p className="text-xs text-gray-600">2 Paket B2B</p>
             </div>
           </div>
         </motion.div>
