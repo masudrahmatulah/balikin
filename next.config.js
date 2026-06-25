@@ -15,6 +15,31 @@ const nextConfig = {
         hostname: 'blob.vercel-storage.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'assets.vercel.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'supabase.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'midtrans.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.bi.go.id',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+        pathname: '/**',
+      },
     ],
   },
   experimental: {

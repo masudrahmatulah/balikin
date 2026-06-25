@@ -36,10 +36,34 @@ const securityPillars = [
 ];
 
 const trustLogos = [
-  { name: 'Vercel', label: 'Global CDN & Infrastructure' },
-  { name: 'Supabase', label: 'Database & Authentication' },
-  { name: 'Midtrans', label: 'Payment Gateway' },
-  { name: 'Bank Indonesia', label: 'Regulatory Oversight' },
+  {
+    name: 'Vercel',
+    label: 'Global CDN & Infrastructure',
+    bgColor: 'bg-black',
+    textColor: 'text-white',
+    emoji: '▲',
+  },
+  {
+    name: 'Supabase',
+    label: 'Database & Authentication',
+    bgColor: 'bg-emerald-500',
+    textColor: 'text-white',
+    emoji: '🔐',
+  },
+  {
+    name: 'Midtrans',
+    label: 'Payment Gateway',
+    bgColor: 'bg-blue-600',
+    textColor: 'text-white',
+    emoji: '💳',
+  },
+  {
+    name: 'Bank Indonesia',
+    label: 'Regulatory Oversight',
+    bgColor: 'bg-amber-600',
+    textColor: 'text-white',
+    emoji: '🏛️',
+  },
 ];
 
 export function TrustSecuritySection() {
@@ -156,9 +180,11 @@ export function TrustSecuritySection() {
                 whileHover={{ scale: 1.05 }}
                 className="group flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {/* Logo Placeholder - using brand colors for visualization */}
-                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-3 border border-gray-300 group-hover:border-gray-400 transition-colors">
-                  <span className="text-xs font-bold text-gray-600 text-center px-1">{logo.name}</span>
+                {/* Logo Container - Branded Background */}
+                <div
+                  className={`w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 ${logo.bgColor}`}
+                >
+                  <span className={`text-3xl font-bold ${logo.textColor}`}>{logo.emoji}</span>
                 </div>
                 <p className="text-xs text-gray-600 text-center font-medium">{logo.label}</p>
               </motion.div>

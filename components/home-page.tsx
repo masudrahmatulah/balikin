@@ -11,7 +11,6 @@ import { BenefitsSection } from '@/components/landing/benefits-section';
 import { ProductShowcase } from '@/components/landing/product-showcase';
 import { BundleDeals } from '@/components/landing/bundle-deals';
 import { TrustSecuritySection } from '@/components/landing/trust-security-section';
-import { PricingSection } from '@/components/landing/pricing-section';
 import { FinalCTASection } from '@/components/landing/final-cta-section';
 import { FAQSection } from '@/components/landing/faq-section';
 import { FooterSection } from '@/components/landing/footer-section';
@@ -51,9 +50,6 @@ export function HomePage() {
 
       {/* Trust & Security Section */}
       <TrustSecuritySection />
-
-      {/* Pricing Section */}
-      <PricingSection />
 
       {/* Final CTA & More Testimonials */}
       <FinalCTASection />
