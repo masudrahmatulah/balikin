@@ -10,6 +10,7 @@ import { ScenariosSection } from '@/components/landing/scenarios-section';
 import { BenefitsSection } from '@/components/landing/benefits-section';
 import { ProductShowcase } from '@/components/landing/product-showcase';
 import { BundleDeals } from '@/components/landing/bundle-deals';
+import { TrustSecuritySection } from '@/components/landing/trust-security-section';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FinalCTASection } from '@/components/landing/final-cta-section';
 import { FAQSection } from '@/components/landing/faq-section';
@@ -47,6 +48,9 @@ export function HomePage() {
 
       {/* Bundle Deals Section */}
       <BundleDeals />
+
+      {/* Trust & Security Section */}
+      <TrustSecuritySection />
 
       {/* Pricing Section */}
       <PricingSection />
