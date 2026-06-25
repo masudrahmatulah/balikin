@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Shield, Lock, CreditCard } from 'lucide-react';
+import Image from 'next/image';
 
 const securityPillars = [
   {
@@ -42,27 +43,19 @@ const trustLogos = [
     bgColor: 'bg-black',
     textColor: 'text-white',
     emoji: '▲',
+    type: 'emoji',
   },
   {
     name: 'Supabase',
     label: 'Database & Authentication',
-    bgColor: 'bg-emerald-500',
-    textColor: 'text-white',
-    emoji: '🔐',
+    imageSrc: '/supabase.webp',
+    type: 'image',
   },
   {
     name: 'Midtrans',
     label: 'Payment Gateway',
-    bgColor: 'bg-blue-600',
-    textColor: 'text-white',
-    emoji: '💳',
-  },
-  {
-    name: 'Bank Indonesia',
-    label: 'Regulatory Oversight',
-    bgColor: 'bg-amber-600',
-    textColor: 'text-white',
-    emoji: '🏛️',
+    imageSrc: '/midtrans.webp',
+    type: 'image',
   },
 ];
 
@@ -180,12 +173,24 @@ export function TrustSecuritySection() {
                 whileHover={{ scale: 1.05 }}
                 className="group flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {/* Logo Container - Branded Background */}
-                <div
-                  className={`w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 ${logo.bgColor}`}
-                >
-                  <span className={`text-3xl font-bold ${logo.textColor}`}>{logo.emoji}</span>
-                </div>
+                {/* Logo Container */}
+                {logo.type === 'image' ? (
+                  <div className="w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 border-gray-200 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 bg-white relative">
+                    <Image
+                      src={logo.imageSrc!}
+                      alt={`${logo.name} logo`}
+                      width={80}
+                      height={80}
+                      className="object-contain p-2"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 ${logo.bgColor}`}
+                  >
+                    <span className={`text-3xl font-bold ${logo.textColor}`}>{logo.emoji}</span>
+                  </div>
+                )}
                 <p className="text-xs text-gray-600 text-center font-medium">{logo.label}</p>
               </motion.div>
             ))}
