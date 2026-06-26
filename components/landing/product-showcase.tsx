@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { type ProductKey } from '@/lib/product-catalog';
+import { getCheckoutPath } from '@/lib/client-utils';
 
 export interface Product {
   name: string;
@@ -524,7 +525,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                         if (product.category === 'digital') {
                           router.push('/sign-up');
                         } else if (product.productKey) {
-                          router.push(`/stickers/checkout?product=${product.productKey}`);
+                          router.push(getCheckoutPath(product.productKey));
                         }
                       }}
                     >
