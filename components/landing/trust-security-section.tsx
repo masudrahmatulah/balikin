@@ -161,7 +161,7 @@ export function TrustSecuritySection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-center"
+            className="flex flex-wrap justify-center gap-8 items-center"
           >
             {trustLogos.map((logo, idx) => (
               <motion.div
