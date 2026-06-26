@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Package, X, CheckCircle, Upload, Image as ImageIcon } from "lucide-react";
+import { getStickerProductInfo, type StickerProductKey } from "@/lib/sticker-template";
 
 interface BulkFormProps {
   adminId: string;
@@ -26,7 +27,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     quantity: 100,
     materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
-    paperSize: "a4" as "a4" | "a3",
+    paperSize: "a5" as "a4" | "a3" | "a5",
+    stickerProductKey: "stiker-family" as StickerProductKey,
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
     isCustom: false,
@@ -51,7 +53,23 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     // Based on PRD v3 specifications
     // A3 Landscape: 4 cols × 5 rows = 20 packets per sheet
     // A4 Landscape: 3 cols × 4 rows = 12 packets per sheet
-    const itemsPerSheet = formData.paperSize === "a4" ? 12 : 20;
+    // A5 Stickers: depends on product type (6-24 per sheet)
+    let itemsPerSheet = 12;
+
+    if (formData.materialType === "sticker" && formData.paperSize === "a5") {
+      // A5 sticker products
+      const stickerPackSizes = {
+        'stiker-pro': 6,
+        'stiker-daily': 12,
+        'stiker-micro': 20,
+        'stiker-family': 12,
+      };
+      itemsPerSheet = stickerPackSizes[formData.stickerProductKey] || 12;
+    } else if (formData.paperSize === "a4") {
+      itemsPerSheet = 12;
+    } else {
+      itemsPerSheet = 20;
+    }
     return Math.ceil(formData.quantity / itemsPerSheet);
   };
 
@@ -132,7 +150,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         quantity: 100,
         materialType: "sticker",
         productType: "standard",
-        paperSize: "a4",
+        paperSize: "a5",
+        stickerProductKey: "stiker-family",
         stickerShape: "circle",
         stickerSize: "medium",
         isCustom: false,
@@ -330,7 +349,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.paperSize}
-                onValueChange={(value: "a4" | "a3") => {
+                onValueChange={(value: "a4" | "a3" | "a5") => {
                   updateFormData({ paperSize: value });
                 }}
               >
@@ -338,57 +357,52 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="font-body text-sm">
-                  <SelectItem value="a4">A4 (21 x 29.7 cm)</SelectItem>
-                  <SelectItem value="a3">A3 (29.7 x 42 cm) - 32/hlm</SelectItem>
+                  {formData.materialType === "sticker" ? (
+                    <SelectItem value="a5">A5 (14.8 x 21 cm) - Sticker Sheet</SelectItem>
+                  ) : (
+                    <>
+                      <SelectItem value="a4">A4 (21 x 29.7 cm)</SelectItem>
+                      <SelectItem value="a3">A3 (29.7 x 42 cm) - 32/hlm</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Sticker Configuration - Only for stickers */}
+          {/* Sticker Product Selection - Only for stickers */}
           {formData.materialType === "sticker" && (
-            <div className="grid grid-cols-2 gap-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
-              <div className="space-y-2">
-                <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
-                  Shape
-                </Label>
-                <Select
-                  value={formData.stickerShape}
-                  onValueChange={(value: "circle" | "square" | "rectangle") =>
-                    updateFormData({ stickerShape: value })
-                  }
-                >
-                  <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20 h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="font-body text-sm">
-                    <SelectItem value="circle">Circle</SelectItem>
-                    <SelectItem value="square">Square</SelectItem>
-                    <SelectItem value="rectangle">Rectangle</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
-                  Size
-                </Label>
-                <Select
-                  value={formData.stickerSize}
-                  onValueChange={(value: "small" | "medium" | "large") =>
-                    updateFormData({ stickerSize: value })
-                  }
-                >
-                  <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="font-body text-sm">
-                    <SelectItem value="small">Small (20mm)</SelectItem>
-                    <SelectItem value="medium">Medium (35mm)</SelectItem>
-                    <SelectItem value="large">Large (50mm)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
+              <Label htmlFor="stickerProductKey" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
+                Sticker Product <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.stickerProductKey}
+                onValueChange={(value: StickerProductKey) =>
+                  updateFormData({ stickerProductKey: value })
+                }
+              >
+                <SelectTrigger id="stickerProductKey" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="font-body text-sm">
+                  <SelectItem value="stiker-pro">
+                    Stiker Balikin Pro (35×35mm) - 6-8 per sheet
+                  </SelectItem>
+                  <SelectItem value="stiker-daily">
+                    Stiker Balikin Daily (25×25mm) - 12-15 per sheet
+                  </SelectItem>
+                  <SelectItem value="stiker-micro">
+                    Stiker Balikin Micro (18×18mm) - 20-24 per sheet
+                  </SelectItem>
+                  <SelectItem value="stiker-family">
+                    Stiker Balikin Family (Mixed) - 12 per sheet
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="font-body text-[10px] text-secondary/60">
+                Estimated sheets: {getEstimatedSheets()} (based on {formData.quantity} quantity)
+              </p>
             </div>
           )}
 

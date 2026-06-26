@@ -5,8 +5,9 @@
 
 export type StickerShape = 'circle' | 'square' | 'rectangle';
 export type StickerSize = 'small' | 'medium' | 'large';
-export type PaperSize = 'a3' | 'a4';
+export type PaperSize = 'a3' | 'a4' | 'a5';
 export type Orientation = 'landscape' | 'portrait';
+export type StickerProductKey = 'stiker-pro' | 'stiker-daily' | 'stiker-micro' | 'stiker-family';
 
 export interface StickerTemplate {
   shape: StickerShape;
@@ -58,6 +59,18 @@ export const GRID_CONFIGS_A4 = {
   },
 } as const;
 
+// Grid layout configurations for A5 (half of A4) - optimized for Balikin sticker products
+export const GRID_CONFIGS_A5 = {
+  // Stiker Balikin Pro (35mm × 35mm) - 6-8 per sheet
+  'stiker-pro': { rows: 2, cols: 3, total: 6, itemWidth: 35, itemHeight: 35 },
+  // Stiker Balikin Daily (25mm × 25mm) - 12-15 per sheet
+  'stiker-daily': { rows: 3, cols: 4, total: 12, itemWidth: 25, itemHeight: 25 },
+  // Stiker Balikin Micro (18mm × 18mm) - 20-24 per sheet
+  'stiker-micro': { rows: 4, cols: 5, total: 20, itemWidth: 18, itemHeight: 18 },
+  // Stiker Balikin Family (mixed sizes: 3 Besar + 4 Sedang + 5 Kecil)
+  'stiker-family': { rows: 4, cols: 3, total: 12, itemWidth: 35, itemHeight: 35, isMixed: true },
+} as const;
+
 // Legacy GRID_CONFIGS (deprecated, use GRID_CONFIGS_A3 or GRID_CONFIGS_A4)
 export const GRID_CONFIGS = GRID_CONFIGS_A3;
 
@@ -65,6 +78,7 @@ export const GRID_CONFIGS = GRID_CONFIGS_A3;
 export const PAPER_DIMENSIONS = {
   a3: { landscape: [420, 297], portrait: [297, 420] },
   a4: { landscape: [297, 210], portrait: [210, 297] },
+  a5: { landscape: [210, 148], portrait: [148, 210] },
 } as const;
 
 // Legacy constants (deprecated, use PAPER_DIMENSIONS instead)
@@ -146,6 +160,73 @@ export function calculateGridPositions(
       const x = startX + col * (dimensions.printableWidth + SPACING);
       const y = startY + row * (dimensions.printableHeight + SPACING);
       positions.push([x, y]);
+    }
+  }
+
+  return positions;
+}
+
+/**
+ * Get A5 sticker product configuration
+ */
+export function getStickerProductConfig(productKey: StickerProductKey) {
+  return GRID_CONFIGS_A5[productKey];
+}
+
+/**
+ * Get sticker product display info
+ */
+export function getStickerProductInfo(productKey: StickerProductKey) {
+  const info = {
+    'stiker-pro': { name: 'Stiker Balikin Pro', size: '35×35mm', perSheet: '6-8' },
+    'stiker-daily': { name: 'Stiker Balikin Daily', size: '25×25mm', perSheet: '12-15' },
+    'stiker-micro': { name: 'Stiker Balikin Micro', size: '18×18mm', perSheet: '20-24' },
+    'stiker-family': { name: 'Stiker Balikin Family', size: 'Mixed (3B+4S+5K)', perSheet: '12' },
+  };
+  return info[productKey];
+}
+
+/**
+ * Calculate A5 sticker grid positions for a specific product
+ */
+export function calculateA5StickerPositions(
+  productKey: StickerProductKey,
+  orientation: Orientation = 'portrait'
+): [number, number][] {
+  const config = getStickerProductConfig(productKey);
+  const [paperWidth, paperHeight] = getPaperDimensions('a5', orientation);
+
+  const positions: [number, number][] = [];
+  const itemWidth = config.itemWidth + SPACING;
+  const itemHeight = config.itemHeight + SPACING;
+
+  // Calculate margins to center the grid
+  const totalGridWidth = config.cols * itemWidth - SPACING;
+  const totalGridHeight = config.rows * itemHeight - SPACING;
+
+  const startX = (paperWidth - totalGridWidth) / 2;
+  const startY = HEADER_HEIGHT + ((paperHeight - HEADER_HEIGHT - totalGridHeight) / 2);
+
+  for (let row = 0; row < config.rows; row++) {
+    for (let col = 0; col < config.cols; col++) {
+      if (productKey === 'stiker-family') {
+        // For family pack, arrange: 3 large + 4 medium + 5 small
+        // Rows 0: 3 large (35mm)
+        // Rows 1: 4 medium (25mm)
+        // Rows 2-3: 5 small (18mm) spread across
+        let itemH = config.itemHeight;
+        if (row === 0) itemH = 35; // Large items
+        else if (row === 1) itemH = 25; // Medium items
+        else itemH = 18; // Small items
+
+        const x = startX + col * (config.itemWidth + SPACING);
+        const y = startY + row * (itemH + SPACING);
+        positions.push([x, y]);
+      } else {
+        const x = startX + col * itemWidth;
+        const y = startY + row * itemHeight;
+        positions.push([x, y]);
+      }
     }
   }
 
