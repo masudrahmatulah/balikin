@@ -290,7 +290,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
             >
               {/* Group Header */}
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center justify-center gap-3 mb-2">
                   <span className="text-3xl">{group.emoji}</span>
                   <h3 className="text-2xl font-bold text-gray-900">{group.label}</h3>
                 </div>
@@ -550,22 +550,22 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
         >
           <h3 className="text-center text-lg font-semibold text-gray-900 mb-8">Kategori Produk Kami</h3>
           <div className="flex flex-wrap justify-center gap-4 text-center max-w-4xl mx-auto">
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 flex-1 min-w-[140px]">
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 flex-1 min-w-[140px] flex flex-col items-center">
               <div className="text-3xl mb-2">📱</div>
               <p className="text-sm font-semibold text-purple-900">Free Pass</p>
               <p className="text-xs text-gray-600">Mulai Gratis</p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 flex-1 min-w-[140px]">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 flex-1 min-w-[140px] flex flex-col items-center">
               <div className="text-3xl mb-2">🔑</div>
               <p className="text-sm font-semibold text-blue-900">Gantungan Akrilik</p>
               <p className="text-xs text-gray-600">2 Paket</p>
             </div>
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200 flex-1 min-w-[140px]">
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200 flex-1 min-w-[140px] flex flex-col items-center">
               <div className="text-3xl mb-2">🏷️</div>
               <p className="text-sm font-semibold text-green-900">Stiker QR Code</p>
               <p className="text-xs text-gray-600">4 Varian Ukuran</p>
             </div>
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 flex-1 min-w-[140px]">
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 flex-1 min-w-[140px] flex flex-col items-center">
               <div className="text-3xl mb-2">📦</div>
               <p className="text-sm font-semibold text-orange-900">Paket Bundle</p>
               <p className="text-xs text-gray-600">2 Paket B2B</p>
