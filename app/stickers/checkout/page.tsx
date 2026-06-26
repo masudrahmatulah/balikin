@@ -41,7 +41,7 @@ function CheckoutPageInner() {
 
       <main className="container mx-auto max-w-5xl px-4 py-8">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card>
+          <Card className="order-2 lg:order-1">
             <CardHeader>
               <CardTitle>Checkout – {product.name}</CardTitle>
               <CardDescription>
@@ -54,7 +54,9 @@ function CheckoutPageInner() {
             </CardContent>
           </Card>
 
-          <OrderSummary product={product} />
+          <div className="order-1 lg:order-2">
+            <OrderSummary product={product} />
+          </div>
         </div>
       </main>
     </div>

@@ -1,17 +1,28 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Package, CreditCard } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, Suspense } from 'react';
 import { createStickerOrder } from '@/app/stickers/checkout/actions';
+import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
 
-export default function MobileStickersCheckoutPage() {
+function MobileCheckoutInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [segment, setSegment] = useState('');
   const [isPending, startTransition] = useTransition();
 
+  const productKey = resolveProductKey(searchParams.get('product'));
+  const product = PRODUCT_CATALOG[productKey];
+
   const handleSubmit = async (formData: FormData) => {
+    if (!segment) {
+      setErrors({ segment: 'Pilih tujuan penggunaan produk' });
+      return;
+    }
+
     const input = {
       recipientName: String(formData.get('recipientName') ?? ''),
       phone: String(formData.get('phone') ?? ''),
@@ -19,6 +30,8 @@ export default function MobileStickersCheckoutPage() {
       city: String(formData.get('city') ?? ''),
       postalCode: String(formData.get('postalCode') ?? ''),
       notes: String(formData.get('notes') ?? ''),
+      segment,
+      productKey,
     };
 
     setErrors({});
@@ -49,7 +62,7 @@ export default function MobileStickersCheckoutPage() {
 
       <main className="px-4 py-6 max-w-md mx-auto space-y-4">
         <div className="mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Checkout Sticker Vinyl</h1>
+          <h1 className="text-xl font-bold text-gray-900">Checkout</h1>
           <p className="text-sm text-gray-600">Isi data pengiriman Anda</p>
         </div>
 
@@ -60,24 +73,26 @@ export default function MobileStickersCheckoutPage() {
               <Package className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-gray-900">Sticker Vinyl Pack</h2>
-              <p className="text-sm text-gray-500">Isi 6 stiker</p>
+              <h2 className="font-bold text-gray-900">{product.name}</h2>
+              <p className="text-sm text-gray-500">Isi {product.packSize} unit</p>
             </div>
-            <p className="text-lg font-bold text-mobile-primary">Rp35.000</p>
+            <p className="text-lg font-bold text-mobile-primary">
+              Rp{product.price.toLocaleString('id-ID')}
+            </p>
           </div>
 
           <div className="pt-4 border-t border-gray-200 space-y-2 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>Rp35.000</span>
+              <span>Rp{product.price.toLocaleString('id-ID')}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>Biaya Admin</span>
-              <span>Gratis</span>
+              <span>Ongkir</span>
+              <span className="text-xs text-right">Dihitung setelah konfirmasi</span>
             </div>
             <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-200">
-              <span>Total</span>
-              <span>Rp35.000</span>
+              <span>Total Produk</span>
+              <span>Rp{product.price.toLocaleString('id-ID')}</span>
             </div>
           </div>
         </div>
@@ -85,17 +100,17 @@ export default function MobileStickersCheckoutPage() {
         {/* Checkout Form */}
         <form action={handleSubmit} className="space-y-4">
           {errors.form && (
-            <div className="p-3 text-sm text-mobile-danger bg-mobile-danger-lighter rounded-xl">
+            <div className="p-3 text-sm text-mobile-danger bg-mobile-danger-lighter rounded-xl" role="alert">
               {errors.form}
             </div>
           )}
 
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/20 space-y-4">
-            <h3 className="font-bold text-gray-900 mb-2">Data Pengiriman</h3>
+            <h3 className="font-bold text-gray-900">Data Pengiriman</h3>
 
             <div>
               <label htmlFor="recipientName" className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Penerima *
+                Nama Penerima <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -104,13 +119,14 @@ export default function MobileStickersCheckoutPage() {
                 required
                 placeholder="Contoh: Budi Santoso"
                 maxLength={100}
+                autoComplete="name"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none"
               />
             </div>
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Nomor WhatsApp *
+                Nomor WhatsApp <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -119,13 +135,36 @@ export default function MobileStickersCheckoutPage() {
                 required
                 placeholder="628123456789"
                 maxLength={20}
+                inputMode="tel"
+                autoComplete="tel"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none"
               />
+              <p className="mt-1 text-xs text-gray-500">Format: 628xxxxxxxxxx (tanpa + atau 0 di depan)</p>
+            </div>
+
+            <div>
+              <label htmlFor="segment" className="block text-sm font-medium text-gray-700 mb-1">
+                Produk ini untuk kepentingan? <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="segment"
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none bg-white"
+              >
+                <option value="">Pilih tujuan penggunaan</option>
+                <option value="pribadi">Pribadi</option>
+                <option value="keluarga">Keluarga</option>
+                <option value="bisnis">Bisnis / Komersial</option>
+              </select>
+              {errors.segment && (
+                <p className="mt-1 text-xs text-mobile-danger" role="alert">{errors.segment}</p>
+              )}
             </div>
 
             <div>
               <label htmlFor="addressLine" className="block text-sm font-medium text-gray-700 mb-1">
-                Alamat Lengkap *
+                Alamat Lengkap <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="addressLine"
@@ -141,7 +180,7 @@ export default function MobileStickersCheckoutPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                  Kota *
+                  Kota <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -150,12 +189,13 @@ export default function MobileStickersCheckoutPage() {
                   required
                   placeholder="Makassar"
                   maxLength={100}
+                  autoComplete="address-level2"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none"
                 />
               </div>
               <div>
                 <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Kode Pos *
+                  Kode Pos <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -164,14 +204,32 @@ export default function MobileStickersCheckoutPage() {
                   required
                   placeholder="90111"
                   maxLength={10}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none"
                 />
               </div>
             </div>
 
             <div>
+              <label htmlFor="voucherCode" className="block text-sm font-medium text-gray-700 mb-1">
+                Kode Voucher (Opsional)
+              </label>
+              <input
+                type="text"
+                id="voucherCode"
+                name="voucherCode"
+                placeholder="Contoh: BALIKIN10"
+                maxLength={50}
+                autoComplete="off"
+                style={{ textTransform: 'uppercase' }}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-mobile-primary focus:ring-2 focus:ring-mobile-primary/20 outline-none"
+              />
+            </div>
+
+            <div>
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-                Catatan Tambahan
+                Catatan Tambahan (Opsional)
               </label>
               <textarea
                 id="notes"
@@ -202,16 +260,24 @@ export default function MobileStickersCheckoutPage() {
             disabled={isPending}
             className="w-full bg-mobile-primary text-white py-4 rounded-xl font-semibold shadow-lg shadow-mobile-primary/30 disabled:opacity-50 btn-press"
           >
-            {isPending ? 'Memproses...' : 'Buat Order'}
+            {isPending ? 'Memproses...' : 'Lanjutkan ke Instruksi Pembayaran'}
           </button>
 
           <p className="text-center text-xs text-gray-500">
-            Setelah order dibuat, admin akan memverifikasi pembayaran dan mengirim sticker ke alamat Anda.
+            Setelah order dibuat, admin akan memverifikasi pembayaran dan mengirim ke alamat Anda.
           </p>
         </form>
 
         <div className="h-8" />
       </main>
     </div>
+  );
+}
+
+export default function MobileStickersCheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to" />}>
+      <MobileCheckoutInner />
+    </Suspense>
   );
 }
