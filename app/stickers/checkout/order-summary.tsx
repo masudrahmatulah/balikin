@@ -7,9 +7,14 @@ type ProductEntry = (typeof PRODUCT_CATALOG)[keyof typeof PRODUCT_CATALOG];
 
 interface OrderSummaryProps {
   product: ProductEntry;
+  shippingCost?: number | null;
 }
 
-export function OrderSummary({ product }: OrderSummaryProps) {
+export function OrderSummary({ product, shippingCost }: OrderSummaryProps) {
+  const grandTotal = shippingCost !== null && shippingCost !== undefined
+    ? product.price + shippingCost
+    : product.price;
+
   return (
     <div className="space-y-4">
       {/* Ringkasan produk */}
@@ -39,14 +44,18 @@ export function OrderSummary({ product }: OrderSummaryProps) {
             <span>Harga Produk</span>
             <span className="font-medium">Rp{product.price.toLocaleString('id-ID')}</span>
           </div>
-          <div className="flex justify-between gap-4 text-slate-500 text-xs">
+          <div className="flex justify-between gap-4 text-slate-600 text-sm">
             <span>Ongkir</span>
-            <span>Dihitung setelah konfirmasi alamat</span>
+            {shippingCost === null || shippingCost === undefined ? (
+              <span className="text-slate-500 text-xs">Pilih kota & kurir</span>
+            ) : (
+              <span className="font-medium">Rp{shippingCost.toLocaleString('id-ID')}</span>
+            )}
           </div>
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
-            <span className="font-semibold">Total Produk</span>
+            <span className="font-semibold">Grand Total</span>
             <span className="text-lg font-bold text-slate-950">
-              Rp{product.price.toLocaleString('id-ID')}
+              Rp{grandTotal.toLocaleString('id-ID')}
             </span>
           </div>
         </CardContent>

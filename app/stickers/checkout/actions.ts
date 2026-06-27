@@ -113,12 +113,15 @@ export interface CreateOrderInput {
   recipientName: string;
   phone: string;
   addressLine: string;
-  city: string;
   postalCode: string;
   notes?: string;
   segment: string;
   voucherCode?: string;
   productKey?: string;
+  shippingCost: number;
+  shippingCourier: string;
+  destinationCityId: string;
+  destinationCityName: string;
 }
 
 // ─── Server Action ─────────────────────────────────────────────────────────
@@ -130,9 +133,19 @@ export async function createStickerOrder(input: CreateOrderInput) {
   const recipientName = validateField(input.recipientName, 'Nama Penerima', MAX_FIELD_LENGTHS.recipientName);
   const phone = validatePhone(input.phone);
   const addressLine = validateField(input.addressLine, 'Alamat Lengkap', MAX_FIELD_LENGTHS.addressLine);
-  const city = validateField(input.city, 'Kota', MAX_FIELD_LENGTHS.city);
   const postalCode = validateField(input.postalCode, 'Kode Pos', MAX_FIELD_LENGTHS.postalCode);
   const segment = validateSegment(input.segment);
+
+  // Validasi shipping cost input
+  if (typeof input.shippingCost !== 'number' || input.shippingCost < 0) {
+    throw new Error('Ongkir tidak valid');
+  }
+  if (!input.shippingCourier?.trim()) {
+    throw new Error('Kurir pengiriman tidak valid');
+  }
+  if (!input.destinationCityId?.trim()) {
+    throw new Error('Kota tujuan tidak dipilih');
+  }
 
   // Notes: validasi panjang + strip karakter HTML
   const notes = input.notes?.trim()
@@ -151,7 +164,18 @@ export async function createStickerOrder(input: CreateOrderInput) {
     discountAmount = voucher.discountAmount;
   }
 
-  const totalAmount = basePrice - discountAmount;
+  // Re-verify shipping cost di server (anti-manipulation)
+  // Client kirim ongkir, server re-query RajaOngkir untuk konfirmasi
+  let verifiedShippingCost = input.shippingCost;
+  const shippingCostVerification = await verifyShippingCost(
+    input.destinationCityId,
+    input.shippingCourier
+  );
+  if (shippingCostVerification) {
+    verifiedShippingCost = shippingCostVerification;
+  }
+
+  const totalAmount = basePrice - discountAmount + verifiedShippingCost;
 
   const [order] = await db
     .insert(stickerOrders)
@@ -161,9 +185,12 @@ export async function createStickerOrder(input: CreateOrderInput) {
       recipientName,
       phone,
       addressLine,
-      city,
       postalCode,
       notes,
+      shippingCost: verifiedShippingCost,
+      shippingCourier: input.shippingCourier.toLowerCase(),
+      destinationCityId: input.destinationCityId,
+      destinationCityName: input.destinationCityName,
       paymentMethod: STICKER_PAYMENT_METHOD,
       productType: catalogEntry.productType,
       packQuantity: 1,
@@ -173,4 +200,22 @@ export async function createStickerOrder(input: CreateOrderInput) {
     .returning();
 
   return order;
+}
+
+// Helper: verify shipping cost from RajaOngkir
+async function verifyShippingCost(destinationCityId: string, courier: string): Promise<number | null> {
+  try {
+    const response = await fetch('http://localhost:3000/api/shipping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ destinationCityId, courier }),
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.success && data.data?.cost ? data.data.cost : null;
+  } catch (error) {
+    console.error('Error verifying shipping cost:', error);
+    return null; // Use client's cost if server verification fails
+  }
 }

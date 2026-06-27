@@ -9,11 +9,11 @@ import {
   STICKER_PACK_PRICE,
   STICKER_PACK_SIZE,
   STICKER_PAYMENT_LABEL,
-  WHATSAPP_ORDER_NUMBER,
 } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PaymentSection } from './payment-section';
 
 export default async function StickerOrderDetailPage({
   params,
@@ -40,8 +40,6 @@ export default async function StickerOrderDetailPage({
   if (!order || order.userId !== session.user.id) {
     notFound();
   }
-
-  const whatsappHref = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(`Halo, saya ingin konfirmasi pembayaran order sticker ${order.id}.`)}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -88,19 +86,11 @@ export default async function StickerOrderDetailPage({
               {order.notes && <p><span className="font-medium text-slate-900">Catatan:</span> {order.notes}</p>}
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-              <p className="text-sm font-semibold text-amber-950">Instruksi Pembayaran QRIS</p>
-              <p className="mt-2 text-sm leading-6 text-amber-800">
-                Lakukan pembayaran sesuai nominal order lalu kirim konfirmasi ke admin Balikin. Setelah diverifikasi, admin akan menyiapkan 1 bundle berisi 6 QR sticker unik untuk order ini.
-              </p>
-              <div className="mt-4">
-                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                    Konfirmasi via WhatsApp
-                  </a>
-                </Button>
-              </div>
-            </div>
+            <PaymentSection
+              orderId={order.id}
+              paymentStatus={order.paymentStatus}
+              totalAmount={order.totalAmount}
+            />
           </CardContent>
         </Card>
 

@@ -82,6 +82,10 @@ export const stickerOrders = pgTable('sticker_orders', {
   notes: text('notes'),
   packQuantity: integer('pack_quantity').default(1).notNull(),
   unitCountPerPack: integer('unit_count_per_pack').default(6).notNull(),
+  shippingCost: integer('shipping_cost').default(0).notNull(),
+  shippingCourier: text('shipping_courier'), // 'jne' | 'tiki' | 'pos'
+  destinationCityId: text('destination_city_id'), // RajaOngkir city ID
+  destinationCityName: text('destination_city_name'),
   totalAmount: integer('total_amount').notNull(),
   paymentProofUrl: text('payment_proof_url'),
   verifiedAt: timestamp('verified_at'),
