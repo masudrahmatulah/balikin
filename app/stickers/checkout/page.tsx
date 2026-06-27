@@ -1,25 +1,19 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense } from 'react';
-import { CheckoutForm } from './checkout-form';
-import { OrderSummary } from './order-summary';
-import { PRODUCT_CATALOG, resolveProductKey, type ProductKey } from '@/lib/product-catalog';
+import { CheckoutClient } from './checkout-client';
+import { resolveProductKey, type ProductKey } from '@/lib/product-catalog';
 
 function CheckoutPageInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const productKey: ProductKey = resolveProductKey(searchParams.get('product'));
   const product = PRODUCT_CATALOG[productKey];
-
-  const handleSuccess = (orderId: string) => {
-    router.push(`/dashboard/sticker-orders/${orderId}`);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,13 +44,9 @@ function CheckoutPageInner() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CheckoutForm onSuccess={handleSuccess} productKey={productKey} />
+              <CheckoutClient productKey={productKey} />
             </CardContent>
           </Card>
-
-          <div className="order-1 lg:order-2">
-            <OrderSummary product={product} />
-          </div>
         </div>
       </main>
     </div>

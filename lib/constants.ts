@@ -18,3 +18,19 @@ export const STICKER_ORDER_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Stiker Bal
 export const SHIPPING_FALLBACK_KALSEL = 15000;
 export const SHIPPING_FALLBACK_LUAR_KALSEL = 35000;
 export const SHIPPING_API_TIMEOUT_MS = 4000;
+
+// RajaOngkir Integration
+export const RAJAONGKIR_BASE_URL = 'https://api.rajaongkir.com/starter';
+export const RAJAONGKIR_ORIGIN_CITY_ID = process.env.RAJAONGKIR_ORIGIN_CITY_ID ?? '153'; // Hulu Sungai Selatan / Kandangan
+export const STICKER_WEIGHT_GRAMS = 500; // Estimasi 1 pack stiker + packaging
+
+// Midtrans QRIS Payment
+export const MIDTRANS_ENV = process.env.MIDTRANS_ENV ?? 'sandbox';
+export const MIDTRANS_BASE_URL = MIDTRANS_ENV === 'production'
+  ? 'https://app.midtrans.com/api'
+  : 'https://app.sandbox.midtrans.com/api';
+export const NEXT_PUBLIC_MIDTRANS_CLIENT_KEY = process.env.MIDTRANS_CLIENT_KEY ?? '';
+export const MIDTRANS_PAYMENT_TYPE = 'qris'; // QRIS payment method
+export const MIDTRANS_SNAP_URL = MIDTRANS_ENV === 'production'
+  ? 'https://app.midtrans.com/snap/snap.js'
+  : 'https://app.sandbox.midtrans.com/snap/snap.js';
