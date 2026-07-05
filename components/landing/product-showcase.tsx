@@ -118,6 +118,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           savings: 'Hemat Rp 24.000',
           category: 'bundle',
           productKey: 'ultimate-pack',
+          comingSoon: true,
         },
       ],
     },
@@ -143,6 +144,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           highlight: 'Stiker besar untuk aset premium',
           category: 'sticker',
           productKey: 'stiker-pro',
+          comingSoon: true,
         },
         {
           name: 'Stiker Balikin Daily',
@@ -160,6 +162,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           highlight: 'Stiker sedang untuk kebutuhan harian',
           category: 'sticker',
           productKey: 'stiker-daily',
+          comingSoon: true,
         },
         {
           name: 'Stiker Balikin Micro',
@@ -177,6 +180,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           highlight: 'Stiker kecil untuk barang saku',
           category: 'sticker',
           productKey: 'stiker-micro',
+          comingSoon: true,
         },
         {
           name: 'Stiker Balikin Family',
@@ -196,6 +200,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           savings: 'Hemat Rp 68.000',
           category: 'sticker',
           productKey: 'stiker-family',
+          comingSoon: true,
         },
       ],
     },
@@ -223,6 +228,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           savings: 'Hemat Rp 57.000',
           category: 'bundle',
           productKey: 'paket-keluarga',
+          comingSoon: true,
         },
         {
           name: 'Paket Traveller',
@@ -242,6 +248,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           savings: 'Hemat Rp 191.000',
           category: 'bundle',
           productKey: 'paket-traveller',
+          comingSoon: true,
         },
       ],
     },
