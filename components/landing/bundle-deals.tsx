@@ -46,6 +46,7 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
       ],
       validUntil: 'Terbatas stock',
       productKey: 'paket-keluarga',
+      comingSoon: true,
     },
     {
       name: 'Paket Traveller',
@@ -65,6 +66,7 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
       ],
       validUntil: 'Terbatas stock',
       productKey: 'paket-traveller',
+      comingSoon: true,
     },
   ];
 
