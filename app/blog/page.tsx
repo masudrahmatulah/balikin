@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { blogPosts } from '@/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import Link from 'next/link';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation';
 
 async function getBlogPosts() {
   const posts = await db.query.blogPosts.findMany({
-    where: (table) => table.isPublished,
+    where: (table) => eq(table.isPublished, true),
     orderBy: [desc(blogPosts.publishedAt)],
     limit: 20,
   });
