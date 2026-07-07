@@ -1,5 +1,6 @@
 import { AlertCard } from "./base/alert-box";
 import { RecentQRPreviews } from "./recent-qr-previews";
+import { AlertTriangle, Zap, ClipboardList, Settings2 } from "lucide-react";
 
 interface MaterialAlert {
   name: string;
@@ -36,7 +37,7 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
       {highPriority.length > 0 && (
         <AlertCard
           type="error"
-          icon="⚠️"
+          icon={AlertTriangle}
           title="Stok Kritis"
           message="Beberapa material dalam jumlah terbatas"
           items={highPriority.map((item) => ({
@@ -54,7 +55,7 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
       {mediumPriority.length > 0 && (
         <AlertCard
           type="warning"
-          icon="⚡"
+          icon={Zap}
           title="Stok Menipis"
           message="Beberapa material dalam jumlah terbatas"
           items={mediumPriority.map((item) => ({
@@ -72,7 +73,6 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
       {lowPriority.length > 0 && (
         <AlertCard
           type="success"
-          icon="✓"
           title="Stok Aman"
           message="Semua material dalam jumlah yang cukup"
           items={lowPriority.map((item) => ({
@@ -85,7 +85,7 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
       {/* Recent VDP Previews */}
       <AlertCard
         type="info"
-        icon="📋"
+        icon={ClipboardList}
         title="Recent VDP Previews"
         message="QR codes yang baru saja di-generate"
       >
@@ -95,7 +95,7 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
       {/* Operational Status */}
       <AlertCard
         type="info"
-        icon="⚙️"
+        icon={Settings2}
         title="Operational Status"
         message="System and service status"
       >

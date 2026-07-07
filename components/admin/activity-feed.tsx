@@ -1,7 +1,7 @@
 "use client";
 
 import { ActivityRow } from "./base/activity-row";
-import type { LucideIcon } from "lucide-react";
+import { Package, AlertTriangle, Truck, XCircle, ClipboardList, PackagePlus, type LucideIcon } from "lucide-react";
 
 interface Activity {
   id: string;
@@ -22,7 +22,7 @@ const defaultActivities: Activity[] = [
   {
     id: "1",
     event: "Batch B-204 Generated",
-    icon: "📦",
+    icon: Package,
     reference: "#BTC-204-981",
     admin: "Admin S.",
     timestamp: "10:42:01 AM",
@@ -31,7 +31,7 @@ const defaultActivities: Activity[] = [
   {
     id: "2",
     event: "Suspicious User Flagged",
-    icon: "⚠️",
+    icon: AlertTriangle,
     reference: "USR-882-P",
     admin: "System (AI)",
     timestamp: "09:15:33 AM",
@@ -40,7 +40,7 @@ const defaultActivities: Activity[] = [
   {
     id: "3",
     event: "Shipment Dispatched",
-    icon: "🚚",
+    icon: Truck,
     reference: "#ORD-9021-X",
     admin: "Warehouse A",
     timestamp: "08:02:11 AM",
@@ -49,7 +49,7 @@ const defaultActivities: Activity[] = [
   {
     id: "4",
     event: "VDP Error: Invalid Resi",
-    icon: "❌",
+    icon: XCircle,
     reference: "#TX-7711",
     admin: "Admin J.",
     timestamp: "07:44:59 AM",
@@ -58,7 +58,7 @@ const defaultActivities: Activity[] = [
   {
     id: "5",
     event: "New Order #8842",
-    icon: "📋",
+    icon: ClipboardList,
     reference: "#ORD-8842",
     admin: "Customer Service",
     timestamp: "07:30:15 AM",
@@ -67,7 +67,7 @@ const defaultActivities: Activity[] = [
   {
     id: "6",
     event: "Bundle Generation Started",
-    icon: "📦",
+    icon: PackagePlus,
     reference: "#BND-456",
     admin: "System",
     timestamp: "07:15:22 AM",
@@ -77,10 +77,10 @@ const defaultActivities: Activity[] = [
 
 export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">System Activity</h3>
+        <h3 className="text-lg font-display font-semibold text-primary">System Activity</h3>
         <p className="text-sm text-gray-500 mt-1">Recent system events and activities</p>
       </div>
 
@@ -130,7 +130,7 @@ export function ActivityFeed({ activities = defaultActivities }: ActivityFeedPro
           <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
             Previous
           </button>
-          <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90">
             Next
           </button>
         </div>

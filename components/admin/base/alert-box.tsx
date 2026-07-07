@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import { Info, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Info, AlertTriangle, CheckCircle, XCircle, type LucideIcon } from "lucide-react";
 
 interface AlertBoxProps {
   type: "info" | "warning" | "success" | "error";
@@ -79,7 +79,7 @@ export function AlertBox({
 }
 
 interface AlertCardProps extends AlertBoxProps {
-  icon?: string;
+  icon?: LucideIcon;
   items?: Array<{ label: string; value: string }>;
   primaryAction?: {
     label: string;
@@ -125,14 +125,14 @@ export function AlertCard({
   };
 
   const config = alertConfig[type];
-  const Icon = config.icon;
+  const DisplayIcon = icon || config.icon;
 
   return (
     <div className={cn("border rounded-lg overflow-hidden", config.bgClass)}>
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
-            <span className="text-xl">{icon}</span>
+            <DisplayIcon size={20} className={config.textClass} />
           </div>
           <div>
             <h4 className={cn("font-bold", config.titleClass)}>

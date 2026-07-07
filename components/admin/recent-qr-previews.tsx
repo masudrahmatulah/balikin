@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateQRCodeDataURL } from '@/lib/qrcode-generator';
+import { QrCode } from 'lucide-react';
 
 interface RecentTag {
   id: string;
@@ -55,7 +56,7 @@ export function RecentQRPreviews({ recentTags }: RecentQRPreviewsProps) {
   if (recentTags.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-        <span className="text-4xl mb-2">📦</span>
+        <QrCode className="w-10 h-10 mb-2 text-gray-400" strokeWidth={1.5} />
         <p className="text-sm">Belum ada QR code yang di-generate</p>
       </div>
     );
