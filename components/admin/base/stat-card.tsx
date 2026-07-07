@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
+import { TrendingUp, TrendingDown, BarChart3, type LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   label: string;
@@ -8,7 +8,7 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
-  icon?: string;
+  icon?: LucideIcon;
   highlight?: boolean;
   className?: string;
   trendLabel?: string;
@@ -25,20 +25,20 @@ export function StatCard({
   label,
   value,
   trend,
-  icon,
+  icon: Icon,
   highlight = false,
   className,
   trendLabel = "vs last period",
 }: StatCardProps) {
   const trendColor = trend?.isPositive ? "text-green-600" : "text-red-600";
   const trendBg = trend?.isPositive ? "bg-green-50" : "bg-red-50";
-  const trendArrow = trend?.isPositive ? "↑" : "↓";
+  const TrendIcon = trend?.isPositive ? TrendingUp : TrendingDown;
 
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow",
-        highlight && "border-2 border-amber-500 bg-amber-50/50",
+        "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
+        highlight && "border-2 border-tertiary/40 bg-tertiary/[0.03]",
         className
       )}
     >
@@ -48,31 +48,32 @@ export function StatCard({
             {label}
           </p>
           {trend && (
-            <div className={cn("inline-flex items-center gap-1 mt-1.5", trendBg)}>
+            <div className={cn("inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full", trendBg)}>
+              <TrendIcon size={12} className={trendColor} />
               <span className={cn("text-xs font-semibold", trendColor)}>
-                {trendArrow} {Math.abs(trend.value)}%
+                {Math.abs(trend.value)}%
               </span>
               <span className="text-xs text-gray-500">{trendLabel}</span>
             </div>
           )}
         </div>
-        {icon && (
+        {Icon && (
           <div
             className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center",
+              "w-10 h-10 rounded-xl flex items-center justify-center",
               highlight
-                ? "bg-amber-100 text-amber-600"
-                : "bg-blue-100 text-blue-600"
+                ? "bg-tertiary/10 text-tertiary"
+                : "bg-primary/5 text-primary"
             )}
           >
-            <span className="text-xl">{icon}</span>
+            <Icon size={20} strokeWidth={2} />
           </div>
         )}
       </div>
       <p
         className={cn(
-          "font-display font-bold text-gray-900",
-          highlight && "text-amber-900"
+          "font-display font-bold text-2xl text-primary",
+          highlight && "text-tertiary"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
@@ -89,21 +90,22 @@ export function StatCardWithChart({
   value,
   chartData = [],
   trend,
+  icon: Icon = BarChart3,
   highlight = false,
   className,
   trendLabel = "vs last period",
 }: StatCardWithChartProps) {
   const trendColor = trend?.isPositive ? "text-green-600" : "text-red-600";
   const trendBg = trend?.isPositive ? "bg-green-50" : "bg-red-50";
-  const trendArrow = trend?.isPositive ? "↑" : "↓";
+  const TrendIcon = trend?.isPositive ? TrendingUp : TrendingDown;
 
   const maxChartValue = Math.max(...chartData, 100);
 
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow",
-        highlight && "border-2 border-amber-500 bg-amber-50/50",
+        "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
+        highlight && "border-2 border-tertiary/40 bg-tertiary/[0.03]",
         className
       )}
     >
@@ -113,22 +115,23 @@ export function StatCardWithChart({
             {label}
           </p>
           {trend && (
-            <div className={cn("inline-flex items-center gap-1 mt-1.5", trendBg)}>
+            <div className={cn("inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full", trendBg)}>
+              <TrendIcon size={12} className={trendColor} />
               <span className={cn("text-xs font-semibold", trendColor)}>
-                {trendArrow} {Math.abs(trend.value)}%
+                {Math.abs(trend.value)}%
               </span>
               <span className="text-xs text-gray-500">{trendLabel}</span>
             </div>
           )}
         </div>
-        <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
-          <span className="text-xl">📊</span>
+        <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
+          <Icon size={20} strokeWidth={2} />
         </div>
       </div>
       <p
         className={cn(
-          "font-display font-bold text-gray-900",
-          highlight && "text-amber-900"
+          "font-display font-bold text-2xl text-primary",
+          highlight && "text-tertiary"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
@@ -138,7 +141,7 @@ export function StatCardWithChart({
           {chartData.map((height, index) => (
             <div
               key={index}
-              className="flex-1 bg-blue-100 rounded-t-sm transition-all hover:bg-blue-200"
+              className="flex-1 bg-primary/10 rounded-t-sm transition-all hover:bg-tertiary/30"
               style={{ height: `${(height / maxChartValue) * 100}%` }}
             />
           ))}

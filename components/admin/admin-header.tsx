@@ -62,7 +62,7 @@ export function AdminHeader({
   }[session.user.division || "admin"] || "Admin";
 
   return (
-    <header className="fixed top-0 right-0 left-0 h-16 bg-white border-b border-gray-200 flex justify-between items-center px-6 z-40">
+    <header className="fixed top-0 right-0 left-0 lg:left-sidebar-width h-16 bg-white/80 backdrop-blur-md border-b border-gray-200/70 flex justify-between items-center px-6 z-40">
       {/* Left Section: Search & Nav */}
       <div className="flex items-center gap-4 flex-1">
         {/* Mobile Menu Toggle */}
@@ -90,7 +90,7 @@ export function AdminHeader({
             href="/admin/blog"
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-              "text-gray-700 hover:bg-gray-100"
+              "text-gray-600 hover:bg-gray-100 hover:text-primary"
             )}
           >
             Blog
@@ -99,12 +99,12 @@ export function AdminHeader({
             href="/admin/sticker-orders"
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-              "text-gray-700 hover:bg-gray-100"
+              "text-gray-600 hover:bg-gray-100 hover:text-primary"
             )}
           >
             Orders
             {pendingOrdersCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
+              <span className="ml-1 px-1.5 py-0.5 bg-tertiary text-white text-xs font-bold rounded-full">
                 {pendingOrdersCount}
               </span>
             )}
@@ -113,7 +113,7 @@ export function AdminHeader({
             href="/admin/analytics"
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-              "text-gray-700 hover:bg-gray-100"
+              "text-gray-600 hover:bg-gray-100 hover:text-primary"
             )}
           >
             Analytics
@@ -129,10 +129,10 @@ export function AdminHeader({
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+        <button className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors">
           <Bell size={20} />
           {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-tertiary rounded-full ring-2 ring-white" />
           )}
         </button>
 
@@ -142,7 +142,7 @@ export function AdminHeader({
         {/* User Profile */}
         <div className="hidden sm:flex items-center gap-3">
           <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+            <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center text-white font-semibold">
               {session.user.name?.[0] || session.user.email[0].toUpperCase()}
             </div>
             <div className="text-left">
@@ -155,7 +155,7 @@ export function AdminHeader({
 
           <button
             onClick={handleSignOut}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-500 hover:bg-gray-100 hover:text-tertiary rounded-lg transition-colors"
             title="Sign out"
           >
             <LogOut size={20} />
@@ -164,7 +164,7 @@ export function AdminHeader({
 
         {/* Mobile Profile Button */}
         <div className="sm:hidden flex items-center gap-2">
-          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-semibold">
+          <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center text-white font-semibold">
             {session.user.name?.[0] || session.user.email[0].toUpperCase()}
           </div>
         </div>
