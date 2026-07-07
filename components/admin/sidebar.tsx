@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { DivisionNavigation, DivisionInfo, type DivisionType } from "@/lib/admin
 import {
   Settings,
   ScrollText,
-  ScanQrCode,
   LayoutDashboard,
   Home,
   Printer,
@@ -91,8 +91,8 @@ export function Sidebar({ userDivision }: SidebarProps) {
         {/* Logo Section */}
         <div className="mb-8 px-2">
           <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-tertiary to-tertiary/70 rounded-xl flex items-center justify-center text-white shadow-lg shadow-tertiary/20 transition-transform group-hover:scale-105">
-              <ScanQrCode className="w-5 h-5" strokeWidth={2} />
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-tertiary/20 transition-transform group-hover:scale-105">
+              <Image src="/logo.png" alt="Balikin" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-base font-display font-bold text-white leading-tight">Balikin</h1>
