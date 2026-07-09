@@ -157,53 +157,8 @@ export function MobileHome({ initialStats, initialTags, initialRecentActivity }:
           </div>
         )}
 
-        {/* Main CTA - Laporkan Temuan Barang */}
-        <div className="relative animate-fade-up-20 stagger-delay-1">
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-mobile-primary-light to-mobile-primary rounded-3xl blur-2xl opacity-20" />
-
-          <Link href="/mobile/report" className="relative block">
-            <div className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 overflow-hidden">
-              {/* Animated background pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-              </div>
-
-              <div className="relative">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
-                    <QrCode className="h-8 w-8 text-white" aria-hidden="true" />
-                  </div>
-                  <div className="bg-mobile-danger text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse-slow">
-                    URGENT
-                  </div>
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Laporkan Temuan Barang
-                </h2>
-                <p className="text-blue-100 mb-6 text-sm">
-                  Menemukan barang dengan QR code? Bantu pemiliknya menemukan kembali.
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-white/80 text-sm">
-                    <Clock className="h-4 w-4" aria-hidden="true" />
-                    <span>24/7 Aktif</span>
-                  </div>
-                  <div className="bg-white text-mobile-primary rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
-                    Laporkan Sekarang
-                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 animate-fade-up-20 stagger-delay-2">
+        <div className="grid grid-cols-3 gap-3 animate-fade-up-20 stagger-delay-1">
           {statsDisplay.map((stat, index) => (
             <div
               key={index}
@@ -219,7 +174,7 @@ export function MobileHome({ initialStats, initialTags, initialRecentActivity }:
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="animate-fade-up-20 stagger-delay-3">
+        <div className="animate-fade-up-20 stagger-delay-2">
           <h3 className="text-lg font-bold text-gray-900 mb-4 px-1">Aksi Cepat</h3>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => (
@@ -238,7 +193,7 @@ export function MobileHome({ initialStats, initialTags, initialRecentActivity }:
 
         {/* My Tags Section */}
         {session?.user?.id && (
-          <div className="animate-fade-up-20 stagger-delay-4">
+          <div className="animate-fade-up-20 stagger-delay-3">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Tag Saya</h3>
               <Link href="/mobile/profile/tags" className="text-sm text-mobile-primary font-medium">
@@ -313,7 +268,7 @@ export function MobileHome({ initialStats, initialTags, initialRecentActivity }:
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (
-          <div className="animate-fade-up-20 stagger-delay-5">
+          <div className="animate-fade-up-20 stagger-delay-4">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Aktivitas Terkini</h3>
               <Link href="/mobile/history" className="text-sm text-mobile-primary font-medium">
