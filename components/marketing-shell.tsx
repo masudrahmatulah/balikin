@@ -42,7 +42,8 @@ export function MarketingShell({
                 width={260}
                 height={80}
                 priority
-                className="h-20 w-auto"
+                className="h-auto w-auto"
+                style={{ height: 'auto', maxHeight: '80px' }}
               />
             </Link>
             <nav className="hidden gap-5 text-sm text-gray-600 md:flex" aria-label="Main navigation">

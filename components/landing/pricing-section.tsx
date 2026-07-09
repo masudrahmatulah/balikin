@@ -53,6 +53,7 @@ const productGroups = [
     price: 'Rp 59.000+',
     subtitle: 'satu kali bayar',
     badge: 'STIKER',
+    comingSoon: true,
     features: [
       'Semua fitur Gratis + Hardware Fisik',
       '🏷️ Stiker Balikin Pro - Premium Quality (Rp 59k)',
@@ -72,6 +73,7 @@ const productGroups = [
     price: 'Rp 299.000+',
     subtitle: 'satu kali bayar',
     badge: 'PAKET',
+    comingSoon: true,
     features: [
       'Semua fitur Gratis + Hardware Bundle Lengkap',
       '👨‍👩‍👧‍👦 Paket Keluarga - 4 Sets Protection (Rp 299k)',
@@ -112,7 +114,14 @@ export function PricingSection() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <Card className={`border-2 h-full flex flex-col ${group.gradient ? 'border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 shadow-xl shadow-blue-600/10' : ''}`}>
+                <Card className={`border-2 h-full flex flex-col relative ${group.gradient ? 'border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 shadow-xl shadow-blue-600/10' : ''} ${group.comingSoon ? 'opacity-75' : ''}`}>
+                  {group.comingSoon && (
+                    <div className="absolute inset-0 bg-black/5 rounded-lg z-20 flex items-center justify-center">
+                      <div className="bg-white px-4 py-2 rounded-lg shadow-lg">
+                        <span className="text-sm font-bold text-gray-800">Coming Soon</span>
+                      </div>
+                    </div>
+                  )}
                   {group.badge && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                       <span className={`text-white text-xs font-bold px-3 py-1 rounded-full ${
@@ -143,19 +152,28 @@ export function PricingSection() {
                       ))}
                     </ul>
                     <div className="mt-6 flex flex-col gap-3">
-                      <Link href={group.cta.href} className="block">
-                        <Button
-                          className={`w-full ${group.gradient ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                          variant={group.cta.variant === 'outline' ? 'outline' : 'default'}
-                          size="sm"
-                        >
+                      {group.comingSoon ? (
+                        <Button disabled className="w-full" size="sm">
                           <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
-                          {group.cta.text}
+                          Coming Soon
                         </Button>
-                      </Link>
-                      <div className="flex justify-center">
-                        <SimpleUrgencyBadge spots={group.cta.spots} />
-                      </div>
+                      ) : (
+                        <Link href={group.cta.href} className="block">
+                          <Button
+                            className={`w-full ${group.gradient ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                            variant={group.cta.variant === 'outline' ? 'outline' : 'default'}
+                            size="sm"
+                          >
+                            <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
+                            {group.cta.text}
+                          </Button>
+                        </Link>
+                      )}
+                      {!group.comingSoon && (
+                        <div className="flex justify-center">
+                          <SimpleUrgencyBadge spots={group.cta.spots} />
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

@@ -9,6 +9,8 @@ import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { ScenariosSection } from '@/components/landing/scenarios-section';
 import { BenefitsSection } from '@/components/landing/benefits-section';
 import { ProductShowcase } from '@/components/landing/product-showcase';
+import { PricingSection } from '@/components/landing/pricing-section';
+import { FreeVsPremiumComparison } from '@/components/landing/free-vs-premium-comparison';
 import { BundleDeals } from '@/components/landing/bundle-deals';
 import { TrustSecuritySection } from '@/components/landing/trust-security-section';
 import { FinalCTASection } from '@/components/landing/final-cta-section';
@@ -44,6 +46,12 @@ export function HomePage() {
 
       {/* Product Showcase Section */}
       <ProductShowcase />
+
+      {/* Pricing Section */}
+      <PricingSection />
+
+      {/* Free vs Premium Comparison */}
+      <FreeVsPremiumComparison />
 
       {/* Bundle Deals Section */}
       <BundleDeals />

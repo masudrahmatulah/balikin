@@ -8,6 +8,8 @@ import { tags } from '@/db/schema';
 import { unstable_cache as cache } from 'next/cache';
 import { pdf } from '@react-pdf/renderer';
 import React from 'react';
+import fs from 'fs/promises';
+import path from 'path';
 import { calculateGridPositions, type PaperSize } from '@/lib/sticker-template';
 
 // ============================================================================
@@ -45,6 +47,21 @@ async function generateQRCodeCached(qrUrl: string): Promise<string> {
     ['qr-code', qrUrl],
     { revalidate: 86400 }
   )();
+}
+
+// ============================================================================
+// LOGO (LOADED FROM DISK, EMBEDDED AS DATA URI)
+// ============================================================================
+
+let logoDataUrlCache: string | null = null;
+
+async function getLogoDataUrl(): Promise<string> {
+  if (logoDataUrlCache) return logoDataUrlCache;
+
+  const logoPath = path.join(process.cwd(), 'public', 'balikin_logo.png');
+  const buffer = await fs.readFile(logoPath);
+  logoDataUrlCache = `data:image/png;base64,${buffer.toString('base64')}`;
+  return logoDataUrlCache;
 }
 
 // ============================================================================
@@ -120,6 +137,7 @@ export async function generateCutFoldPDF(
 
   // Dynamically import React PDF component
   const { CutFoldPDFDocument } = await import('@/components/admin/cut-fold-pdf-document');
+  const logoDataUrl = await getLogoDataUrl();
 
   // Generate PDF using React component with all pages
   const pdfBlob = await pdf(
@@ -128,6 +146,7 @@ export async function generateCutFoldPDF(
       totalPages,
       baseUrl,
       paperSize,
+      logoDataUrl,
     })
   ).toBlob();
 

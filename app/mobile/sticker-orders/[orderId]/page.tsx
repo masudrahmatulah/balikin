@@ -5,11 +5,8 @@ import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
-import {
-  STICKER_PACK_PRICE,
-  STICKER_PACK_SIZE,
-  WHATSAPP_ORDER_NUMBER,
-} from '@/lib/constants';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
+import { getProductDisplayName } from '@/lib/product-catalog';
 
 export default async function MobileStickerOrderDetailPage({
   params,
@@ -37,6 +34,7 @@ export default async function MobileStickerOrderDetailPage({
     notFound();
   }
 
+  const productName = getProductDisplayName(order.productType, order.unitCountPerPack);
   const whatsappHref = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(`Halo, saya ingin konfirmasi pembayaran order sticker ${order.id}.`)}`;
 
   return (
@@ -60,7 +58,7 @@ export default async function MobileStickerOrderDetailPage({
               <Sticker className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-gray-900">Order Sticker Vinyl</h1>
+              <h1 className="text-lg font-bold text-gray-900">Order {productName}</h1>
               <p className="text-xs text-gray-500">Order ID: {order.id}</p>
             </div>
           </div>
@@ -86,11 +84,11 @@ export default async function MobileStickerOrderDetailPage({
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Produk</span>
-              <span className="font-medium text-gray-900">Sticker Vinyl Pack isi {STICKER_PACK_SIZE}</span>
+              <span className="font-medium text-gray-900">{productName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Total</span>
-              <span className="font-bold text-mobile-primary">Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}</span>
+              <span className="font-bold text-mobile-primary">Rp{order.totalAmount.toLocaleString('id-ID')}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Penerima</span>
