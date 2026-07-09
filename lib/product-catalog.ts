@@ -16,3 +16,16 @@ export function resolveProductKey(raw: string | null | undefined): ProductKey {
   if (raw && raw in PRODUCT_CATALOG) return raw as ProductKey;
   return DEFAULT_PRODUCT_KEY;
 }
+
+// productType (kolom sticker_orders.product_type) tidak menyimpan nama produk spesifik,
+// jadi nama tampilan direkonstruksi dari productType + packSize yang sudah tersimpan di order.
+const PRODUCT_TYPE_LABELS: Record<string, string> = {
+  acrylic: 'Balikin Armor Tag',
+  sticker: 'Sticker Vinyl Pack',
+  bundle: 'Balikin Bundle Pack',
+};
+
+export function getProductDisplayName(productType: string, packSize: number): string {
+  const label = PRODUCT_TYPE_LABELS[productType] ?? 'Produk Balikin';
+  return packSize > 1 ? `${label} isi ${packSize}` : label;
+}

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTransition } from 'react';
+import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { initiatePayment } from '@/app/actions/payment';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -25,24 +26,6 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load Midtrans Snap script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = MIDTRANS_SNAP_URL;
-    script.async = true;
-    script.setAttribute('data-client-key', NEXT_PUBLIC_MIDTRANS_CLIENT_KEY);
-    script.onload = () => setIsLoaded(true);
-    script.onerror = () => {
-      console.error('Failed to load Midtrans Snap');
-      setError('Gagal memuat gateway pembayaran');
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
 
   const handlePayment = () => {
     if (!isLoaded) {
@@ -93,6 +76,17 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
 
   return (
     <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+      <Script
+        type="text/javascript"
+        src={MIDTRANS_SNAP_URL}
+        data-client-key={NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+        strategy="afterInteractive"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          console.error('Failed to load Midtrans Snap');
+          setError('Gagal memuat gateway pembayaran');
+        }}
+      />
       <p className="text-sm font-semibold text-blue-950">💳 Pembayaran dengan QRIS Midtrans</p>
       <p className="mt-2 text-sm leading-6 text-blue-800">
         Klik tombol di bawah untuk membuka modal pembayaran QRIS. Scan QR Code dengan e-wallet favorit Anda (GoPay, OVO, LinkAja, dll).

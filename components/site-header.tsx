@@ -60,7 +60,8 @@ export function SiteHeader() {
                 width={520}
                 height={80}
                 priority
-                className="h-20 w-auto"
+                className="h-auto w-auto"
+                style={{ height: 'auto', maxHeight: '80px' }}
               />
             </motion.div>
           </Link>

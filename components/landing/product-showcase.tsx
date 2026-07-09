@@ -81,14 +81,14 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       id: 'acrylic',
       label: 'Gantungan Akrilik',
       emoji: '🔑',
-      description: 'Premium keychains untuk proteksi maksimal',
+      description: 'gantungan kunci Smart & Simple untuk proteksi maksimal',
       products: [
         {
           name: 'Balikin Armor Tag',
           price: 'Rp 54.000',
           icon: Shield,
           features: [
-            '🔑 Gantungan kunci akrilik premium',
+            '🔑 Gantungan kunci akrilik cerdas dan sederhana',
             '💪 Tahan benturan & cuaca ekstrem',
             '📍 Live tracking dengan GPS',
             '📱 Notifikasi WhatsApp real-time',
@@ -96,9 +96,10 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           ],
           badge: 'The Anchor',
           badgeColor: 'bg-blue-600',
-          highlight: 'Premium keychain untuk kunci motor/mobil',
+          highlight: 'Gantungan kunci smart dan simple',
           category: 'physical',
           productKey: 'armor-tag',
+          images: ['/logo2.webp'],
         },
         {
           name: 'Balikin Ultimate Pack',
@@ -106,7 +107,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           originalPrice: 'Rp 113.000',
           icon: Package,
           features: [
-            '🎁 1 Gantungan Kunci Akrilik Premium',
+            '🎁 1 Gantungan Kunci Akrilik Cerdas dan Sederhana',
             '🎁 1 Sheet Stiker Family (12 QR)',
             '📍 Full tracking + WhatsApp alerts',
             '🚨 Lost Mode dengan reward system',
@@ -346,19 +347,29 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                   <CardContent className="p-6">
                     {/* Product Image Gallery (only for products with images) */}
                     {product.images && product.images.length > 0 && (
-                      <div className="mb-4">
-                        <div className="relative rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                      <div className="mb-4 flex justify-center">
+                        <div className={`relative rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200 ${
+                          product.category === 'physical' ? 'flex items-center justify-center w-24 h-24' : ''
+                        }`}>
                           {/* Main Image */}
                           <div
-                            className="relative aspect-[4/3] cursor-pointer group"
+                            className={`${
+                              product.category === 'physical'
+                                ? 'w-20 h-20 cursor-pointer group'
+                                : 'relative aspect-[4/3] cursor-pointer group w-full'
+                            }`}
                             onClick={() => setZoomedImage(product.images![currentImageIndices[globalIndex] || 0])}
                           >
                             <Image
                               src={product.images[currentImageIndices[globalIndex] || 0]}
                               alt={`${product.name} - Image ${currentImageIndices[globalIndex] || 0 + 1}`}
-                              width={400}
-                              height={300}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              width={product.category === 'physical' ? 80 : 400}
+                              height={product.category === 'physical' ? 80 : 300}
+                              className={`${
+                                product.category === 'physical'
+                                  ? 'w-20 h-20 object-contain'
+                                  : 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105'
+                              }`}
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
                               <ZoomIn className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -366,7 +377,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                           </div>
 
                           {/* Navigation Arrows */}
-                          {product.images.length > 1 && (
+                          {product.images.length > 1 && product.category !== 'physical' && (
                             <>
                               <button
                                 onClick={(e) => {
@@ -396,7 +407,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                           )}
 
                           {/* Image Counter */}
-                          {product.images.length > 1 && (
+                          {product.images.length > 1 && product.category !== 'physical' && (
                             <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
                               {(currentImageIndices[globalIndex] || 0) + 1} / {product.images.length}
                             </div>
@@ -404,7 +415,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
                         </div>
 
                         {/* Thumbnail Strip */}
-                        {product.images.length > 1 && (
+                        {product.images.length > 1 && product.category !== 'physical' && (
                           <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
                             {product.images.map((image, imgIndex) => (
                               <button

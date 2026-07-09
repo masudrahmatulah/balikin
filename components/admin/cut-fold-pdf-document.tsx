@@ -338,13 +338,14 @@ interface CutFoldPDFDocumentProps {
   totalPages: number;
   baseUrl?: string;
   paperSize?: PaperSize;
+  logoDataUrl?: string;
 }
 
 // ============================================================================
 // COMPONENTS
 // ============================================================================
 
-export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id', paperSize = 'a4' }: CutFoldPDFDocumentProps) {
+export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id', paperSize = 'a4', logoDataUrl }: CutFoldPDFDocumentProps) {
   const config = PAPER_CONFIGS[paperSize];
   const styles = createStyles(paperSize);
   const { rows: ROWS, cols: COLS } = config;
@@ -436,9 +437,9 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
                       <View style={styles.column2Side}>
                         {item.tag.isCustom && item.tag.customPhotoUrl ? (
                           <Image src={item.tag.customPhotoUrl} style={styles.customPhotoFull} />
-                        ) : (
-                          <Image src={`${baseUrl}/gantungan kunci logo.png`} style={styles.logoFull} />
-                        )}
+                        ) : logoDataUrl ? (
+                          <Image src={logoDataUrl} style={styles.logoFull} />
+                        ) : null}
                       </View>
 
                       {/* Column 3: QR Aktivasi */}

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense } from 'react';
 import { CheckoutClient } from './checkout-client';
-import { resolveProductKey, type ProductKey } from '@/lib/product-catalog';
+import { PRODUCT_CATALOG, resolveProductKey, type ProductKey } from '@/lib/product-catalog';
 
 function CheckoutPageInner() {
   const searchParams = useSearchParams();

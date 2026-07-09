@@ -5,11 +5,8 @@ import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
-import {
-  STICKER_PACK_PRICE,
-  STICKER_PACK_SIZE,
-  STICKER_PAYMENT_LABEL,
-} from '@/lib/constants';
+import { STICKER_PAYMENT_LABEL } from '@/lib/constants';
+import { getProductDisplayName } from '@/lib/product-catalog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +38,8 @@ export default async function StickerOrderDetailPage({
     notFound();
   }
 
+  const productName = getProductDisplayName(order.productType, order.unitCountPerPack);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b bg-white">
@@ -61,7 +60,7 @@ export default async function StickerOrderDetailPage({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Sticker className="h-5 w-5 text-emerald-600" />
-                  Order Sticker Vinyl
+                  Order {productName}
                 </CardTitle>
                 <CardDescription>Order ID: {order.id}</CardDescription>
               </div>
@@ -77,9 +76,9 @@ export default async function StickerOrderDetailPage({
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3 text-sm text-slate-600">
-              <p><span className="font-medium text-slate-900">Produk:</span> Sticker Vinyl Pack isi {STICKER_PACK_SIZE}</p>
+              <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
               <p><span className="font-medium text-slate-900">Metode Bayar:</span> {STICKER_PAYMENT_LABEL}</p>
-              <p><span className="font-medium text-slate-900">Total:</span> Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}</p>
+              <p><span className="font-medium text-slate-900">Total:</span> Rp{order.totalAmount.toLocaleString('id-ID')}</p>
               <p><span className="font-medium text-slate-900">Penerima:</span> {order.recipientName}</p>
               <p><span className="font-medium text-slate-900">WhatsApp:</span> {order.phone}</p>
               <p><span className="font-medium text-slate-900">Alamat:</span> {order.addressLine}, {order.city}, {order.postalCode}</p>

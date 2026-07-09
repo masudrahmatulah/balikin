@@ -185,6 +185,7 @@ export async function createStickerOrder(input: CreateOrderInput) {
       recipientName,
       phone,
       addressLine,
+      city: input.destinationCityName,
       postalCode,
       notes,
       shippingCost: verifiedShippingCost,

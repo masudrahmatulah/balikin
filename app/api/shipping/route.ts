@@ -13,14 +13,9 @@ if (!API_KEY) {
   throw new Error('RAJAONGKIR_API_KEY is not defined in environment variables');
 }
 
-type RajaOngkirResponse<T> = {
-  status: number;
-  code: string;
+type KomerceResponse<T> = {
+  meta: { code: number; status: string; message: string };
   data: T | null;
-  rajaongkir?: {
-    status: { code: number; description: string };
-    results?: T;
-  };
 };
 
 async function fetchWithTimeout<T>(
@@ -50,27 +45,25 @@ async function fetchWithTimeout<T>(
 // GET /api/shipping?type=provinces
 async function handleGetProvinces() {
   try {
-    const response = await fetchWithTimeout<{
-      query: unknown;
-      status: { code: number; description: string };
-      results: Array<{ province_id: string; province: string }>;
-    }>(
-      `${RAJAONGKIR_BASE_URL}/province`,
-      {
-        headers: {
-          key: API_KEY,
-        },
-      }
-    );
+    const response = await fetchWithTimeout<
+      KomerceResponse<Array<{ id: number; name: string }>>
+    >(`${RAJAONGKIR_BASE_URL}/destination/province`, {
+      headers: {
+        key: API_KEY,
+      },
+    });
 
-    if (response.rajaongkir?.status.code === 200) {
+    if (response.meta.code === 200 && response.data) {
       return NextResponse.json({
         success: true,
-        data: response.rajaongkir.results || [],
+        data: response.data.map((p) => ({
+          province_id: String(p.id),
+          province: p.name,
+        })),
       });
     }
 
-    throw new Error('Failed to fetch provinces');
+    throw new Error(response.meta.message || 'Failed to fetch provinces');
   } catch (error) {
     console.error('Error fetching provinces:', error);
     return NextResponse.json(
@@ -90,34 +83,27 @@ async function handleGetCities(provinceId: string) {
   }
 
   try {
-    const response = await fetchWithTimeout<{
-      query: unknown;
-      status: { code: number; description: string };
-      results: Array<{
-        city_id: string;
-        province_id: string;
-        province: string;
-        city_name: string;
-        type: string;
-        postal_code: string;
-      }>;
-    }>(
-      `${RAJAONGKIR_BASE_URL}/city?province=${provinceId}`,
-      {
-        headers: {
-          key: API_KEY,
-        },
-      }
-    );
+    const response = await fetchWithTimeout<
+      KomerceResponse<Array<{ id: number; name: string; zip_code: string }>>
+    >(`${RAJAONGKIR_BASE_URL}/destination/city/${provinceId}`, {
+      headers: {
+        key: API_KEY,
+      },
+    });
 
-    if (response.rajaongkir?.status.code === 200) {
+    if (response.meta.code === 200 && response.data) {
       return NextResponse.json({
         success: true,
-        data: response.rajaongkir.results || [],
+        data: response.data.map((c) => ({
+          city_id: String(c.id),
+          city_name: c.name,
+          province: '',
+          postal_code: c.zip_code,
+        })),
       });
     }
 
-    throw new Error('Failed to fetch cities');
+    throw new Error(response.meta.message || 'Failed to fetch cities');
   } catch (error) {
     console.error('Error fetching cities:', error);
     return NextResponse.json(
@@ -154,72 +140,49 @@ async function handleGetCost(body: unknown) {
       );
     }
 
-    const response = await fetchWithTimeout<{
-      query: unknown;
-      status: { code: number; description: string };
-      origin_details?: {
-        city_id: string;
-        province_id: string;
-        province: string;
-        type: string;
-        city_name: string;
-        postal_code: string;
-      };
-      destination_details?: {
-        city_id: string;
-        province_id: string;
-        province: string;
-        type: string;
-        city_name: string;
-        postal_code: string;
-      };
-      results?: Array<{
-        code: string;
-        name: string;
-        costs: Array<{
+    const response = await fetchWithTimeout<
+      KomerceResponse<
+        Array<{
+          name: string;
+          code: string;
           service: string;
           description: string;
-          cost: Array<{ value: number; etd: string; note: string }>;
-        }>;
-      }>;
-    }>(
-      `${RAJAONGKIR_BASE_URL}/cost`,
-      {
-        method: 'POST',
-        headers: {
-          key: API_KEY,
-          'Content-Type': 'application/x-www-form-urlencoded',
+          cost: number;
+          etd: string;
+        }>
+      >
+    >(`${RAJAONGKIR_BASE_URL}/calculate/domestic-cost`, {
+      method: 'POST',
+      headers: {
+        key: API_KEY,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        origin: RAJAONGKIR_ORIGIN_CITY_ID,
+        destination: input.destinationCityId,
+        weight: STICKER_WEIGHT_GRAMS.toString(),
+        courier,
+      }).toString(),
+    });
+
+    if (response.meta.code === 200 && response.data && response.data.length > 0) {
+      // API tidak mengurutkan berdasarkan termurah, jadi pilih manual
+      const service = [...response.data].sort((a, b) => a.cost - b.cost)[0];
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          courier: service.code.toUpperCase(),
+          service: service.service,
+          description: service.description,
+          cost: service.cost || SHIPPING_FALLBACK_LUAR_KALSEL,
+          etd: service.etd || 'N/A',
+          fallback: false,
         },
-        body: new URLSearchParams({
-          origin: RAJAONGKIR_ORIGIN_CITY_ID,
-          destination: input.destinationCityId,
-          weight: STICKER_WEIGHT_GRAMS.toString(),
-          courier,
-        }).toString(),
-      }
-    );
-
-    if (response.rajaongkir?.status.code === 200) {
-      const courierData = response.rajaongkir.results?.[0];
-      if (courierData && courierData.costs.length > 0) {
-        const cost = courierData.costs[0]; // Take first service option
-        const shippingCost = cost.cost[0]?.value || SHIPPING_FALLBACK_LUAR_KALSEL;
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            courier: courierData.code.toUpperCase(),
-            service: cost.service,
-            description: cost.description,
-            cost: shippingCost,
-            etd: cost.cost[0]?.etd || 'N/A',
-            fallback: false,
-          },
-        });
-      }
+      });
     }
 
-    throw new Error('No shipping cost found');
+    throw new Error(response.meta.message || 'No shipping cost found');
   } catch (error) {
     console.error('Error fetching shipping cost:', error);
 
