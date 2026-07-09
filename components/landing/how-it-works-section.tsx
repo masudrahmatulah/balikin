@@ -13,16 +13,15 @@ export function HowItWorksSection() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Sparkles className="h-4 w-4" />
-              Cara Kerja Simpel & Efektif
+              Cara Kerja Smart Lost and Found yang Simpel & Efektif
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Cara Kerja: Tanpa Aplikasi, 100% Anonim, Secure Gateway
+              Bagaimana Sistem Pelacakan QR Code Kami Bekerja: Tanpa Aplikasi, 100% Anonim, Anonymous Gateway
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              {/* SEO Note: Keywords: "sistem lost and found", "tanpa aplikasi", "Secure Gateway", "QR code WhatsApp anonim" */}
-              <span className="font-semibold text-gray-700">Sistem lost and found</span> kami dirancang agar mudah digunakan oleh siapa saja—
-              tanpa perlu install aplikasi, tanpa registrasi yang rumit. Penemu cukup scan dan langsung bisa hubungi Anda
-              melalui Secure Gateway (<span className="font-semibold text-gray-700">QR code WhatsApp anonim</span>).
+              <span className="font-semibold text-gray-700">Platform smart lost and found Indonesia</span> dengan sistem pelacakan QR code yang dirancang agar mudah digunakan oleh siapa saja—
+              tanpa perlu install aplikasi, tanpa registrasi yang rumit. Penemu cukup scan <span className="font-semibold text-gray-700">QR code barang hilang</span> dan langsung bisa hubungi Anda
+              melalui <span className="font-semibold text-gray-700">anonymous gateway WhatsApp</span> tanpa melihat nomor asli Anda. Sistem kami juga melacak lokasi scan secara real-time.
             </p>
           </div>
         </ScrollReveal>
@@ -34,27 +33,27 @@ export function HowItWorksSection() {
                 step: 1,
                 icon: QrCode,
                 color: 'blue',
-                title: 'Buat & Pasang QR Tag',
-                desc: 'Daftar gratis, buat tag untuk barang Anda (kunci, tas, dompet, koper). Sistem lost and found dimulai dengan QR code dinamis.',
-                badge: '⏱️ 30 detik',
+                title: 'Buat & Pasang Smart Tag QR Code',
+                desc: 'Daftar gratis selamanya, buat QR tag untuk barang Anda (gantungan kunci, tas, dompet, koper, motor). Sistem smart lost and found dimulai dengan QR code dinamis yang dapat dilacak lokasi scannya.',
+                badge: '⏱️ 30 detik setup',
                 delay: 0.1,
               },
               {
                 step: 2,
                 icon: Scan,
                 color: 'green',
-                title: 'Orang Lain Scan QR',
-                desc: 'Jika barang hilang & ditemukan orang baik, mereka tinggal scan QR dengan kamera HP. Tanpa aplikasi, camera HP langsung detect!',
-                badge: '📱 Tanpa aplikasi',
+                title: 'Orang Lain Scan QR Anti Hilang',
+                desc: 'Jika barang hilang & ditemukan orang baik, mereka tinggal scan QR code barang hilang dengan kamera HP. Tanpa aplikasi apapun, kamera HP langsung detect QR dinamis kami!',
+                badge: '📱 No App Required',
                 delay: 0.3,
               },
               {
                 step: 3,
                 icon: MessageCircle,
                 color: 'purple',
-                title: 'Hubungi & Kembali!',
-                desc: 'Penemu langsung WhatsApp Anda tanpa lihat nomor asli. Secure Gateway menjamin privasi 100% anonim. Sistem juga lacak lokasi scan.',
-                badge: '🔒 Secure Gateway (Nomor Tersembunyi)',
+                title: 'Penemu WhatsApp Anda - 100% Anonim',
+                desc: 'Penemu langsung WhatsApp Anda tanpa melihat nomor asli. Anonymous WhatsApp gateway kami menjamin privasi 100% terjaga. Sistem juga mencatat lokasi scan untuk membantu verifikasi. Barang kembali dengan aman!',
+                badge: '🔒 Anonymous Gateway',
                 delay: 0.6,
               },
             ].map((item) => (
