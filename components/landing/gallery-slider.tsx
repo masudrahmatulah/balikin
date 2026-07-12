@@ -48,7 +48,7 @@ export function GallerySlider() {
     const interval = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -65,28 +65,41 @@ export function GallerySlider() {
 
   const slideVariants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 500 : -500,
+      x: dir > 0 ? 1000 : -1000,
       opacity: 0,
-      scale: 0.95,
     }),
     center: {
       zIndex: 1,
       x: 0,
       opacity: 1,
-      scale: 1,
     },
     exit: (dir: number) => ({
       zIndex: 0,
-      x: dir < 0 ? 500 : -500,
+      x: dir < 0 ? 1000 : -1000,
       opacity: 0,
-      scale: 0.95,
     }),
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="relative w-full rounded-2xl shadow-2xl overflow-hidden bg-white">
-        <div className="relative w-full">
+    <div className="w-full">
+      <div className="relative w-full h-[650px] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-4">
+        {/* Blurred logo background */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <div className="relative w-96 h-96 rounded-full overflow-hidden">
+            <Image
+              src="/balikin_logo.png"
+              alt="Balikin Logo Background"
+              fill
+              className="object-contain"
+              quality={90}
+            />
+            <div className="absolute inset-0 rounded-full" style={{
+              background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
+            }} />
+          </div>
+        </div>
+
+        <div className="relative w-full h-full">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={currentIndex}
@@ -96,62 +109,58 @@ export function GallerySlider() {
               animate="center"
               exit="exit"
               transition={{
-                x: { type: 'spring', stiffness: 100, damping: 40, mass: 1.5, duration: 1.2 },
-                opacity: { duration: 1, ease: 'easeInOut' },
-                scale: { duration: 1, ease: 'easeInOut' },
+                x: { type: 'tween', duration: 0.8, ease: 'easeInOut' },
+                opacity: { duration: 0.8, ease: 'easeInOut' },
               }}
-              className="w-full"
+              className="absolute inset-0"
             >
               <Image
                 src={galleryImages[currentIndex].src}
                 alt={galleryImages[currentIndex].alt}
-                width={800}
-                height={1000}
-                className="w-full h-auto block"
+                fill
+                className="object-contain"
                 priority
+                quality={90}
               />
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Navigation Buttons - Overlay on Image */}
-        <div className="absolute inset-0 top-0 left-0 right-0 flex items-center justify-between pointer-events-none z-20" style={{ height: '100%' }}>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
+
+        <div className="absolute inset-0 flex items-center justify-between pointer-events-none z-20">
           <motion.button
             onClick={handlePrevious}
-            className="pointer-events-auto bg-gray-900/50 hover:bg-gray-900/70 text-white p-3 rounded-full backdrop-blur-sm ml-4 transition-colors"
+            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-4 rounded-full backdrop-blur-md ml-8 transition-all duration-300"
             aria-label="Previous image"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-8 h-8" />
           </motion.button>
 
           <motion.button
             onClick={handleNext}
-            className="pointer-events-auto bg-gray-900/50 hover:bg-gray-900/70 text-white p-3 rounded-full backdrop-blur-sm mr-4 transition-colors"
+            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-4 rounded-full backdrop-blur-md mr-8 transition-all duration-300"
             aria-label="Next image"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-8 h-8" />
           </motion.button>
         </div>
 
-        {/* Counter */}
         <motion.div
-          className="absolute top-4 right-4 z-30 bg-gray-900/70 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm"
+          className="absolute top-8 right-8 z-30 bg-white/20 text-white px-5 py-3 rounded-full text-lg font-semibold backdrop-blur-md border border-white/30"
           key={currentIndex}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: 'easeInOut' }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
         >
-          {currentIndex + 1} / {galleryImages.length}
+          {String(currentIndex + 1).padStart(2, '0')} / {String(galleryImages.length).padStart(2, '0')}
         </motion.div>
 
-        {/* Indicator Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
           {galleryImages.map((_, index) => (
             <motion.button
               key={index}
@@ -160,15 +169,17 @@ export function GallerySlider() {
                 setCurrentIndex(index);
               }}
               animate={{
-                width: index === currentIndex ? 32 : 8,
-                backgroundColor: index === currentIndex ? 'rgba(17,24,39,1)' : 'rgba(107,114,128,0.6)',
+                width: index === currentIndex ? 40 : 12,
+                backgroundColor: index === currentIndex ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.4)',
+                boxShadow: index === currentIndex ? '0 0 20px rgba(255,255,255,0.5)' : 'none',
               }}
               whileHover={{
-                backgroundColor: 'rgba(55,65,81,1)',
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                scale: 1.1,
               }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
-              className="h-2 rounded-full"
-              aria-label={`Go to image ${index + 1}`}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+              className="h-3 rounded-full cursor-pointer transition-all"
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>

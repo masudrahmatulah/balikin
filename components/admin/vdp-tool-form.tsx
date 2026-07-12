@@ -61,9 +61,10 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     quantity: 100,
     materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
-    paperSize: "a4" as "a4" | "a3",
+    paperSize: "a4" as "a4" | "a3" | "a5",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
+    stickerProductKey: "stiker-daily" as "stiker-pro" | "stiker-daily" | "stiker-micro" | "stiker-family",
   });
 
   // Individual tag creation form
@@ -240,6 +241,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
         paperSize: "a4",
         stickerShape: "circle",
         stickerSize: "medium",
+        stickerProductKey: "stiker-daily",
       });
 
       // Refresh tags
@@ -454,6 +456,16 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   };
 
   const getEstimatedSheets = () => {
+    if (formData.paperSize === "a5" && formData.materialType === "sticker") {
+      const itemsPerSheetMap = {
+        'stiker-pro': 6,
+        'stiker-daily': 12,
+        'stiker-micro': 20,
+        'stiker-family': 12,
+      };
+      const itemsPerSheet = itemsPerSheetMap[formData.stickerProductKey];
+      return Math.ceil(formData.quantity / itemsPerSheet);
+    }
     const itemsPerSheet = formData.paperSize === "a4" ? 12 : 20;
     return Math.ceil(formData.quantity / itemsPerSheet);
   };
@@ -562,7 +574,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Label htmlFor="paperSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Paper Size</Label>
                       <Select
                         value={formData.paperSize}
-                        onValueChange={(value: "a4" | "a3") => setFormData({ ...formData, paperSize: value })}
+                        onValueChange={(value: "a4" | "a3" | "a5") => setFormData({ ...formData, paperSize: value })}
                       >
                         <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
@@ -570,6 +582,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         <SelectContent className="font-body text-sm">
                           <SelectItem value="a4">A4 (21 x 29.7 cm)</SelectItem>
                           <SelectItem value="a3">A3 (29.7 x 42 cm)</SelectItem>
+                          <SelectItem value="a5">A5 (14.8 x 21 cm)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -584,44 +597,72 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
                   {/* Sticker Configuration - Only for stickers (not Cut & Fold) */}
                   {formData.materialType === "sticker" && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
-                      <div className="space-y-2">
-                        <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Shape</Label>
-                        <Select
-                          value={formData.stickerShape}
-                          onValueChange={(value: "circle" | "square" | "rectangle") =>
-                            setFormData({ ...formData, stickerShape: value })
-                          }
-                        >
-                          <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20 h-10">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="font-body text-sm">
-                            <SelectItem value="circle">Circle</SelectItem>
-                            <SelectItem value="square">Square</SelectItem>
-                            <SelectItem value="rectangle">Rectangle</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="space-y-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
+                      {/* A5 Sticker Product Type - Only for A5 */}
+                      {formData.paperSize === "a5" ? (
+                        <div className="space-y-2">
+                          <Label htmlFor="stickerProductKey" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Product</Label>
+                          <Select
+                            value={formData.stickerProductKey}
+                            onValueChange={(value: any) =>
+                              setFormData({ ...formData, stickerProductKey: value })
+                            }
+                          >
+                            <SelectTrigger id="stickerProductKey" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="font-body text-sm">
+                              <SelectItem value="stiker-pro">Stiker Balikin Pro (35×35mm, 6 per sheet)</SelectItem>
+                              <SelectItem value="stiker-daily">Stiker Balikin Daily (25×25mm, 12 per sheet)</SelectItem>
+                              <SelectItem value="stiker-micro">Stiker Balikin Micro (18×18mm, 20 per sheet)</SelectItem>
+                              <SelectItem value="stiker-family">Stiker Balikin Family (Mixed sizes, 12 per sheet)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-secondary/70 mt-2">
+                            Desain 2 kolom: QR code di kiri, custom photo atau logo Balikin di kanan
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Shape</Label>
+                            <Select
+                              value={formData.stickerShape}
+                              onValueChange={(value: "circle" | "square" | "rectangle") =>
+                                setFormData({ ...formData, stickerShape: value })
+                              }
+                            >
+                              <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="font-body text-sm">
+                                <SelectItem value="circle">Circle</SelectItem>
+                                <SelectItem value="square">Square</SelectItem>
+                                <SelectItem value="rectangle">Rectangle</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Size</Label>
-                        <Select
-                          value={formData.stickerSize}
-                          onValueChange={(value: "small" | "medium" | "large") =>
-                            setFormData({ ...formData, stickerSize: value })
-                          }
-                        >
-                          <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="font-body text-sm">
-                            <SelectItem value="small">Small (20mm)</SelectItem>
-                            <SelectItem value="medium">Medium (35mm)</SelectItem>
-                            <SelectItem value="large">Large (50mm)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Size</Label>
+                            <Select
+                              value={formData.stickerSize}
+                              onValueChange={(value: "small" | "medium" | "large") =>
+                                setFormData({ ...formData, stickerSize: value })
+                              }
+                            >
+                              <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="font-body text-sm">
+                                <SelectItem value="small">Small (20mm)</SelectItem>
+                                <SelectItem value="medium">Medium (35mm)</SelectItem>
+                                <SelectItem value="large">Large (50mm)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

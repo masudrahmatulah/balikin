@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { CheckCircle, Tag } from 'lucide-react';
+import { CheckCircle, Lock, ShieldAlert, Tag } from 'lucide-react';
 import { eq } from 'drizzle-orm';
 import { claimStickerTag, claimTag } from '@/app/actions/tag';
+import { activateStickerSheet, claimStickerTagInActiveSheet, getStickerSheetClaimContext } from '@/app/actions/sticker-sheet';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { stickerOrders, tagBundles, tags } from '@/db/schema';
@@ -12,11 +13,13 @@ import { Label } from '@/components/ui/label';
 
 interface ClaimPageProps {
   params: Promise<{ tagId: string }>;
+  searchParams: Promise<{ error?: string }>;
 }
 
-export default async function ClaimPage({ params }: ClaimPageProps) {
+export default async function ClaimPage({ params, searchParams }: ClaimPageProps) {
   const session = await getSession();
   const { tagId } = await params;
+  const { error: claimError } = await searchParams;
 
   const tag = await db.query.tags.findFirst({
     where: eq(tags.id, tagId),
@@ -49,6 +52,153 @@ export default async function ClaimPage({ params }: ClaimPageProps) {
   }
 
   if (session?.user?.id) {
+    if (tag.productType === 'sticker' && tag.sheetId) {
+      // VDP-stock sticker (Master Activation Key / Lazy Activation per sheet)
+      const claimContext = await getStickerSheetClaimContext(tagId);
+
+      if (claimContext.scenario === 'ALREADY_OWNED') {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <CardTitle>Sticker Sudah Aktif</CardTitle>
+                <CardDescription>Tag ini sudah terhubung ke akun Anda.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link href="/dashboard">Buka Dashboard</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      }
+
+      if (claimContext.scenario === 'FORBIDDEN' || claimContext.scenario === 'NOT_FOUND') {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                  <ShieldAlert className="h-8 w-8 text-red-600" />
+                </div>
+                <CardTitle className="text-red-600">Stiker Tidak Bisa Diklaim</CardTitle>
+                <CardDescription>
+                  {claimContext.scenario === 'FORBIDDEN'
+                    ? 'Stiker ini adalah bagian dari lembaran milik akun lain dan belum digunakan.'
+                    : 'Lembaran stiker untuk tag ini tidak ditemukan. Hubungi CS Balikin dengan menyebutkan kode seri di pojok stiker.'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/dashboard">Kembali ke Dashboard</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      }
+
+      if (claimContext.scenario === 'DIRECT_LINK') {
+        // Scenario C: sheet already active & owned by this user - bypass PIN
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+                  <Tag className="h-8 w-8 text-slate-600" />
+                </div>
+                <CardTitle>Aktivasi Stiker Vinyl</CardTitle>
+                <CardDescription>
+                  Lembaran ini sudah aktif di akun Anda. Beri nama stiker ini agar langsung muncul rapi di dashboard.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {claimError && (
+                  <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                    {claimError}
+                  </div>
+                )}
+                <form action={async (formData) => {
+                  'use server';
+                  const { redirect } = await import('next/navigation');
+                  const name = String(formData.get('name') ?? '').trim();
+                  const result = await claimStickerTagInActiveSheet(tagId, name);
+                  if (result.success) {
+                    redirect('/dashboard');
+                  }
+                  redirect(`/claim/${tagId}?error=${encodeURIComponent(result.error || 'Gagal mengaktifkan stiker.')}`);
+                }} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Nama Barang</Label>
+                    <Input id="name" name="name" required placeholder="Contoh: Helm KYT Merah" />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Aktifkan Stiker Ini
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      }
+
+      // Scenario B: sheet still inactive - require Master PIN
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+                <Lock className="h-8 w-8 text-slate-600" />
+              </div>
+              <CardTitle>Aktivasi Lembaran Stiker</CardTitle>
+              <CardDescription>
+                Ini adalah stiker pertama dari lembaran Anda. Masukkan Master PIN yang ada di dalam kemasan untuk mengaktifkan seluruh lembaran.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {claimError && (
+                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                  {claimError}
+                </div>
+              )}
+              <form action={async (formData) => {
+                'use server';
+                const { redirect } = await import('next/navigation');
+                const pin = String(formData.get('pin') ?? '').trim();
+                const name = String(formData.get('name') ?? '').trim();
+                const result = await activateStickerSheet(tagId, pin, name);
+                if (result.success) {
+                  redirect('/dashboard');
+                }
+                redirect(`/claim/${tagId}?error=${encodeURIComponent(result.error || 'Gagal mengaktifkan lembaran.')}`);
+              }} className="space-y-4">
+                {claimContext.sheetCode && (
+                  <div className="rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    Kode Lembaran: <span className="font-mono font-medium text-slate-900">{claimContext.sheetCode}</span>
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="pin">Master PIN</Label>
+                  <Input id="pin" name="pin" required placeholder="Contoh: A3K7-M9P2" className="uppercase" />
+                </div>
+                <div>
+                  <Label htmlFor="name">Nama Barang</Label>
+                  <Input id="name" name="name" required placeholder="Contoh: Laptop Kerja" />
+                </div>
+                <Button type="submit" className="w-full">
+                  Aktifkan Lembaran & Klaim Stiker
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     if (tag.productType === 'sticker') {
       if (!stickerOrder) {
         return (

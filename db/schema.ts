@@ -131,6 +131,36 @@ export const printBatchesRelations = relations(printBatches, ({ one, many }) => 
 	tags: many(tags),
 }));
 
+// Sticker Sheets - Master Activation Key for VDP-stock sticker sheets (lazy activation).
+// One physical A5 sheet (e.g. 4-20 QR tags) shares a single Master PIN; the first scan
+// on a sheet activates it and claims ownership, subsequent scans on the same sheet
+// bypass the PIN as long as the scanning user already owns the sheet.
+export const stickerSheets = pgTable('sticker_sheets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  sheetCode: text('sheet_code').unique().notNull(), // e.g. "BLK-PRO-B01-0001", printed small in sticker corner
+  packageType: text('package_type').notNull(), // StickerProductKey: stiker-pro | stiker-daily | stiker-micro | stiker-family
+  batchId: uuid('batch_id').references(() => printBatches.id, { onDelete: 'set null' }),
+  activationPinHash: text('activation_pin_hash').notNull(),
+  activationPinPlain: text('activation_pin_plain'), // Plain PIN for VDP/insert printing only
+  status: text('status').default('inactive').notNull(), // 'inactive' | 'active'
+  ownerId: text('owner_id').references(() => user.id, { onDelete: 'set null' }),
+  claimedAt: timestamp('claimed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const stickerSheetsRelations = relations(stickerSheets, ({ one, many }) => ({
+  batch: one(printBatches, {
+    fields: [stickerSheets.batchId],
+    references: [printBatches.id],
+  }),
+  owner: one(user, {
+    fields: [stickerSheets.ownerId],
+    references: [user.id],
+  }),
+  tags: many(tags),
+}));
+
 export const tags = pgTable('tags', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
@@ -146,6 +176,7 @@ export const tags = pgTable('tags', {
   isCustom: boolean('is_custom').default(false).notNull(), // Custom photo order flag
   customPhotoUrl: text('custom_photo_url'), // Vercel Blob URL for custom photo
   batchId: uuid('batch_id').references(() => printBatches.id, { onDelete: 'set null' }),
+  sheetId: uuid('sheet_id').references(() => stickerSheets.id, { onDelete: 'set null' }), // VDP-stock sticker Master PIN sheet
   // Existing fields
   name: text('name').notNull(),
   status: text('status').default('normal').notNull(),
@@ -182,6 +213,10 @@ export const tagsRelations = relations(tags, ({ many, one }) => ({
   batch: one(printBatches, {
     fields: [tags.batchId],
     references: [printBatches.id],
+  }),
+  sheet: one(stickerSheets, {
+    fields: [tags.sheetId],
+    references: [stickerSheets.id],
   }),
 }));
 
