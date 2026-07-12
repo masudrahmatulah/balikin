@@ -24,6 +24,7 @@ import {
   LineChart,
   Repeat,
   Target,
+  KeyRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,6 +45,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Payments: CreditCard,
   "Client Management": Users,
   "Sticker Orders": Package,
+  "Master PIN Stiker": KeyRound,
   Requests: Inbox,
   Modules: Puzzle,
   Analytics: LineChart,
