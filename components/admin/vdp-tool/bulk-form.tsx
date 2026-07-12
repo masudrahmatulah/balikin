@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Package, X, CheckCircle, Upload, Image as ImageIcon } from "lucide-react";
-import { getStickerProductInfo, type StickerProductKey } from "@/lib/sticker-template";
+import { getStickerProductInfo, getStickerProductConfig, type StickerProductKey } from "@/lib/sticker-template";
 
 interface BulkFormProps {
   adminId: string;
@@ -57,14 +57,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     let itemsPerSheet = 12;
 
     if (formData.materialType === "sticker" && formData.paperSize === "a5") {
-      // A5 sticker products
-      const stickerPackSizes = {
-        'stiker-pro': 6,
-        'stiker-daily': 12,
-        'stiker-micro': 20,
-        'stiker-family': 12,
-      };
-      itemsPerSheet = stickerPackSizes[formData.stickerProductKey] || 12;
+      // A5 sticker products - read straight from the shared product config to avoid drift
+      itemsPerSheet = getStickerProductConfig(formData.stickerProductKey).total;
     } else if (formData.paperSize === "a4") {
       itemsPerSheet = 12;
     } else {
@@ -387,16 +381,16 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 </SelectTrigger>
                 <SelectContent className="font-body text-sm">
                   <SelectItem value="stiker-pro">
-                    Stiker Balikin Pro (35×35mm) - 6-8 per sheet
+                    Stiker Balikin Pro (125×43mm) - 4 per sheet
                   </SelectItem>
                   <SelectItem value="stiker-daily">
-                    Stiker Balikin Daily (25×25mm) - 12-15 per sheet
+                    Stiker Balikin Daily (95×33mm) - 5 per sheet
                   </SelectItem>
                   <SelectItem value="stiker-micro">
-                    Stiker Balikin Micro (18×18mm) - 20-24 per sheet
+                    Stiker Balikin Micro (65×23mm) - 8 per sheet
                   </SelectItem>
                   <SelectItem value="stiker-family">
-                    Stiker Balikin Family (Mixed) - 12 per sheet
+                    Stiker Balikin Family (1 Pro + 2 Daily + 3 Micro) - 6 per sheet
                   </SelectItem>
                 </SelectContent>
               </Select>

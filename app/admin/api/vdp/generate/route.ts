@@ -1,15 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
 import { db } from "@/db";
-import { tags, printQueue, printBatches } from "@/db/schema";
+import { tags, printQueue, printBatches, stickerSheets } from "@/db/schema";
 import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 import { eq, asc } from "drizzle-orm";
 import { generateVDPStream, generateBatchActivationData, type TagVDPData } from "@/lib/vdp-engine";
 import { generateA5StickerStream } from "@/lib/vdp-a5-sticker";
+import { generateA5TwoColStickerStream } from "@/lib/vdp-a5-sticker-twocol";
+import { generateProtectedCardStream, generateFamilyCardStream } from "@/lib/vdp-sticker-pro";
+import { buildStickerSheetsPdf } from "@/lib/vdp-pdf-export";
 import JSZip from "jszip";
 import { calculateGridPositions, calculateA5StickerPositions, getStickerProductConfig, type StickerShape, type StickerSize, type StickerProductKey } from "@/lib/sticker-template";
+import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { put } from '@vercel/blob';
+
+// Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
+const STICKER_PRODUCT_CODE: Record<string, string> = {
+  'stiker-pro': 'PRO',
+  'stiker-daily': 'DLY',
+  'stiker-micro': 'MIC',
+  'stiker-family': 'FAM',
+};
 
 export const dynamic = "force-dynamic";
 
@@ -224,72 +236,108 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate activation data for all tags
-    const activationData = generateBatchActivationData(quantity, batchNumber || batchId);
+    const isStickerMaterial = materialType === "sticker";
 
-    // DEBUG: Log activation data
-    console.log('[API] Generated activationData for first tag:', activationData[0]);
-    console.log('[API] activationTokenHash:', activationData[0].activationTokenHash);
-    console.log('[API] activationPinPlain:', activationData[0].activationPinPlain);
+    if (isStickerMaterial) {
+      // Master Activation Key (Lazy Activation) - see "md for development/sticker_activate.md"
+      // One physical sheet shares a single Master PIN instead of a PIN per individual QR tag.
+      const isA5StickerSheet = paperSize === "a5" && !!stickerProductKey;
+      const stickerItemsPerSheet = isA5StickerSheet
+        ? getStickerProductConfig(stickerProductKey as StickerProductKey).total
+        : calculateGridPositions(
+            (stickerShape as StickerShape) || "circle",
+            (stickerSize as StickerSize) || "medium",
+            paperSize as "a4" | "a3",
+            "landscape"
+          ).length;
+      const productCode = stickerProductKey ? (STICKER_PRODUCT_CODE[stickerProductKey] || "STK") : "STK";
 
-    // CHUNKING: Ambil data per 2 tag (chunk size = 2)
-    for (let i = 0; i < quantity; i += 2) {
-      const tagA_Index = i;
-      const tagB_Index = i + 1;
-      const sequenceNumberA = String(tagA_Index + 1).padStart(3, "0");
-      const slugA = `${batchId}-${sequenceNumberA}`;
+      let sheetSequence = 0;
+      let tagSequence = 0;
 
-      const tier = materialType === "acrylic" ? "premium" : "free";
+      for (let sheetStart = 0; sheetStart < quantity; sheetStart += stickerItemsPerSheet) {
+        sheetSequence++;
+        const sheetTagCount = Math.min(stickerItemsPerSheet, quantity - sheetStart);
+        const sheetId = randomUUID();
+        const sheetCode = `BLK-${productCode}-${batchNumber || "B00-000"}-${String(sheetSequence).padStart(4, "0")}`;
+        const masterPin = generateActivationPin();
 
-      // Create Tag A
-      const tagA = {
-        id: randomUUID(),
-        app_id: "balikin_id",
-        slug: slugA,
-        ownerId: null,
-        name: `${batchName} ${sequenceNumberA}`,
-        status: "normal",
-        tier,
-        productType: materialType,
-        bundleId: null,
-        bundleType: productType !== "standard" ? productType : null,
-        autoActivateModule: productType !== "standard" ? productType : null,
-        isVerified: false,
-        emailAlertsEnabled: true,
-        whatsappAlertsEnabled: false,
-        hasTabTwoEnabled: productType !== "standard",
-        welcomeShown: false,
-        onboardingCompleted: false,
-        // Activation data
-        serialNumber: activationData[tagA_Index].serialNumber,
-        activationPinPlain: activationData[tagA_Index].activationPinPlain,
-        activationPinHash: activationData[tagA_Index].activationPinHash,
-        activationTokenHash: activationData[tagA_Index].activationTokenHash,
-        batchId: isCutFold ? null : batchId, // Link to printBatches for VDP
-        // Custom order data
-        isCustom: isCustom || false,
-        customPhotoUrl: isCustom ? customPhotoUrl : null,
-      };
+        await db.insert(stickerSheets).values({
+          id: sheetId,
+          app_id: "balikin_id",
+          sheetCode,
+          packageType: stickerProductKey || "custom",
+          batchId,
+          activationPinHash: hashValue(masterPin),
+          activationPinPlain: masterPin,
+          status: "inactive",
+          ownerId: null,
+        });
 
-      await db.insert(tags).values(tagA);
+        for (let j = 0; j < sheetTagCount; j++) {
+          tagSequence++;
+          const sequenceNumber = String(tagSequence).padStart(3, "0");
+          const slug = `${batchId}-${sequenceNumber}`;
 
-      generatedTags.push({
-        slug: slugA,
-        sequenceNumber: sequenceNumberA,
-        filename: `${batchName}-${sequenceNumberA}-${slugA}.png`,
-      });
+          const tag = {
+            id: randomUUID(),
+            app_id: "balikin_id",
+            slug,
+            ownerId: null,
+            name: `${batchName} ${sequenceNumber}`,
+            status: "normal",
+            tier: "free",
+            productType: materialType,
+            bundleId: null,
+            bundleType: productType !== "standard" ? productType : null,
+            autoActivateModule: productType !== "standard" ? productType : null,
+            isVerified: false,
+            emailAlertsEnabled: true,
+            whatsappAlertsEnabled: false,
+            hasTabTwoEnabled: productType !== "standard",
+            welcomeShown: false,
+            onboardingCompleted: false,
+            // Physical QC code, derived from the sheet (no per-tag PIN under the sheet model)
+            serialNumber: `${sheetCode}-${String(j + 1).padStart(2, "0")}`,
+            activationPinPlain: null,
+            activationPinHash: null,
+            activationTokenHash: null,
+            batchId,
+            sheetId,
+            // Custom order data
+            isCustom: isCustom || false,
+            customPhotoUrl: isCustom ? customPhotoUrl : null,
+          };
 
-      // Create Tag B jika ada (pair lengkap)
-      if (tagB_Index < quantity) {
-        const sequenceNumberB = String(tagB_Index + 1).padStart(3, "0");
-        const slugB = `${batchId}-${sequenceNumberB}`;
+          await db.insert(tags).values(tag);
 
-        const tagB = {
+          generatedTags.push({
+            slug,
+            sequenceNumber,
+            filename: `${batchName}-${sequenceNumber}-${slug}.png`,
+          });
+        }
+      }
+    } else {
+      // Existing per-tag PIN model (acrylic / acrylic-cutfold)
+      const activationData = generateBatchActivationData(quantity, batchNumber || batchId);
+
+      // CHUNKING: Ambil data per 2 tag (chunk size = 2)
+      for (let i = 0; i < quantity; i += 2) {
+        const tagA_Index = i;
+        const tagB_Index = i + 1;
+        const sequenceNumberA = String(tagA_Index + 1).padStart(3, "0");
+        const slugA = `${batchId}-${sequenceNumberA}`;
+
+        const tier = materialType === "acrylic" ? "premium" : "free";
+
+        // Create Tag A
+        const tagA = {
           id: randomUUID(),
           app_id: "balikin_id",
-          slug: slugB,
+          slug: slugA,
           ownerId: null,
-          name: `${batchName} ${sequenceNumberB}`,
+          name: `${batchName} ${sequenceNumberA}`,
           status: "normal",
           tier,
           productType: materialType,
@@ -303,23 +351,66 @@ export async function POST(request: NextRequest) {
           welcomeShown: false,
           onboardingCompleted: false,
           // Activation data
-          serialNumber: activationData[tagB_Index].serialNumber,
-          activationPinPlain: activationData[tagB_Index].activationPinPlain,
-          activationPinHash: activationData[tagB_Index].activationPinHash,
-          activationTokenHash: activationData[tagB_Index].activationTokenHash,
+          serialNumber: activationData[tagA_Index].serialNumber,
+          activationPinPlain: activationData[tagA_Index].activationPinPlain,
+          activationPinHash: activationData[tagA_Index].activationPinHash,
+          activationTokenHash: activationData[tagA_Index].activationTokenHash,
           batchId: isCutFold ? null : batchId, // Link to printBatches for VDP
           // Custom order data
           isCustom: isCustom || false,
           customPhotoUrl: isCustom ? customPhotoUrl : null,
         };
 
-        await db.insert(tags).values(tagB);
+        await db.insert(tags).values(tagA);
 
         generatedTags.push({
-          slug: slugB,
-          sequenceNumber: sequenceNumberB,
-          filename: `${batchName}-${sequenceNumberB}-${slugB}.png`,
+          slug: slugA,
+          sequenceNumber: sequenceNumberA,
+          filename: `${batchName}-${sequenceNumberA}-${slugA}.png`,
         });
+
+        // Create Tag B jika ada (pair lengkap)
+        if (tagB_Index < quantity) {
+          const sequenceNumberB = String(tagB_Index + 1).padStart(3, "0");
+          const slugB = `${batchId}-${sequenceNumberB}`;
+
+          const tagB = {
+            id: randomUUID(),
+            app_id: "balikin_id",
+            slug: slugB,
+            ownerId: null,
+            name: `${batchName} ${sequenceNumberB}`,
+            status: "normal",
+            tier,
+            productType: materialType,
+            bundleId: null,
+            bundleType: productType !== "standard" ? productType : null,
+            autoActivateModule: productType !== "standard" ? productType : null,
+            isVerified: false,
+            emailAlertsEnabled: true,
+            whatsappAlertsEnabled: false,
+            hasTabTwoEnabled: productType !== "standard",
+            welcomeShown: false,
+            onboardingCompleted: false,
+            // Activation data
+            serialNumber: activationData[tagB_Index].serialNumber,
+            activationPinPlain: activationData[tagB_Index].activationPinPlain,
+            activationPinHash: activationData[tagB_Index].activationPinHash,
+            activationTokenHash: activationData[tagB_Index].activationTokenHash,
+            batchId: isCutFold ? null : batchId, // Link to printBatches for VDP
+            // Custom order data
+            isCustom: isCustom || false,
+            customPhotoUrl: isCustom ? customPhotoUrl : null,
+          };
+
+          await db.insert(tags).values(tagB);
+
+          generatedTags.push({
+            slug: slugB,
+            sequenceNumber: sequenceNumberB,
+            filename: `${batchName}-${sequenceNumberB}-${slugB}.png`,
+          });
+        }
       }
     }
 
@@ -354,7 +445,6 @@ export async function POST(request: NextRequest) {
         orderBy: [asc(tags.slug)],
       });
 
-      const zip = new JSZip();
       const a5Tags = allTags.map((t) => ({
         id: t.id,
         slug: t.slug,
@@ -368,15 +458,43 @@ export async function POST(request: NextRequest) {
 
       console.log('[API] Generating', allTags.length, 'A5 sticker sheets for product:', stickerProductKey);
 
-      let sheetIndex = 0;
-      for await (const buffer of generateA5StickerStream(a5Tags, stickerProductKey as StickerProductKey)) {
-        const filename = `${batchName}-sheet-${String(sheetIndex + 1).padStart(3, "0")}.png`;
-        zip.file(filename, buffer);
-        console.log('[API] Generated A5 sheet', sheetIndex, 'buffer size:', buffer.length, 'bytes');
-        sheetIndex++;
+      const stickerSheetStream = stickerProductKey === "stiker-pro" || stickerProductKey === "stiker-daily" || stickerProductKey === "stiker-micro"
+        ? generateProtectedCardStream(a5Tags, stickerProductKey)
+        : stickerProductKey === "stiker-family"
+          ? generateFamilyCardStream(a5Tags)
+          : generateA5TwoColStickerStream(a5Tags, stickerProductKey as StickerProductKey);
+
+      const sheetBuffers: Buffer[] = [];
+      for await (const buffer of stickerSheetStream) {
+        console.log('[API] Generated A5 sheet', sheetBuffers.length, 'buffer size:', buffer.length, 'bytes');
+        sheetBuffers.push(buffer);
       }
 
-      console.log('[API] Total A5 sheets generated:', sheetIndex);
+      console.log('[API] Total A5 sheets generated:', sheetBuffers.length);
+
+      const pdfBuffer = await buildStickerSheetsPdf(sheetBuffers);
+
+      const zip = new JSZip();
+      zip.file(`${batchName}.pdf`, pdfBuffer);
+
+      if (isStickerMaterial) {
+        // Master PIN manifest for printing the physical PIN insert per sheet
+        const sheets = await db.query.stickerSheets.findMany({
+          where: eq(stickerSheets.batchId, batchId),
+          orderBy: [asc(stickerSheets.sheetCode)],
+        });
+        const manifestLines = [
+          `Master PIN Manifest - ${batchName}`,
+          `Dibuat: ${new Date().toISOString()}`,
+          '',
+          'Satu Master PIN berlaku untuk seluruh QR dalam 1 lembar.',
+          'Scan QR pertama di lembar = masukkan PIN untuk aktivasi. Scan QR berikutnya di lembar yang sama tidak perlu PIN lagi.',
+          '',
+          ...sheets.map((s) => `${s.sheetCode}\tPIN: ${s.activationPinPlain}`),
+        ];
+        zip.file('master-pins.txt', manifestLines.join('\n'));
+      }
+
       const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
       const zipBase64 = zipBuffer.toString("base64");
       downloadUrl = `data:application/zip;base64,${zipBase64}`;

@@ -59,16 +59,67 @@ export const GRID_CONFIGS_A4 = {
   },
 } as const;
 
+// "Protected By" card layout margins (shared with lib/vdp-sticker-pro.ts renderProtectedCard):
+// card edge -> white QR box -> QR code, each inset by PAD_MM; text column sits GAP_MM after
+// the white box and is exactly 2x its width, with RIGHT_MARGIN_MM after it to the card edge.
+export const PROTECTED_CARD_PAD_MM = 2;
+export const PROTECTED_CARD_GAP_MM = 4;
+export const PROTECTED_CARD_RIGHT_MARGIN_MM = 2;
+
+// Total card width for a given height so the text column ends up exactly 2x the white QR box.
+export function computeProtectedCardItemWidth(heightMM: number): number {
+  const whiteBoxSize = heightMM - PROTECTED_CARD_PAD_MM * 2;
+  const textColumnWidth = whiteBoxSize * 2;
+  return PROTECTED_CARD_PAD_MM + whiteBoxSize + PROTECTED_CARD_GAP_MM + textColumnWidth + PROTECTED_CARD_RIGHT_MARGIN_MM;
+}
+
+// Stiker Balikin Family: 1 Pro + 2 Daily + as many Micro "Protected By" cards as fit
+// vertically on one A5 sheet, stacked top to bottom, largest to smallest.
+const FAMILY_PRO_HEIGHT_MM = 43;
+const FAMILY_DAILY_HEIGHT_MM = 33;
+const FAMILY_MICRO_HEIGHT_MM = 23;
+const FAMILY_DAILY_COUNT = 2;
+const FAMILY_ROW_SPACING_MM = 3; // matches the 3mm row spacing used across all A5 sticker sheets
+const A5_PORTRAIT_HEIGHT_MM = 210;
+
+function computeFamilyMicroCount(): number {
+  const fixedHeightMM = FAMILY_PRO_HEIGHT_MM + FAMILY_DAILY_COUNT * FAMILY_DAILY_HEIGHT_MM;
+  let microCount = 0;
+  while (true) {
+    const rows = 1 + FAMILY_DAILY_COUNT + microCount + 1;
+    const heightMM = fixedHeightMM + (microCount + 1) * FAMILY_MICRO_HEIGHT_MM + FAMILY_ROW_SPACING_MM * (rows - 1);
+    if (heightMM > A5_PORTRAIT_HEIGHT_MM) break;
+    microCount++;
+  }
+  return microCount;
+}
+
+export const FAMILY_MICRO_COUNT = computeFamilyMicroCount();
+
+// Ordered composition of one Family sheet, top to bottom.
+export const FAMILY_ROW_PRODUCTS: readonly Extract<StickerProductKey, 'stiker-pro' | 'stiker-daily' | 'stiker-micro'>[] = [
+  'stiker-pro',
+  ...Array(FAMILY_DAILY_COUNT).fill('stiker-daily' as const),
+  ...Array(FAMILY_MICRO_COUNT).fill('stiker-micro' as const),
+];
+
 // Grid layout configurations for A5 (half of A4) - optimized for Balikin sticker products
 export const GRID_CONFIGS_A5 = {
-  // Stiker Balikin Pro (35mm × 35mm) - 6-8 per sheet
-  'stiker-pro': { rows: 2, cols: 3, total: 6, itemWidth: 35, itemHeight: 35 },
-  // Stiker Balikin Daily (25mm × 25mm) - 12-15 per sheet
-  'stiker-daily': { rows: 3, cols: 4, total: 12, itemWidth: 25, itemHeight: 25 },
-  // Stiker Balikin Micro (18mm × 18mm) - 20-24 per sheet
-  'stiker-micro': { rows: 4, cols: 5, total: 20, itemWidth: 18, itemHeight: 18 },
-  // Stiker Balikin Family (mixed sizes: 3 Besar + 4 Sedang + 5 Kecil)
-  'stiker-family': { rows: 4, cols: 3, total: 12, itemWidth: 35, itemHeight: 35, isMixed: true },
+  // Stiker Balikin Pro (125mm × 43mm, "Protected By" card layout, QR box 3.9cm, text col 7.8cm) - 4 per sheet
+  'stiker-pro': { rows: 4, cols: 1, total: 4, itemWidth: computeProtectedCardItemWidth(43), itemHeight: 43 },
+  // Stiker Balikin Daily (95mm × 33mm, "Protected By" card layout, QR box 2.9cm, text col 5.8cm) - 5 per sheet
+  'stiker-daily': { rows: 5, cols: 1, total: 5, itemWidth: computeProtectedCardItemWidth(33), itemHeight: 33 },
+  // Stiker Balikin Micro (65mm × 23mm, "Protected By" card layout, QR box 1.9cm, text col 3.8cm) - 8 per sheet
+  'stiker-micro': { rows: 8, cols: 1, total: 8, itemWidth: computeProtectedCardItemWidth(23), itemHeight: 23 },
+  // Stiker Balikin Family: 1 Pro + 2 Daily + FAMILY_MICRO_COUNT Micro "Protected By" cards per sheet
+  'stiker-family': {
+    rows: FAMILY_ROW_PRODUCTS.length,
+    cols: 1,
+    total: FAMILY_ROW_PRODUCTS.length,
+    itemWidth: computeProtectedCardItemWidth(FAMILY_PRO_HEIGHT_MM),
+    itemHeight: FAMILY_PRO_HEIGHT_MM,
+    isMixed: true,
+  },
 } as const;
 
 // Legacy GRID_CONFIGS (deprecated, use GRID_CONFIGS_A3 or GRID_CONFIGS_A4)
@@ -178,10 +229,10 @@ export function getStickerProductConfig(productKey: StickerProductKey) {
  */
 export function getStickerProductInfo(productKey: StickerProductKey) {
   const info = {
-    'stiker-pro': { name: 'Stiker Balikin Pro', size: '35×35mm', perSheet: '6-8' },
-    'stiker-daily': { name: 'Stiker Balikin Daily', size: '25×25mm', perSheet: '12-15' },
-    'stiker-micro': { name: 'Stiker Balikin Micro', size: '18×18mm', perSheet: '20-24' },
-    'stiker-family': { name: 'Stiker Balikin Family', size: 'Mixed (3B+4S+5K)', perSheet: '12' },
+    'stiker-pro': { name: 'Stiker Balikin Pro', size: '125×43mm', perSheet: '4' },
+    'stiker-daily': { name: 'Stiker Balikin Daily', size: '95×33mm', perSheet: '5' },
+    'stiker-micro': { name: 'Stiker Balikin Micro', size: '65×23mm', perSheet: '8' },
+    'stiker-family': { name: 'Stiker Balikin Family', size: `Mixed (1 Pro + ${FAMILY_DAILY_COUNT} Daily + ${FAMILY_MICRO_COUNT} Micro)`, perSheet: String(FAMILY_ROW_PRODUCTS.length) },
   };
   return info[productKey];
 }

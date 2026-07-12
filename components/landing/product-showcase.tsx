@@ -134,8 +134,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           price: 'Rp 59.000',
           icon: Sticker,
           features: [
-            '📦 1 Sheet A5 (Isi 6-8 QR)',
-            '📏 Ukuran Besar (3,5 × 3,5 cm)',
+            '📦 1 Sheet A5 (Isi 4 pcs)',
+            '📏 Ukuran 13,7 × 4,3 cm (QR 3,5 × 3,5 cm)',
             '💎 Vinyl Premium tahan air & UV',
             '🎒 Ideal untuk laptop, helm, koper',
             'Untuk professional dengan aset besar',
@@ -152,8 +152,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           price: 'Rp 59.000',
           icon: Sticker,
           features: [
-            '📦 1 Sheet A5 (Isi 12-15 QR)',
-            '📏 Ukuran Sedang (2,5 × 2,5 cm)',
+            '📦 1 Sheet A5 (Isi 5 pcs)',
+            '📏 Ukuran 13,7 × 3,3 cm (QR 2,5 × 2,5 cm)',
             '💎 Vinyl Premium tahan air & UV',
             '🎒 Untuk botol, agenda, tablet, kamera',
             'Amankan barang bawaan kantor/sekolah',
@@ -170,8 +170,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           price: 'Rp 59.000',
           icon: Sticker,
           features: [
-            '📦 1 Sheet A5 (Isi 20-24 QR)',
-            '📏 Ukuran Saku (1,8 × 1,8 cm)',
+            '📦 1 Sheet A5 (Isi 8 pcs)',
+            '📏 Ukuran 13,7 × 2,3 cm (QR 1,5 × 1,5 cm)',
             '💎 Vinyl Premium tahan air & UV',
             '🎒 Untuk TWS, powerbank, charger, flashdisk',
             'Proteksi barang mini yang rentan terselip',
