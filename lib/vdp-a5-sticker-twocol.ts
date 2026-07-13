@@ -41,7 +41,7 @@ function createDefaultLogo(width: number, height: number): Buffer {
       </defs>
       <rect width="${width}" height="${height}" fill="url(#bgGrad)"/>
       <circle cx="${width / 2}" cy="${height / 2}" r="${radius}" fill="#1f2937" opacity="0.85"/>
-      <text x="${width / 2}" y="${height / 2 + fontSize / 3}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">B</text>
+      <text x="${width / 2}" y="${height / 2 + fontSize / 3}" font-family="system-ui, -apple-system, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">B</text>
     </svg>
   `);
   return svg;

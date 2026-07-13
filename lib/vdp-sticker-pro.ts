@@ -95,11 +95,11 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
           fill="none" stroke="#ffffff" stroke-width="${Math.max(2, lockSize * 0.12)}" stroke-linecap="round"/>
         <rect x="0" y="${lockSize * 0.4}" width="${lockSize}" height="${lockSize * 0.62}" rx="${lockSize * 0.14}" fill="#ffffff"/>
       </g>
-      <text x="${centerX}" y="${protectedY}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">PROTECTED</text>
-      <text x="${centerX}" y="${byLineY}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">BY <tspan fill="${RED_COLOR}">BALIKIN.ONLINE</tspan></text>
-      <text x="${centerX}" y="${tagline1Y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">If found, please scan to return this item.</text>
-      <text x="${centerX}" y="${tagline2Y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">Identitas Pemilik Terenkripsi Aman.</text>
-      ${serialNumber ? `<text x="${widthPx - Math.round(2 * MM_TO_PX)}" y="${serialY}" font-family="Arial, monospace" font-size="${serialFontSize}" fill="#6b7280" text-anchor="end">${serialNumber}</text>` : ''}
+      <text x="${centerX}" y="${protectedY}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">PROTECTED</text>
+      <text x="${centerX}" y="${byLineY}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">BY <tspan fill="${RED_COLOR}">BALIKIN.ONLINE</tspan></text>
+      <text x="${centerX}" y="${tagline1Y}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">If found, please scan to return this item.</text>
+      <text x="${centerX}" y="${tagline2Y}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">Identitas Pemilik Terenkripsi Aman.</text>
+      ${serialNumber ? `<text x="${widthPx - Math.round(2 * MM_TO_PX)}" y="${serialY}" font-family="'Courier New', monospace" font-size="${serialFontSize}" fill="#6b7280" text-anchor="end">${serialNumber}</text>` : ''}
     </svg>
   `);
 

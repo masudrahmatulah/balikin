@@ -97,7 +97,7 @@ export async function generateA5StickerSheet(
       // Serial number SVG (small text below QR)
       const serialSvg = Buffer.from(`
         <svg width="${Math.round(qrSize)}" height="30" xmlns="http://www.w3.org/2000/svg">
-          <text x="${Math.round(qrSize / 2)}" y="20" font-family="Arial" font-size="10" fill="black" text-anchor="middle">
+          <text x="${Math.round(qrSize / 2)}" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="black" text-anchor="middle">
             ${tag.serialNumber}
           </text>
         </svg>
