@@ -135,13 +135,18 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
       })
     : null;
 
-  const tagline2Text = await renderText(
-    '<span foreground="' + TEXT_MUTED + '">Identitas Pemilik Terenkripsi Aman.</span>',
-    { size: taglineFontSize }
+  const renderTaglineFit = async (markup: string) => {
+    const rendered = await renderText(markup, { size: taglineFontSize });
+    if (rendered.width <= availableTextWidth) return rendered;
+    const fitSize = Math.max(1, Math.floor((taglineFontSize * availableTextWidth) / rendered.width));
+    return renderText(markup, { size: fitSize });
+  };
+
+  const tagline2Text = await renderTaglineFit(
+    '<span foreground="' + TEXT_MUTED + '">Identitas Pemilik Terenkripsi Aman.</span>'
   );
-  const tagline1Text = await renderText(
-    '<span foreground="' + TEXT_MUTED + '">If found, please scan to return this item.</span>',
-    { size: taglineFontSize }
+  const tagline1Text = await renderTaglineFit(
+    '<span foreground="' + TEXT_MUTED + '">Temukan barang ini? Pindai untuk mengembalikan.</span>'
   );
 
   let cursorFromBottom = heightPx - bottomMarginPx;
