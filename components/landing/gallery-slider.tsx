@@ -82,7 +82,7 @@ export function GallerySlider() {
 
   return (
     <div className="w-full">
-      <div className="relative w-full h-[650px] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-4">
+      <div className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-2 md:p-4" style={{ minHeight: '250px', maxHeight: '650px' }}>
         {/* Blurred logo background */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <div className="relative w-96 h-96 rounded-full overflow-hidden">
@@ -131,27 +131,27 @@ export function GallerySlider() {
         <div className="absolute inset-0 flex items-center justify-between pointer-events-none z-20">
           <motion.button
             onClick={handlePrevious}
-            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-4 rounded-full backdrop-blur-md ml-8 transition-all duration-300"
+            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-2 md:p-4 rounded-full backdrop-blur-md ml-2 md:ml-8 transition-all duration-300"
             aria-label="Previous image"
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
           >
-            <ChevronLeft className="w-8 h-8" />
+            <ChevronLeft className="w-5 h-5 md:w-8 md:h-8" />
           </motion.button>
 
           <motion.button
             onClick={handleNext}
-            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-4 rounded-full backdrop-blur-md mr-8 transition-all duration-300"
+            className="pointer-events-auto bg-white/20 hover:bg-white/40 text-white p-2 md:p-4 rounded-full backdrop-blur-md mr-2 md:mr-8 transition-all duration-300"
             aria-label="Next image"
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
           >
-            <ChevronRight className="w-8 h-8" />
+            <ChevronRight className="w-5 h-5 md:w-8 md:h-8" />
           </motion.button>
         </div>
 
         <motion.div
-          className="absolute top-8 right-8 z-30 bg-white/20 text-white px-5 py-3 rounded-full text-lg font-semibold backdrop-blur-md border border-white/30"
+          className="absolute top-4 md:top-8 right-4 md:right-8 z-30 bg-white/20 text-white px-3 md:px-5 py-2 md:py-3 rounded-full text-sm md:text-lg font-semibold backdrop-blur-md border border-white/30"
           key={currentIndex}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -160,7 +160,7 @@ export function GallerySlider() {
           {String(currentIndex + 1).padStart(2, '0')} / {String(galleryImages.length).padStart(2, '0')}
         </motion.div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+        <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2 md:gap-3">
           {galleryImages.map((_, index) => (
             <motion.button
               key={index}
@@ -169,7 +169,7 @@ export function GallerySlider() {
                 setCurrentIndex(index);
               }}
               animate={{
-                width: index === currentIndex ? 40 : 12,
+                width: index === currentIndex ? 30 : 8,
                 backgroundColor: index === currentIndex ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.4)',
                 boxShadow: index === currentIndex ? '0 0 20px rgba(255,255,255,0.5)' : 'none',
               }}
@@ -178,7 +178,7 @@ export function GallerySlider() {
                 scale: 1.1,
               }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
-              className="h-3 rounded-full cursor-pointer transition-all"
+              className="h-2 md:h-3 rounded-full cursor-pointer transition-all"
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
