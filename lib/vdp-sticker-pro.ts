@@ -18,6 +18,7 @@ import {
   PROTECTED_CARD_RIGHT_MARGIN_MM,
   FAMILY_ROW_PRODUCTS,
 } from './sticker-template';
+import { renderText } from './sticker-fonts';
 
 type ProtectedCardProductKey = Extract<StickerProductKey, 'stiker-pro' | 'stiker-daily' | 'stiker-micro'>;
 
@@ -77,15 +78,11 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
   const lockSize = Math.round(heightPx * 0.14);
   const lockY = Math.round(heightPx * 0.08);
   const iconTextGapPx = Math.round(heightPx * 0.09); // breathing room between icon and "PROTECTED"
-  const protectedY = lockY + Math.round(lockSize * 1.05) + iconTextGapPx + Math.round(titleFontSize * 0.75);
-  const byLineY = protectedY + Math.round(titleFontSize * 1.05);
+  const protectedTopY = lockY + Math.round(lockSize * 1.05) + iconTextGapPx;
 
-  // Anchor the tagline block to the bottom edge (working upward) instead of fixed height
-  // fractions, so it always clears the serial number regardless of card height (e.g. Micro).
-  const serialY = heightPx - serialFontSize;
-  const tagline2Y = serialY - Math.round(taglineFontSize * 1.1);
-  const tagline1Y = tagline2Y - Math.round(taglineFontSize * 1.3);
-
+  // Background + lock icon only - all text is rendered separately via sharp's native
+  // text renderer (see renderText in sticker-fonts.ts) since SVG <text> depends on
+  // fontconfig, which is unavailable in the Vercel serverless container.
   const backgroundSvg = Buffer.from(`
     <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
       <rect x="0" y="0" width="${widthPx}" height="${heightPx}" rx="${cardRadius}" ry="${cardRadius}" fill="${BG_COLOR}"/>
@@ -95,11 +92,6 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
           fill="none" stroke="#ffffff" stroke-width="${Math.max(2, lockSize * 0.12)}" stroke-linecap="round"/>
         <rect x="0" y="${lockSize * 0.4}" width="${lockSize}" height="${lockSize * 0.62}" rx="${lockSize * 0.14}" fill="#ffffff"/>
       </g>
-      <text x="${centerX}" y="${protectedY}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">PROTECTED</text>
-      <text x="${centerX}" y="${byLineY}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${titleFontSize}" font-weight="800" letter-spacing="1" fill="#ffffff">BY <tspan fill="${RED_COLOR}">BALIKIN.ONLINE</tspan></text>
-      <text x="${centerX}" y="${tagline1Y}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">If found, please scan to return this item.</text>
-      <text x="${centerX}" y="${tagline2Y}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="${taglineFontSize}" font-weight="500" fill="${TEXT_MUTED}">Identitas Pemilik Terenkripsi Aman.</text>
-      ${serialNumber ? `<text x="${widthPx - Math.round(2 * MM_TO_PX)}" y="${serialY}" font-family="'Courier New', monospace" font-size="${serialFontSize}" fill="#6b7280" text-anchor="end">${serialNumber}</text>` : ''}
     </svg>
   `);
 
@@ -112,10 +104,67 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
     color: { dark: '#000000', light: '#ffffff' },
   });
 
-  return sharp(cardBuffer)
-    .composite([{ input: qrPngBuffer, left: qrX, top: qrY }])
-    .png()
-    .toBuffer();
+  const compositeOps: sharp.OverlayOptions[] = [{ input: qrPngBuffer, left: qrX, top: qrY }];
+  const centered = (img: { width: number }, topY: number) => ({
+    left: Math.round(centerX - img.width / 2),
+    top: Math.round(topY),
+  });
+
+  const protectedText = await renderText('<span foreground="#ffffff">PROTECTED</span>', {
+    bold: true,
+    size: titleFontSize,
+    letterSpacing: 1,
+  });
+  compositeOps.push({ input: protectedText.buffer, ...centered(protectedText, protectedTopY) });
+
+  const byLineTopY = protectedTopY + protectedText.height + Math.round(titleFontSize * 0.15);
+  const byLineText = await renderText(
+    `<span foreground="#ffffff">BY </span><span foreground="${RED_COLOR}">BALIKIN.ONLINE</span>`,
+    { bold: true, size: titleFontSize, letterSpacing: 1 }
+  );
+  compositeOps.push({ input: byLineText.buffer, ...centered(byLineText, byLineTopY) });
+
+  // Anchor the tagline/serial block to the bottom edge (working upward) instead of fixed
+  // height fractions, so it always clears the card regardless of card height (e.g. Micro).
+  const bottomMarginPx = Math.round(heightPx * 0.03);
+  const lineGapPx = Math.round(taglineFontSize * 0.3);
+
+  const serialText = serialNumber
+    ? await renderText(`<span foreground="#6b7280">${serialNumber}</span>`, {
+        size: serialFontSize,
+      })
+    : null;
+
+  const tagline2Text = await renderText(
+    '<span foreground="' + TEXT_MUTED + '">Identitas Pemilik Terenkripsi Aman.</span>',
+    { size: taglineFontSize }
+  );
+  const tagline1Text = await renderText(
+    '<span foreground="' + TEXT_MUTED + '">If found, please scan to return this item.</span>',
+    { size: taglineFontSize }
+  );
+
+  let cursorFromBottom = heightPx - bottomMarginPx;
+
+  if (serialText) {
+    const serialTopY = cursorFromBottom - serialText.height;
+    const rightMarginSerialPx = Math.round(2 * MM_TO_PX);
+    compositeOps.push({
+      input: serialText.buffer,
+      left: Math.round(widthPx - rightMarginSerialPx - serialText.width),
+      top: Math.round(serialTopY),
+    });
+    cursorFromBottom = serialTopY - lineGapPx;
+  }
+
+  const tagline2TopY = cursorFromBottom - tagline2Text.height;
+  compositeOps.push({ input: tagline2Text.buffer, ...centered(tagline2Text, tagline2TopY) });
+  cursorFromBottom = tagline2TopY - lineGapPx;
+
+  const tagline1TopY = cursorFromBottom - tagline1Text.height;
+  compositeOps.push({ input: tagline1Text.buffer, ...centered(tagline1Text, tagline1TopY) });
+
+  return sharp(cardBuffer).composite(compositeOps).png().toBuffer();
 }
 
 /**
