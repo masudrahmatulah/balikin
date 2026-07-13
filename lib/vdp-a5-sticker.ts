@@ -6,6 +6,7 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import { calculateA5StickerPositions, getStickerProductConfig, type StickerProductKey } from './sticker-template';
+import { renderText } from './sticker-fonts';
 
 // A5 dimensions at 300 DPI: 1 mm = 11.81 pixels
 const A5_WIDTH_MM = 148;
@@ -92,24 +93,16 @@ export async function generateA5StickerSheet(
       top: Math.round(posY * MM_TO_PX),
     });
 
-    // Add serial number text (optional, can be added via SVG overlay if needed)
+    // Add serial number text (rendered via sharp's native text renderer with a bundled
+    // fontfile - SVG <text> depends on fontconfig, which is unavailable on Vercel)
     if (tag.serialNumber) {
-      // Serial number SVG (small text below QR)
-      const serialSvg = Buffer.from(`
-        <svg width="${Math.round(qrSize)}" height="30" xmlns="http://www.w3.org/2000/svg">
-          <text x="${Math.round(qrSize / 2)}" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="black" text-anchor="middle">
-            ${tag.serialNumber}
-          </text>
-        </svg>
-      `);
-
-      const serialBuffer = await sharp(serialSvg)
-        .png()
-        .toBuffer();
+      const serialText = await renderText(`<span foreground="#000000">${tag.serialNumber}</span>`, {
+        size: 10,
+      });
 
       compositeOps.push({
-        input: serialBuffer,
-        left: Math.round(posX * MM_TO_PX),
+        input: serialText.buffer,
+        left: Math.round(posX * MM_TO_PX + qrSize / 2 - serialText.width / 2),
         top: Math.round((posY + config.itemHeight + 5) * MM_TO_PX),
       });
     }

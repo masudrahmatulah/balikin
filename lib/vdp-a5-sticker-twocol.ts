@@ -6,6 +6,7 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import { getStickerProductConfig, type StickerProductKey } from './sticker-template';
+import { renderText } from './sticker-fonts';
 
 // A5 dimensions at 300 DPI: 1 mm = 11.81 pixels
 const A5_WIDTH_MM = 148;
@@ -26,12 +27,13 @@ export interface A5TwoColStickerTag {
 }
 
 /**
- * Create default Balikin logo as SVG (can be customized)
+ * Create default Balikin logo (gradient circle + "B" letter, "B" rendered via sharp's
+ * native text renderer since SVG <text> depends on fontconfig, unavailable on Vercel).
  */
-function createDefaultLogo(width: number, height: number): Buffer {
+async function createDefaultLogo(width: number, height: number): Promise<Buffer> {
   const radius = Math.min(width, height) / 3;
   const fontSize = Math.max(12, Math.min(width, height) / 4);
-  const svg = Buffer.from(`
+  const backgroundSvg = Buffer.from(`
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
       <defs>
         <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -41,10 +43,24 @@ function createDefaultLogo(width: number, height: number): Buffer {
       </defs>
       <rect width="${width}" height="${height}" fill="url(#bgGrad)"/>
       <circle cx="${width / 2}" cy="${height / 2}" r="${radius}" fill="#1f2937" opacity="0.85"/>
-      <text x="${width / 2}" y="${height / 2 + fontSize / 3}" font-family="system-ui, -apple-system, sans-serif" font-size="${fontSize}" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">B</text>
     </svg>
   `);
-  return svg;
+
+  const letterB = await renderText('<span foreground="#ffffff">B</span>', {
+    bold: true,
+    size: fontSize,
+  });
+
+  return sharp(backgroundSvg)
+    .composite([
+      {
+        input: letterB.buffer,
+        left: Math.round(width / 2 - letterB.width / 2),
+        top: Math.round(height / 2 - letterB.height / 2),
+      },
+    ])
+    .png()
+    .toBuffer();
 }
 
 /**
@@ -93,7 +109,7 @@ export async function generateA5TwoColStickerSheet(
   const halfWidthPX = Math.round((itemWidthPX / 2) - (spacingPX / 4));
 
   // Get default logo if not provided
-  const logoBuffer = defaultLogoBuffer || createDefaultLogo(halfWidthPX - 4, itemHeightPX - 4);
+  const logoBuffer = defaultLogoBuffer || (await createDefaultLogo(halfWidthPX - 4, itemHeightPX - 4));
 
   // Generate items for each tag
   for (let i = 0; i < Math.min(tags.length, config.total); i++) {
