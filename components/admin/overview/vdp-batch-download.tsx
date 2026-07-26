@@ -97,7 +97,7 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
               <SelectContent>
                 <SelectItem value="all">All Materials</SelectItem>
                 <SelectItem value="vinyl">Stiker Vinyl</SelectItem>
-                <SelectItem value="acrylic">Akrilik Premium</SelectItem>
+                <SelectItem value="acrylic">Akrilik (All Shapes)</SelectItem>
                 <SelectItem value="bundles">Bundling Kits</SelectItem>
               </SelectContent>
             </Select>

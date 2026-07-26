@@ -25,7 +25,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [formData, setFormData] = useState({
     batchName: "",
     quantity: 100,
-    materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
+    materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a5" as "a4" | "a3" | "a5",
     stickerProductKey: "stiker-family" as StickerProductKey,
@@ -46,6 +46,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
   const [generatedCount, setGeneratedCount] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -132,6 +133,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
 
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
+      setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
       setGeneratedCount(data.quantity);
 
       if (onGenerate) {
@@ -216,7 +218,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.materialType}
-                onValueChange={(value: "sticker" | "acrylic" | "acrylic-cutfold") =>
+                onValueChange={(value: any) =>
                   updateFormData({ materialType: value })
                 }
               >
@@ -225,8 +227,14 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 </SelectTrigger>
                 <SelectContent className="font-body text-sm">
                   <SelectItem value="sticker">Sticker (Vinyl)</SelectItem>
-                  <SelectItem value="acrylic">Acrylic (Premium)</SelectItem>
-                  <SelectItem value="acrylic-cutfold">Akrilik Cut & Fold (Portrait 3x3.7cm)</SelectItem>
+                  <SelectItem value="acrylic-oval">Akrilik OVAL</SelectItem>
+                  <SelectItem value="acrylic-octagon">Akrilik Persegi Delapan</SelectItem>
+                  <SelectItem value="acrylic-heart">Akrilik Hati</SelectItem>
+                  <SelectItem value="acrylic-rectangle">Akrilik Persegi Panjang</SelectItem>
+                  <SelectItem value="acrylic-rectangle-motif">Akrilik Persegi Panjang Motif</SelectItem>
+                  <SelectItem value="acrylic-square">Akrilik Kotak</SelectItem>
+                  <SelectItem value="acrylic-circle">Akrilik Lingkaran</SelectItem>
+                  <SelectItem value="acrylic-rectangle-emboss">Akrilik Persegi Panjang Timbul</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -433,13 +441,13 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                   onClick={() => {
                     const link = document.createElement("a");
                     link.href = downloadUrl;
-                    link.download = `${formData.batchName || 'batch'}-qr-codes.zip`;
+                    link.download = `${formData.batchName || 'batch'}-qr-codes.${downloadFormat}`;
                     link.click();
                   }}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download ZIP
+                  Download {downloadFormat === "pdf" ? "PDF" : "ZIP"}
                 </Button>
                 <Button
                   type="button"

@@ -7,17 +7,15 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import pLimit from 'p-limit';
-
-// ============================================================================
-// CONSTANTS (300 DPI: 1 mm = 11.81 pixels)
-// ============================================================================
-
-// Lebar per kotak = 30mm * 11.81 = 354px
-// Tinggi per kotak = 45mm * 11.81 = 531px
-const KOTAK_WIDTH = 354;
-const KOTAK_HEIGHT = 531;
-const KANVAS_WIDTH = KOTAK_WIDTH * 6; // 2124px (6 Kotak Horizontal)
-const KANVAS_HEIGHT = KOTAK_HEIGHT;   // 531px
+import { readFile } from 'fs/promises';
+import path from 'path';
+import {
+  type AcrylicShapeKey,
+  deriveAcrylicShapeKey,
+  getAcrylicShapeConfig,
+  getShapeMarkup,
+  mmToPx,
+} from './acrylic-shapes';
 
 // ============================================================================
 // TYPES
@@ -64,21 +62,24 @@ const renderQueue = pLimit(3);
 
 let logoBufferCache: Buffer | null = null;
 
+// Cached at a resolution large enough for the biggest shape's QR box
+// (rectangle-emboss: 26mm ~ 307px) so per-shape downscaling stays crisp.
+const LOGO_CACHE_SIZE = 400;
+
 async function getLogoBuffer(): Promise<Buffer> {
   if (logoBufferCache) return logoBufferCache;
 
-  // Default logo - create a simple SVG logo
-  const logoSvg = Buffer.from(`
-    <svg width="220" height="220" xmlns="http://www.w3.org/2000/svg">
-      <rect width="220" height="220" fill="#0EA5E9"/>
-      <text x="110" y="90" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">BALIKIN</text>
-      <text x="110" y="120" font-family="Arial, sans-serif" font-size="14" fill="white" text-anchor="middle">Smart Lost &amp; Found</text>
-      <circle cx="110" cy="160" r="20" fill="white"/>
-      <circle cx="110" cy="155" r="8" fill="#0EA5E9"/>
-    </svg>
-  `);
-
-  logoBufferCache = await sharp(logoSvg).resize(220, 220).png().toBuffer();
+  // Default logo - Balikin's real brand mark, letterboxed onto a white square
+  // so its non-square aspect ratio isn't stretched when composited into the QR box.
+  const logoPath = path.join(process.cwd(), 'public', 'balikin_logo.png');
+  const rawLogo = await readFile(logoPath);
+  logoBufferCache = await sharp(rawLogo)
+    .resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    })
+    .png()
+    .toBuffer();
   return logoBufferCache;
 }
 
@@ -93,8 +94,7 @@ async function getCustomPhotoBuffer(url: string): Promise<Buffer> {
       throw new Error(`Failed to fetch photo: ${response.statusText}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
-    // Resize to match logo size (220x220)
-    return await sharp(buffer).resize(220, 220).png().toBuffer();
+    return await sharp(buffer).resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE).png().toBuffer();
   } catch (error) {
     console.error('Error fetching custom photo:', error);
     // Return logo as fallback
@@ -102,26 +102,83 @@ async function getCustomPhotoBuffer(url: string): Promise<Buffer> {
   }
 }
 
+function bufferToDataUri(buf: Buffer): string {
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
 // ============================================================================
-// TEXT SVG GENERATION
+// KOTAK (single die-cut cell) SVG GENERATION
 // ============================================================================
 
-function drawTextSvg(pin: string, serial: string, isAktivasi = false): Buffer {
-  return Buffer.from(`
-    <svg width="${KOTAK_WIDTH}" height="${KOTAK_HEIGHT}">
-      <style>
-        .serial { font-family: sans-serif; font-size: 6pt; fill: #475569; }
-        .title { font-family: sans-serif; font-size: 16px; fill: #1e293b; font-weight: bold; text-anchor: middle; }
-        .pin { font-family: sans-serif; font-size: 18px; fill: #ef4444; font-weight: bold; text-anchor: middle; }
-        .scan-label { font-family: sans-serif; font-size: 12px; fill: #64748b; font-weight: bold; text-anchor: middle; }
-      </style>
-      ${isAktivasi ? `
-        <text x="${KOTAK_WIDTH / 2}" y="30" class="scan-label">SCAN UNTUK AKTIVASI</text>
-        <text x="${KOTAK_WIDTH / 2}" y="480" class="pin">PIN: ${pin}</text>
-      ` : ''}
-      <text x="20" y="${KOTAK_HEIGHT - 15}" class="serial">${serial}</text>
+interface KotakOptions {
+  shapeKey: AcrylicShapeKey | null;
+  contentDataUri: string;
+  serial: string;
+  pin?: string;
+  isAktivasi: boolean;
+  topLabel?: string;
+  bottomLabel?: string;
+  contentWidthMm?: number;
+  contentHeightMm?: number;
+}
+
+/**
+ * Renders one QR/logo cell as a single SVG: background + content are clipped
+ * to the wadah's die-cut outline (so nothing bleeds past the cut line), and
+ * the same outline is redrawn unclipped as the cutting-mark stroke.
+ */
+function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topLabel, bottomLabel, contentWidthMm, contentHeightMm }: KotakOptions): Buffer {
+  const config = getAcrylicShapeConfig(shapeKey);
+  const widthPx = mmToPx(config.widthMm);
+  const heightPx = mmToPx(config.heightMm);
+  const contentWidthPx = mmToPx(contentWidthMm ?? config.qrSizeMm);
+  const contentHeightPx = mmToPx(contentHeightMm ?? config.qrSizeMm);
+  const topMarginPx = mmToPx(config.qrTopMarginMm);
+  const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
+  const contentX = (widthPx - contentWidthPx) / 2;
+  // Center the QR/logo vertically in the die-cut shape rather than hugging the
+  // curvature-safety top margin. Aktivasi cells additionally reserve space
+  // below for the PIN + serial text (pinText/serialText below), so their
+  // centering is capped to whatever leaves that text room.
+  const verticalCenterPx = (heightPx - contentHeightPx) / 2;
+  const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
+  const maxAktivasiContentY = heightPx - contentHeightPx - BOTTOM_TEXT_RESERVE_PX;
+  const contentY = isAktivasi
+    ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
+    : Math.max(topMarginPx, verticalCenterPx);
+  const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
+
+  const labelText = isAktivasi
+    ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="9" font-weight="bold" fill="#7c3aed" text-anchor="middle">AKTIVASI</text>`
+    : topLabel
+      ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
+      : '';
+
+  const pinText = pin
+    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
+    : bottomLabel
+      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
+      : '';
+
+  const serialText = `<text x="${widthPx / 2}" y="${heightPx - 4}" font-family="sans-serif" font-size="6.5" fill="#94a3b8" text-anchor="middle">${serial}</text>`;
+
+  const svg = `
+    <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="${clipId}">${shapeTag}/></clipPath>
+      </defs>
+      <g clip-path="url(#${clipId})">
+        <rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>
+        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${contentWidthPx}" height="${contentHeightPx}" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+      ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+      ${labelText}
+      ${pinText}
+      ${serialText}
     </svg>
-  `);
+  `;
+
+  return Buffer.from(svg);
 }
 
 // ============================================================================
@@ -141,18 +198,22 @@ function drawTextSvg(pin: string, serial: string, isAktivasi = false): Buffer {
  */
 export async function generateOneRowSticker(
   tagA: TagVDPData,
-  tagB: TagVDPData | null
+  tagB: TagVDPData | null,
+  shapeKey: AcrylicShapeKey | null = null
 ): Promise<Buffer> {
-  // FIXED: Setiap paket selalu 3 kolom (3 × 354px = 1062px per paket)
+  const config = getAcrylicShapeConfig(shapeKey);
+  const kotakWidthPx = mmToPx(config.widthMm);
+  const kotakHeightPx = mmToPx(config.heightMm);
+  const qrSizePx = mmToPx(config.qrSizeMm);
+
   const PACKET_COLS = 3;
   const numPackets = tagB ? 2 : 1;
-  const canvasWidth = numPackets * PACKET_COLS * KOTAK_WIDTH; // 2124px untuk 2 paket
+  const canvasWidth = numPackets * PACKET_COLS * kotakWidthPx;
 
-  // 1. Buat Kanvas Latar Belakang Putih
   const background = sharp({
     create: {
       width: canvasWidth,
-      height: KANVAS_HEIGHT,
+      height: kotakHeightPx,
       channels: 4,
       background: { r: 255, g: 255, b: 255, alpha: 1 }
     }
@@ -160,116 +221,70 @@ export async function generateOneRowSticker(
 
   const layers: sharp.OverlayOptions[] = [];
 
-  // ========================================
-  // PAKET 1 (3 Kolom: QR Utama + Logo/Foto + QR Aktivasi)
-  // ========================================
-
-  // Paket 1 - Kolom 1: QR Utama (scan jika barang ditemukan)
-  const qrUtamaA = await QRCode.toBuffer(
-    `https://balikin.id/p/${tagA.slug}`,
-    { width: 220, margin: 1 }
-  );
-  const textSvgA = drawTextSvg(tagA.activationPinPlain || '', tagA.serialNumber || '', false);
-
-  layers.push(
-    { input: qrUtamaA, top: 120, left: 67 }, // QR di tengah kotak (30mm padding)
-    { input: textSvgA, top: 0, left: 0 }      // Text overlay untuk serial number
-  );
-
-  // Paket 1 - Kolom 2: Logo Balikin atau Foto Kustom
-  if (tagA.isCustom && tagA.customPhotoUrl) {
-    // Custom order: Gunakan foto kustom
-    const customPhoto = await getCustomPhotoBuffer(tagA.customPhotoUrl);
-    layers.push(
-      { input: customPhoto, top: 120, left: KOTAK_WIDTH + 67 },
-      { input: textSvgA, top: 0, left: KOTAK_WIDTH }
+  async function buildPacket(tag: TagVDPData, offsetLeftPx: number) {
+    // Kolom 1: QR Utama (scan jika barang ditemukan)
+    const qrUtamaDataUri = await QRCode.toDataURL(
+      `https://balikin.id/p/${tag.slug}`,
+      { width: qrSizePx, margin: 1 }
     );
-  } else {
-    // Massal order: Gunakan logo Balikin
-    const logoResized = await sharp(await getLogoBuffer()).resize(220, 220).toBuffer();
-    layers.push(
-      { input: logoResized, top: 120, left: KOTAK_WIDTH + 67 },
-      { input: textSvgA, top: 0, left: KOTAK_WIDTH }
+    const kotak1 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri: qrUtamaDataUri,
+      serial: tag.serialNumber || '',
+      isAktivasi: false,
+      ...(shapeKey === 'oval'
+        ? { topLabel: 'SCAN disini', bottomLabel: 'Untuk Hubungi Pemiliknya' }
+        : {}),
+    })).png().toBuffer();
+    layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
+
+    // Kolom 2: Logo Balikin atau Foto Kustom (bisa punya ukuran sendiri agar
+    // lebih mendekati sisi kotak dibanding QR - lihat logoWidthMm/logoHeightMm)
+    const logoWidthPx = mmToPx(config.logoWidthMm ?? config.qrSizeMm);
+    const logoHeightPx = mmToPx(config.logoHeightMm ?? config.qrSizeMm);
+    const rawContentBuffer = tag.isCustom && tag.customPhotoUrl
+      ? await getCustomPhotoBuffer(tag.customPhotoUrl)
+      : await getLogoBuffer();
+    const contentDataUri = bufferToDataUri(
+      await sharp(rawContentBuffer)
+        .resize(logoWidthPx, logoHeightPx, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
+        .png()
+        .toBuffer()
     );
+    const kotak2 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri,
+      serial: tag.serialNumber || '',
+      isAktivasi: false,
+      contentWidthMm: config.logoWidthMm,
+      contentHeightMm: config.logoHeightMm,
+    })).png().toBuffer();
+    layers.push({ input: kotak2, top: 0, left: offsetLeftPx + kotakWidthPx });
+
+    // Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
+    const qrAktivasiDataUri = await QRCode.toDataURL(
+      `https://balikin.id/activate?slug=${tag.slug}&token=${tag.activationTokenHash || ''}`,
+      { width: qrSizePx, margin: 1 }
+    );
+    const kotak3 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri: qrAktivasiDataUri,
+      serial: tag.serialNumber || '',
+      pin: tag.activationPinPlain,
+      isAktivasi: true,
+    })).png().toBuffer();
+    layers.push({ input: kotak3, top: 0, left: offsetLeftPx + kotakWidthPx * 2 });
   }
 
-  // Paket 1 - Kolom 3: QR Aktivasi (untuk aktivasi barang)
-  // DEBUG: Log activation token hash
-  console.log('[VDP] Tag A activationTokenHash:', tagA.activationTokenHash);
-  console.log('[VDP] Tag A slug:', tagA.slug);
-  console.log('[VDP] Tag A isCustom:', tagA.isCustom);
-
-  const qrAktivasiA = await QRCode.toBuffer(
-    `https://balikin.id/activate?slug=${tagA.slug}&token=${tagA.activationTokenHash || ''}`,
-    { width: 220, margin: 1 }
-  );
-  const textSvgAktivasiA = drawTextSvg(tagA.activationPinPlain || '', tagA.serialNumber || '', true);
-
-  layers.push(
-    { input: qrAktivasiA, top: 150, left: (KOTAK_WIDTH * 2) + 67 },
-    { input: textSvgAktivasiA, top: 0, left: KOTAK_WIDTH * 2 }
-  );
-
-  // ========================================
-  // PAKET 2 (jika ada) - 3 Kolom sama seperti Paket 1
-  // ========================================
-
+  await buildPacket(tagA, 0);
   if (tagB) {
-    const offsetA = PACKET_COLS * KOTAK_WIDTH; // Offset setelah Paket 1 (1062px)
-
-    // Paket 2 - Kolom 1: QR Utama
-    const qrUtamaB = await QRCode.toBuffer(
-      `https://balikin.id/p/${tagB.slug}`,
-      { width: 220, margin: 1 }
-    );
-    const textSvgB = drawTextSvg(tagB.activationPinPlain || '', tagB.serialNumber || '', false);
-
-    layers.push(
-      { input: qrUtamaB, top: 120, left: offsetA + 67 },
-      { input: textSvgB, top: 0, left: offsetA }
-    );
-
-    // Paket 2 - Kolom 2: Logo Balikin atau Foto Kustom
-    if (tagB.isCustom && tagB.customPhotoUrl) {
-      const customPhoto = await getCustomPhotoBuffer(tagB.customPhotoUrl);
-      layers.push(
-        { input: customPhoto, top: 120, left: offsetA + KOTAK_WIDTH + 67 },
-        { input: textSvgB, top: 0, left: offsetA + KOTAK_WIDTH }
-      );
-    } else {
-      const logoResized = await sharp(await getLogoBuffer()).resize(220, 220).toBuffer();
-      layers.push(
-        { input: logoResized, top: 120, left: offsetA + KOTAK_WIDTH + 67 },
-        { input: textSvgB, top: 0, left: offsetA + KOTAK_WIDTH }
-      );
-    }
-
-    // Paket 2 - Kolom 3: QR Aktivasi
-    const qrAktivasiB = await QRCode.toBuffer(
-      `https://balikin.id/activate?slug=${tagB.slug}&token=${tagB.activationTokenHash || ''}`,
-      { width: 220, margin: 1 }
-    );
-    const textSvgAktivasiB = drawTextSvg(tagB.activationPinPlain || '', tagB.serialNumber || '', true);
-
-    layers.push(
-      { input: qrAktivasiB, top: 150, left: offsetA + (KOTAK_WIDTH * 2) + 67 },
-      { input: textSvgAktivasiB, top: 0, left: offsetA + KOTAK_WIDTH * 2 }
-    );
+    await buildPacket(tagB, PACKET_COLS * kotakWidthPx);
   }
 
-  // Eksekusi compositing
-  console.log('[VDP] Total layers to composite:', layers.length);
-  console.log('[VDP] Canvas width:', canvasWidth, 'height:', KANVAS_HEIGHT);
-
-  // DEBUG: Log setiap layer position
-  layers.forEach((layer, index) => {
-    console.log(`[VDP] Layer ${index}: top=${layer.top}, left=${layer.left}`);
-  });
-
-  const result = await background.composite(layers).png().toBuffer();
-  console.log('[VDP] Generated PNG buffer size:', result.length);
-
-  return result;
+  return background.composite(layers).png().toBuffer();
 }
 
 // ============================================================================
@@ -282,6 +297,7 @@ export async function generateOneRowSticker(
  */
 export async function* generateVDPStream(
   tags: TagVDPData[],
+  shapeKey: AcrylicShapeKey | null = null,
   options: VDPOptions = {}
 ): AsyncGenerator<Buffer, void, unknown> {
   for (let i = 0; i < tags.length; i += 2) {
@@ -307,7 +323,7 @@ export async function* generateVDPStream(
       customPhotoUrl: tags[i + 1].customPhotoUrl,
     } : null;
 
-    const buffer = await renderQueue(() => generateOneRowSticker(tagA, tagB));
+    const buffer = await renderQueue(() => generateOneRowSticker(tagA, tagB, shapeKey));
     yield buffer;
   }
 }
@@ -335,7 +351,8 @@ export async function* generateBatchReprint(
           activationTokenHash: true,
           isCustom: true,
           customPhotoUrl: true,
-          name: true
+          name: true,
+          productType: true
         },
         orderBy: (tags: any, { asc }) => [asc(tags.slug)]
       }
@@ -345,6 +362,8 @@ export async function* generateBatchReprint(
   if (!batch) {
     throw new Error('Batch not found');
   }
+
+  const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
 
   const tags: TagVDPData[] = batch.tags.map((tag: any) => ({
     id: tag.id,
@@ -357,7 +376,7 @@ export async function* generateBatchReprint(
     name: tag.name
   }));
 
-  yield* generateVDPStream(tags, { isReprint: true });
+  yield* generateVDPStream(tags, shapeKey, { isReprint: true });
 }
 
 // ============================================================================

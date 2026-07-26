@@ -157,5 +157,5 @@ export function getPremiumQRColors(bundleType: BundleType) {
  * Check if a QR should use premium styling
  */
 export function shouldUsePremiumQR(tier: string, materialType: string): boolean {
-  return tier === 'premium' || materialType === 'acrylic';
+  return tier === 'premium' || materialType === 'acrylic' || materialType?.startsWith('acrylic-');
 }

@@ -107,6 +107,52 @@ All server-side mutations are in `app/actions/`:
 - `student-kit-actions.ts` - Student Kit specific operations
 - `sticker-order.ts` / `sticker-pdf.ts` - Product ordering and PDF generation
 - `admin-*` - Admin operations (audit, material management, etc.)
+- `campaign.ts` - Campaign lead subscription/management (reusable for all campaigns)
+
+## Campaign System (Multi-Campaign Landing Pages)
+
+Campaigns use route groups `(campaigns)` to keep URLs clean without cluttering main app structure.
+
+### Structure
+```
+app/
+├── page.tsx                    # Main home page (untouched)
+└── (campaigns)/
+    ├── layout.tsx              # Campaign layout (clean, no navbar/footer)
+    ├── first-launch/           # Campaign #1
+    │   └── page.tsx
+    └── campaign-two/           # Campaign #2
+        └── page.tsx
+```
+
+**URLs**: `/first-launch`, `/campaign-two`, etc. (no `/campaigns/` prefix in URL)
+
+### Adding New Campaigns (Copy-Paste Pattern)
+
+1. Create new folder: `app/(campaigns)/campaign-slug/`
+2. Copy `first-launch/page.tsx` to `campaign-slug/page.tsx`
+3. Change `campaignName` in CampaignForm to match folder name (e.g., `"campaign-slug"`)
+4. Customize `<Metadata>`, heading, and content
+5. Done! Database automatically tracks all leads by `campaignName`
+
+### Database Schema
+Table: `balikin_campaign_leads`
+- `id` - UUID primary key
+- `email` - Lead email
+- `campaign_name` - Which campaign they registered for (for filtering/analytics)
+- `source` - How they found it ('landing_page', 'email', 'referral', etc.)
+- `status` - 'subscribed' | 'unsubscribed' | 'bounced'
+- `metadata` - JSONB for campaign-specific data
+- Indexed on: `campaign_name`, `email`, both combined
+
+### Server Actions (Reusable)
+`app/actions/campaign.ts` provides:
+- `subscribeCampaignLead(email, campaignName, source?, metadata?)` - Register lead
+- `unsubscribeCampaignLead(email, campaignName)` - Unsubscribe
+- `getCampaignLeads(campaignName)` - Fetch all leads for admin/analytics
+
+### Client Component
+`components/campaign-form.tsx` - Accept `campaignName` and `campaignTitle` props, emits success/error messages, handles loading state
 
 ## Environment Variables
 

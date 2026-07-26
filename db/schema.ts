@@ -1201,8 +1201,35 @@ export type BlogPostRevision = typeof blogPostRevisions.$inferSelect;
 export type NewBlogPostRevision = typeof blogPostRevisions.$inferInsert;
 
 // ============================================================================
+// CAMPAIGN SYSTEM
+// ============================================================================
+
+export const campaignLeads = pgTable('campaign_leads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  email: text('email').notNull(),
+  campaignName: text('campaign_name').notNull(), // 'first-launch', 'campaign-two', etc.
+  source: text('source'), // 'landing_page', 'email', 'referral', etc.
+  status: text('status').default('subscribed').notNull(), // 'subscribed' | 'unsubscribed' | 'bounced'
+  metadata: jsonb('metadata'), // Additional campaign-specific data
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  campaignIdx: index('idx_campaign_leads_campaign').on(table.campaignName),
+  emailIdx: index('idx_campaign_leads_email').on(table.email),
+  campaignEmailIdx: index('idx_campaign_leads_campaign_email').on(table.campaignName, table.email),
+}));
+
+export const campaignLeadsRelations = relations(campaignLeads, ({ one }) => ({
+  // Placeholder for future user relationship if needed
+}));
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
+
+export type CampaignLead = typeof campaignLeads.$inferSelect;
+export type NewCampaignLead = typeof campaignLeads.$inferInsert;
 
 export type MaterialInventory = typeof materialInventory.$inferSelect;
 export type NewMaterialInventory = typeof materialInventory.$inferInsert;

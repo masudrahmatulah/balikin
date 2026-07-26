@@ -153,7 +153,7 @@ export function MaterialInventoryTable({ materials, adminId }: MaterialInventory
                   return (
                     <TableRow key={material.id}>
                       <TableCell className="font-medium capitalize">
-                        {material.materialType === "acrylic" ? "Akrilik" : material.materialType}
+                        {material.materialType?.startsWith("acrylic") || material.materialType === "acrylic" ? "Akrilik" : material.materialType}
                       </TableCell>
                       <TableCell>
                         <span className={cn("text-lg font-semibold", isLowStock ? "text-red-600 dark:text-red-400" : "text-gray-900 dark:text-white")}>

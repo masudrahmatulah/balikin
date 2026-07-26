@@ -5,6 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { generateVDPStream, generateBatchReprint, type TagVDPData } from '@/lib/vdp-engine';
+import { deriveAcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { db } from '@/db';
 import { tags, printBatches } from '@/db/schema';
 import { isAdmin } from '@/lib/admin';
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
           activationTokenHash: true,
           isCustom: true,
           name: true,
+          productType: true,
         },
         orderBy: [asc(tags.slug)],
       });
@@ -99,7 +101,8 @@ export async function POST(request: NextRequest) {
         name: t.name,
       }));
 
-      const generator = generateVDPStream(vdpTags, body.options);
+      const shapeKey = deriveAcrylicShapeKey(tagsData[0]?.productType);
+      const generator = generateVDPStream(vdpTags, shapeKey, body.options);
       const stream = asyncGeneratorToReadable(generator);
 
       return new Response(stream, {

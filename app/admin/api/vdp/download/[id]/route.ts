@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { tags, printBatches, printQueue } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { generateVDPStream, type TagVDPData } from "@/lib/vdp-engine";
+import { deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,7 @@ export async function GET(
             activationTokenHash: true,
             isCustom: true,
             name: true,
+            productType: true,
           },
           orderBy: (tags: any, { asc }) => [asc(tags.slug)],
         },
@@ -58,6 +60,7 @@ export async function GET(
 
     if (batch) {
       // Use new VDP stream engine
+      const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
       const generator = generateVDPStream(
         batch.tags.map((t: any) => ({
           id: t.id,
@@ -68,6 +71,7 @@ export async function GET(
           isCustom: t.isCustom,
           name: t.name,
         })),
+        shapeKey,
         { isReprint: true }
       );
 
@@ -106,7 +110,7 @@ export async function GET(
       name: tag.name,
     }));
 
-    const generator = generateVDPStream(vdpTags);
+    const generator = generateVDPStream(vdpTags, deriveAcrylicShapeKey(printQueueItem.materialType));
     const stream = asyncGeneratorToReadable(generator);
 
     return new NextResponse(stream, {

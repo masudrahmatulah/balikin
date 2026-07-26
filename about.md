@@ -444,6 +444,9 @@ balikin_customer_segments - Segmentasi CRM (user_id, segment: pribadi|keluarga|b
 
 // Admin & Operations
 balikin_qr_stocks - QR stock management
+
+// Campaign Management (Multi-Campaign Landing Pages)
+balikin_campaign_leads - Campaign lead tracking (email, campaign_name, source, status, metadata)
 ```
 
 **Tag Lifecycle:**
@@ -508,6 +511,44 @@ balikin_qr_stocks - QR stock management
    * Segmentasi pengguna (Pribadi/Keluarga/Bisnis) wajib dikumpulkan saat checkout.
    * Data email & WhatsApp digunakan untuk Custom Audiences di Meta/Google Ads.
    * Pembelian dengan segmentasi "Bisnis" masuk ke pipeline penawaran kemitraan stiker custom.
+
+---
+
+## 14.5 Campaign System (Multi-Campaign Landing Pages)
+
+**Tujuan:** Platform untuk menjalankan multiple campaigns dengan lead tracking terpisah per campaign.
+
+**Architecture:**
+- Route Groups: `app/(campaigns)` untuk isolasi dari home page utama
+- URL Format: `/first-launch`, `/campaign-two`, dll (tanpa prefix `/campaigns/`)
+- Database: `balikin_campaign_leads` dengan kolom `campaign_name` untuk tracking
+
+**Core Features:**
+1. **Reusable Server Action** (`app/actions/campaign.ts`):
+   - `subscribeCampaignLead()` - Register email ke campaign specific
+   - `unsubscribeCampaignLead()` - Unsubscribe
+   - `getCampaignLeads()` - Analytics per campaign
+
+2. **Client Component** (`components/campaign-form.tsx`):
+   - Email validation & submission
+   - Success/error messaging
+   - Accepts `campaignName` prop untuk tracking
+
+3. **Campaign Pages** (`app/(campaigns)/[campaign-slug]/page.tsx`):
+   - Custom landing page per campaign
+   - Metadata, copywriting, CTA buttons
+   - Automatic lead tracking by campaign_name
+
+**Scaling Strategy (Copy-Paste):**
+- Create new folder: `app/(campaigns)/campaign-slug/`
+- Copy existing campaign page
+- Update `campaignName` prop dan content
+- Database otomatis track by `campaign_name`
+
+**Lead Tracking:**
+- Setiap signup disimpan dengan metadata: `{ campaign_name, source, timestamp }`
+- Query analytics: `SELECT COUNT(*) FROM balikin_campaign_leads WHERE campaign_name = ?`
+- Email deduplikasi: Hanya satu entry per email per campaign
 
 ---
 
