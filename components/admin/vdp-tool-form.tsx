@@ -20,6 +20,7 @@ import { Package, Download, Info, AlertCircle, Eye, Trash2, Printer, Check, X, F
 import QRCode from "qrcode";
 import QRCodeStyling from "qr-code-styling";
 import { getPremiumQRColors } from "@/lib/premium-qr-generator";
+import { ACRYLIC_SHAPES, deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
 
 interface Tag {
   id: string;
@@ -53,13 +54,14 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
   const [generatedTags, setGeneratedTags] = useState<any[]>([]);
 
   // Bulk generation form
   const [formData, setFormData] = useState({
     batchName: "",
     quantity: 100,
-    materialType: "sticker" as "sticker" | "acrylic" | "acrylic-cutfold",
+    materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a4" as "a4" | "a3" | "a5",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
@@ -230,6 +232,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
+      setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
       setGeneratedTags(data.tags);
 
       // Reset form
@@ -268,7 +271,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
         body: JSON.stringify({
           batchName: singleForm.name,
           quantity: 1,
-          materialType: "acrylic",
+          materialType: "acrylic-oval",
           productType: "standard",
           paperSize: "a4",
           stickerShape: "circle",
@@ -337,7 +340,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
       // Find the tag to determine tier
       const tag = tags.find(t => t.slug === slug);
-      const isPremium = tag?.tier === "premium" || tag?.productType === "acrylic";
+      const isPremium = tag?.tier === "premium" || (tag?.productType?.startsWith("acrylic-") || tag?.productType === "acrylic");
       const productType = tag?.bundleType || tag?.productType || "standard";
 
       let qrDataUrl: string;
@@ -470,6 +473,9 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     return Math.ceil(formData.quantity / itemsPerSheet);
   };
 
+  const selectedAcrylicShapeKey = deriveAcrylicShapeKey(formData.materialType);
+  const selectedAcrylicShape = selectedAcrylicShapeKey ? ACRYLIC_SHAPES[selectedAcrylicShapeKey] : null;
+
   return (
     <div className="space-y-8">
       {/* Tabs */}
@@ -532,7 +538,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Select
                         value={formData.materialType}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, materialType: value as "sticker" | "acrylic" | "acrylic-cutfold" })
+                          setFormData({ ...formData, materialType: value as any })
                         }
                       >
                         <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
@@ -540,8 +546,14 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         </SelectTrigger>
                         <SelectContent className="font-body text-sm">
                           <SelectItem value="sticker">Stiker (Vinyl)</SelectItem>
-                          <SelectItem value="acrylic">Akrilik (Premium)</SelectItem>
-                          <SelectItem value="acrylic-cutfold">Akrilik Cut & Fold (Portrait 3x3.7cm)</SelectItem>
+                          <SelectItem value="acrylic-oval">Akrilik OVAL</SelectItem>
+                          <SelectItem value="acrylic-octagon">Akrilik Persegi Delapan</SelectItem>
+                          <SelectItem value="acrylic-heart">Akrilik Hati</SelectItem>
+                          <SelectItem value="acrylic-rectangle">Akrilik Persegi Panjang</SelectItem>
+                          <SelectItem value="acrylic-rectangle-motif">Akrilik Persegi Panjang Motif</SelectItem>
+                          <SelectItem value="acrylic-square">Akrilik Kotak</SelectItem>
+                          <SelectItem value="acrylic-circle">Akrilik Lingkaran</SelectItem>
+                          <SelectItem value="acrylic-rectangle-emboss">Akrilik Persegi Panjang Timbul</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -690,17 +702,13 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         onClick={() => {
                           const link = document.createElement("a");
                           link.href = downloadUrl;
-                          if (formData.materialType === "acrylic-cutfold") {
-                            link.download = `${formData.batchName || 'batch'}-cut-fold.pdf`;
-                          } else {
-                            link.download = `${formData.batchName || 'batch'}-qr-codes.zip`;
-                          }
+                          link.download = `${formData.batchName || 'batch'}-qr-codes.${downloadFormat}`;
                           link.click();
                         }}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        {formData.materialType === "acrylic-cutfold" ? "Download PDF" : "Download ZIP"} ({generatedTags.length} files)
+                        Download {downloadFormat === "pdf" ? "PDF" : "ZIP"} ({generatedTags.length} tags)
                       </Button>
                       <Button
                         type="button"
@@ -766,8 +774,11 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <div className="min-w-0">
                         <p className="font-label text-[9px] uppercase tracking-widest text-surface/50">Material</p>
                         <p className="font-body text-xs font-medium capitalize truncate">
-                          {formData.materialType === "sticker" ? "Vinyl Sticker" : formData.materialType === "acrylic" ? "Acrylic" : "Acrylic Cut & Fold"}
-                          {formData.materialType === "sticker" && ` (${formData.stickerShape}, ${formData.stickerSize})`}
+                          {formData.materialType === "sticker"
+                            ? `Vinyl Sticker (${formData.stickerShape}, ${formData.stickerSize})`
+                            : selectedAcrylicShape
+                              ? `${selectedAcrylicShape.label} (${selectedAcrylicShape.widthMm}×${selectedAcrylicShape.heightMm}mm)`
+                              : "Akrilik"}
                         </p>
                       </div>
                     </div>

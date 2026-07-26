@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function SiteHeader() {
   const { data: session, isPending } = authClient.useSession();
@@ -45,7 +46,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+    <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm dark:bg-slate-900/90 dark:border-slate-700">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-3">
         {/* Logo */}
@@ -69,7 +70,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-700 transition-colors hover:bg-slate-50 md:hidden"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-700 transition-colors hover:bg-slate-50 md:hidden dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label={isMobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -79,8 +80,11 @@ export function SiteHeader() {
           <nav className="hidden items-center gap-6 md:flex">
           </nav>
 
-          {/* Auth Buttons - Kondisional */}
-          <div className="hidden items-center gap-3 md:flex">
+          {/* Theme Toggle & Auth Buttons - Kondisional */}
+          <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
+            <div className="h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-3">
             {isPending ? (
               <div className="h-9 w-32 animate-pulse rounded bg-gray-200" />
             ) : isValidSession ? (
@@ -111,14 +115,15 @@ export function SiteHeader() {
                 </Link>
               </>
             )}
+            </div>
           </div>
         </div>
 
-        <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'}`}>
+        <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'} dark:border-slate-700`}>
           {isPending ? (
-            <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
+            <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-slate-700" />
           ) : isValidSession ? (
-            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
               <Link href={dashboardUrl} onClick={() => setIsMobileMenuOpen(false)}>
                 <Button className="w-full shadow-lg shadow-blue-600/20">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -136,7 +141,7 @@ export function SiteHeader() {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
               <Link href="/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">Daftar</Button>
               </Link>

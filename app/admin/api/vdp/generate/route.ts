@@ -6,10 +6,12 @@ import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 import { eq, asc } from "drizzle-orm";
 import { generateVDPStream, generateBatchActivationData, type TagVDPData } from "@/lib/vdp-engine";
+import { deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
 import { generateA5StickerStream } from "@/lib/vdp-a5-sticker";
 import { generateA5TwoColStickerStream } from "@/lib/vdp-a5-sticker-twocol";
 import { generateProtectedCardStream, generateFamilyCardStream } from "@/lib/vdp-sticker-pro";
 import { buildStickerSheetsPdf } from "@/lib/vdp-pdf-export";
+import { buildAcrylicRowsPdf } from "@/lib/vdp-acrylic-pdf";
 import JSZip from "jszip";
 import { calculateGridPositions, calculateA5StickerPositions, getStickerProductConfig, type StickerShape, type StickerSize, type StickerProductKey } from "@/lib/sticker-template";
 import { hashValue, generateActivationPin } from "@/lib/crypto";
@@ -28,7 +30,7 @@ export const dynamic = "force-dynamic";
 interface VDPGenerateRequest {
   batchName: string;
   quantity: number;
-  materialType: "sticker" | "acrylic" | "acrylic-cutfold";
+  materialType: "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss";
   productType: "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat";
   paperSize: "a4" | "a3" | "a5";
   stickerShape?: "circle" | "square" | "rectangle";
@@ -176,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     const batchId = randomUUID();
-    const isCutFold = materialType === "acrylic-cutfold";
+    const isAcrylicMaterial = materialType !== "sticker";
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://balikin.id";
     const generatedTags: any[] = [];
 
@@ -212,29 +214,27 @@ export async function POST(request: NextRequest) {
 
     // STEP 1: Create printBatches entry first (for 6-column VDP)
     let batchNumber: string | null = null;
-    if (!isCutFold) {
-      // Generate batch number like "B01-001"
-      const countResult = await db.query.printBatches.findMany({
-        where: eq(printBatches.app_id, "balikin_id"),
-        columns: { batchNumber: true },
-        orderBy: (printBatches, { desc }) => [desc(printBatches.createdAt)],
-        limit: 1,
-      });
+    // Generate batch number like "B01-001" for all non-sticker materials
+    const countResult = await db.query.printBatches.findMany({
+      where: eq(printBatches.app_id, "balikin_id"),
+      columns: { batchNumber: true },
+      orderBy: (printBatches, { desc }) => [desc(printBatches.createdAt)],
+      limit: 1,
+    });
 
-      const lastBatchNum = countResult[0]?.batchNumber || "B00-000";
-      const numPart = parseInt(lastBatchNum.split("-")[1]) + 1;
-      batchNumber = `B01-${String(numPart).padStart(3, "0")}`;
+    const lastBatchNum = countResult[0]?.batchNumber || "B00-000";
+    const numPart = parseInt(lastBatchNum.split("-")[1]) + 1;
+    batchNumber = `B01-${String(numPart).padStart(3, "0")}`;
 
-      await db.insert(printBatches).values({
-        id: batchId,
-        app_id: "balikin_id",
-        batchNumber,
-        serialNumberRange: `${batchNumber}-001 to ${batchNumber}-${String(quantity).padStart(3, "0")}`,
-        totalStickers: quantity,
-        status: "pending",
-        createdBy: adminId,
-      });
-    }
+    await db.insert(printBatches).values({
+      id: batchId,
+      app_id: "balikin_id",
+      batchNumber,
+      serialNumberRange: `${batchNumber}-001 to ${batchNumber}-${String(quantity).padStart(3, "0")}`,
+      totalStickers: quantity,
+      status: "pending",
+      createdBy: adminId,
+    });
 
     const isStickerMaterial = materialType === "sticker";
 
@@ -329,7 +329,7 @@ export async function POST(request: NextRequest) {
         const sequenceNumberA = String(tagA_Index + 1).padStart(3, "0");
         const slugA = `${batchId}-${sequenceNumberA}`;
 
-        const tier = materialType === "acrylic" ? "premium" : "free";
+        const tier = isAcrylicMaterial ? "premium" : "free";
 
         // Create Tag A
         const tagA = {
@@ -355,7 +355,7 @@ export async function POST(request: NextRequest) {
           activationPinPlain: activationData[tagA_Index].activationPinPlain,
           activationPinHash: activationData[tagA_Index].activationPinHash,
           activationTokenHash: activationData[tagA_Index].activationTokenHash,
-          batchId: isCutFold ? null : batchId, // Link to printBatches for VDP
+          batchId, // Link to printBatches for VDP
           // Custom order data
           isCustom: isCustom || false,
           customPhotoUrl: isCustom ? customPhotoUrl : null,
@@ -397,7 +397,7 @@ export async function POST(request: NextRequest) {
             activationPinPlain: activationData[tagB_Index].activationPinPlain,
             activationPinHash: activationData[tagB_Index].activationPinHash,
             activationTokenHash: activationData[tagB_Index].activationTokenHash,
-            batchId: isCutFold ? null : batchId, // Link to printBatches for VDP
+            batchId, // Link to printBatches for VDP
             // Custom order data
             isCustom: isCustom || false,
             customPhotoUrl: isCustom ? customPhotoUrl : null,
@@ -415,19 +415,16 @@ export async function POST(request: NextRequest) {
     }
 
     let downloadUrl: string;
+    let downloadFormat: "pdf" | "zip" = "zip";
 
-    console.log('[API] isCutFold:', isCutFold);
+    console.log('[API] isAcrylicMaterial:', isAcrylicMaterial);
     console.log('[API] materialType:', materialType);
     console.log('[API] paperSize:', paperSize);
     console.log('[API] stickerProductKey:', stickerProductKey);
 
     const isA5Sticker = materialType === "sticker" && paperSize === "a5" && stickerProductKey;
 
-    if (isCutFold) {
-      // Cut & Fold tetap pakai PDF
-      console.log('[API] Using Cut & Fold path');
-      downloadUrl = `/admin/api/vdp/cut-fold/${batchId}?paperSize=${paperSize}`;
-    } else if (isA5Sticker) {
+    if (isA5Sticker) {
       // A5 Sticker: Generate sticker sheets
       console.log('[API] Using A5 Sticker path with product:', stickerProductKey);
       const allTags = await db.query.tags.findMany({
@@ -518,8 +515,6 @@ export async function POST(request: NextRequest) {
         orderBy: [asc(tags.slug)],
       });
 
-      // Generate ZIP berisi PNG rows (6 kolom per row)
-      const zip = new JSZip();
       const vdpTags: TagVDPData[] = allTags.map((t) => ({
         id: t.id,
         slug: t.slug,
@@ -545,20 +540,20 @@ export async function POST(request: NextRequest) {
         isCustom: vdpTags[0]?.isCustom,
       }));
 
-      let rowIndex = 0;
-      for await (const buffer of generateVDPStream(vdpTags)) {
-        const filename = `${batchName}-row-${String(rowIndex + 1).padStart(3, "0")}.png`;
-        zip.file(filename, buffer);
-        console.log('[API] Generated row', rowIndex, 'buffer size:', buffer.length, 'bytes');
-        rowIndex++;
+      const shapeKey = deriveAcrylicShapeKey(materialType);
+
+      const rowBuffers: Buffer[] = [];
+      for await (const buffer of generateVDPStream(vdpTags, shapeKey)) {
+        console.log('[API] Generated row', rowBuffers.length, 'buffer size:', buffer.length, 'bytes');
+        rowBuffers.push(buffer);
       }
 
-      console.log('[API] Total rows generated:', rowIndex);
-      const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
-      const zipBase64 = zipBuffer.toString("base64");
-      downloadUrl = `data:application/zip;base64,${zipBase64}`;
-      console.log('[API] ZIP base64 length:', zipBase64.length);
-      console.log('[API] Response downloadUrl type:', downloadUrl.substring(0, 50) + '...');
+      console.log('[API] Total rows generated:', rowBuffers.length);
+      const pdfBuffer = await buildAcrylicRowsPdf(rowBuffers, paperSize as "a3" | "a4" | "a5");
+      const pdfBase64 = pdfBuffer.toString("base64");
+      downloadUrl = `data:application/pdf;base64,${pdfBase64}`;
+      downloadFormat = "pdf";
+      console.log('[API] PDF base64 length:', pdfBase64.length);
     }
 
     // Calculate items per sheet
@@ -570,7 +565,7 @@ export async function POST(request: NextRequest) {
       const config = getStickerProductConfig(stickerProductKey as StickerProductKey);
       itemsPerSheet = config.total;
       estimatedSheets = Math.ceil(quantity / itemsPerSheet);
-    } else if (!isCutFold) {
+    } else {
       // 6-column VDP
       const shape: StickerShape = (stickerShape as StickerShape) || "circle";
       const size: StickerSize = (stickerSize as StickerSize) || "medium";
@@ -579,10 +574,10 @@ export async function POST(request: NextRequest) {
       estimatedSheets = Math.ceil(quantity / itemsPerSheet);
     }
 
-    const vdpMode = isA5Sticker ? "a5-sticker" : isCutFold ? "cut-fold" : "6-column";
+    const vdpMode = isA5Sticker ? "a5-sticker" : "6-column";
     const materialUsed = isA5Sticker
       ? `${estimatedSheets} lembar A5 (A5 Sticker - ${stickerProductKey})`
-      : `${estimatedSheets} lembar ${paperSize.toUpperCase()} (${isCutFold ? "Cut & Fold" : "6-Column VDP"})`;
+      : `${estimatedSheets} lembar ${paperSize.toUpperCase()} (6-Column VDP)`;
 
     await db.insert(printQueue).values({
       id: randomUUID(),
@@ -591,7 +586,7 @@ export async function POST(request: NextRequest) {
       batchName,
       status: "pending",
       itemCount: quantity,
-      materialType: isCutFold ? "acrylic" : materialType,
+      materialType,
       materialUsed,
       printedBy: adminId,
     });
@@ -625,6 +620,7 @@ export async function POST(request: NextRequest) {
       quantity,
       tags: generatedTags,
       downloadUrl,
+      downloadFormat,
       vdpMode,
       estimatedSheets,
       itemsPerSheet,

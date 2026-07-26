@@ -1,66 +1,38 @@
 'use client';
 
 import { SiteHeader } from '@/components/site-header';
-import { FlashSaleBanner } from '@/components/landing/urgency-badge';
-import { HeroSection } from '@/components/landing/hero-section';
-import { PainPointsSection } from '@/components/landing/pain-points-section';
-import { SocialProofSection } from '@/components/landing/social-proof-section';
-import { HowItWorksSection } from '@/components/landing/how-it-works-section';
-import { ScenariosSection } from '@/components/landing/scenarios-section';
-import { BenefitsSection } from '@/components/landing/benefits-section';
-import { ProductShowcase } from '@/components/landing/product-showcase';
-import { PricingSection } from '@/components/landing/pricing-section';
-import { FreeVsPremiumComparison } from '@/components/landing/free-vs-premium-comparison';
-import { BundleDeals } from '@/components/landing/bundle-deals';
+import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero-section';
+import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
+import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-section';
+import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
+import { B2bScalabilitySection } from '@/components/landing/b2b-scalability-section';
 import { TrustSecuritySection } from '@/components/landing/trust-security-section';
-import { FinalCTASection } from '@/components/landing/final-cta-section';
 import { FAQSection } from '@/components/landing/faq-section';
 import { FooterSection } from '@/components/landing/footer-section';
 
 export function HomePage() {
   return (
-    <main id="main-content" className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      {/* Flash Sale Banner - Urgency */}
-      <FlashSaleBanner />
-
+    <main id="main-content" className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       {/* Header - Auth-Aware Navigation */}
       <SiteHeader />
 
-      {/* Hero Section */}
-      <HeroSection />
+      {/* Hero: Balikin Smart License positioning */}
+      <SmartLicenseHeroSection />
 
-      {/* Pain Points Section */}
-      <PainPointsSection />
+      {/* Interactive configurator: material/shape/design add-ons with live price */}
+      <LicenseConfiguratorSection />
 
-      {/* Social Proof Section */}
-      <SocialProofSection />
+      {/* QR scan simulator: anonymous WhatsApp flow education */}
+      <QrScanSimulatorSection />
 
-      {/* Cara Kerja Section */}
-      <HowItWorksSection />
+      {/* Why buy: logical comparison vs Bluetooth tracker & writing phone number on items */}
+      <WhyBuyComparisonSection />
 
-      {/* Use Cases / Scenarios Section */}
-      <ScenariosSection />
-
-      {/* Benefits Section - MOVED HERE: Audience understands technology value before pricing */}
-      <BenefitsSection />
-
-      {/* Product Showcase Section */}
-      <ProductShowcase />
-
-      {/* Pricing Section */}
-      <PricingSection />
-
-      {/* Free vs Premium Comparison */}
-      <FreeVsPremiumComparison />
-
-      {/* Bundle Deals Section */}
-      <BundleDeals />
+      {/* B2B scalability: government, schools, communities */}
+      <B2bScalabilitySection />
 
       {/* Trust & Security Section */}
       <TrustSecuritySection />
-
-      {/* Final CTA & More Testimonials */}
-      <FinalCTASection />
 
       {/* FAQ Section */}
       <FAQSection />
