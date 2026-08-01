@@ -83,20 +83,11 @@ export function GallerySlider() {
   return (
     <div className="w-full">
       <div className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-2 md:p-4" style={{ minHeight: '250px', maxHeight: '650px' }}>
-        {/* Blurred logo background */}
+        {/* Background text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-          <div className="relative w-96 h-96 rounded-full overflow-hidden">
-            <Image
-              src="/balikin_logo.png"
-              alt="Balikin Logo Background"
-              fill
-              className="object-contain"
-              quality={90}
-            />
-            <div className="absolute inset-0 rounded-full" style={{
-              background: 'radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
-            }} />
-          </div>
+          <span className="text-white/20 font-extrabold text-5xl md:text-8xl tracking-tight select-none whitespace-nowrap">
+            balikin.online
+          </span>
         </div>
 
         <div className="relative w-full h-full">

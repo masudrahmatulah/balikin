@@ -5,8 +5,11 @@ import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero
 import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
 import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-section';
 import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
+import { GallerySlider } from '@/components/landing/gallery-slider';
+import { SocialProofSection } from '@/components/landing/social-proof-section';
 import { B2bScalabilitySection } from '@/components/landing/b2b-scalability-section';
 import { TrustSecuritySection } from '@/components/landing/trust-security-section';
+import { FreePassLeadSection } from '@/components/landing/free-pass-lead-section';
 import { FAQSection } from '@/components/landing/faq-section';
 import { FooterSection } from '@/components/landing/footer-section';
 
@@ -19,6 +22,11 @@ export function HomePage() {
       {/* Hero: Balikin Smart License positioning */}
       <SmartLicenseHeroSection />
 
+      {/* Gallery slider */}
+      <section className="container mx-auto px-4 py-12 md:py-16">
+        <GallerySlider />
+      </section>
+
       {/* Interactive configurator: material/shape/design add-ons with live price */}
       <LicenseConfiguratorSection />
 
@@ -28,11 +36,17 @@ export function HomePage() {
       {/* Why buy: logical comparison vs Bluetooth tracker & writing phone number on items */}
       <WhyBuyComparisonSection />
 
+      {/* Social proof: testimonials + Verified Owner Badge teaser */}
+      <SocialProofSection />
+
       {/* B2B scalability: government, schools, communities */}
       <B2bScalabilitySection />
 
       {/* Trust & Security Section */}
       <TrustSecuritySection />
+
+      {/* Free Pass lead capture */}
+      <FreePassLeadSection />
 
       {/* FAQ Section */}
       <FAQSection />
