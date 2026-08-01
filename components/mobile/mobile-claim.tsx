@@ -11,9 +11,11 @@ import {
   MessageCircle,
   Phone,
   User,
-  ChevronRight
+  ChevronRight,
+  Lock
 } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface MobileClaimProps {
   tag: {
@@ -31,6 +33,7 @@ interface MobileClaimProps {
   isLost: boolean;
   isFreeTag: boolean;
   isStickerTag: boolean;
+  isUnclaimed: boolean;
   recentScans: Array<{
     id: string;
     city: string | null;
@@ -50,9 +53,11 @@ export function MobileClaim({
   isLost,
   isFreeTag,
   isStickerTag,
+  isUnclaimed,
   recentScans,
   emergencyInfo
 }: MobileClaimProps) {
+  const router = useRouter();
   const [showScans, setShowScans] = useState(false);
 
   const whatsappMessage = isLost
@@ -96,6 +101,32 @@ export function MobileClaim({
       </header>
 
       <main className="px-4 py-6 space-y-6">
+        {/* Activation CTA - shown on first scan for unclaimed tags, requires PIN to activate */}
+        {isUnclaimed && (
+          <div className="bg-gradient-to-br from-mobile-primary-light to-mobile-primary rounded-3xl p-5 shadow-xl shadow-mobile-primary/30 border border-white/20 relative overflow-hidden animate-fade-up-20">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+            </div>
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-3">
+                <Lock className="h-6 w-6 text-white" aria-hidden="true" />
+                <span className="text-white font-bold text-lg">Tag Ini Belum Aktif</span>
+              </div>
+              <p className="text-white/90 text-sm mb-4">
+                Aktifkan tag ini dengan PIN yang ada di dalam kemasan untuk mulai melindungi barang Anda.
+              </p>
+              <button
+                onClick={() => router.push(`/claim/${tag.id}`)}
+                className="w-full rounded-2xl py-4 font-semibold bg-white text-mobile-primary shadow-lg flex items-center justify-center gap-2 btn-press"
+                aria-label="Aktifkan tag ini"
+              >
+                <Lock className="h-4 w-4" aria-hidden="true" />
+                Aktivasi Tag Ini
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Status Banner */}
         {isLost && (
           <div className="bg-gradient-to-br from-mobile-danger-light to-mobile-danger rounded-3xl p-5 shadow-xl shadow-mobile-danger/30 border border-white/20 relative overflow-hidden animate-fade-up-20">
