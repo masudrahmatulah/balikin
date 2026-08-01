@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, ShoppingCart, Sparkles } from 'lucide-react';
+import { Check, ShoppingCart, Sparkles, QrCode, MessageCircleHeart, Infinity as InfinityIcon } from 'lucide-react';
+import { SimpleUrgencyBadge } from '@/components/landing/urgency-badge';
 
 const BASE_PRICE = 35000;
 
@@ -20,17 +22,25 @@ const materials: {
   desc: string;
   addOn: number;
   hasShapes?: boolean;
+  image?: string;
 }[] = [
   { id: 'vinyl', name: 'Premium Vinyl Sticker', desc: 'Standar, sudah termasuk di harga lisensi', addOn: 0 },
-  { id: 'acrylic', name: 'Wadah Premium Acrylic Tag', desc: 'Bulat, Oval, Kotak, atau Heart', addOn: 10000, hasShapes: true },
+  {
+    id: 'acrylic',
+    name: 'Wadah Premium Acrylic Tag',
+    desc: 'Bulat, Oval, Kotak, atau Heart',
+    addOn: 10000,
+    hasShapes: true,
+    image: '/variasi_akrilik/persegi panjang motif.webp',
+  },
   { id: 'stainless', name: 'Wadah Tactical Stainless / Metal', desc: 'Untuk koper atau barang outdoor', addOn: 29000 },
 ];
 
-const shapes: { id: ShapeId; name: string }[] = [
-  { id: 'bulat', name: 'Bulat' },
-  { id: 'oval', name: 'Oval' },
-  { id: 'kotak', name: 'Kotak' },
-  { id: 'heart', name: 'Heart' },
+const shapes: { id: ShapeId; name: string; image: string }[] = [
+  { id: 'bulat', name: 'Bulat', image: '/variasi_akrilik/lingkaran.webp' },
+  { id: 'oval', name: 'Oval', image: '/variasi_akrilik/oval.webp' },
+  { id: 'kotak', name: 'Kotak', image: '/variasi_akrilik/persegi panjang.webp' },
+  { id: 'heart', name: 'Heart', image: '/variasi_akrilik/hati.webp' },
 ];
 
 const CUSTOM_PRINT_PRICE = 5000;
@@ -67,6 +77,35 @@ export function LicenseConfiguratorSection() {
         </div>
       </ScrollReveal>
 
+      <ScrollReveal delay={0.1}>
+        <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+          <div className="flex items-start gap-3 rounded-xl border border-gray-200 p-4">
+            <QrCode className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-sm text-gray-900">1 Lisensi Akun/ID QR</p>
+              <p className="text-xs text-gray-500">Unik, aman, berlaku seumur hidup</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-xl border border-gray-200 p-4">
+            <MessageCircleHeart className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-sm text-gray-900">Anonymous Chat Protection</p>
+              <p className="text-xs text-gray-500">Penemu hubungi Anda tanpa lihat nomor HP</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 rounded-xl border border-gray-200 p-4">
+            <InfinityIcon className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-sm text-gray-900">Bebas Baterai, Seumur Hidup</p>
+              <p className="text-xs text-gray-500">Media fisik dicetak sesuai pilihan Anda</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-center mb-2">
+          <SimpleUrgencyBadge spots={72} />
+        </div>
+      </ScrollReveal>
+
       <ScrollReveal delay={0.15}>
         <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="lg:col-span-2 space-y-6">
@@ -83,6 +122,11 @@ export function LicenseConfiguratorSection() {
                     }`}
                     aria-pressed={material === m.id}
                   >
+                    {m.image && (
+                      <div className="relative w-full h-20 mb-2 rounded-lg overflow-hidden bg-white">
+                        <Image src={m.image} alt={m.name} fill className="object-contain" sizes="200px" />
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-sm text-gray-900">{m.name}</span>
                       {material === m.id && <Check className="h-4 w-4 text-blue-600" aria-hidden="true" />}
@@ -105,11 +149,14 @@ export function LicenseConfiguratorSection() {
                       key={s.id}
                       type="button"
                       onClick={() => setShape(s.id)}
-                      className={`px-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
+                      className={`flex items-center gap-2 pl-2 pr-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
                         shape === s.id ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                       aria-pressed={shape === s.id}
                     >
+                      <span className="relative h-8 w-8 rounded-full overflow-hidden bg-white flex-shrink-0">
+                        <Image src={s.image} alt={s.name} fill className="object-contain" sizes="32px" />
+                      </span>
                       {s.name}
                     </button>
                   ))}
