@@ -120,6 +120,7 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
         isLost={isLost}
         isFreeTag={isFreeTag}
         isStickerTag={isStickerTag}
+        isUnclaimed={!tag.ownerId}
         recentScans={recentScans}
         emergencyInfo={emergencyInfo}
       />
