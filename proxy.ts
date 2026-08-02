@@ -25,7 +25,6 @@ const SKIP_PATHS = [
   '/_next',
   '/sign-in',
   '/sign-up',
-  '/dashboard',
 ];
 
 // File extensions to skip (public assets)
@@ -65,6 +64,12 @@ export function proxy(request: NextRequest): NextResponse | void {
     return;
   }
 
+  if (pathname === '/scan' && isMobileDevice(userAgent)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mobile/scan';
+    return NextResponse.redirect(url);
+  }
+
   const slugMatch = pathname.match(/^\/p\/([^/]+)/);
   if (slugMatch && isMobileDevice(userAgent)) {
     const slug = slugMatch[1];
@@ -79,7 +84,15 @@ export function proxy(request: NextRequest): NextResponse | void {
     return;
   }
 
-  if (isMobileDevice(userAgent)) {
+  if (pathname.startsWith('/stickers/checkout') && isMobileDevice(userAgent)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mobile/stickers/checkout';
+    return NextResponse.redirect(url);
+  }
+
+  // Don't redirect home page (/) - let mobile users see landing page
+  // Only redirect other pages to mobile view
+  if (pathname !== '/' && isMobileDevice(userAgent)) {
     const url = request.nextUrl.clone();
     url.pathname = '/mobile';
     return NextResponse.redirect(url);

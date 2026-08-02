@@ -1,5 +1,5 @@
-import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { relations, desc } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase
 const pgTable = pgTableCreator((name) => `balikin_${name}`);
@@ -12,8 +12,17 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').default(false),
   image: text('image'),
-  role: text('role').default('user').notNull(), // 'admin' | 'user'
+  role: text('role').default('user').notNull(), // 'admin' | 'editor' | 'user'
   division: text('division'), // 'production' | 'customer_service' | 'marketing' | 'admin' | null
+  blogPermissions: jsonb('blog_permissions').default({ canCreatePosts: false, canEditOwnPosts: false, canPublishPosts: false, canModerateComments: false }).$type<{
+    canCreatePosts?: boolean;
+    canEditOwnPosts?: boolean;
+    canEditAnyPost?: boolean;
+    canPublishPosts?: boolean;
+    canModerateComments?: boolean;
+    canManageGiveaway?: boolean;
+    canReviewStories?: boolean;
+  }>(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -73,6 +82,10 @@ export const stickerOrders = pgTable('sticker_orders', {
   notes: text('notes'),
   packQuantity: integer('pack_quantity').default(1).notNull(),
   unitCountPerPack: integer('unit_count_per_pack').default(6).notNull(),
+  shippingCost: integer('shipping_cost').default(0).notNull(),
+  shippingCourier: text('shipping_courier'), // 'jne' | 'tiki' | 'pos'
+  destinationCityId: text('destination_city_id'), // RajaOngkir city ID
+  destinationCityName: text('destination_city_name'),
   totalAmount: integer('total_amount').notNull(),
   paymentProofUrl: text('payment_proof_url'),
   verifiedAt: timestamp('verified_at'),
@@ -94,12 +107,77 @@ export const tagBundles = pgTable('tag_bundles', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Print Batches - Track A3 print sheets for physical QC codes (PRD v2)
+export const printBatches = pgTable('print_batches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  batchNumber: text('batch_number').unique().notNull(), // e.g., "B01-001"
+  serialNumberRange: text('serial_number_range'), // "B01-001 to B01-100"
+  totalStickers: integer('total_stickers').default(0).notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'printing' | 'ready' | 'completed'
+  printedAt: timestamp('printed_at'),
+  completedAt: timestamp('completed_at'),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const printBatchesRelations = relations(printBatches, ({ one, many }) => ({
+	creator: one(user, {
+		fields: [printBatches.createdBy],
+		references: [user.id],
+	}),
+	tags: many(tags),
+}));
+
+// Sticker Sheets - Master Activation Key for VDP-stock sticker sheets (lazy activation).
+// One physical A5 sheet (e.g. 4-20 QR tags) shares a single Master PIN; the first scan
+// on a sheet activates it and claims ownership, subsequent scans on the same sheet
+// bypass the PIN as long as the scanning user already owns the sheet.
+export const stickerSheets = pgTable('sticker_sheets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  sheetCode: text('sheet_code').unique().notNull(), // e.g. "BLK-PRO-B01-0001", printed small in sticker corner
+  packageType: text('package_type').notNull(), // StickerProductKey: stiker-pro | stiker-daily | stiker-micro | stiker-family
+  batchId: uuid('batch_id').references(() => printBatches.id, { onDelete: 'set null' }),
+  activationPinHash: text('activation_pin_hash').notNull(),
+  activationPinPlain: text('activation_pin_plain'), // Plain PIN for VDP/insert printing only
+  status: text('status').default('inactive').notNull(), // 'inactive' | 'active'
+  ownerId: text('owner_id').references(() => user.id, { onDelete: 'set null' }),
+  claimedAt: timestamp('claimed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const stickerSheetsRelations = relations(stickerSheets, ({ one, many }) => ({
+  batch: one(printBatches, {
+    fields: [stickerSheets.batchId],
+    references: [printBatches.id],
+  }),
+  owner: one(user, {
+    fields: [stickerSheets.ownerId],
+    references: [user.id],
+  }),
+  tags: many(tags),
+}));
+
 export const tags = pgTable('tags', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   slug: text('slug').unique().notNull(),
   ownerId: text('owner_id'),
   bundleId: uuid('bundle_id').references(() => tagBundles.id, { onDelete: 'set null' }),
+  // Activation security fields (PRD v2) - nullable for existing tags
+  activationToken: text('activation_token'), // Plain token for QR generation
+  activationTokenHash: text('activation_token_hash'), // SHA-256 hash for QR activation
+  activationPinHash: text('activation_pin_hash'), // SHA-256 hash for PIN manual fallback
+  activationPinPlain: text('activation_pin_plain'), // Plain PIN for VDP printing only
+  serialNumber: text('serial_number'), // Physical QC code (e.g., "B01-042")
+  isCustom: boolean('is_custom').default(false).notNull(), // Custom photo order flag
+  customPhotoUrl: text('custom_photo_url'), // Vercel Blob URL for custom photo
+  batchId: uuid('batch_id').references(() => printBatches.id, { onDelete: 'set null' }),
+  sheetId: uuid('sheet_id').references(() => stickerSheets.id, { onDelete: 'set null' }), // VDP-stock sticker Master PIN sheet
+  // Existing fields
   name: text('name').notNull(),
   status: text('status').default('normal').notNull(),
   contactWhatsapp: text('contact_whatsapp'),
@@ -122,11 +200,23 @@ export const tags = pgTable('tags', {
 });
 
 export const tagsRelations = relations(tags, ({ many, one }) => ({
+  owner: one(user, {
+    fields: [tags.ownerId],
+    references: [user.id],
+  }),
   scanLogs: many(scanLogs),
   notificationLogs: many(notificationLogs),
   bundle: one(tagBundles, {
     fields: [tags.bundleId],
     references: [tagBundles.id],
+  }),
+  batch: one(printBatches, {
+    fields: [tags.batchId],
+    references: [printBatches.id],
+  }),
+  sheet: one(stickerSheets, {
+    fields: [tags.sheetId],
+    references: [stickerSheets.id],
   }),
 }));
 
@@ -156,7 +246,9 @@ export const scanLogs = pgTable('scan_logs', {
   latitude: text('latitude'),
   longitude: text('longitude'),
   deviceInfo: text('device_info'),
-});
+}, (table) => ({
+  tagIdx: index('idx_scan_logs_tag_id').on(table.tagId),
+}));
 
 export const scanLogsRelations = relations(scanLogs, ({ one, many }) => ({
   tag: one(tags, {
@@ -189,6 +281,38 @@ export const notificationLogsRelations = relations(notificationLogs, ({ one }) =
     fields: [notificationLogs.scanLogId],
     references: [scanLogs.id],
   }),
+}));
+
+// ============================================================================
+// ANONYMOUS CHAT SYSTEM (PRD v2)
+// ============================================================================
+
+// Chat Rooms - Manage anonymous chat sessions between owners and finders
+export const chatRooms = pgTable('chat_rooms', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  isActive: boolean('is_active').default(true).notNull(),
+  finderFingerprint: text('finder_fingerprint'), // Optional: track anonymous finder session
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  tagIdx: index('idx_chat_rooms_tag_id').on(table.tagId),
+  activeIdx: index('idx_chat_rooms_active').on(table.isActive),
+}));
+
+// Messages - Store chat message history
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  roomId: uuid('room_id').notNull().references(() => chatRooms.id, { onDelete: 'cascade' }),
+  senderType: text('sender_type').notNull(), // 'owner' | 'finder'
+  messageText: text('message_text').notNull(),
+  isReadByOwner: boolean('is_read_by_owner').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  roomIdx: index('idx_messages_room_id').on(table.roomId),
+  createdAtIdx: index('idx_messages_created_at').on(table.createdAt),
 }));
 
 // ============================================================================
@@ -451,6 +575,12 @@ export const tagDocumentsRelations = relations(tagDocuments, ({ one }) => ({
 
 export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
+export type PrintBatch = typeof printBatches.$inferSelect;
+export type NewPrintBatch = typeof printBatches.$inferInsert;
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type NewChatRoom = typeof chatRooms.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
 export type ScanLog = typeof scanLogs.$inferSelect;
 export type NewScanLog = typeof scanLogs.$inferInsert;
 export type User = typeof user.$inferSelect;
@@ -698,8 +828,408 @@ export type RateLimit = typeof rateLimit.$inferSelect;
 export type NewRateLimit = typeof rateLimit.$inferInsert;
 
 // ============================================================================
+// BLOG SYSTEM TABLES
+// ============================================================================
+
+// Blog posts - main content storage
+export const blogPosts = pgTable('blog_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  title: text('title').notNull(),
+  slug: text('slug').notNull().unique(),
+  summary: text('summary').notNull(),
+  coverImage: text('cover_image'),
+  content: text('content').notNull(), // Markdown format
+  modules: jsonb('modules').default([]).$type<Array<any>>(), // Array of dynamic modules
+  // E-E-A-T signals
+  authorName: text('author_name').default('Tim Penulis BALIKIN').notNull(),
+  authorAvatar: text('author_avatar'),
+  authorId: text('author_id').references(() => user.id, { onDelete: 'set null' }),
+  reviewedBy: text('reviewed_by'),
+  reviewedByTitle: text('reviewed_by_title'),
+  reviewedById: text('reviewed_by_id').references(() => user.id, { onDelete: 'set null' }),
+  // SEO metadata
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  focusKeyword: text('focus_keyword'),
+  // Publishing
+  isPublished: boolean('is_published').default(false).notNull(),
+  publishedAt: timestamp('published_at'),
+  scheduledAt: timestamp('scheduled_at'), // For scheduled publishing
+  // Soft delete
+  deletedAt: timestamp('deleted_at'),
+  deletedBy: text('deleted_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  slugIdx: index('idx_blog_posts_slug').on(table.slug),
+  publishedIdx: index('idx_blog_posts_published').on(table.isPublished),
+  slugPublishedIdx: index('idx_blog_posts_slug_published').on(table.slug, table.isPublished),
+  createdAtDescIdx: index('idx_blog_posts_created_desc').on(table.createdAt),
+  deletedAtIdx: index('idx_blog_posts_deleted_at').on(table.deletedAt),
+}));
+
+export const blogPostsRelations = relations(blogPosts, ({ one, many }) => ({
+  author: one(user, {
+    fields: [blogPosts.authorId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [blogPosts.reviewedById],
+    references: [user.id],
+  }),
+  deletedByUser: one(user, {
+    fields: [blogPosts.deletedBy],
+    references: [user.id],
+  }),
+  comments: many(blogComments),
+  giveawayClaims: many(giveawayClaims),
+  locationReports: many(lostLocationsReport),
+  pollVotes: many(pollVotes),
+  analytics: many(blogPostsAnalytics),
+  revisions: many(blogPostRevisions),
+}));
+
+// Giveaway claims - from quiz completion
+export const giveawayClaims = pgTable('giveaway_claims', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  quizId: text('quiz_id').notNull(),
+  fullName: text('full_name').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(),
+  shippingAddress: text('shipping_address').notNull(),
+  score: integer('score').notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'approved' | 'shipped' | 'rejected'
+  trackingNumber: text('tracking_number'),
+  notes: text('notes'),
+  processedBy: text('processed_by').references(() => user.id, { onDelete: 'set null' }),
+  processedAt: timestamp('processed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_giveaway_claims_post').on(table.postId),
+  statusIdx: index('idx_giveaway_claims_status').on(table.status),
+  statusCreatedAtDescIdx: index('idx_giveaway_claims_status_created_desc').on(table.status, desc(table.createdAt)),
+}));
+
+export const giveawayClaimsRelations = relations(giveawayClaims, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [giveawayClaims.postId],
+    references: [blogPosts.id],
+  }),
+  processor: one(user, {
+    fields: [giveawayClaims.processedBy],
+    references: [user.id],
+  }),
+}));
+
+// Blog comments - public discussions & giveaway entries
+export const blogComments = pgTable('blog_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  parentId: uuid('parent_id').references(() => blogComments.id, { onDelete: 'cascade' }), // For threading/replies
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // Optional - if logged in
+  name: text('name').notNull(),
+  commentText: text('comment_text').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(), // Hidden from public
+  isApproved: boolean('is_approved').default(true).notNull(),
+  isGiveawayWinner: boolean('is_giveaway_winner').default(false).notNull(),
+  hasHeroBadge: boolean('has_hero_badge').default(false).notNull(), // If user is a True Story alumni
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_comments_post').on(table.postId),
+  approvedIdx: index('idx_blog_comments_approved').on(table.isApproved),
+  postCreatedAtDescIdx: index('idx_blog_comments_post_created_desc').on(table.postId, desc(table.createdAt)),
+  parentIdx: index('idx_blog_comments_parent').on(table.parentId),
+}));
+
+export const blogCommentsRelations = relations(blogComments, ({ one, many }) => ({
+  post: one(blogPosts, {
+    fields: [blogComments.postId],
+    references: [blogPosts.id],
+  }),
+  user: one(user, {
+    fields: [blogComments.userId],
+    references: [user.id],
+  }),
+  parent: one(blogComments, {
+    fields: [blogComments.parentId],
+    references: [blogComments.id],
+  }),
+  replies: many(blogComments),
+}));
+
+// True story submissions - video testimonials for jacket giveaway
+export const trueStorySubmissions = pgTable('true_story_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // Optional - if logged in
+  fullName: text('full_name').notNull(),
+  whatsappNumber: text('whatsapp_number').notNull(),
+  balikinTagId: text('balikin_tag_id').notNull(), // Validation against physical tag
+  storyTitle: text('story_title').notNull(),
+  storyText: text('story_text').notNull(),
+  videoUrl: text('video_url').notNull(), // TikTok/Reels/Drive link
+  jacketSize: text('jacket_size').notNull(), // 'S' | 'M' | 'L' | 'XL' | 'XXL'
+  shippingAddress: text('shipping_address').notNull(),
+  status: text('status').default('pending').notNull(), // 'pending' | 'verified' | 'winner_jacket' | 'rejected'
+  trackingNumber: text('tracking_number'),
+  reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp('reviewed_at'),
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  statusIdx: index('idx_true_story_status').on(table.status),
+}));
+
+export const trueStorySubmissionsRelations = relations(trueStorySubmissions, ({ one }) => ({
+  user: one(user, {
+    fields: [trueStorySubmissions.userId],
+    references: [user.id],
+  }),
+  reviewer: one(user, {
+    fields: [trueStorySubmissions.reviewedBy],
+    references: [user.id],
+  }),
+}));
+
+// Lost location reports - crowdsourced danger zone data
+export const lostLocationsReport = pgTable('lost_locations_report', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  locationName: text('location_name').notNull(), // "Parkiran Stasiun Kandangan"
+  locationType: text('location_type').notNull(), // "Parkiran" | "Kafe" | "Stasiun"
+  cityName: text('city_name').notNull(), // "Kandangan"
+  lostItemType: text('lost_item_type').notNull(), // "Kunci Motor"
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_lost_locations_post').on(table.postId),
+  cityIdx: index('idx_lost_locations_city').on(table.cityName),
+}));
+
+export const lostLocationsReportRelations = relations(lostLocationsReport, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [lostLocationsReport.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Poll votes - real-time voting data
+export const pollVotes = pgTable('poll_votes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  pollId: text('poll_id').notNull(),
+  selectedOptionIndex: integer('selected_option_index').notNull(),
+  ipAddress: text('ip_address'), // Basic duplicate prevention
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postPollIdx: index('idx_poll_votes_post_poll').on(table.postId, table.pollId),
+}));
+
+export const pollVotesRelations = relations(pollVotes, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [pollVotes.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Setup Gallery Submissions - user-submitted setup photos for discount incentive
+export const setupGallerySubmissions = pgTable('setup_gallery_submissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  galleryId: text('gallery_id').notNull(), // Links to module
+  userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+  userName: text('user_name').notNull(),
+  userEmail: text('user_email'),
+  photoUrl: text('photo_url').notNull(), // Vercel Blob URL
+  description: text('description'),
+  isApproved: boolean('is_approved').default(false),
+  discountCode: text('discount_code'), // Generated incentive code
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_setup_gallery_post').on(table.postId),
+  galleryIdIdx: index('idx_setup_gallery_gallery').on(table.galleryId),
+  approvedIdx: index('idx_setup_gallery_approved').on(table.isApproved),
+}));
+
+export const setupGallerySubmissionsRelations = relations(setupGallerySubmissions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [setupGallerySubmissions.postId],
+    references: [blogPosts.id],
+  }),
+  user: one(user, {
+    fields: [setupGallerySubmissions.userId],
+    references: [user.id],
+  }),
+}));
+
+// Blog Posts Analytics - track page views and engagement
+export const blogPostsAnalytics = pgTable('blog_posts_analytics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  ipAddress: text('ip_address'),
+  viewType: text('view_type').notNull(), // 'page_view' | 'engagement' (comment, quiz, poll, etc.)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_analytics_post').on(table.postId),
+  viewTypeIdx: index('idx_blog_analytics_view_type').on(table.viewType),
+  createdAtIdx: index('idx_blog_analytics_created').on(table.createdAt),
+}));
+
+export const blogPostsAnalyticsRelations = relations(blogPostsAnalytics, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostsAnalytics.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+// Blog Post Revisions - track all changes for audit trail and rollback
+export const blogPostRevisions = pgTable('blog_post_revisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
+  revisionNumber: integer('revision_number').notNull(), // Increment for each edit
+  // Snapshot of post data at revision time
+  title: text('title').notNull(),
+  slug: text('slug').notNull(),
+  summary: text('summary').notNull(),
+  coverImage: text('cover_image'),
+  content: text('content').notNull(),
+  modules: jsonb('modules').default([]).$type<Array<any>>(),
+  authorName: text('author_name').notNull(),
+  authorAvatar: text('author_avatar'),
+  reviewedBy: text('reviewed_by'),
+  reviewedByTitle: text('reviewed_by_title'),
+  metaDescription: text('meta_description'),
+  metaKeywords: text('meta_keywords'),
+  focusKeyword: text('focus_keyword'),
+  isPublished: boolean('is_published').notNull(),
+  publishedAt: timestamp('published_at'),
+  // Change metadata
+  changedBy: text('changed_by').references(() => user.id, { onDelete: 'set null' }), // Who made this change
+  changeReason: text('change_reason'), // Optional reason for edit
+  changeType: text('change_type').notNull(), // 'create' | 'update' | 'publish' | 'unpublish' | 'delete'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  postIdx: index('idx_blog_revisions_post').on(table.postId),
+  postRevisionIdx: index('idx_blog_revisions_post_revision').on(table.postId, table.revisionNumber),
+  changedByIdx: index('idx_blog_revisions_changed_by').on(table.changedBy),
+  createdAtDescIdx: index('idx_blog_revisions_created_desc').on(table.createdAt),
+}));
+
+export const blogPostRevisionsRelations = relations(blogPostRevisions, ({ one }) => ({
+  post: one(blogPosts, {
+    fields: [blogPostRevisions.postId],
+    references: [blogPosts.id],
+  }),
+  changedByUser: one(user, {
+    fields: [blogPostRevisions.changedBy],
+    references: [user.id],
+  }),
+}));
+
+// ============================================================================
+// REFERRAL SYSTEM
+// ============================================================================
+
+export const referralVouchers = pgTable('referral_vouchers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull(),
+  code: text('code').notNull().unique(),
+  usageCount: integer('usage_count').default(0).notNull(),
+  maxUsageTarget: integer('max_usage_target').default(10).notNull(),
+  // 'NOT_ELIGIBLE' | 'READY_TO_CLAIM' | 'PENDING_PROCESSING' | 'SUCCESS'
+  claimStatus: text('claim_status').default('NOT_ELIGIBLE').notNull(),
+  walletProvider: text('wallet_provider'), // GOPAY | OVO | DANA | SHOPEEPAY
+  walletNumber: text('wallet_number'),
+  claimedAt: timestamp('claimed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
+export const referralUsages = pgTable('referral_usages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  voucherId: uuid('voucher_id').references(() => referralVouchers.id).notNull(),
+  buyerUserId: text('buyer_user_id').notNull(),
+  orderId: text('order_id'),
+  usedAt: timestamp('used_at').defaultNow().notNull(),
+});
+
+export const referralVouchersRelations = relations(referralVouchers, ({ many, one }) => ({
+  usages: many(referralUsages),
+  owner: one(user, { fields: [referralVouchers.userId], references: [user.id] }),
+}));
+
+export const referralUsagesRelations = relations(referralUsages, ({ one }) => ({
+  voucher: one(referralVouchers, { fields: [referralUsages.voucherId], references: [referralVouchers.id] }),
+}));
+
+export type ReferralVoucher = typeof referralVouchers.$inferSelect;
+export type NewReferralVoucher = typeof referralVouchers.$inferInsert;
+export type ReferralUsage = typeof referralUsages.$inferSelect;
+
+// ============================================================================
+// BLOG TYPE EXPORTS
+// ============================================================================
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type NewBlogPost = typeof blogPosts.$inferInsert;
+export type GiveawayClaim = typeof giveawayClaims.$inferSelect;
+export type NewGiveawayClaim = typeof giveawayClaims.$inferInsert;
+export type BlogComment = typeof blogComments.$inferSelect;
+export type NewBlogComment = typeof blogComments.$inferInsert;
+export type TrueStorySubmission = typeof trueStorySubmissions.$inferSelect;
+export type NewTrueStorySubmission = typeof trueStorySubmissions.$inferInsert;
+export type LostLocationReport = typeof lostLocationsReport.$inferSelect;
+export type NewLostLocationReport = typeof lostLocationsReport.$inferInsert;
+export type PollVote = typeof pollVotes.$inferSelect;
+export type NewPollVote = typeof pollVotes.$inferInsert;
+export type SetupGallerySubmission = typeof setupGallerySubmissions.$inferSelect;
+export type NewSetupGallerySubmission = typeof setupGallerySubmissions.$inferInsert;
+export type BlogPostAnalytics = typeof blogPostsAnalytics.$inferSelect;
+export type NewBlogPostAnalytics = typeof blogPostsAnalytics.$inferInsert;
+export type BlogPostRevision = typeof blogPostRevisions.$inferSelect;
+export type NewBlogPostRevision = typeof blogPostRevisions.$inferInsert;
+
+// ============================================================================
+// CAMPAIGN SYSTEM
+// ============================================================================
+
+export const campaignLeads = pgTable('campaign_leads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  email: text('email').notNull(),
+  campaignName: text('campaign_name').notNull(), // 'first-launch', 'campaign-two', etc.
+  source: text('source'), // 'landing_page', 'email', 'referral', etc.
+  status: text('status').default('subscribed').notNull(), // 'subscribed' | 'unsubscribed' | 'bounced'
+  metadata: jsonb('metadata'), // Additional campaign-specific data
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  campaignIdx: index('idx_campaign_leads_campaign').on(table.campaignName),
+  emailIdx: index('idx_campaign_leads_email').on(table.email),
+  campaignEmailIdx: index('idx_campaign_leads_campaign_email').on(table.campaignName, table.email),
+}));
+
+export const campaignLeadsRelations = relations(campaignLeads, ({ one }) => ({
+  // Placeholder for future user relationship if needed
+}));
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
+
+export type CampaignLead = typeof campaignLeads.$inferSelect;
+export type NewCampaignLead = typeof campaignLeads.$inferInsert;
 
 export type MaterialInventory = typeof materialInventory.$inferSelect;
 export type NewMaterialInventory = typeof materialInventory.$inferInsert;

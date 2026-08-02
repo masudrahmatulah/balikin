@@ -28,9 +28,11 @@ export function FooterSection() {
           <div>
             <h4 className="font-semibold mb-4">Perusahaan</h4>
             <ul className="space-y-2 text-sm text-gray-600">
+              <li><Link href="/blog" className="hover:text-blue-600">Blog</Link></li>
               <li><Link href="/contact" className="hover:text-blue-600">Kontak</Link></li>
               <li><Link href="/about" className="hover:text-blue-600">Tentang Kami</Link></li>
               <li><Link href="/privacy-policy" className="hover:text-blue-600">Kebijakan Privasi</Link></li>
+              <li><Link href="/terms-of-service" className="hover:text-blue-600">Syarat & Ketentuan</Link></li>
             </ul>
           </div>
         </div>

@@ -1,66 +1,52 @@
 'use client';
 
 import { SiteHeader } from '@/components/site-header';
-import { FlashSaleBanner } from '@/components/landing/urgency-badge';
-import { HeroSection } from '@/components/landing/hero-section';
-import { PainPointsSection } from '@/components/landing/pain-points-section';
+import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero-section';
+import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
+import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-section';
+import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
+import { GallerySlider } from '@/components/landing/gallery-slider';
 import { SocialProofSection } from '@/components/landing/social-proof-section';
-import { HowItWorksSection } from '@/components/landing/how-it-works-section';
-import { ScenariosSection } from '@/components/landing/scenarios-section';
-import { ProductShowcase } from '@/components/landing/product-showcase';
-import { ComparisonSection } from '@/components/landing/comparison-section';
-import { StoryTimelineSection } from '@/components/landing/story-timeline-section';
-import { BenefitsSection } from '@/components/landing/benefits-section';
-import { BundleDeals } from '@/components/landing/bundle-deals';
-import { PricingSection } from '@/components/landing/pricing-section';
-import { FinalCTASection } from '@/components/landing/final-cta-section';
+import { B2bScalabilitySection } from '@/components/landing/b2b-scalability-section';
+import { TrustSecuritySection } from '@/components/landing/trust-security-section';
+import { FreePassLeadSection } from '@/components/landing/free-pass-lead-section';
 import { FAQSection } from '@/components/landing/faq-section';
 import { FooterSection } from '@/components/landing/footer-section';
 
 export function HomePage() {
   return (
-    <main id="main-content" className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      {/* Flash Sale Banner - Urgency */}
-      <FlashSaleBanner />
-
+    <main id="main-content" className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       {/* Header - Auth-Aware Navigation */}
       <SiteHeader />
 
-      {/* Hero Section */}
-      <HeroSection />
+      {/* Hero: Balikin Smart License positioning */}
+      <SmartLicenseHeroSection />
 
-      {/* Pain Points Section */}
-      <PainPointsSection />
+      {/* Gallery slider */}
+      <section className="container mx-auto px-4 py-12 md:py-16">
+        <GallerySlider />
+      </section>
 
-      {/* Social Proof Section */}
+      {/* Interactive configurator: material/shape/design add-ons with live price */}
+      <LicenseConfiguratorSection />
+
+      {/* QR scan simulator: anonymous WhatsApp flow education */}
+      <QrScanSimulatorSection />
+
+      {/* Why buy: logical comparison vs Bluetooth tracker & writing phone number on items */}
+      <WhyBuyComparisonSection />
+
+      {/* Social proof: testimonials + Verified Owner Badge teaser */}
       <SocialProofSection />
 
-      {/* Cara Kerja Section */}
-      <HowItWorksSection />
+      {/* B2B scalability: government, schools, communities */}
+      <B2bScalabilitySection />
 
-      {/* Use Cases / Scenarios Section */}
-      <ScenariosSection />
+      {/* Trust & Security Section */}
+      <TrustSecuritySection />
 
-      {/* Product Showcase Section */}
-      <ProductShowcase />
-
-      {/* Comparison Section */}
-      <ComparisonSection />
-
-      {/* Before/After Story Section */}
-      <StoryTimelineSection />
-
-      {/* Benefits Section */}
-      <BenefitsSection />
-
-      {/* Bundle Deals Section */}
-      <BundleDeals />
-
-      {/* Pricing Section */}
-      <PricingSection />
-
-      {/* Final CTA & More Testimonials */}
-      <FinalCTASection />
+      {/* Free Pass lead capture */}
+      <FreePassLeadSection />
 
       {/* FAQ Section */}
       <FAQSection />

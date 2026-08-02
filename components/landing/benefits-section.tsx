@@ -8,23 +8,23 @@ export function BenefitsSection() {
   const benefits = [
     {
       icon: Lock,
-      title: 'Privasi Terjaga',
-      desc: 'Identitas Anda tidak ditampilkan di benda fisik, hanya QR code yang terlihat. Penemu tidak tahu data pribadi Anda.',
+      title: 'Privasi 100% Terjaga dengan Anonymous Gateway',
+      desc: 'Identitas Anda tidak ditampilkan di benda fisik, hanya QR code yang terlihat. Penemu tidak bisa lihat nomor pribadi Anda melalui anonymous WhatsApp gateway kami yang aman.',
     },
     {
       icon: MapPin,
-      title: 'Lacak Lokasi',
-      desc: 'Riwayat scan menampilkan lokasi terakhir barang saat di-scan. Tau kemana barang Anda "terbang".',
+      title: 'Lacak Lokasi Scan Barang Hilang Real-time',
+      desc: 'Riwayat scan menampilkan lokasi terakhir barang saat di-scan dengan akurasi kota. Sistem pelacakan QR code kami membantu Anda tahu kemana barang "terbang".',
     },
     {
       icon: Clock,
-      title: 'Update Real-time',
-      desc: 'Ubah data kontak atau status barang kapan saja tanpa perlu ganti QR code fisik. Fleksibel!',
+      title: 'Update Data QR Code Dinamis Kapan Saja',
+      desc: 'Ubah data kontak atau status barang kapan saja tanpa perlu ganti tag fisik. Gantungan kunci QR code kami fleksibel dan dapat diperbarui selamanya.',
     },
     {
       icon: AlertCircle,
-      title: 'Mode Hilang',
-      desc: 'Aktifkan mode hilang untuk tampilan darurat dengan info imbalan. Menarik simpati penemu.',
+      title: 'Mode Hilang Darurat dengan Desain Emergency',
+      desc: 'Aktifkan mode hilang untuk tampilan darurat (warna merah) dengan info imbalan dan nomor kontak alternatif. Desain emergency yang menarik simpati penemu.',
     },
   ];
 
@@ -45,10 +45,10 @@ export function BenefitsSection() {
         <ScrollReveal>
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Kenapa Memilih Balikin?
+              Keuntungan Balikin Smart Tag: Sistem Lost and Found Terbaik Indonesia
             </h2>
             <p className="text-blue-100 max-w-2xl mx-auto">
-              Lebih dari sekadar QR code. Ini adalah ketenangan pikiran untuk barang-barang Anda.
+              Lebih dari sekadar QR code anti hilang. Ini adalah ketenangan pikiran untuk barang-barang berharga Anda dengan teknologi smart tag terdepan dan sistem pelacakan yang aman.
             </p>
           </div>
         </ScrollReveal>

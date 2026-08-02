@@ -33,6 +33,26 @@ export async function GET(
       return new NextResponse("Print queue item not found", { status: 404 });
     }
 
+    // Check if this is a Cut & Fold material
+    const isCutFold = queueItem.materialUsed?.toLowerCase().includes("cut & fold");
+
+    if (isCutFold) {
+      // Detect paper size from materialUsed field
+      const paperSize = queueItem.materialUsed?.toLowerCase().includes("a3") ? "a3" : "a4";
+
+      // Use Cut & Fold PDF generator (same as VDP tool)
+      const { generateCutFoldPDFByBatchId } = await import('@/app/actions/cut-fold-pdf');
+      const pdfBuffer = await generateCutFoldPDFByBatchId(queueItem.batchId, paperSize);
+
+      return new NextResponse(Buffer.from(pdfBuffer), {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="cut-fold-${queueItem.batchName}.pdf"`,
+          'Content-Length': pdfBuffer.length.toString(),
+        },
+      });
+    }
+
     const batchTags = await db.query.tags.findMany({
       where: sql`${tags.slug} LIKE ${queueItem.batchId + "-%"}`,
       orderBy: (tags, { asc }) => [asc(tags.slug)],

@@ -16,20 +16,34 @@ async function getAdminSessionCore() {
   try {
     const headersList = await headers();
 
-    // Get session using better-auth API
-    const session = await auth.api.getSession({
+    // Get session using better-auth API with timeout
+    const sessionPromise = auth.api.getSession({
       headers: headersList,
     });
+
+    // Add 5 second timeout for session retrieval
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Session retrieval timeout')), 5000)
+    );
+
+    const session = await Promise.race([sessionPromise, timeoutPromise]) as Awaited<ReturnType<typeof auth.api.getSession>>;
 
     if (!session?.user) {
       logError(new AuthenticationError('No valid session found'), 'getAdminSession');
       return null;
     }
 
-    // Query database to get the user's role and division (better-auth doesn't return custom fields)
-    const dbUser = await db.query.user.findFirst({
+    // Query database to get the user's role and division with timeout
+    const dbUserPromise = db.query.user.findFirst({
       where: eq(user.id, session.user.id),
     });
+
+    // Add 3 second timeout for database query
+    const dbTimeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 3000)
+    );
+
+    const dbUser = await Promise.race([dbUserPromise, dbTimeoutPromise]) as Awaited<ReturnType<typeof db.query.user.findFirst>>;
 
     if (!dbUser) {
       logError(new AuthenticationError('User not found in database'), 'getAdminSession');

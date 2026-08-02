@@ -254,10 +254,12 @@ export async function updateTag(
   const nextTier = data.tier ?? (nextProductType === 'free' ? 'free' : 'premium');
   const isPremium = nextTier === 'premium';
 
+  const isTagFree = tag.productType === 'free';
+
   const validatedName = data.name ? validateTagName(data.name) : undefined;
   const validatedPhone = data.contactWhatsapp ? validateWhatsAppNumber(data.contactWhatsapp) : undefined;
   const validatedCustomMessage = data.customMessage !== undefined ? validateCustomMessage(data.customMessage) : undefined;
-  const validatedRewardNote = data.rewardNote !== undefined ? validateRewardNote(data.rewardNote) : undefined;
+  const validatedRewardNote = (!isTagFree && data.rewardNote !== undefined) ? validateRewardNote(data.rewardNote) : undefined;
 
   await db.update(tags)
     .set({

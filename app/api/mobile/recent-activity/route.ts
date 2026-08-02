@@ -27,7 +27,10 @@ export async function GET() {
     // Get user's tags and recent scans in parallel
     const [userTags, recentScans] = await Promise.all([
       db.query.tags.findMany({
-        where: eq(tags.ownerId, userId),
+        where: and(
+          eq(tags.ownerId, userId),
+          eq(tags.appId, 'balikin_id')
+        ),
         columns: { id: true, name: true, status: true },
       }),
 

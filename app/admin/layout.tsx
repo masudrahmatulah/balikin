@@ -4,6 +4,8 @@ import { Sidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminErrorBoundary } from "@/components/admin/error-boundary";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({
   children,
 }: {

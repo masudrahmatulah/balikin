@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCutFoldPDFByBatchId } from '@/app/actions/cut-fold-pdf';
+import type { PaperSize } from '@/lib/sticker-template';
 
 export async function GET(
   request: NextRequest,
@@ -7,18 +8,20 @@ export async function GET(
 ) {
   try {
     const { batchId } = await params;
+    const searchParams = request.nextUrl.searchParams;
 
-    const pdfDataUri = await generateCutFoldPDFByBatchId(batchId);
+    // Get paperSize from query parameter (default: a3)
+    const paperSizeParam = searchParams.get('paperSize');
+    const paperSize: PaperSize = paperSizeParam === 'a4' ? 'a4' : 'a3';
 
-    const base64Data = pdfDataUri.split(',')[1];
-    const buffer = Buffer.from(base64Data, 'base64');
+    const pdfBuffer = await generateCutFoldPDFByBatchId(batchId, paperSize);
 
-    return new NextResponse(buffer, {
+    return new NextResponse(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="cut-fold-${batchId}.pdf"`,
-        'Content-Length': buffer.length.toString(),
+        'Content-Disposition': `attachment; filename="cut-fold-${batchId}-${paperSize}.pdf"`,
+        'Content-Length': pdfBuffer.length.toString(),
       },
     });
   } catch (error) {

@@ -1,7 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(balikin-masudrahmatmy-id.vercel.app)"
+      "WebFetch(balikin-masudrahmatmy-id.vercel.app)",
+      "WebFetch(vercel.com)",
+      "Bash(git push *)",
+      "WebFetch(balikin.masudrahmat.my.id)",
+      "WebFetch(raw.githubusercontent.com)",
+      "Bash(git commit *)",
+      "WebFetch(api.github.com)",
+      "Bash(git add *)",
+      "Bash(git *)",
+      "Bash(npm run *)",
+      "Bash(file *)",
+      "Bash(cp *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(python3 *)",
+      "Bash(node *)",
+      "Bash(rm *)",
+      "Bash(pkill *)",
+      "Bash(sleep *)",
+      "Bash(curl *)",
+      "Bash(chmod *)"
     ]
-  }
+  },
+  "$version": 3
 }

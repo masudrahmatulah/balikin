@@ -381,7 +381,7 @@ export function getSecurityHeaders(): Record<string, string> {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'X-XSS-Protection': '1; mode=block',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
+    'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(self)',
     'Strict-Transport-Security': process.env.NODE_ENV === 'production'
       ? 'max-age=31536000; includeSubDomains'
       : 'max-age=0',

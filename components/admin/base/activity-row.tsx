@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, ArrowRight, type LucideIcon } from "lucide-react";
 
 interface ActivityRowProps {
   icon?: LucideIcon | string;
@@ -35,12 +35,13 @@ export function ActivityRow({
       "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
   };
 
-  const statusIcons = {
-    success: "✓",
-    pending: "⏳",
-    failed: "✕",
-    transit: "→",
+  const statusIcons: Record<ActivityRowProps["status"], LucideIcon> = {
+    success: CheckCircle2,
+    pending: Clock,
+    failed: XCircle,
+    transit: ArrowRight,
   };
+  const StatusIcon = statusIcons[status];
 
   return (
     <tr className={cn("hover:bg-gray-50 transition-colors", className)}>
@@ -80,7 +81,7 @@ export function ActivityRow({
             statusStyles[status]
           )}
         >
-          {statusIcons[status]}
+          <StatusIcon size={12} />
           {status}
         </span>
       </td>

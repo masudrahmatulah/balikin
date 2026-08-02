@@ -1,39 +1,24 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
+import { eq, like, and } from 'drizzle-orm';
 import { toDataURL } from 'qrcode';
-import { jsPDF } from 'jspdf';
 import { isAdmin } from '@/lib/admin';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
 import { unstable_cache as cache } from 'next/cache';
+import { pdf } from '@react-pdf/renderer';
+import React from 'react';
+import fs from 'fs/promises';
+import path from 'path';
+import { calculateGridPositions, type PaperSize } from '@/lib/sticker-template';
 
 // ============================================================================
-// CONSTANTS (from design spec)
+// DEFAULTS
 // ============================================================================
 
-const A4_WIDTH = 210;
-const A4_HEIGHT = 297;
-const PAGE_MARGIN = 10;
-
-const TAG_WIDTH = 60;
-const TAG_HEIGHT = 37;
-const QR_SIZE = 27;
-const FOLD_POSITION = 30;
-const GAP = 4;
-
-const COLS = 3;
-const ROWS = 7;
-const TAGS_PER_PAGE = 21;
-
-const COLOR_CUT_LINE = [150, 150, 150];
-const COLOR_FOLD_LINE = [100, 100, 100];
-const COLOR_TEXT_PRIMARY = [0, 0, 0];
-const COLOR_TEXT_SECONDARY = [80, 80, 80];
-
-const TEXT_LINE_1 = 'BANTU BALIKIN BARANG INI';
-const TEXT_LINE_2 = 'Scan QR & Hubungi Pemiliknya';
-const BRAND_TEXT = '[BALIKIN]';
+const DEFAULT_PAPER_SIZE: PaperSize = 'a3';
+const DEFAULT_SHAPE = 'circle';
+const DEFAULT_SIZE = 'medium';
 
 // ============================================================================
 // VALIDATION
@@ -65,112 +50,28 @@ async function generateQRCodeCached(qrUrl: string): Promise<string> {
 }
 
 // ============================================================================
-// PDF DRAWING HELPERS
+// LOGO (LOADED FROM DISK, EMBEDDED AS DATA URI)
 // ============================================================================
 
-function addCuttingMarks(doc: jsPDF, x: number, y: number): void {
-  doc.setDrawColor(...COLOR_CUT_LINE);
-  doc.setLineWidth(0.2);
-  doc.setLineDashPattern([], 0);
-  doc.rect(x, y, TAG_WIDTH, TAG_HEIGHT, 'S');
-}
+let logoDataUrlCache: string | null = null;
 
-function addFoldingMark(doc: jsPDF, x: number, y: number): void {
-  doc.setDrawColor(...COLOR_FOLD_LINE);
-  doc.setLineWidth(0.2);
-  doc.setLineDashPattern([2, 2], 0);
+async function getLogoDataUrl(): Promise<string> {
+  if (logoDataUrlCache) return logoDataUrlCache;
 
-  const foldX = x + FOLD_POSITION;
-  doc.line(foldX, y, foldX, y + TAG_HEIGHT);
-
-  doc.setLineDashPattern([], 0);
-}
-
-function addFrontContent(doc: jsPDF, x: number, y: number, qrDataUrl: string): void {
-  const frontWidth = FOLD_POSITION;
-  const frontCenterX = x + frontWidth / 2;
-
-  const qrX = frontCenterX - QR_SIZE / 2;
-  const qrY = y + 2;
-
-  doc.addImage(qrDataUrl, 'PNG', qrX, qrY, QR_SIZE, QR_SIZE);
-
-  const textAreaY = qrY + QR_SIZE + 2;
-  const textAreaHeight = TAG_HEIGHT - (textAreaY - y);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(...COLOR_TEXT_PRIMARY);
-  doc.text(TEXT_LINE_1, frontCenterX, textAreaY + 3, { align: 'center', maxWidth: frontWidth - 3 });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.5);
-  doc.setTextColor(...COLOR_TEXT_SECONDARY);
-  doc.text(TEXT_LINE_2, frontCenterX, textAreaY + 7, { align: 'center', maxWidth: frontWidth - 3 });
-}
-
-function addBackContent(doc: jsPDF, x: number, y: number): void {
-  const backX = x + FOLD_POSITION;
-  const backWidth = TAG_WIDTH - FOLD_POSITION;
-  const backCenterX = backX + backWidth / 2;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(...COLOR_TEXT_PRIMARY);
-
-  doc.text('BALIKIN', backCenterX, y + TAG_HEIGHT / 2 + 3, { align: 'center' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
-  doc.setTextColor(...COLOR_TEXT_SECONDARY);
-  doc.text('Smart Lost & Found', backCenterX, y + TAG_HEIGHT / 2 + 7, { align: 'center' });
-}
-
-async function addCutFoldTag(doc: jsPDF, x: number, y: number, tagSlug: string): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
-  const qrUrl = `${baseUrl}/p/${tagSlug}`;
-  const qrDataUrl = await generateQRCodeCached(qrUrl);
-
-  addCuttingMarks(doc, x, y);
-  addFoldingMark(doc, x, y);
-  addFrontContent(doc, x, y, qrDataUrl);
-  addBackContent(doc, x, y);
-}
-
-function calculateGridPositions(pageIndex: number): Array<[number, number]> {
-  const positions: Array<[number, number]> = [];
-
-  const contentWidth = A4_WIDTH - (PAGE_MARGIN * 2);
-  const contentHeight = A4_HEIGHT - (PAGE_MARGIN * 2);
-
-  const totalGapX = (COLS - 1) * GAP;
-  const totalGapY = (ROWS - 1) * GAP;
-
-  const tagWidthWithGap = (contentWidth - totalGapX) / COLS;
-  const tagHeightWithGap = (contentHeight - totalGapY) / ROWS;
-
-  const startIndex = pageIndex * TAGS_PER_PAGE;
-
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      const index = startIndex + (row * COLS) + col;
-      if (index >= startIndex + TAGS_PER_PAGE) break;
-
-      const x = PAGE_MARGIN + col * (tagWidthWithGap + GAP);
-      const y = PAGE_MARGIN + row * (tagHeightWithGap + GAP);
-
-      positions.push([x, y]);
-    }
-  }
-
-  return positions;
+  const logoPath = path.join(process.cwd(), 'public', 'balikin_logo.png');
+  const buffer = await fs.readFile(logoPath);
+  logoDataUrlCache = `data:image/png;base64,${buffer.toString('base64')}`;
+  return logoDataUrlCache;
 }
 
 // ============================================================================
 // PDF GENERATION
 // ============================================================================
 
-export async function generateCutFoldPDF(tagSlugs: string[]): Promise<string> {
+export async function generateCutFoldPDF(
+  tagSlugs: string[],
+  paperSize: PaperSize = DEFAULT_PAPER_SIZE
+): Promise<Uint8Array> {
   const admin = await isAdmin();
   if (!admin) {
     throw new Error('Unauthorized: Admin access required');
@@ -180,45 +81,84 @@ export async function generateCutFoldPDF(tagSlugs: string[]): Promise<string> {
     throw new Error('No tags provided');
   }
 
-  const totalPages = Math.ceil(tagSlugs.length / TAGS_PER_PAGE);
+  // Calculate items per sheet dynamically based on paper size
+  const gridPositions = calculateGridPositions(DEFAULT_SHAPE, DEFAULT_SIZE, paperSize, 'landscape');
+  const tagsPerPage = gridPositions.length;
+  const totalPages = Math.ceil(tagSlugs.length / tagsPerPage);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
 
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
+  // Generate QR codes for all tags (main + activation)
+  const tags = await Promise.all(
+    tagSlugs.map(async (slug) => {
+      const qrUrl = `${baseUrl}/p/${slug}`;
+      const qrDataUrl = await generateQRCodeCached(qrUrl);
+      return { slug, qrDataUrl };
+    })
+  );
 
-  let tagIndex = 0;
+  // Fetch activation data from database for all tags
+  const { tags: tagsTable } = await import('@/db/schema');
+  const tagsWithActivation = await Promise.all(
+    tags.map(async (tag) => {
+      const tagData = await db.query.tags.findFirst({
+        where: eq(tagsTable.slug, tag.slug),
+        columns: {
+          activationTokenHash: true,
+          activationPinPlain: true,
+          serialNumber: true,
+          isCustom: true,
+          customPhotoUrl: true,
+        },
+      });
 
-  for (let page = 0; page < totalPages; page++) {
-    if (page > 0) {
-      doc.addPage();
-    }
+      if (tagData?.activationTokenHash) {
+        const activationQrDataUrl = await generateQRCodeCached(
+          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData.activationTokenHash}`
+        );
+        return {
+          ...tag,
+          activationQrDataUrl,
+          activationPinPlain: tagData.activationPinPlain || '',
+          serialNumber: tagData.serialNumber || '',
+          isCustom: tagData.isCustom || false,
+          customPhotoUrl: tagData.customPhotoUrl,
+        };
+      }
 
-    const positions = calculateGridPositions(page);
+      return {
+        ...tag,
+        activationQrDataUrl: '',
+        activationPinPlain: '',
+        serialNumber: '',
+        isCustom: false,
+      };
+    })
+  );
 
-    for (const [x, y] of positions) {
-      if (tagIndex >= tagSlugs.length) break;
+  // Dynamically import React PDF component
+  const { CutFoldPDFDocument } = await import('@/components/admin/cut-fold-pdf-document');
+  const logoDataUrl = await getLogoDataUrl();
 
-      await addCutFoldTag(doc, x, y, tagSlugs[tagIndex]);
-      tagIndex++;
-    }
+  // Generate PDF using React component with all pages
+  const pdfBlob = await pdf(
+    React.createElement(CutFoldPDFDocument, {
+      tags: tagsWithActivation,
+      totalPages,
+      baseUrl,
+      paperSize,
+      logoDataUrl,
+    })
+  ).toBlob();
 
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLOR_TEXT_SECONDARY);
-    doc.text(
-      `Page ${page + 1} of ${totalPages} | Generated: ${new Date().toLocaleString('id-ID')}`,
-      A4_WIDTH / 2,
-      A4_HEIGHT - 3,
-      { align: 'center' }
-    );
-  }
-
-  return doc.output('datauristring');
+  // Convert blob to Uint8Array
+  const arrayBuffer = await pdfBlob.arrayBuffer();
+  return new Uint8Array(arrayBuffer);
 }
 
-export async function generateCutFoldPDFByBatchId(batchId: string): Promise<string> {
+export async function generateCutFoldPDFByBatchId(
+  batchId: string,
+  paperSize: PaperSize = DEFAULT_PAPER_SIZE
+): Promise<Uint8Array> {
   if (!validateBatchId(batchId)) {
     throw new Error('Invalid batch ID');
   }
@@ -229,8 +169,16 @@ export async function generateCutFoldPDFByBatchId(batchId: string): Promise<stri
   }
 
   const batchTags = await db.query.tags.findMany({
-    where: eq(tags.bundleId, batchId),
-    columns: { id: true, slug: true },
+    where: like(tags.slug, `${batchId}-%`),
+    columns: {
+      id: true,
+      slug: true,
+      activationTokenHash: true,
+      activationPinPlain: true,
+      serialNumber: true,
+      isCustom: true,
+      customPhotoUrl: true,
+    },
     orderBy: (tags, { asc }) => [asc(tags.slug)],
   });
 
@@ -239,5 +187,5 @@ export async function generateCutFoldPDFByBatchId(batchId: string): Promise<stri
   }
 
   const tagSlugs = batchTags.map(tag => tag.slug);
-  return generateCutFoldPDF(tagSlugs);
+  return generateCutFoldPDF(tagSlugs, paperSize);
 }

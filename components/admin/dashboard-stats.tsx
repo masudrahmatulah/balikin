@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import { AdminCard } from "./base/admin-card";
 import { StatCard, StatCardWithChart } from "./base/stat-card";
+import { Users, Star, Package, CheckCircle2 } from "lucide-react";
 
 interface RevenueStats {
   total: number;
@@ -98,7 +99,7 @@ export function DashboardStats({
       <StatCard
         label="Total Klien"
         value={totalUsers}
-        icon="👥"
+        icon={Users}
       />
 
       {/* Premium Conversion */}
@@ -106,7 +107,7 @@ export function DashboardStats({
         label="Konversi Premium"
         value="34.2%"
         trend={conversionTrend}
-        icon="⭐"
+        icon={Star}
       />
 
       {/* Daily Orders with Chart */}
@@ -115,7 +116,7 @@ export function DashboardStats({
         value={dailyOrders}
         chartData={[40, 65, 45, 90, 55, 80, 75]}
         trend={dailyOrdersTrend}
-        icon="📦"
+        icon={Package}
       />
 
       {/* Tag Distribution */}
@@ -218,7 +219,7 @@ export function DashboardStats({
           className="col-span-1 md:col-span-2 lg:col-span-1"
         >
           <div className="flex items-center gap-3 text-gray-600">
-            <span className="text-2xl">✓</span>
+            <CheckCircle2 className="w-6 h-6 text-green-600" />
             <span className="text-sm">Semua material dalam stok</span>
           </div>
         </AdminCard>

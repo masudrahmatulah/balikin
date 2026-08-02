@@ -10,12 +10,11 @@ import {
   Tag,
   AlertCircle,
   Loader2,
-  User
 } from 'lucide-react';
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface UserProfile {
   id: string;
@@ -28,6 +27,7 @@ interface UserProfile {
 interface UserStats {
   activeTags: number;
   totalTags: number;
+  lostTags: number;
   totalScans: number;
   returnedItems: number;
 }
@@ -46,6 +46,16 @@ interface ProfileData {
   user: UserProfile;
   stats: UserStats;
   tags: UserTag[];
+}
+
+interface RecentActivity {
+  id: string;
+  item: string;
+  tagName: string;
+  action: string;
+  location: string;
+  time: string;
+  status: 'success' | 'warning';
 }
 
 const menuSections = [
@@ -72,36 +82,42 @@ const menuSections = [
 ];
 
 export function MobileProfile() {
-  const { data: session } = useSession();
+  const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    if (session?.user?.id) {
-      try {
-        const res = await fetch('/api/mobile/user-profile', { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          setProfileData(data);
-        }
-      } catch {}
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
+  useEffect(() => {
+    if (!sessionLoading && !session?.user?.id) {
+      router.replace('/sign-in?redirect=/mobile/profile');
     }
+  }, [sessionLoading, session?.user?.id, router]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    setIsDataLoading(true);
+    fetch('/api/mobile/user-profile', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setProfileData(data); })
+      .catch(() => {})
+      .finally(() => setIsDataLoading(false));
   }, [session?.user?.id]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (!session?.user?.id) return;
+    fetch('/api/mobile/recent-activity', { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setRecentActivity(data); })
+      .catch(() => {});
+  }, [session?.user?.id]);
 
   const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);
     try {
       await signOut();
-      router.push('/sign-in');
+      router.push('/sign-in?redirect=/mobile/profile');
     } catch {
       setIsSigningOut(false);
     }
@@ -112,13 +128,13 @@ export function MobileProfile() {
   const stats = profileData?.stats || { activeTags: 0, totalTags: 0, totalScans: 0, returnedItems: 0 };
   const tagCount = stats.totalTags > 0 ? stats.totalTags : (profileData?.tags?.length || 0);
 
-  const lostTagsCount = useMemo(() => tagCount - stats.activeTags, [tagCount, stats.activeTags]);
+  const lostTagsCount = stats.lostTags || 0;
   const hasLostTags = lostTagsCount > 0;
   const isVerifiedUser = profileData?.user?.isVerified;
 
   const avatarInitial = displayName.charAt(0).toUpperCase();
 
-  if (isLoading) {
+  if (sessionLoading || isDataLoading || (!session?.user?.id && !sessionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center" aria-live="polite">
         <Loader2 className="h-8 w-8 text-mobile-primary animate-spin" aria-hidden="true" />
@@ -182,6 +198,40 @@ export function MobileProfile() {
             </div>
           </div>
         </div>
+
+        {recentActivity.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 animate-fade-up-20 stagger-delay-1">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 px-1">Aktivitas Terbaru</h3>
+            <div className="space-y-3">
+              {recentActivity.slice(0, 3).map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    activity.status === 'warning'
+                      ? 'bg-mobile-danger-light'
+                      : 'bg-mobile-success-light'
+                  }`}>
+                    {activity.status === 'warning' ? (
+                      <AlertCircle className="h-5 w-5 text-mobile-danger" />
+                    ) : (
+                      <div className="w-2 h-2 bg-mobile-success rounded-full" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 text-sm">{activity.tagName}</p>
+                    <p className="text-xs text-gray-500 truncate">{activity.action} • {activity.location}</p>
+                  </div>
+                  <p className="text-xs text-gray-400">{activity.time}</p>
+                </div>
+              ))}
+            </div>
+            <Link
+              href="/mobile/profile/activity"
+              className="text-sm text-mobile-primary font-semibold mt-3 block px-1"
+            >
+              Lihat Semua →
+            </Link>
+          </div>
+        )}
 
         {hasLostTags && (
           <div className="bg-mobile-danger-lighter border border-mobile-danger-lighter rounded-2xl p-4 animate-fade-up-20 stagger-delay-1" role="alert" aria-live="assertive">

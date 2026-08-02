@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, Info, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ACRYLIC_SHAPES, deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
 
 interface BulkInfoPanelProps {
   quantity: number;
@@ -28,7 +29,12 @@ export function BulkInfoPanel({
     if (materialType === "sticker") {
       return `Vinyl Sticker (${stickerShape}, ${stickerSize})`;
     }
-    return "Acrylic (Premium)";
+    const shapeKey = deriveAcrylicShapeKey(materialType);
+    if (shapeKey) {
+      const shape = ACRYLIC_SHAPES[shapeKey];
+      return `${shape.label} (${shape.widthMm}×${shape.heightMm}mm)`;
+    }
+    return "Akrilik";
   };
 
   const getProductLabel = () => {

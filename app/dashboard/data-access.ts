@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { tags, scanLogs, userModuleSelections } from '@/db/schema';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import { unstable_cache } from 'next/cache';
 
 const TAGS_CACHE_TTL = 300;
@@ -35,20 +35,41 @@ export async function getUserModuleSelection(userId: string, moduleType: string)
   )();
 }
 
-async function getTagScanCounts(tagIds: string[]) {
+async function getTagScanCountsUncached(tagIds: string[]): Promise<Map<string, number>> {
   if (tagIds.length === 0) return new Map<string, number>();
 
-  const result = await db.query.scanLogs.findMany({
-    columns: { tagId: true },
-    where: inArray(scanLogs.tagId, tagIds),
-  });
+  const result = await db
+    .select({
+      tagId: scanLogs.tagId,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(scanLogs)
+    .where(inArray(scanLogs.tagId, tagIds))
+    .groupBy(scanLogs.tagId);
 
   const counts = new Map<string, number>();
   result.forEach((row) => {
-    const existing = counts.get(row.tagId);
-    counts.set(row.tagId, (existing ?? 0) + 1);
+    counts.set(row.tagId, row.count);
   });
+
   return counts;
+}
+
+async function getTagScanCounts(tagIds: string[]): Promise<Map<string, number>> {
+  const cacheKey = `scan-counts-${tagIds.sort().join('-')}`;
+
+  const result = await unstable_cache(
+    async () => getTagScanCountsUncached(tagIds),
+    [cacheKey],
+    {
+      revalidate: 300,
+      tags: ['scan-counts']
+    }
+  )();
+
+  return result instanceof Map
+    ? result
+    : new Map(Object.entries(result));
 }
 
 export async function getDashboardData(userId: string) {

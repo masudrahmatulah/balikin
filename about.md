@@ -14,19 +14,46 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ---
 
-## 2. Perbandingan Fitur (Tiering)
+## 2. Perbandingan Fitur (Tiering & Product Categories)
 
-| Fitur | User Gratis (DIY - Digital Only) | User Premium (Physical Product) |
-|-------|----------------------------------|---------------------------------|
-| **Akses Dashboard** | Ya, terbatas pada 5 tag | Ya, tidak terbatas/sesuai pesanan |
-| **Output QR Code** | Download file digital (PNG/PDF) | Produk fisik (Akrilik/Vinyl Premium) |
-| **Halaman Profil** | Standar (Tanpa tanda verifikasi) | Verified Owner Badge (Emas/Biru) |
-| **Kustomisasi** | Template desain standar | Bebas upload foto & desain kustom |
-| **Notifikasi Scan** | Notifikasi via Dashboard/Email | Real-time WhatsApp Alert (Fonnte API) |
-| **Tracking** | Estimasi lokasi berbasis IP | Estimasi lokasi + Izin GPS Presisi |
-| **Daya Tahan** | Rendah (Tergantung cara cetak user) | Tinggi (Anti air, Anti pudar, UV Protected) |
-| **Scan History** | 7 hari | 30 hari (untuk stiker) |
-| **Module Access** | Terbatas | Full access (Student Kit, Otomotif, dll) |
+### 2.1 Feature Comparison by Tier
+
+| Fitur | Gratis (Free Pass) | Physical Products | Sticker Sheets | Bundles |
+|:--|:--|:--|:--|:--|
+| **Output** | QR digital | Akrilik premium | Vinyl sheet A5 | Combo (Akrilik + Stiker) |
+| **Harga** | Rp 0 | Rp 54.000 | Rp 59.000 | Rp 89.000 - Rp 699.000 |
+| **Dashboard Access** | Ya (terbatas) | Ya (unlimited) | Ya (unlimited) | Ya (unlimited) |
+| **Durabilitas** | Rendah (cetak user) | Tinggi (3mm akrilik) | Tinggi (Vinyl UV-protected) | Premium (all materials) |
+| **Notifikasi Scan** | Email | WhatsApp real-time | WhatsApp real-time | WhatsApp real-time |
+| **GPS Tracking** | IP-based only | IP + GPS presisi | IP + GPS presisi | IP + GPS presisi |
+| **Scan History** | 7 hari | 30 hari | 30 hari | 30+ hari |
+| **Verified Badge** | Tidak | Ya (⭐ Verified) | Ya (⭐ Verified) | Ya (⭐ Verified) |
+| **Reward System** | Terkunci 🔒 | Aktif (Rp 25k-40k) | Aktif (Rp 25k-40k) | Aktif (Rp 25k-40k) |
+| **Module Access** | Gratis dasar | Semua modul | Semua modul | Semua modul |
+| **WhatsApp Gateway** | Lifetime gratis | 1 tahun gratis + Rp 15k/tahun | 1 tahun gratis + Rp 15k/tahun | 1 tahun gratis + Rp 15k/tahun |
+
+### 2.2 Product Categories Breakdown
+
+**Digital Tier (Rp 0)**
+- Target: Penetrasi pasar, database building
+- Format: QR digital untuk dicetak sendiri
+- Use case: Testing, low-budget users
+
+**Physical Tier (Rp 54.000)**
+- Target: Individual users, kunci motor/mobil
+- Format: Gantungan kunci akrilik 3mm premium
+- Features: Tahan benturan & UV extreme, desain elegan
+
+**Sticker Tiers (Rp 59.000 each, 4 varian)**
+1. **Pro**: 6-8 QR besar (3,5×3,5 cm) → Professional assets
+2. **Daily**: 12-15 QR sedang (2,5×2,5 cm) → Daily gadgets
+3. **Micro**: 20-24 QR kecil (1,8×1,8 cm) → Mini items (TWS, charger)
+4. **Family**: 12 QR campuran (BEST SELLER) → Multi-purpose combo
+
+**Bundle Tiers (Value Play)**
+1. **Ultimate Pack** (Rp 89k): 1 Akrilik + 1 Family Stiker → Hemat Rp 24k
+2. **Family Pack** (Rp 299k): 4× Ultimate Pack → Hemat Rp 57k
+3. **Traveller Pack** (Rp 699k): 10× Ultimate Pack → Hemat Rp 191k (B2B focus)
 
 ---
 
@@ -34,11 +61,14 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ### Alur Aplikasi (Operational)
 
-1. **Pemesanan:** User memesan melalui landing page.
-2. **Generasi Tag:** Sistem membuat ID unik (nanoid 12 karakter) dan URL dinamis di database.
-3. **Produksi:** Admin/Vendor mencetak QR Code pada gantungan kunci.
-4. **Aktivasi:** User menerima barang, scan QR, dan melakukan klaim (registrasi) barang ke akun mereka.
-5. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
+1. **Pemesanan:** User memilih produk di landing page dan mengisi form checkout (Nama, WhatsApp, alamat, segmentasi CRM).
+2. **Kalkulasi Ongkir:** Sistem memanggil RajaOngkir/Biteship via cascading dropdown (Provinsi → Kota → Kecamatan), dengan fallback tarif flat jika API timeout.
+3. **Pembayaran:** User membayar via QRIS Midtrans (GoPay/ShopeePay). Di mobile, muncul tombol deep-link langsung ke aplikasi e-wallet.
+4. **Webhook Settlement:** Midtrans mengirim notifikasi → status order berubah ke `settlement` → PIN aktivasi di-generate → order diantrekan ke VDP Tool admin gudang.
+5. **Generasi Tag:** Sistem membuat short_code unik (nanoid) dan mencatat hubungan Sheet_ID ↔ array tag_id di tabel `sticker_sheets`.
+6. **Produksi & QC:** Admin mencetak stiker/akrilik via VDP Tool. Tim gudang scan barcode Sheet_ID untuk validasi integritas sebelum pengiriman.
+7. **Aktivasi:** User menerima barang, scan QR, login, input 6-digit PIN Aktivasi → tag berpindah status `unclaimed` → `claimed`. Sistem auto-set `premium_until = NOW() + 1 year`.
+8. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
 
 ### Alur User (Digital Journey)
 
@@ -70,6 +100,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **Slug Generator:** Menggunakan nanoid 12 karakter untuk keamanan dan ketidakprediktabilan.
 * **Verified Owner Badge:** Badge verifikasi untuk pemilik produk premium.
 * **Hero Finder Badge:** Badge "Pahlawan Penemu" untuk penemu barang yang menghubungi pemilik.
+* **Janji Hadiah (Premium):** Owner dapat menetapkan imbalan untuk penemu — pilihan dropdown preset (Rp 25.000, Rp 30.000, Rp 40.000) atau input kustom bebas (nominal uang, pulsa, top-up e-wallet, dll). Ditampilkan di halaman publik saat status hilang. User gratis melihat field ini terkunci dengan prompt upgrade: "🔒 Upgrade ke Premium untuk mengaktifkan fitur Janji Hadiah & tingkatkan peluang barang kembali hingga 80%!"
 
 ---
 
@@ -190,8 +221,16 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **vCard Sharing:** Share vCard magang.
 * **QR Generation:** Generate QR untuk jadwal/vCard.
 
+### Checkout & Payment API
+* **Shipping Cost:** Kalkulasi ongkir via RajaOngkir/Biteship (cascading dropdown Province → City → District).
+* **Voucher Validation:** Validasi kode voucher dengan atomic SQL query (anti-race condition).
+* **Midtrans Webhook:** Terima notifikasi settlement, trigger PIN generation & VDP queue.
+* **Grand Total:** Kalkulasi server-side saja (`Base Price + Shipping - Discount`).
+
 ### Cron Jobs
 * **Deadline Reminders:** Pengingat deadline tugas (terjadwal).
+* **CRM H+3:** Kirim WA otomatis 3 hari setelah pembelian untuk panduan aktivasi PIN fisik.
+* **CRM H-30:** Kirim WA reminder perpanjangan cloud (Rp 15.000/tahun) 30 hari sebelum `premium_until` berakhir.
 
 ---
 
@@ -205,13 +244,69 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
 ---
 
-## 11. Monetisasi (Revenue Streams)
+## 11. Monetisasi & Strategi Produk (9 SKU Comprehensive)
 
-1. **Direct Sales:** Penjualan satuan gantungan kunci (Standard: Rp29.000, Premium: Rp35.000).
-2. **Sticker Packs:** Stiker vinyl waterproof (Small: Rp25.000, Medium: Rp35.000, Large: Rp50.000).
-3. **Bundle Packages:** Paket tematik (Student Kit: Rp79.000, Otomotif: Rp59.000, Pertanian: Rp69.000, Diklat: Rp149.000).
-4. **Corporate/B2B:** Paket custom untuk sekolah, komunitas motor, tour & travel.
-5. **Premium Features (SaaS):** Biaya langganan kecil untuk fitur premium tracking history.
+### 11.1 Produk & Harga (Pricing Anchor Strategy)
+
+Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi **pricing anchor** (Balikin Armor Tag @ Rp 54.000):
+
+| # | Kategori | Produk | Harga | Target Market | Keunggulan Strategis |
+|:--:|:--|:--|--:|:--|:--|
+| 01 | **Digital** | Balikin Free Pass | Rp 0 | Penetrasi pasar, database builder | Hook: Akses gratis selamanya |
+| 02 | **Physical** | Balikin Armor Tag | Rp 54.000 | Pemilik premium individual | The Anchor: Pricing reference |
+| 03 | **Sticker** | Stiker Balikin Pro | Rp 59.000 | Professional (laptop, helm, koper) | 6-8 QR ukuran besar 3,5×3,5 cm |
+| 04 | **Sticker** | Stiker Balikin Daily | Rp 59.000 | Personal gadgets (botol, agenda, tablet) | 12-15 QR ukuran sedang 2,5×2,5 cm |
+| 05 | **Sticker** | Stiker Balikin Micro | Rp 59.000 | Mini items (TWS, powerbank, charger) | 20-24 QR ukuran saku 1,8×1,8 cm |
+| 06 | **Sticker** | Stiker Balikin Family ⭐ | Rp 59.000 | Keluarga (combo multi-ukuran) | BEST SELLER: 3 Besar + 4 Sedang + 5 Kecil |
+| 07 | **Bundle** | Balikin Ultimate Pack ⭐ | Rp 89.000 | Nilai terbaik | BEST VALUE: 1 Akrilik + 1 Family Stiker (Hemat Rp 24k) |
+| 08 | **Bundle** | Paket Keluarga | Rp 299.000 | 1 rumah (4 orang) | High Margin: 4× Ultimate Pack (Hemat Rp 57k) |
+| 09 | **Bundle** | Paket Traveller (B2B) | Rp 699.000 | Bisnis/Reseller | B2B Engine: 10× Ultimate Pack (Hemat Rp 191k) |
+
+### 11.2 Revenue Streams
+
+1. **Direct Sales (Retail):** Penjualan unit individual & bundle ke end-consumer
+   - Single products: Rp 54.000 - Rp 59.000
+   - Bundled packages: Rp 89.000 - Rp 699.000
+   - Margin target: 40-50% setelah COGS & logistik
+
+2. **Volume Sales (B2B):** Paket Traveller untuk rental, jasa trip, logistik, reseller
+   - MOQ: 10 sets (Rp 6.990/unit)
+   - Opportunity: Custom logo stiker untuk usaha
+
+3. **Cloud Subscription (SaaS):** Perpanjangan fitur premium post-Year-1
+   - WhatsApp Gateway renewal: Rp 15.000/tahun
+   - Target: 30-40% dari base premium users
+
+4. **Module System:** Modul tambahan khusus untuk niche market
+   - Student Kit (existing): Rp 79.000
+   - Otomotif, Pertanian, Diklat: Custom pricing model
+
+### 11.3 Strategi Go-to-Market
+
+**Freemium Digital-First**
+- Akuisisi pengguna gratis dengan minimal friction
+- Konversi 5-10% menjadi pembeli premium dalam 3 bulan
+- Lifetime value fokus pada repeat purchase (2-3 items per user)
+
+**Acquisition Funnel**
+1. Free Pass (landing hook) → 2. Awareness produk fisik → 3. First purchase (Ultimate Pack) → 4. Upgrade ke bundle (Keluarga) → 5. Referral B2B
+
+---
+
+## 11.4 Operasional Produksi (VDP Tool Engine)
+
+**Zero Manual Design Approach:** Seluruh proses cetak stiker multi-ukuran (A5 format) diatur secara otomatis menggunakan **VDP (Variable Data Printing) Tool**, mengeliminasi proses design manual oleh tim grafis.
+
+**Tracking & QC Workflow:**
+- Metadata Lembar: Sheet_ID otomatis dicetak di area waste kertas (contoh: `BLK-FAM-B01-0042`)
+- Database Mapping: Hubungan relasi Sheet_ID ↔ array tag_id disimpan di tabel `sticker_sheets`
+- Quality Control: Tim gudang scan barcode Sheet_ID untuk validasi integritas sebelum pengiriman
+
+**Benefit Operasional:**
+- Eliminasi desain manual → 80% lebih cepat
+- Risiko cetak rusak minimal via VDP koordinat grid
+- Scalable ke ribuan lembar tanpa quality degradation
+- Cost per unit tetap stabil meski volume naik
 
 ---
 
@@ -247,6 +342,15 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
   - Email OTP (better-auth/plugins)
   - Google OAuth support
   - WhatsApp OTP (custom integration)
+
+### Payment & Logistics
+* **Payment Gateway:** Midtrans (QRIS, GoPay, ShopeePay, Virtual Account)
+  - Snap Redirect untuk mobile deep-link e-wallet
+  - Webhook settlement untuk trigger post-payment automation
+* **Shipping:** RajaOngkir / Biteship API
+  - Timeout: 4 detik, fallback ke tarif flat
+  - Fallback: Kalimantan Selatan Rp 15.000, Luar Kalimantan Rp 35.000
+  - Origin: Gudang Hulu Sungai Selatan, Kalimantan Selatan
 
 ### QR Code & Generation
 * **QR Libraries:**
@@ -319,22 +423,37 @@ sessions - Session management
 accounts - OAuth accounts
 verifications - Email/OTP verification
 
-// Tags
-balikin_tags - Tag data (slug, owner, status, tier, module)
-balikin_scan_logs - Scan history (IP, location, device)
+// Products & Tags
+balikin_products - SKU master (9 products: Free Pass, Armor Tag, 4 Stickers, 3 Bundles)
+balikin_tags - Tag data (short_code, sheet_id, sku, tier, status, activation_pin, user_id, item_name, reward_active, premium_until)
+balikin_scan_logs - Scan history (IP, city, latitude, longitude, device)
+
+// Physical Product Tracking
+balikin_sticker_sheets - VDP tracking (Sheet_ID, package_type, batch_id)
+balikin_sticker_orders - Order tracking (order_id, status: pending/in_production/shipped/completed)
+balikin_order_bundles - Bundle-to-order mapping
 
 // Module Data
 balikin_student_modules - Student kit data
 balikin_emergency_info - Emergency medical data
 balikin_schedule_shares - Shared schedule codes
 
-// Orders
-balikin_sticker_orders - Sticker order tracking
-balikin_order_bundles - Bundle-to-order mapping
+// Checkout & Payments
+balikin_vouchers - Kode diskon (code, discount_type: fixed|percentage, discount_value, quota, used_count, expires_at)
+balikin_customer_segments - Segmentasi CRM (user_id, segment: pribadi|keluarga|bisnis)
 
-// Admin
+// Admin & Operations
 balikin_qr_stocks - QR stock management
+
+// Campaign Management (Multi-Campaign Landing Pages)
+balikin_campaign_leads - Campaign lead tracking (email, campaign_name, source, status, metadata)
 ```
+
+**Tag Lifecycle:**
+- **Unclaimed**: Baru dicetak, menunggu pembeli pertama claim
+- **Claimed**: User sudah mengaktifkan PIN, menjadi pemilik sah
+- **Lost Mode**: Status ditandai hilang, tampilan emergency di public page
+- **Blocked**: Perlu verifikasi manual (abuse/fraud)
 
 ---
 
@@ -360,12 +479,76 @@ balikin_qr_stocks - QR stock management
      - Notifikasi ke pemilik via WhatsApp/email
 
 5. **Free Tier Limit:**
-   * User gratis maksimal 5 tag.
-   * Premium unlimited sesuai pesanan.
+   * User gratis maksimal 2 tag digital.
+   * Premium unlimited sesuai pesanan (physical products).
+   * Fitur dasar gratis selamanya: Email notifications, IP-based location.
 
-6. **Module Activation:**
+6. **Premium Feature Activation:**
+   * **Seumur Hidup Gratis**: Media fisik + notifikasi email + estimasi lokasi IP
+   * **1 Tahun Gratis** (setelah pembelian): WhatsApp Gateway + Chat Anonim + GPS presisi
+   * **Perpanjangan Post-1Year**: Rp 15.000/tahun untuk cloud gateway (optional)
+   * Tujuan: Mencegah burn rate server sambil maintain healthy margin
+
+7. **Module Activation:**
    * Admin dapat mengaktifkan modul untuk tag tertentu.
    * Modul aktif menampilkan konten tambahan di halaman profil.
+   * Modul termasuk dalam akses premium (Student Kit, Otomotif, Pertanian, Diklat).
+
+8. **Checkout Security Rules:**
+   * **Anti-Race Condition (Voucher):** Validasi kuota dengan atomic PostgreSQL:
+     ```sql
+     UPDATE balikin_vouchers SET used_count = used_count + 1
+     WHERE code = $1 AND used_count < quota AND expires_at > NOW();
+     -- 0 rows affected → tolak diskon
+     ```
+   * **Server-side Pricing:** Grand Total wajib dihitung di Next.js backend, tidak boleh dari browser.
+   * **Anti-Enumeration:** `order_id` menggunakan nanoid (acak), bukan ID sequential.
+   * **RLS pada Orders:** `auth.uid() == user_id` — pembeli hanya bisa akses pesanannya sendiri.
+   * **Shipping Fallback:** Jika RajaOngkir/Biteship timeout (>4 detik), gunakan tarif flat cadangan.
+   * **Mobile Payment:** Deteksi perangkat mobile → tampilkan deep-link e-wallet, bukan gambar QRIS.
+
+9. **CRM & Retargeting Rules:**
+   * Segmentasi pengguna (Pribadi/Keluarga/Bisnis) wajib dikumpulkan saat checkout.
+   * Data email & WhatsApp digunakan untuk Custom Audiences di Meta/Google Ads.
+   * Pembelian dengan segmentasi "Bisnis" masuk ke pipeline penawaran kemitraan stiker custom.
+
+---
+
+## 14.5 Campaign System (Multi-Campaign Landing Pages)
+
+**Tujuan:** Platform untuk menjalankan multiple campaigns dengan lead tracking terpisah per campaign.
+
+**Architecture:**
+- Route Groups: `app/(campaigns)` untuk isolasi dari home page utama
+- URL Format: `/first-launch`, `/campaign-two`, dll (tanpa prefix `/campaigns/`)
+- Database: `balikin_campaign_leads` dengan kolom `campaign_name` untuk tracking
+
+**Core Features:**
+1. **Reusable Server Action** (`app/actions/campaign.ts`):
+   - `subscribeCampaignLead()` - Register email ke campaign specific
+   - `unsubscribeCampaignLead()` - Unsubscribe
+   - `getCampaignLeads()` - Analytics per campaign
+
+2. **Client Component** (`components/campaign-form.tsx`):
+   - Email validation & submission
+   - Success/error messaging
+   - Accepts `campaignName` prop untuk tracking
+
+3. **Campaign Pages** (`app/(campaigns)/[campaign-slug]/page.tsx`):
+   - Custom landing page per campaign
+   - Metadata, copywriting, CTA buttons
+   - Automatic lead tracking by campaign_name
+
+**Scaling Strategy (Copy-Paste):**
+- Create new folder: `app/(campaigns)/campaign-slug/`
+- Copy existing campaign page
+- Update `campaignName` prop dan content
+- Database otomatis track by `campaign_name`
+
+**Lead Tracking:**
+- Setiap signup disimpan dengan metadata: `{ campaign_name, source, timestamp }`
+- Query analytics: `SELECT COUNT(*) FROM balikin_campaign_leads WHERE campaign_name = ?`
+- Email deduplikasi: Hanya satu entry per email per campaign
 
 ---
 
@@ -382,7 +565,9 @@ balikin_qr_stocks - QR stock management
 * **Mobile UI:** Responsive design untuk mobile.
 
 ### 🚧 Sedang Dalam Pengembangan
-* **Layout Editor:** Custom sticker design.
+* **Checkout System:** Halaman checkout dengan Midtrans QRIS, voucher, dan kalkulasi ongkir.
+* **CRM Automation:** Trigger WA H+3 aktivasi PIN dan H-30 reminder perpanjangan cloud.
+* **Layout Editor:** Custom sticker design via VDP Tool.
 * **Advanced Analytics:** Scan heatmap dan location tracking.
 * **Push Notifications:** Real-time scan alerts.
 

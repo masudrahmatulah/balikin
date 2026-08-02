@@ -13,7 +13,7 @@ export function BulkGenerationSection({ adminId, onGenerated }: BulkGenerationSe
   const [formData, setFormData] = useState({
     batchName: "",
     quantity: 100,
-    materialType: "sticker" as "sticker" | "acrylic",
+    materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a4" as "a4" | "a3",
     stickerShape: "circle" as "circle" | "square" | "rectangle",

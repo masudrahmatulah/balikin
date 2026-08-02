@@ -242,3 +242,204 @@ export async function sendScanAlertEmail(options: ScanAlertEmailOptions): Promis
   const { subject, html } = generateScanAlertEmail(templateOptions);
   await sendEmail({ to: email, subject, html });
 }
+
+interface BlogCommentEmailOptions {
+  email: string;
+  postTitle: string;
+  commentAuthor: string;
+  commentText: string;
+  postUrl: string;
+}
+
+interface BlogGiveawayWinnerEmailOptions {
+  email: string;
+  fullName: string;
+  postTitle: string;
+  trackingNumber?: string;
+  prizeUrl?: string;
+}
+
+interface BlogTrueStorySubmissionEmailOptions {
+  adminEmail: string;
+  submitterName: string;
+  storyTitle: string;
+  videoUrl: string;
+  reviewUrl: string;
+}
+
+function generateBlogCommentEmail({
+  postTitle,
+  commentAuthor,
+  commentText,
+  postUrl,
+}: Omit<BlogCommentEmailOptions, 'email'>): { subject: string; html: string } {
+  const subject = `Komentar baru pada artikel: "${postTitle}"`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #0f172a; }
+    .container { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    .eyebrow { color: #2563eb; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; }
+    .title { font-size: 24px; margin: 12px 0 8px; }
+    .text { color: #475569; line-height: 1.7; margin: 0 0 16px; }
+    .comment-box { background: #f1f5f9; border-left: 4px solid #2563eb; padding: 16px; margin: 20px 0; border-radius: 8px; }
+    .comment-author { font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+    .comment-text { color: #475569; font-style: italic; }
+    .button { display: inline-block; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px; }
+    .footer { color: #94a3b8; font-size: 13px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="eyebrow">Blog Comment</div>
+      <h1 class="title">Komentar Baru pada Artikel "${postTitle}"</h1>
+      <p class="text">${commentAuthor} baru saja meninggalkan komentar:</p>
+      <div class="comment-box">
+        <div class="comment-author">${commentAuthor}</div>
+        <div class="comment-text">"${commentText}"</div>
+      </div>
+      <p class="text">Lihat komentar dan balas langsung dari halaman artikel.</p>
+      <a href="${postUrl}" class="button">Lihat Komentar</a>
+      <p class="footer">&copy; ${new Date().getFullYear()} Balikin. Notifikasi ini dikirim otomatis karena komentar baru pada artikel blog.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return { subject, html };
+}
+
+function generateBlogGiveawayWinnerEmail({
+  fullName,
+  postTitle,
+  trackingNumber,
+  prizeUrl,
+}: Omit<BlogGiveawayWinnerEmailOptions, 'email'>): { subject: string; html: string } {
+  const subject = `Selamat! Anda Menang Giveaway "${postTitle}"`;
+
+  const trackingInfo = trackingNumber
+    ? `<p class="text"><strong>Nomor Resi:</strong> ${trackingNumber}</p>`
+    : '';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #0f172a; }
+    .container { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    .eyebrow { color: #7c3aed; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; }
+    .title { font-size: 24px; margin: 12px 0 8px; color: #1e293b; }
+    .text { color: #475569; line-height: 1.7; margin: 0 0 16px; }
+    .winner-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 16px 24px; border-radius: 12px; text-align: center; margin: 24px 0; }
+    .winner-text { font-size: 18px; font-weight: 700; margin: 0; }
+    .tracking-box { background: #f1f5f9; padding: 16px; margin: 16px 0; border-radius: 8px; }
+    .button { display: inline-block; background: #7c3aed; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px; }
+    .footer { color: #94a3b8; font-size: 13px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="eyebrow">Giveaway Winner</div>
+      <div class="winner-badge">
+        <div class="winner-text">🎉 SELAMAT! ANDA PEMENANG!</div>
+      </div>
+      <h1 class="title">Anda Memenangkan Giveaway "${postTitle}"</h1>
+      <p class="text">Halo ${fullName},</p>
+      <p class="text">Selamat! Anda telah terpilih sebagai pemenang giveaway kami. Hadiah Anda sedang dipersiapkan untuk dikirim.</p>
+      ${trackingInfo}
+      <div class="tracking-box">
+        <p class="text"><strong>Status:</strong> Sedang diproses</p>
+        <p class="text">Hadiah akan dikirim ke alamat yang Anda daftarkan dalam 3-5 hari kerja.</p>
+      </div>
+      ${prizeUrl ? `<a href="${prizeUrl}" class="button">Lihat Detail Hadiah</a>` : ''}
+      <p class="footer">&copy; ${new Date().getFullYear()} Balikin. Terima kasih telah berpartisipasi dalam giveaway kami!</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return { subject, html };
+}
+
+function generateBlogTrueStorySubmissionEmail({
+  submitterName,
+  storyTitle,
+  videoUrl,
+  reviewUrl,
+}: Omit<BlogTrueStorySubmissionEmailOptions, 'adminEmail'>): { subject: string; html: string } {
+  const subject = `True Story Baru: "${storyTitle}" dari ${submitterName}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 0; background: #f8fafc; color: #0f172a; }
+    .container { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); }
+    .eyebrow { color: #2563eb; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; }
+    .title { font-size: 24px; margin: 12px 0 8px; }
+    .text { color: #475569; line-height: 1.7; margin: 0 0 16px; }
+    .info { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 18px; margin: 20px 0; }
+    .button { display: inline-block; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; margin-top: 16px; }
+    .footer { color: #94a3b8; font-size: 13px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="eyebrow">True Story Submission</div>
+      <h1 class="title">True Story Baru: "${storyTitle}"</h1>
+      <p class="text"><strong>Submitter:</strong> ${submitterName}</p>
+      <div class="info">
+        <p class="text"><strong>Judul Story:</strong> ${storyTitle}</p>
+        <p class="text"><strong>Video URL:</strong> <a href="${videoUrl}" style="color: #2563eb;">${videoUrl}</a></p>
+      </div>
+      <p class="text">Submission baru menunggu review Anda. Verifikasi dan tentukan apakah layak mendapatkan jaket gratis.</p>
+      <a href="${reviewUrl}" class="button">Review Submission</a>
+      <p class="footer">&copy; ${new Date().getFullYear()} Balikin. Notifikasi ini dikirim otomatis karena ada submission True Story baru.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return { subject, html };
+}
+
+export async function sendBlogCommentEmail(options: BlogCommentEmailOptions): Promise<void> {
+  const { email, ...templateOptions } = options;
+  const { subject, html } = generateBlogCommentEmail(templateOptions);
+  await sendEmail({ to: email, subject, html });
+}
+
+export async function sendBlogGiveawayWinnerEmail(options: BlogGiveawayWinnerEmailOptions): Promise<void> {
+  const { email, ...templateOptions } = options;
+  const { subject, html } = generateBlogGiveawayWinnerEmail(templateOptions);
+  await sendEmail({ to: email, subject, html });
+}
+
+export async function sendBlogTrueStorySubmissionEmail(options: BlogTrueStorySubmissionEmailOptions): Promise<void> {
+  const { adminEmail: email, ...templateOptions } = options;
+  const { subject, html } = generateBlogTrueStorySubmissionEmail(templateOptions);
+  await sendEmail({ to: email, subject, html });
+}

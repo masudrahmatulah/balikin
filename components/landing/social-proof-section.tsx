@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Badge } from '@/components/landing/badge';
-import { Shield, Gift, Smartphone, Zap } from 'lucide-react';
+import { Shield, Gift, Smartphone, Zap, ShieldCheck } from 'lucide-react';
 import { TestimonialCard, testimonials } from '@/components/landing/testimonial-card';
 
 export function SocialProofSection() {
@@ -32,11 +32,19 @@ export function SocialProofSection() {
 
       {/* Testimonials */}
       <ScrollReveal delay={0.3}>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
           {testimonials.slice(0, 3).map((testimonial, index) => (
             <TestimonialCard key={index} testimonial={testimonial} index={index} />
           ))}
         </div>
+      </ScrollReveal>
+
+      <ScrollReveal delay={0.4}>
+        <p className="flex items-center justify-center gap-2 text-sm text-gray-500">
+          <ShieldCheck className="h-4 w-4 text-blue-600" aria-hidden="true" />
+          Upgrade ke lisensi premium untuk mendapatkan{' '}
+          <span className="font-semibold text-gray-700">⭐ Verified Owner Badge</span> di halaman publik Anda.
+        </p>
       </ScrollReveal>
     </section>
   );

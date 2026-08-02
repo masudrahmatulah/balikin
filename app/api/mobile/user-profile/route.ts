@@ -6,7 +6,6 @@ import { eq, count, and, gte, desc, inArray, sql } from 'drizzle-orm';
 import { subDays } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 30;
 
 export async function GET() {
   try {
@@ -23,7 +22,7 @@ export async function GET() {
     const thirtyDaysAgo = subDays(new Date(), 30);
 
     const userTags = await db.query.tags.findMany({
-      where: and(eq(tags.ownerId, userId), eq(tags.appId, 'balikin_id')),
+      where: and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')),
       columns: {
         id: true,
         name: true,
@@ -48,6 +47,7 @@ export async function GET() {
         stats: {
           activeTags: 0,
           totalTags: 0,
+          lostTags: 0,
           totalScans: 0,
           returnedItems: 0,
         },
@@ -56,6 +56,7 @@ export async function GET() {
     }
 
     const activeTagCount = userTags.filter(tag => tag.status !== 'lost').length;
+    const lostTagCount = userTags.filter(tag => tag.status === 'lost').length;
 
     const tagIds = userTags.map(tag => tag.id);
 
@@ -103,6 +104,7 @@ export async function GET() {
       stats: {
         activeTags: activeTagCount,
         totalTags: userTags.length,
+        lostTags: lostTagCount,
         totalScans,
         returnedItems,
       },
