@@ -177,13 +177,13 @@ export async function getVerificationQueue(limit = 10) {
   const cache = unstable_cache(
     async (limit = 10) => {
       // Get users who have requested verification but not yet approved
-      // This assumes there's a verification request mechanism
-      // For now, we'll look for users with isVerified = false
+      // Note: user.isVerified column doesn't exist in schema, returning empty for now
+      // This is a placeholder for future verification request system
 
       try {
-        const unverifiedUsers = await withQueryTimeout(
+        // Query for recent users as placeholder (no isVerified filter)
+        const recentUsers = await withQueryTimeout(
           () => db.query.user.findMany({
-            where: eq(user.isVerified, false),
             orderBy: [desc(user.createdAt)],
             limit,
             columns: {
@@ -198,12 +198,8 @@ export async function getVerificationQueue(limit = 10) {
           2000
         );
 
-        return unverifiedUsers.map(u => ({
-          id: u.id,
-          name: u.name || u.email,
-          email: u.email,
-          requestedAt: u.createdAt?.toISOString() || new Date().toISOString(),
-        }));
+        // Return empty for now - verification system not implemented
+        return [];
       } catch (e) {
         console.warn("Could not query verification queue:", e);
         return [];

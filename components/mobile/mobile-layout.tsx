@@ -3,15 +3,13 @@
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Home,
-  PlusCircle,
-  User,
-  QrCode
+  User
 } from 'lucide-react';
 import { useState } from 'react';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
-  activeTab?: 'home' | 'report' | 'profile';
+  activeTab?: 'home' | 'profile';
 }
 
 export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps) {
@@ -21,7 +19,6 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
 
   const tabs = [
     { id: 'home', label: 'Beranda', icon: Home, path: '/mobile' },
-    { id: 'report', label: 'Lapor', icon: PlusCircle, path: '/mobile/report' },
     { id: 'profile', label: 'Profil', icon: User, path: '/mobile/profile' },
   ];
 
@@ -33,7 +30,7 @@ export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps
   return (
     <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       {/* Main Content Area */}
-      <div className="max-w-md mx-auto pb-24 min-h-screen">
+      <div className="w-full max-w-md mx-auto pb-24 min-h-screen overflow-x-hidden">
         {children}
       </div>
 

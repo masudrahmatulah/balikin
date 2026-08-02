@@ -7,6 +7,7 @@ import { ArrowRight, Shield, CheckCircle2, TrendingUp, Users } from 'lucide-reac
 import { StatsBanner } from '@/components/landing/stat-counter';
 import { UrgencyBadge } from '@/components/landing/urgency-badge';
 import { FloatingIcon } from '@/components/landing/floating-icon';
+import { GallerySlider } from '@/components/landing/gallery-slider';
 import { Key, Shield as ShieldIcon, QrCode } from 'lucide-react';
 
 export function HeroSection() {
@@ -27,7 +28,7 @@ export function HeroSection() {
           className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
         >
           <Shield className="h-4 w-4" />
-          Smart Lost & Found Platform Indonesia
+          Platform Smart Lost and Found Indonesia Terdepan
         </motion.div>
 
         <motion.h1
@@ -36,11 +37,11 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight"
         >
-          <span className="gradient-text">Kunci Hilang?</span>{' '}
+          <span className="gradient-text">Balikin Smart Tag: QR Code Anti Hilang dengan Privasi 100% Terjaga</span>{' '}
           <br className="hidden md:block" />
-          Dompet Ketemu Tapi Bingung{' '}
+          Gantungan Kunci QR Code Dinamis untuk{' '}
           <br className="hidden md:block" />
-          <span className="text-red-500">Hubungi Pemiliknya?</span>
+          <span className="text-red-500">Sistem Pelacakan Barang Hilang Modern</span>
         </motion.h1>
 
         <motion.p
@@ -49,8 +50,9 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto"
         >
-          Pernah nemu barang tapi bingung gimana cara balikinnya?{' '}
-          <span className="font-semibold text-gray-800">Atau pernah hilang barang dan berharap ada yang baik mengembalikannya?</span>
+          <span className="font-semibold text-gray-800">Platform Smart Lost and Found Indonesia</span> berbasis QR Code dinamis terkemuka.
+          Sistem identifikasi barang dengan <span className="font-semibold text-gray-800">QR code WhatsApp 100% anonim</span> - penemu tidak bisa lihat nomor asli Anda.
+          Lacak lokasi scan real-time, aktifkan Mode Hilang darurat dengan desain emergency.
         </motion.p>
 
         <motion.p
@@ -59,7 +61,8 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-lg text-gray-500 mb-8 max-w-xl mx-auto"
         >
-          Balikin hadir sebagai jembatan kebaikan. QR code dinamis yang menghubungkan barang hilang dengan pemiliknya—tanpa kompromi privasi.
+          Solusi terpadu <span className="font-semibold text-gray-700">gantungan kunci anti hilang</span> dengan teknologi
+          <span className="font-semibold text-gray-700"> anonymous WhatsApp gateway</span> terdepan. Sistem pelacakan QR code yang memberikan privasi maksimal dan ketenangan pikiran untuk setiap barang berharga Anda.
         </motion.p>
 
         <motion.div
@@ -73,7 +76,7 @@ export function HeroSection() {
               size="lg"
               className="text-lg px-8 py-6 shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all animate-glow-pulse"
             >
-              Mulai Sekarang, Gratis Selamanya
+              Dapatkan Proteksi Gratis Sekarang
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -97,11 +100,49 @@ export function HeroSection() {
           </Button>
         </motion.div>
 
+        {/* Hero Video */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mb-12 max-w-4xl mx-auto w-full px-4"
+        >
+          <div className="relative w-full rounded-2xl shadow-2xl overflow-hidden" style={{ aspectRatio: '16 / 9', backgroundColor: '#000' }}>
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/K-lBpr5fQ-U?fs=1"
+              title="putar"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+              loading="lazy"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                border: 'none',
+              }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Gallery Slider */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mb-12 max-w-4xl mx-auto w-full px-4"
+        >
+          <GallerySlider />
+        </motion.div>
+
         {/* Hero Statistics */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
           className="bg-white rounded-2xl shadow-xl p-6 max-w-2xl mx-auto"
         >
           <StatsBanner
@@ -110,7 +151,6 @@ export function HeroSection() {
                 value: 1000,
                 suffix: '+',
                 label: 'Tag Terdaftar',
-                icon: <QrCode className="h-6 w-6 text-blue-600" aria-hidden="true" />,
               },
               {
                 value: 100,

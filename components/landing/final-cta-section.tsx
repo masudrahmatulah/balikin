@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
-import { ArrowRight, AlertCircle, MessageCircle } from 'lucide-react';
-import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
+import { ArrowRight, AlertCircle, ShoppingCart, MessageCircle } from 'lucide-react';
 import { TestimonialCard, testimonials } from '@/components/landing/testimonial-card';
 
 export function FinalCTASection() {
@@ -95,14 +94,15 @@ export function FinalCTASection() {
                 Dapatkan gantungan kunci dengan QR code berkualitas tinggi yang tahan air, anti-gores, dan desain kekinian.
                 Hubungi kami via WhatsApp untuk pemesanan.
               </p>
-              <Button
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/30"
-                onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=Halo%2C%20saya%20tertarik%20untuk%20pesan%20QR%20Tag%20fisik%20Balikin`, '_blank')}
-              >
-                <MessageCircle className="mr-2 h-5 w-5" aria-hidden="true" />
-                Pesan via WhatsApp
-              </Button>
+              <Link href="/stickers/checkout">
+                <Button
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/30"
+                >
+                  <ShoppingCart className="mr-2 h-5 w-5" aria-hidden="true" />
+                  Pesan Sekarang
+                </Button>
+              </Link>
               <p className="text-sm text-gray-500 mt-4">
                 Bisa custom nama/logo untuk hadiah atau corporate
               </p>

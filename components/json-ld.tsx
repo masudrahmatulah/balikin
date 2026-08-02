@@ -193,3 +193,41 @@ export function ContactPointJsonLd({
     />
   );
 }
+
+interface OrganizationJsonLdProps {
+  name?: string;
+  description?: string;
+  url?: string;
+  logo?: string;
+  sameAs?: string[];
+}
+
+export function OrganizationJsonLd({
+  name = 'Balikin',
+  description = 'Platform smart lost and found Indonesia dengan teknologi QR Smart Tag untuk melindungi barang berharga Anda.',
+  url = 'https://balikin.online',
+  logo = 'https://balikin.online/logo-icon.png',
+  sameAs = ['https://instagram.com/balikin.online'],
+}: OrganizationJsonLdProps) {
+  return (
+    <JsonLd
+      id="organization-schema"
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name,
+        description,
+        url,
+        logo,
+        sameAs,
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'Customer Service',
+          telephone: '+6281234567890',
+          areaServed: 'ID',
+          availableLanguage: 'Indonesian',
+        },
+      }}
+    />
+  );
+}

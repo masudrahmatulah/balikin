@@ -126,6 +126,141 @@ export const ImportScheduleSchema = z.object({
 });
 
 // ============================================================================
+// BLOG VALIDATION SCHEMAS
+// ============================================================================
+
+export const BlogCommentSchema = z.object({
+  postId: z.string().uuid('Post ID tidak valid'),
+  parentId: z.string().uuid('Parent Comment ID tidak valid').optional(),
+  name: z.string()
+    .min(1, 'Nama wajib diisi')
+    .max(100, 'Nama terlalu panjang (maksimal 100 karakter)')
+    .transform((val) => val.trim()),
+  whatsapp: z.string()
+    .regex(/^(\+62|62|0)[0-9]{9,12}$/, 'Format WhatsApp tidak valid (contoh: 08123456789)')
+    .transform((val) => val.replace(/[\s\-]/g, '')),
+  commentText: z.string()
+    .min(3, 'Komentar minimal 3 karakter')
+    .max(2000, 'Komentar terlalu panjang (maksimal 2000 karakter)')
+    .transform((val) => val.trim()),
+});
+
+export const GiveawayClaimSchema = z.object({
+  postId: z.string().uuid('Post ID tidak valid'),
+  quizId: z.string().min(1, 'Quiz ID wajib diisi'),
+  fullName: z.string()
+    .min(2, 'Nama lengkap minimal 2 karakter')
+    .max(100, 'Nama terlalu panjang')
+    .transform((val) => val.trim()),
+  whatsappNumber: z.string()
+    .regex(/^(\+62|62|0)[0-9]{9,12}$/, 'Format WhatsApp tidak valid')
+    .transform((val) => val.replace(/[\s\-]/g, '')),
+  shippingAddress: z.string()
+    .min(20, 'Alamat lengkap minimal 20 karakter')
+    .max(500, 'Alamat terlalu panjang')
+    .transform((val) => val.trim()),
+  score: z.number()
+    .int('Skor harus bilangan bulat')
+    .min(0, 'Skor tidak boleh negatif')
+    .max(100, 'Skor maksimal 100'),
+});
+
+export const TrueStorySubmissionSchema = z.object({
+  fullName: z.string()
+    .min(2, 'Nama lengkap minimal 2 karakter')
+    .max(100, 'Nama terlalu panjang')
+    .transform((val) => val.trim()),
+  whatsappNumber: z.string()
+    .regex(/^(\+62|62|0)[0-9]{9,12}$/, 'Format WhatsApp tidak valid')
+    .transform((val) => val.replace(/[\s\-]/g, '')),
+  balikinTagId: z.string()
+    .min(1, 'ID Tag wajib diisi')
+    .max(50, 'ID Tag terlalu panjang')
+    .regex(/^BLK[-_]?[A-Z0-9]+$/i, 'Format ID Tag tidak valid (contoh: BLK-12345)')
+    .transform((val) => val.trim().toUpperCase()),
+  storyTitle: z.string()
+    .min(10, 'Judul kisah minimal 10 karakter')
+    .max(200, 'Judul terlalu panjang')
+    .transform((val) => val.trim()),
+  storyText: z.string()
+    .min(50, 'Cerita kisah minimal 50 karakter')
+    .max(5000, 'Cerita terlalu panjang')
+    .transform((val) => val.trim()),
+  videoUrl: z.string()
+    .url('URL video tidak valid')
+    .max(500, 'URL terlalu panjang')
+    .refine((val) => {
+      const allowedHosts = ['tiktok.com', 'vm.tiktok.com', 'instagram.com', 'drive.google.com'];
+      try {
+        const hostname = new URL(val).hostname;
+        return allowedHosts.some(host => hostname.includes(host));
+      } catch {
+        return false;
+      }
+    }, 'URL harus dari TikTok, Instagram, atau Google Drive'),
+  jacketSize: z.enum(['S', 'M', 'L', 'XL', 'XXL'], {
+    errorMap: () => ({ message: 'Ukuran jaket harus S, M, L, XL, atau XXL' }),
+  }),
+  shippingAddress: z.string()
+    .min(20, 'Alamat lengkap minimal 20 karakter')
+    .max(500, 'Alamat terlalu panjang')
+    .transform((val) => val.trim()),
+});
+
+export const BlogPostCreateSchema = z.object({
+  title: z.string()
+    .min(5, 'Judul artikel minimal 5 karakter')
+    .max(200, 'Judul terlalu panjang')
+    .transform((val) => val.trim()),
+  slug: z.string()
+    .min(1, 'Slug wajib diisi')
+    .max(100, 'Slug terlalu panjang')
+    .regex(/^[a-z0-9-_]+$/, 'Slug hanya boleh huruf kecil, angka, tanda hubung (-), dan underscore (_)')
+    .transform((val) => val.toLowerCase().trim()),
+  summary: z.string()
+    .min(50, 'Ringkasan minimal 50 karakter')
+    .max(500, 'Ringkasan terlalu panjang')
+    .transform((val) => val.trim()),
+  content: z.string()
+    .min(100, 'Konten artikel minimal 100 karakter')
+    .max(50000, 'Konten terlalu panjang'),
+  coverImage: z.string().url('URL gambar cover tidak valid').optional().or(z.literal('')),
+  modules: z.array(z.any()).optional(),
+  authorName: z.string().max(100).optional(),
+  reviewedBy: z.string().max(100).optional(),
+  reviewedByTitle: z.string().max(100).optional(),
+  metaDescription: z.string().max(300).optional(),
+  metaKeywords: z.string().max(200).optional(),
+  focusKeyword: z.string().max(100).optional(),
+  isPublished: z.boolean().optional(),
+  scheduledAt: z.string().datetime('Format tanggal tidak valid').optional(),
+});
+
+export const BlogPostUpdateSchema = BlogPostCreateSchema.partial().extend({
+  id: z.string().uuid('Post ID tidak valid'),
+});
+
+export const BlogCommentModerationSchema = z.object({
+  commentId: z.string().uuid('Comment ID tidak valid'),
+  isApproved: z.boolean().optional(),
+  isGiveawayWinner: z.boolean().optional(),
+});
+
+export const GiveawayClaimModerationSchema = z.object({
+  claimId: z.string().uuid('Claim ID tidak valid'),
+  status: z.enum(['pending', 'approved', 'shipped', 'rejected']),
+  trackingNumber: z.string().max(100).optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const TrueStoryModerationSchema = z.object({
+  submissionId: z.string().uuid('Submission ID tidak valid'),
+  status: z.enum(['pending', 'verified', 'winner_jacket', 'rejected']),
+  trackingNumber: z.string().max(100).optional(),
+  rejectionReason: z.string().max(500).optional(),
+});
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -135,3 +270,12 @@ export type DriveLinkItem = z.infer<typeof DriveLinkItemSchema>;
 export type VCData = z.infer<typeof VCDataSchema>;
 export type UpdateStudentKitInput = z.infer<typeof UpdateStudentKitSchema>;
 export type UpdateInternshipVCardInput = z.infer<typeof UpdateInternshipVCardSchema>;
+
+export type BlogCommentInput = z.infer<typeof BlogCommentSchema>;
+export type GiveawayClaimInput = z.infer<typeof GiveawayClaimSchema>;
+export type TrueStorySubmissionInput = z.infer<typeof TrueStorySubmissionSchema>;
+export type BlogPostCreateInput = z.infer<typeof BlogPostCreateSchema>;
+export type BlogPostUpdateInput = z.infer<typeof BlogPostUpdateSchema>;
+export type BlogCommentModerationInput = z.infer<typeof BlogCommentModerationSchema>;
+export type GiveawayClaimModerationInput = z.infer<typeof GiveawayClaimModerationSchema>;
+export type TrueStoryModerationInput = z.infer<typeof TrueStoryModerationSchema>;

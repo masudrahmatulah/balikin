@@ -471,9 +471,26 @@ export const TagCard = memo(function TagCard({
                 </div>
               </div>
               <div className="flex items-center gap-3 flex-shrink-0">
-                <div className="text-right">
+                <div className="text-right hidden sm:block">
                   <p className="text-xs text-slate-500">{scanCount} scans</p>
                   {createdLabel && <p className="text-xs text-slate-400" suppressHydrationWarning>{createdLabel}</p>}
+                </div>
+                {/* Lost mode quick toggle — stop propagation so collapsible doesn't open */}
+                <div onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusToggle(!isLost)}
+                    disabled={isLoading}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                      isLost
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                    aria-label={isLost ? `Nonaktifkan mode hilang ${name}` : `Aktifkan mode hilang ${name}`}
+                  >
+                    <AlertTriangle className="h-3 w-3" />
+                    {isLost ? 'Hilang' : 'Normal'}
+                  </button>
                 </div>
                 <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>
@@ -484,17 +501,12 @@ export const TagCard = memo(function TagCard({
         {/* Expanded Content - Only Visible When Open */}
         <CollapsibleContent>
           <CardContent className="space-y-4">
-            <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
-              <div className="flex items-start gap-3">
-                <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
-                  {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
-                </div>
-              </div>
-            </div>
+            <InsightSection
+              isLost={isLost}
+              scanCount={scanCount}
+              isFreeTag={isFreeTag}
+              isStickerTag={isStickerTag}
+            />
 
             {isLost && (
               <Alert variant="destructive" className="border-red-200 bg-red-100/80 text-red-950">

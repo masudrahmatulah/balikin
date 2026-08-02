@@ -6,6 +6,7 @@ import { and, desc, eq, gte } from 'drizzle-orm';
 import { logScan } from '@/app/actions/scan';
 import { MobileClaim } from '@/components/mobile/mobile-claim';
 import { JsonLd } from '@/components/json-ld';
+import { isFreeProduct, isStickerProduct } from '@/lib/product';
 
 interface MobileClaimPageProps {
   params: Promise<{ slug: string }>;
@@ -66,14 +67,12 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     notFound();
   }
 
-  // Log scan if status is lost (non-cached for real-time tracking)
-  if (tag.status === 'lost') {
-    logScan(tag.id);
-  }
+  // Log scan for all tag visits (non-blocking)
+  logScan(tag.id).catch(console.error);
 
   const isLost = tag.status === 'lost';
-  const isFreeTag = tag.productType === 'free';
-  const isStickerTag = tag.productType === 'sticker';
+  const isFreeTag = isFreeProduct(tag);
+  const isStickerTag = isStickerProduct(tag);
 
   // Get recent scan logs and emergency info in parallel
   let recentScans: typeof scanLogs.$inferSelect[] = [];
@@ -121,6 +120,7 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
         isLost={isLost}
         isFreeTag={isFreeTag}
         isStickerTag={isStickerTag}
+        isUnclaimed={!tag.ownerId}
         recentScans={recentScans}
         emergencyInfo={emergencyInfo}
       />

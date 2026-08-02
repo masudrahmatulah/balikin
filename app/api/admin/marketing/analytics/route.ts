@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { user, tags, stickerOrders, scanLogs, userModuleSelections } from "@/db/schema";
-import { count, eq, sql, desc, gte, and } from "drizzle-orm";
+import { count, eq, sql, desc, gte, lt, and } from "drizzle-orm";
 import { subDays, subMonths, format } from "date-fns";
 
 export const runtime = "nodejs";
@@ -28,20 +28,16 @@ export async function GET(request: NextRequest) {
     // Calculate date range
     const now = new Date();
     let startDate: Date;
-    let groupBy: string;
 
     switch (timeRange) {
       case "daily":
         startDate = subDays(now, 7);
-        groupBy = "day";
         break;
       case "monthly":
         startDate = subMonths(now, 12);
-        groupBy = "month";
         break;
       default: // weekly
         startDate = subDays(now, 28);
-        groupBy = "week";
     }
 
     // Conversion Funnel Data
@@ -96,8 +92,8 @@ export async function GET(request: NextRequest) {
 
     // Finder to Buyer Data
     const recentScans = await db.query.scanLogs.findMany({
-      where: gte(scanLogs.createdAt, startDate),
-      orderBy: [desc(scanLogs.createdAt)],
+      where: gte(scanLogs.scannedAt, startDate),
+      orderBy: [desc(scanLogs.scannedAt)],
     });
 
     const findersCount = recentScans.length;
@@ -132,7 +128,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(user.createdAt, new Date(date.setHours(0, 0, 0, 0))),
-              sql`${user.createdAt} < ${new Date(date.setHours(23, 59, 59, 999))}`
+              lt(user.createdAt, new Date(date.setHours(23, 59, 59, 999)))
             )
           );
 
@@ -142,7 +138,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(stickerOrders.createdAt, new Date(date.setHours(0, 0, 0, 0))),
-              sql`${stickerOrders.createdAt} < ${new Date(date.setHours(23, 59, 59, 999))}`
+              lt(stickerOrders.createdAt, new Date(date.setHours(23, 59, 59, 999)))
             )
           );
 
@@ -166,7 +162,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(user.createdAt, weekStart),
-              sql`${user.createdAt} < ${weekEnd}`
+              lt(user.createdAt, weekEnd)
             )
           );
 
@@ -176,7 +172,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(stickerOrders.createdAt, weekStart),
-              sql`${stickerOrders.createdAt} < ${weekEnd}`
+              lt(stickerOrders.createdAt, weekEnd)
             )
           );
 
@@ -200,7 +196,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(user.createdAt, monthStart),
-              sql`${user.createdAt} < ${monthEnd}`
+              lt(user.createdAt, monthEnd)
             )
           );
 
@@ -210,7 +206,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               gte(stickerOrders.createdAt, monthStart),
-              sql`${stickerOrders.createdAt} < ${monthEnd}`
+              lt(stickerOrders.createdAt, monthEnd)
             )
           );
 
@@ -230,7 +226,12 @@ export async function GET(request: NextRequest) {
       timeSeriesData,
     });
   } catch (error) {
-    console.error("Analytics API error:", error);
+    console.error(
+      "Analytics API error:",
+      error,
+      "cause:",
+      error instanceof Error ? (error as Error & { cause?: unknown }).cause : undefined
+    );
     return NextResponse.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }

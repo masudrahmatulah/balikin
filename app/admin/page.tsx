@@ -48,14 +48,14 @@ export default async function AdminPage() {
       {/* Page Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Dashboard Overview</h1>
+          <h1 className="text-2xl font-display font-bold text-primary">Dashboard Overview</h1>
           <p className="text-sm text-gray-500 mt-1">
             Real-time metrics and operational controls
           </p>
         </div>
         <nav className="flex gap-3" aria-label="Dashboard actions">
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-tertiary/40 focus:outline-none transition-colors"
             aria-label="Search dashboard"
             type="button"
           >
@@ -63,7 +63,7 @@ export default async function AdminPage() {
             <span>Search</span>
           </button>
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 focus:ring-2 focus:ring-tertiary/40 focus:ring-offset-2 focus:outline-none transition-colors shadow-sm"
             aria-label="Export dashboard data as CSV"
             type="button"
           >
@@ -86,8 +86,8 @@ export default async function AdminPage() {
 
       {/* Operational Overview Section */}
       <section aria-labelledby="operational-overview-heading">
-        <h2 id="operational-overview-heading" className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <span className="w-1 h-5 bg-blue-600 rounded-full" aria-hidden="true"></span>
+        <h2 id="operational-overview-heading" className="text-lg font-display font-semibold text-primary mb-4 flex items-center gap-2">
+          <span className="w-1 h-5 bg-tertiary rounded-full" aria-hidden="true"></span>
           Operational Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

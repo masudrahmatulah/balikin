@@ -1,59 +1,92 @@
-import { CreditCard, Sticker } from 'lucide-react';
+import { QrCode, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  STICKER_PACK_PRICE,
-  STICKER_PACK_SIZE,
-  STICKER_PAYMENT_LABEL,
-  STICKER_QRIS_NOTES,
-} from '@/lib/constants';
+import { STICKER_PAYMENT_LABEL, STICKER_QRIS_NOTES } from '@/lib/constants';
+import { type PRODUCT_CATALOG } from '@/lib/product-catalog';
 
-export function OrderSummary() {
+type ProductEntry = (typeof PRODUCT_CATALOG)[keyof typeof PRODUCT_CATALOG];
+
+interface OrderSummaryProps {
+  product: ProductEntry;
+  shippingCost?: number | null;
+}
+
+export function OrderSummary({ product, shippingCost }: OrderSummaryProps) {
+  const grandTotal = shippingCost !== null && shippingCost !== undefined
+    ? product.price + shippingCost
+    : product.price;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Ringkasan produk */}
       <Card className="border-emerald-200 bg-emerald-50/70">
         <CardHeader>
-          <CardTitle>Ringkasan Order</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-emerald-600" aria-hidden="true" />
+            Ringkasan Order
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-slate-700">
           <div className="flex justify-between gap-4">
             <span>Produk</span>
-            <span className="font-medium">Sticker Vinyl Pack</span>
+            <span className="font-medium text-right">{product.name}</span>
           </div>
           <div className="flex justify-between gap-4">
             <span>Isi Pack</span>
+            <span className="font-medium">{product.packSize} unit</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span>Material</span>
             <span className="font-medium">
-              {STICKER_PACK_SIZE} sticker
+              {product.productType === 'acrylic' ? 'Akrilik Premium' : 'Vinyl Premium (UV Protected)'}
             </span>
           </div>
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
-            <span className="font-medium">Total</span>
-            <span className="text-lg font-semibold text-slate-950">
-              Rp{STICKER_PACK_PRICE.toLocaleString('id-ID')}
+            <span>Harga Produk</span>
+            <span className="font-medium">Rp{product.price.toLocaleString('id-ID')}</span>
+          </div>
+          <div className="flex justify-between gap-4 text-slate-600 text-sm">
+            <span>Ongkir</span>
+            {shippingCost === null || shippingCost === undefined ? (
+              <span className="text-slate-500 text-xs">Pilih kota & kurir</span>
+            ) : (
+              <span className="font-medium">Rp{shippingCost.toLocaleString('id-ID')}</span>
+            )}
+          </div>
+          <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
+            <span className="font-semibold">Grand Total</span>
+            <span className="text-lg font-bold text-slate-950">
+              Rp{grandTotal.toLocaleString('id-ID')}
             </span>
           </div>
         </CardContent>
       </Card>
 
+      {/* Metode pembayaran */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-blue-600" aria-hidden="true" />
-            Pembayaran Manual
+          <CardTitle className="text-base flex items-center gap-2">
+            <Shield className="h-4 w-4 text-blue-600" aria-hidden="true" />
+            Pembayaran {STICKER_PAYMENT_LABEL}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-slate-600">
-          <p>
-            Metode awal yang dipakai untuk MVP ini adalah{' '}
-            <span className="font-medium text-slate-900">
-              {STICKER_PAYMENT_LABEL}
-            </span>
-            .
-          </p>
+        <CardContent className="space-y-2 text-sm text-slate-600">
           <p>{STICKER_QRIS_NOTES}</p>
-          <p>
+          <p className="text-xs text-slate-500">
             Setelah order tersimpan, Anda akan diarahkan ke halaman status order
-            untuk melihat instruksi bayar dan progres verifikasi admin.
+            untuk melihat QR pembayaran dan progres verifikasi admin.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Benefit premium */}
+      <Card className="border-blue-100 bg-blue-50/50">
+        <CardContent className="pt-4 space-y-1 text-xs text-blue-800">
+          <p className="font-semibold mb-2">Yang Anda dapatkan:</p>
+          <p>✓ WhatsApp Gateway gratis 1 tahun</p>
+          <p>✓ GPS Tracking presisi</p>
+          <p>✓ Lost Mode emergency display</p>
+          <p>✓ Anonymous contact (nomor WA tersembunyi)</p>
+          <p>✓ Verified Owner Badge</p>
         </CardContent>
       </Card>
     </div>

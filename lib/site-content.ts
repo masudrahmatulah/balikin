@@ -66,6 +66,37 @@ export const faqItems = [
     answer:
       "Untuk pengguna gratis, maksimal 2 tag digital. Untuk kebutuhan lebih banyak dan produk fisik premium, Anda bisa upgrade ke Premium.",
   },
+  // SEO Note: 6 new FAQ items targeting long-tail keywords for search traffic
+  {
+    question: "Bagaimana cara kerja sistem pelacakan QR code Balikin?",
+    answer:
+      "Sistem kami menggunakan scan logging yang mencatat lokasi (kota, koordinat kasar) setiap kali QR code di-scan. Informasi ini membantu pemilik mengetahui kemana barang 'terbang' saat hilang.",
+  },
+  {
+    question: "Apakah aman untuk koper jamaah haji/umroh?",
+    answer:
+      "Sangat aman. Privasi nomor WhatsApp terlindungi 100%—penemu hanya melihat tombol WhatsApp tanpa melihat nomor asli. Cocok untuk jamaah yang sering meninggalkan barang di hotel atau masjid.",
+  },
+  {
+    question: "Apakah bisa lacak lokasi dari scan QR code?",
+    answer:
+      "Ya, sistem kami mencatat lokasi kasar (kota, latitude, longitude) saat QR code di-scan. Fitur ini membantu mengetahui posisi terakhir barang Anda.",
+  },
+  {
+    question: "Bagaimana cara agar barang tidak hilang saat traveling?",
+    answer:
+      "Gunakan Balikin Smart Tag pada koper, tas, dan dompet. Jika barang tertinggal, penemu bisa langsung WhatsApp Anda tanpa melihat nomor asli. Aktifkan Mode Hilang untuk tampilan darurat.",
+  },
+  {
+    question: "Apa bedanya Balikin dengan gantungan kunci biasa?",
+    answer:
+      "Gantungan kunci biasa hanya menampilkan nomor HP secara statis (berisiko privasi). Balikin menggunakan QR Code dinamis—privasi terjaga, bisa update kontak kapan saja, dan ada fitur lacak lokasi scan.",
+  },
+  {
+    question: "Berapa harga Smart Tag Balikin untuk paket keluarga?",
+    answer:
+      "Versi digital gratis (maksimal 2 tag). Premium Rp 35.000/tag (termasuk hardware akrilik/stiker premium). Untuk keluarga, kami sarankan bundle pack agar lebih hemat.",
+  },
 ];
 
 export const marketingNavLinks = [

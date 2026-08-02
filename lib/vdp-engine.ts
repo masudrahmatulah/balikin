@@ -1,0 +1,415 @@
+/**
+ * VDP Engine (Variable Data Printing) for Balikin Physical Production
+ * 6-Column Layout: 2 Packets × 3 Columns (QR Utama, Logo, QR Aktivasi)
+ * Using Sharp for compositing with explicit pixel coordinates
+ */
+
+import sharp from 'sharp';
+import QRCode from 'qrcode';
+import pLimit from 'p-limit';
+import { readFile } from 'fs/promises';
+import path from 'path';
+import {
+  type AcrylicShapeKey,
+  deriveAcrylicShapeKey,
+  getAcrylicShapeConfig,
+  getShapeMarkup,
+  mmToPx,
+} from './acrylic-shapes';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface TagData {
+  productSlug: string;
+  activationTokenHash: string;
+  activationPinPlain: string;
+  serialNumber: string;
+  name?: string;
+  id?: string;
+}
+
+export interface TagVDPData extends TagData {
+  id: string;
+  slug: string;
+  isCustom: boolean;
+  name: string;
+  customPhotoUrl?: string;
+}
+
+export interface PrintBatchData {
+  id: string;
+  batchNumber: string;
+  totalStickers: number;
+  status: string;
+}
+
+export interface VDPOptions {
+  isReprint?: boolean;
+  includeActivation?: boolean;
+}
+
+// ============================================================================
+// QUEUE MANAGEMENT
+// ============================================================================
+
+const renderQueue = pLimit(3);
+
+// ============================================================================
+// LOGO BUFFER (Lazy loaded)
+// ============================================================================
+
+let logoBufferCache: Buffer | null = null;
+
+// Cached at a resolution large enough for the biggest shape's QR box
+// (rectangle-emboss: 26mm ~ 307px) so per-shape downscaling stays crisp.
+const LOGO_CACHE_SIZE = 400;
+
+async function getLogoBuffer(): Promise<Buffer> {
+  if (logoBufferCache) return logoBufferCache;
+
+  // Default logo - Balikin's real brand mark, letterboxed onto a white square
+  // so its non-square aspect ratio isn't stretched when composited into the QR box.
+  const logoPath = path.join(process.cwd(), 'public', 'balikin_logo.png');
+  const rawLogo = await readFile(logoPath);
+  logoBufferCache = await sharp(rawLogo)
+    .resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    })
+    .png()
+    .toBuffer();
+  return logoBufferCache;
+}
+
+// ============================================================================
+// CUSTOM PHOTO FETCHER (Vercel Blob)
+// ============================================================================
+
+async function getCustomPhotoBuffer(url: string): Promise<Buffer> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch photo: ${response.statusText}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return await sharp(buffer).resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE).png().toBuffer();
+  } catch (error) {
+    console.error('Error fetching custom photo:', error);
+    // Return logo as fallback
+    return await getLogoBuffer();
+  }
+}
+
+function bufferToDataUri(buf: Buffer): string {
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
+// ============================================================================
+// KOTAK (single die-cut cell) SVG GENERATION
+// ============================================================================
+
+interface KotakOptions {
+  shapeKey: AcrylicShapeKey | null;
+  contentDataUri: string;
+  serial: string;
+  pin?: string;
+  isAktivasi: boolean;
+  topLabel?: string;
+  bottomLabel?: string;
+  contentWidthMm?: number;
+  contentHeightMm?: number;
+}
+
+/**
+ * Renders one QR/logo cell as a single SVG: background + content are clipped
+ * to the wadah's die-cut outline (so nothing bleeds past the cut line), and
+ * the same outline is redrawn unclipped as the cutting-mark stroke.
+ */
+function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topLabel, bottomLabel, contentWidthMm, contentHeightMm }: KotakOptions): Buffer {
+  const config = getAcrylicShapeConfig(shapeKey);
+  const widthPx = mmToPx(config.widthMm);
+  const heightPx = mmToPx(config.heightMm);
+  const contentWidthPx = mmToPx(contentWidthMm ?? config.qrSizeMm);
+  const contentHeightPx = mmToPx(contentHeightMm ?? config.qrSizeMm);
+  const topMarginPx = mmToPx(config.qrTopMarginMm);
+  const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
+  const contentX = (widthPx - contentWidthPx) / 2;
+  // Center the QR/logo vertically in the die-cut shape rather than hugging the
+  // curvature-safety top margin. Aktivasi cells additionally reserve space
+  // below for the PIN + serial text (pinText/serialText below), so their
+  // centering is capped to whatever leaves that text room.
+  const verticalCenterPx = (heightPx - contentHeightPx) / 2;
+  const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
+  const maxAktivasiContentY = heightPx - contentHeightPx - BOTTOM_TEXT_RESERVE_PX;
+  const contentY = isAktivasi
+    ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
+    : Math.max(topMarginPx, verticalCenterPx);
+  const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
+
+  const labelText = isAktivasi
+    ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="9" font-weight="bold" fill="#7c3aed" text-anchor="middle">AKTIVASI</text>`
+    : topLabel
+      ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
+      : '';
+
+  const pinText = pin
+    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
+    : bottomLabel
+      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
+      : '';
+
+  const serialText = `<text x="${widthPx / 2}" y="${heightPx - 4}" font-family="sans-serif" font-size="6.5" fill="#94a3b8" text-anchor="middle">${serial}</text>`;
+
+  const svg = `
+    <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="${clipId}">${shapeTag}/></clipPath>
+      </defs>
+      <g clip-path="url(#${clipId})">
+        <rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>
+        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${contentWidthPx}" height="${contentHeightPx}" preserveAspectRatio="xMidYMid slice"/>
+      </g>
+      ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+      ${labelText}
+      ${pinText}
+      ${serialText}
+    </svg>
+  `;
+
+  return Buffer.from(svg);
+}
+
+// ============================================================================
+// MAIN ROW GENERATION FUNCTION
+// ============================================================================
+
+/**
+ * Generate one row of stickers with consistent 3-column layout per packet
+ *
+ * PAKET LAYOUT (3 kolom per paket):
+ * - Kolom 1: QR Utama (untuk scan jika barang ditemukan/hilang)
+ * - Kolom 2: Logo Balikin atau Foto Kustom
+ * - Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
+ *
+ * Untuk pesanan massal: QR Utama + Logo + QR Aktivasi
+ * Untuk pesanan custom: QR Utama + Foto + QR Aktivasi (tetap 3 kolom)
+ */
+export async function generateOneRowSticker(
+  tagA: TagVDPData,
+  tagB: TagVDPData | null,
+  shapeKey: AcrylicShapeKey | null = null
+): Promise<Buffer> {
+  const config = getAcrylicShapeConfig(shapeKey);
+  const kotakWidthPx = mmToPx(config.widthMm);
+  const kotakHeightPx = mmToPx(config.heightMm);
+  const qrSizePx = mmToPx(config.qrSizeMm);
+
+  const PACKET_COLS = 3;
+  const numPackets = tagB ? 2 : 1;
+  const canvasWidth = numPackets * PACKET_COLS * kotakWidthPx;
+
+  const background = sharp({
+    create: {
+      width: canvasWidth,
+      height: kotakHeightPx,
+      channels: 4,
+      background: { r: 255, g: 255, b: 255, alpha: 1 }
+    }
+  });
+
+  const layers: sharp.OverlayOptions[] = [];
+
+  async function buildPacket(tag: TagVDPData, offsetLeftPx: number) {
+    // Kolom 1: QR Utama (scan jika barang ditemukan)
+    const qrUtamaDataUri = await QRCode.toDataURL(
+      `https://balikin.id/p/${tag.slug}`,
+      { width: qrSizePx, margin: 1 }
+    );
+    const kotak1 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri: qrUtamaDataUri,
+      serial: tag.serialNumber || '',
+      isAktivasi: false,
+      ...(shapeKey === 'oval'
+        ? { topLabel: 'SCAN disini', bottomLabel: 'Untuk Hubungi Pemiliknya' }
+        : {}),
+    })).png().toBuffer();
+    layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
+
+    // Kolom 2: Logo Balikin atau Foto Kustom (bisa punya ukuran sendiri agar
+    // lebih mendekati sisi kotak dibanding QR - lihat logoWidthMm/logoHeightMm)
+    const logoWidthPx = mmToPx(config.logoWidthMm ?? config.qrSizeMm);
+    const logoHeightPx = mmToPx(config.logoHeightMm ?? config.qrSizeMm);
+    const rawContentBuffer = tag.isCustom && tag.customPhotoUrl
+      ? await getCustomPhotoBuffer(tag.customPhotoUrl)
+      : await getLogoBuffer();
+    const contentDataUri = bufferToDataUri(
+      await sharp(rawContentBuffer)
+        .resize(logoWidthPx, logoHeightPx, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
+        .png()
+        .toBuffer()
+    );
+    const kotak2 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri,
+      serial: tag.serialNumber || '',
+      isAktivasi: false,
+      contentWidthMm: config.logoWidthMm,
+      contentHeightMm: config.logoHeightMm,
+    })).png().toBuffer();
+    layers.push({ input: kotak2, top: 0, left: offsetLeftPx + kotakWidthPx });
+
+    // Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
+    const qrAktivasiDataUri = await QRCode.toDataURL(
+      `https://balikin.id/activate?slug=${tag.slug}&token=${tag.activationTokenHash || ''}`,
+      { width: qrSizePx, margin: 1 }
+    );
+    const kotak3 = await sharp(buildKotakSvg({
+      shapeKey,
+      contentDataUri: qrAktivasiDataUri,
+      serial: tag.serialNumber || '',
+      pin: tag.activationPinPlain,
+      isAktivasi: true,
+    })).png().toBuffer();
+    layers.push({ input: kotak3, top: 0, left: offsetLeftPx + kotakWidthPx * 2 });
+  }
+
+  await buildPacket(tagA, 0);
+  if (tagB) {
+    await buildPacket(tagB, PACKET_COLS * kotakWidthPx);
+  }
+
+  return background.composite(layers).png().toBuffer();
+}
+
+// ============================================================================
+// STREAM GENERATION
+// ============================================================================
+
+/**
+ * Generate PNG stream for a batch of tags
+ * Yields PNG buffers one row at a time (2 tags per row)
+ */
+export async function* generateVDPStream(
+  tags: TagVDPData[],
+  shapeKey: AcrylicShapeKey | null = null,
+  options: VDPOptions = {}
+): AsyncGenerator<Buffer, void, unknown> {
+  for (let i = 0; i < tags.length; i += 2) {
+    const tagA: TagVDPData = {
+      id: tags[i].id,
+      slug: tags[i].slug,
+      activationTokenHash: tags[i].activationTokenHash || '',
+      activationPinPlain: tags[i].activationPinPlain || '',
+      serialNumber: tags[i].serialNumber || '',
+      isCustom: tags[i].isCustom || false,
+      name: tags[i].name,
+      customPhotoUrl: tags[i].customPhotoUrl,
+    };
+
+    const tagB = tags[i + 1] ? {
+      id: tags[i + 1].id,
+      slug: tags[i + 1].slug,
+      activationTokenHash: tags[i + 1].activationTokenHash || '',
+      activationPinPlain: tags[i + 1].activationPinPlain || '',
+      serialNumber: tags[i + 1].serialNumber || '',
+      isCustom: tags[i + 1].isCustom || false,
+      name: tags[i + 1].name,
+      customPhotoUrl: tags[i + 1].customPhotoUrl,
+    } : null;
+
+    const buffer = await renderQueue(() => generateOneRowSticker(tagA, tagB, shapeKey));
+    yield buffer;
+  }
+}
+
+// ============================================================================
+// BATCH REPRINT
+// ============================================================================
+
+/**
+ * Generate stream for reprinting existing batch
+ */
+export async function* generateBatchReprint(
+  batchId: string,
+  db: any
+): AsyncGenerator<Buffer, void, unknown> {
+  const batch = await db.query.printBatches.findFirst({
+    where: { id: batchId },
+    with: {
+      tags: {
+        columns: {
+          id: true,
+          slug: true,
+          serialNumber: true,
+          activationPinPlain: true,
+          activationTokenHash: true,
+          isCustom: true,
+          customPhotoUrl: true,
+          name: true,
+          productType: true
+        },
+        orderBy: (tags: any, { asc }) => [asc(tags.slug)]
+      }
+    }
+  });
+
+  if (!batch) {
+    throw new Error('Batch not found');
+  }
+
+  const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
+
+  const tags: TagVDPData[] = batch.tags.map((tag: any) => ({
+    id: tag.id,
+    slug: tag.slug,
+    serialNumber: tag.serialNumber || undefined,
+    activationPinPlain: tag.activationPinPlain || undefined,
+    activationTokenHash: tag.activationTokenHash || undefined,
+    isCustom: tag.isCustom || false,
+    customPhotoUrl: tag.customPhotoUrl || undefined,
+    name: tag.name
+  }));
+
+  yield* generateVDPStream(tags, shapeKey, { isReprint: true });
+}
+
+// ============================================================================
+// TOKEN GENERATION
+// ============================================================================
+
+import { hashValue, generateActivationToken, generateActivationPin, generateSerialNumber } from './crypto';
+
+/**
+ * Generate activation tokens and PINs for a batch of tags
+ */
+export function generateBatchActivationData(count: number, batchNumber: string): Array<{
+  activationToken: string;
+  activationTokenHash: string;
+  activationPinHash: string;
+  activationPinPlain: string;
+  serialNumber: string;
+}> {
+  const results = [];
+
+  for (let i = 0; i < count; i++) {
+    const token = generateActivationToken();
+    const pin = generateActivationPin();
+    const serial = generateSerialNumber(batchNumber, i + 1);
+
+    results.push({
+      activationToken: token,
+      activationTokenHash: hashValue(token),
+      activationPinHash: hashValue(pin),
+      activationPinPlain: pin,
+      serialNumber: serial
+    });
+  }
+
+  return results;
+}

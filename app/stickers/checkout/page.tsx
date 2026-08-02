@@ -1,19 +1,19 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckoutForm } from './checkout-form';
-import { OrderSummary } from './order-summary';
+import { Suspense } from 'react';
+import { CheckoutClient } from './checkout-client';
+import { PRODUCT_CATALOG, resolveProductKey, type ProductKey } from '@/lib/product-catalog';
 
-export default function StickerCheckoutPage() {
-  const router = useRouter();
+function CheckoutPageInner() {
+  const searchParams = useSearchParams();
 
-  const handleSuccess = (orderId: string) => {
-    router.push(`/dashboard/sticker-orders/${orderId}`);
-  };
+  const productKey: ProductKey = resolveProductKey(searchParams.get('product'));
+  const product = PRODUCT_CATALOG[productKey];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,7 +27,7 @@ export default function StickerCheckoutPage() {
               aria-label="Kembali ke Produk Sticker"
             >
               <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-              Kembali ke Produk Sticker
+              Kembali ke Katalog Produk
             </Button>
           </Link>
         </div>
@@ -35,24 +35,28 @@ export default function StickerCheckoutPage() {
 
       <main className="container mx-auto max-w-5xl px-4 py-8">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card>
+          <Card className="order-2 lg:order-1">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                Checkout Sticker Vinyl Pack
-              </CardTitle>
+              <CardTitle>Checkout – {product.name}</CardTitle>
               <CardDescription>
                 Isi data pengiriman Anda. Setelah order dibuat, Anda akan melihat
                 instruksi pembayaran QRIS manual dan status order di dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CheckoutForm onSuccess={handleSuccess} />
+              <CheckoutClient productKey={productKey} />
             </CardContent>
           </Card>
-
-          <OrderSummary />
         </div>
       </main>
     </div>
+  );
+}
+
+export default function StickerCheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <CheckoutPageInner />
+    </Suspense>
   );
 }

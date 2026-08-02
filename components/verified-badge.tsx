@@ -20,7 +20,7 @@ export function VerifiedBadge({
 }: VerifiedBadgeProps) {
   const isPremium = tier === 'premium';
   const isSticker = productType === 'sticker';
-  const isAcrylic = productType === 'acrylic' || (productType === null && isPremium);
+  const isAcrylic = productType?.startsWith('acrylic') || productType === 'acrylic' || (productType === null && isPremium);
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-0.5 gap-1',
@@ -120,7 +120,7 @@ export function VerifiedBadgeCompact({
 }) {
   const isPremium = tier === 'premium';
   const isSticker = productType === 'sticker';
-  const isAcrylic = productType === 'acrylic' || (productType === null && isPremium);
+  const isAcrylic = productType?.startsWith('acrylic') || productType === 'acrylic' || (productType === null && isPremium);
 
   if (isSticker) {
     return (

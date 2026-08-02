@@ -113,10 +113,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // For regular tags without tab 2, show public page (owner might want to see what others see)
   }
 
-  // Log scan if status is lost (non-blocking)
-  if (isLost) {
-    logScan(tag.id).catch(console.error);
-  }
+  // Log scan for all tag visits (non-blocking)
+  logScan(tag.id).catch(console.error);
 
   // Check if tag is premium for geolocation feature
   const isPremium = tag.tier === 'premium' || tag.productType === 'acrylic' || tag.productType === 'sticker';
@@ -286,7 +284,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 <div className="text-center pt-4">
                   <WhatsAppButton
                     phone={tag.contactWhatsapp}
-                    message={`Halo, saya ingin bertanya tentang tag "${tag.name}".`}
+                    message={tag.customMessage || `Halo, saya ingin bertanya tentang tag "${tag.name}".`}
                     variant="outline"
                   />
                 </div>

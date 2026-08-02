@@ -655,3 +655,105 @@ Untuk mematikan notifikasi: reply STOP`;
     };
   }
 }
+
+// ============================================================================
+// BLOG GIVEAWAY NOTIFICATIONS
+// ============================================================================
+
+interface GiveawayWinnerNotificationOptions {
+  phoneNumber: string;
+  fullName: string;
+  postTitle: string;
+  trackingNumber?: string;
+  prizeUrl?: string;
+}
+
+interface GiveawayShippedNotificationOptions {
+  phoneNumber: string;
+  fullName: string;
+  postTitle: string;
+  trackingNumber: string;
+}
+
+/**
+ * Send giveaway winner notification to user
+ */
+export async function sendGiveawayWinnerNotification({
+  phoneNumber,
+  fullName,
+  postTitle,
+  trackingNumber,
+  prizeUrl,
+}: GiveawayWinnerNotificationOptions): Promise<WhatsAppSendResult> {
+  const trackingInfo = trackingNumber
+    ? `📦 *Nomor Resi:* ${trackingNumber}`
+    : '📦 *Status:* Sedang dipersiapkan';
+
+  const prizeCta = prizeUrl
+    ? `\n👆 Lihat detail hadiah: ${prizeUrl}`
+    : '';
+
+  const message = `🎉 [BALIKIN] SELAMAT! ANDA PEMENANG GIVEAWAY!
+
+Halo *${fullName}*! 👋
+
+Selamat! Anda telah terpilih sebagai pemenang giveaway *${postTitle}*.
+
+${trackingInfo}
+
+Hadiah akan dikirim ke alamat yang Anda daftarkan dalam 3-5 hari kerja.${prizeCta}
+
+— Balikin
+Terima kasih telah berpartisipasi! 🎁
+Untuk mematikan notifikasi: reply STOP`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'GIVEAWAY WINNER', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
+ * Send giveaway shipped notification to user
+ */
+export async function sendGiveawayShippedNotification({
+  phoneNumber,
+  fullName,
+  postTitle,
+  trackingNumber,
+}: GiveawayShippedNotificationOptions): Promise<WhatsAppSendResult> {
+  const message = `📦 [BALIKIN] Hadiah Giveaway Dikirim!
+
+Halo *${fullName}*! 👋
+
+Hadiah giveaway *${postTitle}* telah dikirim!
+
+📦 *Nomor Resi:* ${trackingNumber}
+
+Pantau pengiriman Anda dengan nomor resi di atas.
+
+— Balikin
+Selamat menanti hadiah! 🎁
+Untuk mematikan notifikasi: reply STOP`;
+
+  const config = resolveChannelProvider('standard');
+
+  try {
+    return await sendFonnteMessage(phoneNumber, message, 'GIVEAWAY SHIPPED', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}

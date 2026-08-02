@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { BadgePercent, Users, Plane, Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { type ProductKey } from '@/lib/product-catalog';
 
 export interface Bundle {
   name: string;
@@ -15,6 +17,8 @@ export interface Bundle {
   icon: React.ElementType;
   features: string[];
   validUntil?: string;
+  comingSoon?: boolean;
+  productKey?: ProductKey;
 }
 
 interface BundleDealsProps {
@@ -22,40 +26,47 @@ interface BundleDealsProps {
 }
 
 export function BundleDeals({ className = '' }: BundleDealsProps) {
+  const router = useRouter();
   const bundles: Bundle[] = [
     {
       name: 'Paket Keluarga',
-      items: '3 Gantungan Kunci + 2 Stiker QR',
-      originalPrice: 125000,
-      promoPrice: 85000,
-      discount: 'Hemat Rp 40.000',
+      items: '4 Sets Complete Protection',
+      originalPrice: 399000,
+      promoPrice: 299000,
+      discount: 'Hemat Rp 100.000',
       popular: true,
       icon: Users,
       features: [
-        '3 Gantungan akrilik premium custom',
-        '2 Stiker vinyl waterproof',
-        'Free design & layout',
-        'Garansi kualitas',
-        'Support prioritas',
+        '👨‍👩‍👧‍👦 4 Sets Perlindungan Lengkap',
+        '🎯 Mix & Match: Gantungan + Stiker',
+        'Semua fitur Gratis + Hardware',
+        '🆓 Bonus: WhatsApp Gateway gratis 1 tahun',
+        '✨ Verified Owner Badge khusus',
+        '🎁 Garansi kepuasan 100%',
       ],
-      validUntil: 'Terbatas 50 paket pertama',
+      validUntil: 'Terbatas stock',
+      productKey: 'paket-keluarga',
+      comingSoon: true,
     },
     {
-      name: 'Paket Traveler',
-      items: '2 Stiker QR + 1 Gantungan Kunci',
-      originalPrice: 65000,
-      promoPrice: 50000,
-      discount: 'Hemat Rp 15.000',
+      name: 'Paket Traveller',
+      items: '10 Sets Bundle Premium',
+      originalPrice: 999000,
+      promoPrice: 699000,
+      discount: 'Hemat Rp 300.000',
       popular: false,
       icon: Plane,
       features: [
-        '1 Gantungan akrilik premium',
-        '2 Stiker vinyl waterproof',
-        'Ideal untuk koper & helm',
-        'Tahan cuaca ekstrem',
-        'Full dashboard access',
+        '🌍 10 Sets Bundle Lengkap',
+        '📦 Mix & Match: Gantungan + Stiker',
+        'Semua fitur Gratis + Hardware',
+        '🆓 Bonus: WhatsApp Gateway gratis 1 tahun',
+        '✨ Verified Owner Badge khusus',
+        '🎁 Garansi kepuasan 100%',
       ],
-      validUntil: 'Terbatas 100 paket pertama',
+      validUntil: 'Terbatas stock',
+      productKey: 'paket-traveller',
+      comingSoon: true,
     },
   ];
 
@@ -203,22 +214,22 @@ export function BundleDeals({ className = '' }: BundleDealsProps) {
                     {/* CTA Button */}
                     <Button
                       className={`w-full ${
-                        bundle.popular
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
-                          : 'bg-gray-900 hover:bg-gray-800'
+                        bundle.comingSoon
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : bundle.popular
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                            : 'bg-gray-900 hover:bg-gray-800'
                       }`}
                       size="lg"
-                      onClick={() =>
-                        window.open(
-                          `https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20pesan%20${encodeURIComponent(
-                            bundle.name
-                          )}`,
-                          '_blank'
-                        )
-                      }
+                      disabled={bundle.comingSoon}
+                      onClick={() => {
+                        if (!bundle.comingSoon && bundle.productKey) {
+                          router.push(`/stickers/checkout?product=${bundle.productKey}`);
+                        }
+                      }}
                     >
-                      Ambil Promo Sekarang
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {bundle.comingSoon ? 'Coming Soon' : 'Pesan Sekarang'}
+                      {!bundle.comingSoon && <ArrowRight className="ml-2 h-4 w-4" />}
                     </Button>
                   </CardContent>
                 </Card>

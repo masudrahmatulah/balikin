@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import {
   QrCode,
@@ -12,10 +13,11 @@ import {
   Bell,
   TrendingUp,
   Tag,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { useSession } from '@/lib/auth-client';
-import { useEffect, useState } from 'react';
+import { updateTagStatus } from '@/app/actions/tag';
 
 interface TagData {
   id: string;
@@ -45,34 +47,10 @@ interface ScanLog {
   status: 'success' | 'warning' | 'info';
 }
 
-async function getUserStats(): Promise<StatsData> {
-  try {
-    const response = await fetch('/api/mobile/user-stats');
-    if (!response.ok) return { totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 };
-    return await response.json();
-  } catch {
-    return { totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 };
-  }
-}
-
-async function getUserTags(): Promise<TagData[]> {
-  try {
-    const response = await fetch('/api/mobile/user-tags');
-    if (!response.ok) return [];
-    return await response.json();
-  } catch {
-    return [];
-  }
-}
-
-async function getRecentActivity(): Promise<ScanLog[]> {
-  try {
-    const response = await fetch('/api/mobile/recent-activity');
-    if (!response.ok) return [];
-    return await response.json();
-  } catch {
-    return [];
-  }
+interface MobileHomeProps {
+  initialStats: StatsData;
+  initialTags: TagData[];
+  initialRecentActivity: ScanLog[];
 }
 
 const quickActions = [
@@ -106,29 +84,28 @@ const quickActions = [
   },
 ];
 
-export function MobileHome() {
+export function MobileHome({ initialStats, initialTags, initialRecentActivity }: MobileHomeProps) {
   const { data: session } = useSession();
-  const [stats, setStats] = useState<StatsData>({ totalTags: 0, totalScans: 0, lostTags: 0, returnRate: 98, returnedItems: 0 });
-  const [tags, setTags] = useState<TagData[]>([]);
-  const [recentActivity, setRecentActivity] = useState<ScanLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [stats] = useState<StatsData>(initialStats);
+  const [tags, setTags] = useState<TagData[]>(initialTags);
+  const [recentActivity] = useState<ScanLog[]>(initialRecentActivity);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      Promise.all([
-        getUserStats(),
-        getUserTags(),
-        getRecentActivity()
-      ]).then(([statsData, tagsData, activityData]) => {
-        setStats(statsData);
-        setTags(tagsData);
-        setRecentActivity(activityData);
-        setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
+  const handleToggleLost = useCallback(async (e: React.MouseEvent, tag: TagData) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (togglingId) return;
+    setTogglingId(tag.id);
+    const nextStatus = tag.status === 'lost' ? 'normal' : 'lost';
+    try {
+      await updateTagStatus(tag.id, nextStatus);
+      setTags(prev => prev.map(t => t.id === tag.id ? { ...t, status: nextStatus } : t));
+    } catch {
+      // silently fail
+    } finally {
+      setTogglingId(null);
     }
-  }, [session]);
+  }, [togglingId]);
 
   const statsDisplay = [
     { value: stats.totalTags > 0 ? `${stats.totalTags}+` : '0', label: 'Tag Terdaftar', icon: QrCode, color: 'from-mobile-primary-light to-mobile-primary' },
@@ -137,7 +114,7 @@ export function MobileHome() {
   ];
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col overflow-x-hidden">
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
@@ -180,53 +157,8 @@ export function MobileHome() {
           </div>
         )}
 
-        {/* Main CTA - Laporkan Temuan Barang */}
-        <div className="relative animate-fade-up-20 stagger-delay-1">
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-mobile-primary-light to-mobile-primary rounded-3xl blur-2xl opacity-20" />
-
-          <Link href="/mobile/report" className="relative block">
-            <div className="bg-gradient-to-br from-mobile-primary-light via-mobile-primary to-mobile-primary-dark rounded-3xl p-6 shadow-2xl shadow-mobile-primary/30 border border-white/20 overflow-hidden">
-              {/* Animated background pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
-              </div>
-
-              <div className="relative">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
-                    <QrCode className="h-8 w-8 text-white" aria-hidden="true" />
-                  </div>
-                  <div className="bg-mobile-danger text-white text-xs font-bold px-3 py-1.5 rounded-full animate-pulse-slow">
-                    URGENT
-                  </div>
-                </div>
-
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Laporkan Temuan Barang
-                </h2>
-                <p className="text-blue-100 mb-6 text-sm">
-                  Menemukan barang dengan QR code? Bantu pemiliknya menemukan kembali.
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-white/80 text-sm">
-                    <Clock className="h-4 w-4" aria-hidden="true" />
-                    <span>24/7 Aktif</span>
-                  </div>
-                  <div className="bg-white text-mobile-primary rounded-xl px-5 py-3 font-semibold shadow-lg flex items-center gap-2">
-                    Laporkan Sekarang
-                    <ArrowRight className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 animate-fade-up-20 stagger-delay-2">
+        <div className="grid grid-cols-3 gap-3 animate-fade-up-20 stagger-delay-1">
           {statsDisplay.map((stat, index) => (
             <div
               key={index}
@@ -242,7 +174,7 @@ export function MobileHome() {
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="animate-fade-up-20 stagger-delay-3">
+        <div className="animate-fade-up-20 stagger-delay-2">
           <h3 className="text-lg font-bold text-gray-900 mb-4 px-1">Aksi Cepat</h3>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => (
@@ -261,7 +193,7 @@ export function MobileHome() {
 
         {/* My Tags Section */}
         {session?.user?.id && (
-          <div className="animate-fade-up-20 stagger-delay-4">
+          <div className="animate-fade-up-20 stagger-delay-3">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Tag Saya</h3>
               <Link href="/mobile/profile/tags" className="text-sm text-mobile-primary font-medium">
@@ -284,12 +216,15 @@ export function MobileHome() {
             ) : (
               <div className="space-y-3">
                 {tags.slice(0, 3).map((tag) => (
-                  <Link key={tag.id} href={`/dashboard/tag/${tag.slug}`}>
-                    <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-white/20 ${
+                  <div
+                    key={tag.id}
+                    className={`bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 overflow-hidden ${
                       tag.status === 'lost' ? 'border-l-4 border-l-rose-500' : ''
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 p-4">
+                      <Link href={`/mobile/tag/${tag.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           tag.status === 'lost'
                             ? 'bg-mobile-danger-lighter text-mobile-danger'
                             : 'bg-mobile-primary-lighter text-mobile-primary'
@@ -297,19 +232,34 @@ export function MobileHome() {
                           <QrCode className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold text-gray-900 truncate">{tag.name}</h4>
-                            {tag.status === 'lost' && (
-                              <span className="text-xs bg-mobile-danger-lighter text-mobile-danger px-2 py-0.5 rounded-full">HILANG</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500">
+                          <h4 className="font-semibold text-gray-900 truncate text-sm">{tag.name}</h4>
+                          <p className="text-xs text-gray-500 mt-0.5">
                             {tag.scanCount} scan • {tag.productType === 'free' ? 'Free' : tag.productType === 'sticker' ? 'Stiker' : 'Premium'}
                           </p>
                         </div>
-                      </div>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleLost(e, tag)}
+                        disabled={togglingId === tag.id}
+                        className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 btn-press ${
+                          tag.status === 'lost'
+                            ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        aria-label={tag.status === 'lost' ? `Nonaktifkan mode hilang ${tag.name}` : `Aktifkan mode hilang ${tag.name}`}
+                      >
+                        {togglingId === tag.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : tag.status === 'lost' ? (
+                          <AlertTriangle className="h-4 w-4" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4" />
+                        )}
+                        <span>{tag.status === 'lost' ? 'Hilang' : 'Aman'}</span>
+                      </button>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
@@ -318,7 +268,7 @@ export function MobileHome() {
 
         {/* Recent Activity */}
         {recentActivity.length > 0 && (
-          <div className="animate-fade-up-20 stagger-delay-5">
+          <div className="animate-fade-up-20 stagger-delay-4">
             <div className="flex items-center justify-between mb-4 px-1">
               <h3 className="text-lg font-bold text-gray-900">Aktivitas Terkini</h3>
               <Link href="/mobile/history" className="text-sm text-mobile-primary font-medium">

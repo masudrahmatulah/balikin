@@ -29,7 +29,10 @@ export async function GET() {
 
     // Get user's tags with scan counts in parallel
     const userTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
+      where: and(
+        eq(tags.ownerId, userId),
+        eq(tags.app_id, 'balikin_id')
+      ),
       orderBy: [desc(tags.createdAt)],
     });
 
@@ -61,12 +64,10 @@ export async function GET() {
         .from(scanLogs)
         .where(
           stickerTagIds.length > 0
-            ? inArray(scanLogs.tagId, stickerTagIds)
-              ? and(
-                  inArray(scanLogs.tagId, tagIds),
-                  gte(scanLogs.scannedAt, thirtyDaysAgo)
-                )
-              : inArray(scanLogs.tagId, tagIds)
+            ? and(
+                inArray(scanLogs.tagId, stickerTagIds),
+                gte(scanLogs.scannedAt, thirtyDaysAgo)
+              )
             : inArray(scanLogs.tagId, tagIds)
         )
         .groupBy(scanLogs.tagId),

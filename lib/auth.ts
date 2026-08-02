@@ -121,14 +121,19 @@ export const auth = betterAuth({
         type: "string",
         defaultValue: "user",
       },
+      division: {
+        type: "string",
+      },
+      blogPermissions: {
+        type: "json",
+      },
     },
   },
   session: {
     expiresIn: SESSION_EXPIRY_SECONDS,
     updateAge: SESSION_UPDATE_AGE_SECONDS,
     cookieCache: {
-      enabled: true,
-      maxAge: SESSION_UPDATE_AGE_SECONDS, // Use updateAge (1 day) instead of full session expiry
+      enabled: false,
     },
   },
   account: {
