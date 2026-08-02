@@ -3,6 +3,7 @@
 import { SiteHeader } from '@/components/site-header';
 import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero-section';
 import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
+import { ProductShowcaseSection } from '@/components/landing/product-showcase-section';
 import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-section';
 import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
 import { GallerySlider } from '@/components/landing/gallery-slider';
@@ -26,6 +27,9 @@ export function HomePage() {
       <section className="container mx-auto px-4 py-12 md:py-16">
         <GallerySlider />
       </section>
+
+      {/* Product showcase gallery: detailed large images of every product variant */}
+      <ProductShowcaseSection />
 
       {/* Interactive configurator: material/shape/design add-ons with live price */}
       <LicenseConfiguratorSection />
