@@ -21,6 +21,7 @@ import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct }
 import { TabSwitcherHandler } from './tab-switcher-handler';
 import { EmergencyInfoDisplay } from './emergency-info-display';
 import { StudentKitModuleContent } from './private/student/content';
+import { getSiteSettings } from '@/app/actions/site-settings';
 
 interface ProfilePageProps {
   params: Promise<{ slug: string }>;
@@ -37,11 +38,20 @@ const getTagBySlug = unstable_cache(
   async (slug: string) => {
     return db.query.tags.findFirst({
       where: eq(tags.slug, slug),
+      with: {
+        owner: {
+          columns: { name: true },
+        },
+      },
     });
   },
   ['tag-by-slug'],
   { revalidate: 300, tags: ['tags'] }
 );
+
+function renderTagGreeting(template: string, ownerName: string): string {
+  return template.replaceAll('{{ownerName}}', ownerName);
+}
 
 const getEmergencyInfo = unstable_cache(
   async (tagId: string) => {
@@ -88,12 +98,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const isAcrylicTag = isAcrylicProduct(tag);
   const productLabel = getTagProductLabel(tag);
   const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const ownerName = tag.owner?.name || tag.name;
 
   // Batch parallel queries for better performance
-  const [emergencyInfo, recentScans] = await Promise.all([
+  const [emergencyInfo, recentScans, siteSettings] = await Promise.all([
     getEmergencyInfo(tag.id),
     isLost && !isFreeTag ? getRecentScans(tag.id, isStickerTag, stickerHistoryCutoff) : Promise.resolve([]),
+    getSiteSettings(),
   ]);
+  const tagGreeting = renderTagGreeting(siteSettings.tagGreetingTemplate, ownerName);
 
   // Check ownership - if owner is viewing, redirect to private page
   // Skip redirect for unclaimed tags or if viewing from claim page
@@ -245,10 +258,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </>
           ) : (
             <>
-              <p className="text-gray-700">
-                Ini adalah tag milik <strong>{tag.name}</strong>. Jika Anda menemukan
-                barang ini, terima kasih sudah mengunjungi halaman ini.
-              </p>
+              <p className="text-gray-700">{tagGreeting}</p>
 
               {tag.customMessage && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
