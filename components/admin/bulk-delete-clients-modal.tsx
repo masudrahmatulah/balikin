@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Check } from "lucide-react";
 import type { User } from "@/db/schema";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface UserWithTags extends User {
   tagCount: number;
@@ -24,8 +25,6 @@ export function BulkDeleteClientsModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [success, setSuccess] = useState(false);
-
-  if (!isOpen) return null;
 
   const expectedConfirmText = `DELETE ${selectedUsers.length}`;
   const isConfirmed = confirmText === expectedConfirmText;
@@ -69,24 +68,22 @@ export function BulkDeleteClientsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md p-0 gap-0" aria-describedby="bulk-delete-clients-description">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
+            <AlertTriangle className="w-5 h-5" aria-hidden="true" />
             Hapus {selectedUsers.length} Klien
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p id="bulk-delete-clients-description" className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Tindakan ini tidak dapat dibatalkan
           </p>
         </div>
 
         {success ? (
-          <div className="p-6 text-center">
+          <div role="status" className="p-6 text-center">
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <Check className="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" />
             </div>
             <p className="text-gray-900 dark:text-white font-medium">
               Berhasil menghapus {selectedUsers.length} klien!
@@ -128,12 +125,13 @@ export function BulkDeleteClientsModal({
 
               {/* Confirmation */}
               <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <label htmlFor="bulk-delete-confirm" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Ketik <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
                     {expectedConfirmText}
                   </code> untuk konfirmasi:
                 </label>
                 <input
+                  id="bulk-delete-confirm"
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
@@ -158,7 +156,7 @@ export function BulkDeleteClientsModal({
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
                     Menghapus...
                   </>
                 ) : (
@@ -168,7 +166,7 @@ export function BulkDeleteClientsModal({
             </div>
           </form>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

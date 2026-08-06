@@ -33,6 +33,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     stickerSize: "medium" as "small" | "medium" | "large",
     isCustom: false,
     customPhotoData: "" as string,
+    includeActivation: true,
   });
 
   const updateFormData = (updates: any) => {

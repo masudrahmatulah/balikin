@@ -84,12 +84,14 @@ export function TagsTable({ tags }: TagsTableProps) {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
             placeholder="Cari nama, slug, atau owner..."
+            aria-label="Cari nama, slug, atau owner"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
@@ -98,6 +100,7 @@ export function TagsTable({ tags }: TagsTableProps) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as "all" | "normal" | "lost")}
+          aria-label="Filter status"
           className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">Semua Status</option>
@@ -135,34 +138,37 @@ export function TagsTable({ tags }: TagsTableProps) {
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-gray-900/50">
             <tr>
-              <th className="px-4 py-3 text-left">
+              <th scope="col" className="px-4 py-3 text-left">
                 <button
                   onClick={handleSelectAll}
                   className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  role="checkbox"
+                  aria-checked={isAllSelected}
+                  aria-label={isAllSelected ? "Batalkan pilih semua tag" : "Pilih semua tag"}
                 >
                   {isAllSelected ? (
-                    <Check className="w-5 h-5 text-blue-600" />
+                    <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />
                   ) : (
-                    <Square className="w-5 h-5" />
+                    <Square className="w-5 h-5" aria-hidden="true" />
                   )}
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Tag
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Owner
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Scan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Dibuat
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Aksi
               </th>
             </tr>
@@ -181,11 +187,14 @@ export function TagsTable({ tags }: TagsTableProps) {
                     <button
                       onClick={() => handleSelectOne(tag.id)}
                       className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      role="checkbox"
+                      aria-checked={selectedIds.has(tag.id)}
+                      aria-label={`Pilih ${tag.name}`}
                     >
                       {selectedIds.has(tag.id) ? (
-                        <Check className="w-5 h-5 text-blue-600" />
+                        <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />
                       ) : (
-                        <Square className="w-5 h-5" />
+                        <Square className="w-5 h-5" aria-hidden="true" />
                       )}
                     </button>
                   </td>
@@ -268,11 +277,14 @@ export function TagsTable({ tags }: TagsTableProps) {
                   <button
                     onClick={() => handleSelectOne(tag.id)}
                     className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 pt-1"
+                    role="checkbox"
+                    aria-checked={selectedIds.has(tag.id)}
+                    aria-label={`Pilih ${tag.name}`}
                   >
                     {selectedIds.has(tag.id) ? (
-                      <Check className="w-5 h-5 text-blue-600" />
+                      <Check className="w-5 h-5 text-blue-600" aria-hidden="true" />
                     ) : (
-                      <Square className="w-5 h-5" />
+                      <Square className="w-5 h-5" aria-hidden="true" />
                     )}
                   </button>
                   <div className="min-w-0 flex-1">

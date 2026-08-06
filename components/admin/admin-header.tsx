@@ -72,8 +72,9 @@ export function AdminHeader({
               window.dispatchEvent(new CustomEvent("toggle-sidebar"));
             }}
             className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Buka/tutup menu navigasi"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -129,8 +130,8 @@ export function AdminHeader({
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors">
-          <Bell size={20} />
+        <button className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-primary rounded-lg transition-colors" aria-label="Notifikasi">
+          <Bell size={20} aria-hidden="true" />
           {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-tertiary rounded-full ring-2 ring-white" />
           )}
@@ -157,8 +158,9 @@ export function AdminHeader({
             onClick={handleSignOut}
             className="p-2 text-gray-500 hover:bg-gray-100 hover:text-tertiary rounded-lg transition-colors"
             title="Sign out"
+            aria-label="Keluar"
           >
-            <LogOut size={20} />
+            <LogOut size={20} aria-hidden="true" />
           </button>
         </div>
 

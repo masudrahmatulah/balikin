@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
-import { getPendingOrdersCount } from "@/lib/admin-stats";
 import { getModulePurchaseOrders, getOrderStats } from "@/app/actions/module-purchase-actions";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { ModuleOrdersTable } from "@/components/admin/module-orders-table";
 import type { Metadata } from "next";
 
@@ -28,10 +26,7 @@ export default async function AdminModuleOrdersPage(props: {
   const stats = await getOrderStats();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      <AdminHeader session={session} pendingOrdersCount={await getPendingOrdersCount()} />
-
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -151,7 +146,6 @@ export default async function AdminModuleOrdersPage(props: {
 
         {/* Orders Table */}
         <ModuleOrdersTable orders={orders} initialFilter={statusFilter} />
-      </main>
     </div>
   );
 }

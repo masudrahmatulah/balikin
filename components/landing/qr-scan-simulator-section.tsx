@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
-import { QrCode, MessageCircle, ShieldCheck, UserCircle2 } from 'lucide-react';
+import { QrCode, MessageCircle, ShieldCheck, UserCircle2, Pause, Play } from 'lucide-react';
 
 const steps = [
   {
@@ -30,21 +30,24 @@ const steps = [
 
 export function QrScanSimulatorSection() {
   const [active, setActive] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
 
   useEffect(() => {
+    if (!autoPlay) return;
+
     const timer = setInterval(() => {
       setActive((prev) => (prev + 1) % steps.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [autoPlay]);
 
   return (
-    <section id="simulator-qr" className="bg-gray-50 py-16">
+    <section id="simulator-qr" className="bg-gray-50 dark:bg-slate-900 py-16">
       <div className="container mx-auto px-4">
         <ScrollReveal>
           <div className="max-w-2xl mx-auto text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simulasi: Saat Barang Anda Ditemukan</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">Simulasi: Saat Barang Anda Ditemukan</h2>
+            <p className="text-gray-600 dark:text-gray-300">
               Begini alur kerja sistem saat seseorang memindai QR code di barang Anda — tanpa membocorkan nomor WhatsApp asli.
             </p>
           </div>
@@ -52,7 +55,20 @@ export function QrScanSimulatorSection() {
 
         <ScrollReveal delay={0.15}>
           <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-center">
-            <div className="relative aspect-square max-w-sm mx-auto w-full bg-white rounded-2xl shadow-xl border overflow-hidden">
+            <div
+              className="relative aspect-square max-w-sm mx-auto w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border dark:border-slate-700 overflow-hidden"
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`Langkah ${active + 1} dari ${steps.length}`}
+            >
+              <button
+                type="button"
+                onClick={() => setAutoPlay((prev) => !prev)}
+                className="absolute top-3 right-3 z-10 bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 p-2 rounded-full transition-colors"
+                aria-label={autoPlay ? 'Jeda animasi otomatis' : 'Lanjutkan animasi otomatis'}
+              >
+                {autoPlay ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </button>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active}
@@ -66,8 +82,8 @@ export function QrScanSimulatorSection() {
                     const Icon = steps[active].icon;
                     return <Icon className="h-20 w-20 text-blue-600 mb-6" aria-hidden="true" />;
                   })()}
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">{steps[active].title}</h3>
-                  <p className="text-sm text-gray-500">{steps[active].desc}</p>
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{steps[active].title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{steps[active].desc}</p>
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -77,21 +93,27 @@ export function QrScanSimulatorSection() {
                 <button
                   key={step.title}
                   type="button"
-                  onClick={() => setActive(i)}
+                  onClick={() => {
+                    setActive(i);
+                    setAutoPlay(false);
+                  }}
                   className={`w-full text-left flex items-start gap-4 rounded-xl border-2 p-4 transition-all ${
-                    active === i ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                    active === i
+                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/10'
+                      : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'
                   }`}
+                  aria-pressed={active === i}
                 >
                   <div
                     className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      active === i ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
+                      active === i ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'
                     }`}
                   >
                     {i + 1}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">{step.title}</p>
-                    <p className="text-xs text-gray-500">{step.desc}</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">{step.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{step.desc}</p>
                   </div>
                 </button>
               ))}

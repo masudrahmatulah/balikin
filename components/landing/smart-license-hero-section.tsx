@@ -50,7 +50,7 @@ export function SmartLicenseHeroSection() {
           className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto dark:text-gray-300"
         >
           Anda tidak sedang membeli akrilik atau stiker. Anda mengaktifkan{' '}
-          <span className="font-semibold text-gray-800">lisensi proteksi digital</span> — privasi terjaga lewat Anonymous Chat, tanpa baterai, dan berlaku seumur hidup.
+          <span className="font-semibold text-gray-800 dark:text-gray-200">lisensi proteksi digital</span> — privasi terjaga lewat Anonymous Chat, tanpa baterai, dan berlaku seumur hidup.
         </motion.p>
 
         <motion.p
@@ -59,7 +59,7 @@ export function SmartLicenseHeroSection() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="text-lg text-gray-500 mb-8 max-w-xl mx-auto dark:text-gray-400"
         >
-          Gantungan akrilik, logam, atau stiker hanyalah <span className="font-semibold text-gray-700">media fisik</span> — wadah yang membawa teknologi digital ini ke mana pun barang Anda pergi.
+          Gantungan akrilik, logam, atau stiker hanyalah <span className="font-semibold text-gray-700 dark:text-gray-300">media fisik</span> — wadah yang membawa teknologi digital ini ke mana pun barang Anda pergi.
         </motion.p>
 
         <motion.div
@@ -77,7 +77,7 @@ export function SmartLicenseHeroSection() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
-          <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 hover:bg-gray-50 transition-all" asChild>
+          <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all" asChild>
             <Link href="#simulator-qr">Lihat Cara Kerjanya</Link>
           </Button>
         </motion.div>

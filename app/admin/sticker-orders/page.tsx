@@ -4,9 +4,7 @@ import { getAdminSession } from '@/lib/admin';
 import {
   getStickerOrders,
   getStickerOrdersCount,
-  getPendingOrdersCount,
 } from './data-access';
-import { AdminHeader } from '@/components/admin/admin-header';
 import { GenerateBundleButton } from '@/components/admin/generate-bundle-button';
 import { verifyStickerOrder, updateStickerOrderStatus } from './actions';
 import { Button } from '@/components/ui/button';
@@ -30,19 +28,16 @@ export default async function AdminStickerOrdersPage({
   }
 
   const page = Number(searchParams.page) || 1;
-  const [orders, totalCount, pendingCount] = await Promise.all([
+  const [orders, totalCount] = await Promise.all([
     getStickerOrders(page),
     getStickerOrdersCount(),
-    getPendingOrdersCount(),
   ]);
 
   const totalPages = Math.ceil(totalCount / 20);
   const ORDERS_PER_PAGE = 20;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      <AdminHeader session={session} pendingOrdersCount={pendingCount} />
-      <main className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -180,7 +175,6 @@ export default async function AdminStickerOrdersPage({
             )}
           </div>
         )}
-      </main>
     </div>
   );
 }

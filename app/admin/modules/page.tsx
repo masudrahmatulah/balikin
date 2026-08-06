@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
-import { getPendingOrdersCount } from "@/lib/admin-stats";
 import { initializeDefaultModuleConfigs } from "@/app/actions/module-config-actions";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { ModuleConfigCard } from "@/components/admin/module-config-card";
 import type { Metadata } from "next";
 import { getModuleListWithStats } from "./data-access";
@@ -20,11 +18,8 @@ export default async function AdminModulesPage() {
     redirect("/sign-in?redirect=/admin/modules");
   }
 
-  // Get module data with stats in parallel
-  const [moduleData, pendingOrdersCount] = await Promise.all([
-    getModuleListWithStats(),
-    getPendingOrdersCount(),
-  ]);
+  // Get module data with stats
+  const moduleData = await getModuleListWithStats();
 
   // Initialize default configs if none exist (only on first load)
   if (moduleData.moduleList.length === 0) {
@@ -42,10 +37,7 @@ export default async function AdminModulesPage() {
   const totalAwaitingVerification = stats.reduce((sum, s) => sum + (s.awaitingVerification || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white" role="main" aria-label="Admin Modules Management">
-      <AdminHeader session={session} pendingOrdersCount={pendingOrdersCount} />
-
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto" aria-label="Admin Modules Management">
         {/* Header */}
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -153,7 +145,6 @@ export default async function AdminModulesPage() {
             ))}
           </div>
         </section>
-      </main>
     </div>
   );
 }

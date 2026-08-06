@@ -6,7 +6,6 @@ import { formatEmailForUser } from "@/lib/admin-privacy";
 import { db } from "@/db";
 import { tags, stickerOrders, scanLogs } from "@/db/schema";
 import { eq, desc, count } from "drizzle-orm";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { ClientTagsList } from "@/components/admin/client-tags-list";
 import { ClientQRGenerator } from "@/components/admin/client-qr-generator";
 import { WhatsAppQuickLink } from "@/components/admin/whatsapp-quick-link";
@@ -65,13 +64,10 @@ export default async function ClientDetailPage({
   const totalSpent = clientOrders.reduce((sum, order) => sum + order.totalAmount, 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      <AdminHeader session={session} />
-
-      <main className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Link
-          href="/admin"
+          href="/admin/clients"
           className="mb-6 inline-flex items-center text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +251,6 @@ export default async function ClientDetailPage({
 
         {/* Client Tags */}
         <ClientTagsList tags={clientTags} clientId={client.id} />
-      </main>
     </div>
   );
 }

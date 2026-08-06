@@ -5,7 +5,6 @@ import QRCode from 'qrcode';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
-import { AdminHeader } from '@/components/admin/admin-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,9 +52,7 @@ export default async function AdminStickerOrderDetailPage({
   })));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      <AdminHeader session={session} />
-      <main className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Detail Bundle Sticker</h1>
@@ -130,7 +127,6 @@ export default async function AdminStickerOrderDetailPage({
             </Card>
           ))
         )}
-      </main>
     </div>
   );
 }

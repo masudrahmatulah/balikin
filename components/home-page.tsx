@@ -8,7 +8,7 @@ import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-s
 import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
 import { GallerySlider } from '@/components/landing/gallery-slider';
 import { SocialProofSection } from '@/components/landing/social-proof-section';
-import { B2bScalabilitySection } from '@/components/landing/b2b-scalability-section';
+// import { B2bScalabilitySection } from '@/components/landing/b2b-scalability-section';
 import { TrustSecuritySection } from '@/components/landing/trust-security-section';
 import { FreePassLeadSection } from '@/components/landing/free-pass-lead-section';
 import { FAQSection } from '@/components/landing/faq-section';
@@ -43,8 +43,8 @@ export function HomePage() {
       {/* Social proof: testimonials + Verified Owner Badge teaser */}
       <SocialProofSection />
 
-      {/* B2B scalability: government, schools, communities */}
-      <B2bScalabilitySection />
+      {/* B2B scalability: government, schools, communities — hidden until feature is ready */}
+      {/* <B2bScalabilitySection /> */}
 
       {/* Trust & Security Section */}
       <TrustSecuritySection />
