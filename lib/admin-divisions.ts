@@ -139,6 +139,7 @@ export const DivisionNavigation = {
       { title: 'Material Logs', href: '/admin/material-logs', icon: '📋' },
       { title: 'VDP Tool', href: '/admin/vdp-tool', icon: '🔧' },
       { title: 'Requests', href: '/admin/requests', icon: '📨' },
+      { title: 'Pengaturan Situs', href: '/admin/settings', icon: '⚙️' },
     ],
   ],
 } as const;

@@ -1225,6 +1225,22 @@ export const campaignLeadsRelations = relations(campaignLeads, ({ one }) => ({
 }));
 
 // ============================================================================
+// SITE SETTINGS (singleton row, admin-editable)
+// ============================================================================
+
+export const siteSettings = pgTable('site_settings', {
+  id: text('id').primaryKey().default('default'), // fixed singleton row
+  app_id: text('app_id').default('balikin_id').notNull(),
+  // Public tag page greeting shown for non-lost tags.
+  // Supports {{ownerName}} placeholder, replaced with the tag owner's account name.
+  tagGreetingTemplate: text('tag_greeting_template'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type NewSiteSettings = typeof siteSettings.$inferInsert;
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
