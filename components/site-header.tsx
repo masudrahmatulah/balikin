@@ -83,10 +83,10 @@ export function SiteHeader() {
           {/* Theme Toggle & Auth Buttons - Kondisional */}
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <div className="h-6 w-px bg-slate-200" />
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
             <div className="flex items-center gap-3">
             {isPending ? (
-              <div className="h-9 w-32 animate-pulse rounded bg-gray-200" />
+              <div role="status" aria-label="Memuat..." className="h-9 w-32 animate-pulse rounded bg-gray-200 dark:bg-slate-700" />
             ) : isValidSession ? (
               <>
                 <Link href={dashboardUrl}>
@@ -121,7 +121,7 @@ export function SiteHeader() {
 
         <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'} dark:border-slate-700`}>
           {isPending ? (
-            <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-slate-700" />
+            <div role="status" aria-label="Memuat..." className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-slate-700" />
           ) : isValidSession ? (
             <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
               <Link href={dashboardUrl} onClick={() => setIsMobileMenuOpen(false)}>

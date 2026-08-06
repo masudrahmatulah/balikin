@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { AdminCard } from '@/components/admin/admin-card';
 import { BundleCard } from '@/components/admin/bundle-card';
@@ -39,7 +38,6 @@ export default async function AdminBundlesPage() {
     <AdminLayout
       title="Manage Bundles"
       description="Kelola bundle produk dan generate QR code"
-      header={<AdminHeader session={session} />}
     >
       {/* Header Actions */}
       <div className="flex justify-end mb-8">

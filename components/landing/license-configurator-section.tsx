@@ -191,11 +191,14 @@ export function LicenseConfiguratorSection() {
                         onMouseLeave={() => setPreviewShape(null)}
                         onFocus={() => setPreviewShape(s.id)}
                         onBlur={() => setPreviewShape(null)}
-                        className={`px-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
-                          shape === s.id ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200' : 'border-gray-200 text-gray-700 hover:border-indigo-300'
+                        className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
+                          shape === s.id
+                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-indigo-300'
                         }`}
                         aria-pressed={shape === s.id}
                       >
+                        {shape === s.id && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                         {s.name}
                       </button>
                     ))}

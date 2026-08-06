@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 const galleryImages = [
   {
@@ -43,15 +43,18 @@ const galleryImages = [
 export function GallerySlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    if (isPaused) return;
+
     const interval = setInterval(() => {
       setDirection(1);
       setCurrentIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isPaused]);
 
   const handlePrevious = () => {
     setDirection(-1);
@@ -82,7 +85,14 @@ export function GallerySlider() {
 
   return (
     <div className="w-full">
-      <div className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-2 md:p-4" style={{ minHeight: '250px', maxHeight: '650px' }}>
+      <div
+        className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-2 md:p-4"
+        style={{ minHeight: '250px', maxHeight: '650px' }}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onFocus={() => setIsPaused(true)}
+        onBlur={() => setIsPaused(false)}
+      >
         {/* Background text */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <span className="text-white/20 font-extrabold text-5xl md:text-8xl tracking-tight select-none whitespace-nowrap">
@@ -90,7 +100,12 @@ export function GallerySlider() {
           </span>
         </div>
 
-        <div className="relative w-full h-full">
+        <div
+          className="relative w-full h-full"
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`Gambar ${currentIndex + 1} dari ${galleryImages.length}`}
+        >
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={currentIndex}
@@ -151,6 +166,15 @@ export function GallerySlider() {
           {String(currentIndex + 1).padStart(2, '0')} / {String(galleryImages.length).padStart(2, '0')}
         </motion.div>
 
+        <button
+          type="button"
+          onClick={() => setIsPaused((prev) => !prev)}
+          className="absolute top-4 md:top-8 left-4 md:left-8 z-30 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md transition-all duration-300"
+          aria-label={isPaused ? 'Lanjutkan slide otomatis' : 'Jeda slide otomatis'}
+        >
+          {isPaused ? <Play className="w-4 h-4 md:w-5 md:h-5" /> : <Pause className="w-4 h-4 md:w-5 md:h-5" />}
+        </button>
+
         <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2 md:gap-3">
           {galleryImages.map((_, index) => (
             <motion.button
@@ -171,6 +195,7 @@ export function GallerySlider() {
               transition={{ duration: 0.4, ease: 'easeInOut' }}
               className="h-2 md:h-3 rounded-full cursor-pointer transition-all"
               aria-label={`Go to slide ${index + 1}`}
+              aria-current={index === currentIndex}
             />
           ))}
         </div>

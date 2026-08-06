@@ -249,34 +249,42 @@ export function BaseTable<T extends Record<string, any>>({
           <Table>
             <TableHeader>
               <TableRow>
-                {columns.map((column) => (
-                  <TableHead
-                    key={column.key}
-                    className={
-                      sortable && column.sortable !== false
-                        ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                        : ""
-                    }
-                    onClick={() => sortable && column.sortable !== false && handleSort(column.key)}
-                  >
-                    <div className="flex items-center gap-2">
-                      {column.title}
-                      {sortable && column.sortable !== false && (
-                        <>
+                {columns.map((column) => {
+                  const isSortableColumn = sortable && column.sortable !== false;
+                  const ariaSort: "ascending" | "descending" | "none" =
+                    isSortableColumn && sortColumn === column.key
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : "none";
+                  return (
+                    <TableHead
+                      key={column.key}
+                      aria-sort={isSortableColumn ? ariaSort : undefined}
+                    >
+                      {isSortableColumn ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSort(column.key)}
+                          className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white"
+                        >
+                          {column.title}
                           {sortColumn === column.key ? (
                             sortDirection === "asc" ? (
-                              <ChevronLeft className="w-4 h-4" />
+                              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                             ) : (
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4" aria-hidden="true" />
                             )
                           ) : (
-                            <SlidersHorizontal className="w-4 h-4 opacity-50" />
+                            <SlidersHorizontal className="w-4 h-4 opacity-50" aria-hidden="true" />
                           )}
-                        </>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">{column.title}</div>
                       )}
-                    </div>
-                  </TableHead>
-                ))}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>

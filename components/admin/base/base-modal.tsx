@@ -61,21 +61,7 @@ export function BaseModal({
     }
   }, [isOpen, close]);
 
-  // Focus trap when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      // Focus first focusable element after modal opens
-      const timeout = setTimeout(() => {
-        const focusableElements = document.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0] as HTMLElement;
-        firstElement?.focus();
-      }, 100);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isOpen]);
+  // Focus trap and initial focus are handled natively by Radix Dialog.
 
   // Prevent body scroll when modal is open
   useEffect(() => {

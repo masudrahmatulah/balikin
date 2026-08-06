@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
-import { getPendingOrdersCount } from "@/lib/admin-stats";
 import { getPendingModuleRequests } from "@/app/actions/module-request-actions";
-import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminRequestsTable } from "@/components/admin/admin-requests-table";
 import { getAllModules } from "@/lib/admin-modules";
 import type { Metadata } from "next";
@@ -28,10 +26,7 @@ export default async function AdminRequestsPage() {
   const totalPending = pendingRequests.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
-      <AdminHeader session={session} pendingOrdersCount={await getPendingOrdersCount()} />
-
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -71,7 +66,6 @@ export default async function AdminRequestsPage() {
 
         {/* Requests Table with Bulk Actions */}
         <AdminRequestsTable pendingRequests={pendingRequests} />
-      </main>
     </div>
   );
 }

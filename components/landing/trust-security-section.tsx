@@ -71,7 +71,7 @@ export function TrustSecuritySection() {
             viewport={{ once: true }}
             className="inline-flex items-center justify-center mb-4"
           >
-            <div className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+            <div className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-500/10 dark:to-purple-500/10 text-blue-700 dark:text-blue-400 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
               🔐 Keamanan Data
             </div>
           </motion.div>
@@ -82,7 +82,7 @@ export function TrustSecuritySection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent"
           >
             Privasi Anda Adalah Prioritas Utama Kami
           </motion.h2>
@@ -93,7 +93,7 @@ export function TrustSecuritySection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed"
+            className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
           >
             Balikin dibangun dengan teknologi infrastruktur kelas dunia untuk memastikan data pribadi dan transaksi Anda terlindungi dengan enkripsi tingkat tinggi.
           </motion.p>
@@ -115,7 +115,7 @@ export function TrustSecuritySection() {
                 whileHover={{ y: -8, transition: { duration: 0.3 } }}
                 className="group"
               >
-                <Card className="h-full border border-gray-200 hover:border-gray-300 hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <Card className="h-full border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-xl transition-all duration-300 overflow-hidden">
                   <CardContent className="p-8">
                     {/* Icon Background Gradient */}
                     <motion.div
@@ -126,11 +126,11 @@ export function TrustSecuritySection() {
                     </motion.div>
 
                     {/* Title & Subtitle */}
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">{pillar.title}</h3>
-                    <p className="text-sm text-blue-600 font-medium mb-4">{pillar.subtitle}</p>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{pillar.title}</h3>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-4">{pillar.subtitle}</p>
 
                     {/* Description */}
-                    <p className="text-gray-600 leading-relaxed text-sm">{pillar.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm">{pillar.description}</p>
 
                     {/* Accent Line */}
                     <motion.div
@@ -151,7 +151,7 @@ export function TrustSecuritySection() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-sm font-medium text-gray-500 uppercase tracking-widest mb-8"
+            className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-8"
           >
             🏆 Infrastruktur Teknologi Terpercaya
           </motion.p>
@@ -171,11 +171,11 @@ export function TrustSecuritySection() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05 }}
                 whileHover={{ scale: 1.05 }}
-                className="group flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
+                className="group flex flex-col items-center justify-center p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 {/* Logo Container */}
                 {logo.type === 'image' ? (
-                  <div className="w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 border-gray-200 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 bg-white relative">
+                  <div className="w-20 h-20 rounded-lg flex items-center justify-center mb-3 border-2 border-gray-200 dark:border-slate-700 shadow-md transition-all group-hover:shadow-lg group-hover:scale-110 bg-white relative">
                     <Image
                       src={logo.imageSrc!}
                       alt={`${logo.name} logo`}
@@ -191,7 +191,7 @@ export function TrustSecuritySection() {
                     <span className={`text-3xl font-bold ${logo.textColor}`}>{logo.emoji}</span>
                   </div>
                 )}
-                <p className="text-xs text-gray-600 text-center font-medium">{logo.label}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 text-center font-medium">{logo.label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -202,9 +202,9 @@ export function TrustSecuritySection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="mt-12 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+            className="mt-12 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg"
           >
-            <p className="text-xs text-blue-700">
+            <p className="text-xs text-blue-700 dark:text-blue-400">
               <span className="font-bold">✓ Keamanan Terjamin:</span> Setiap aspek platform Balikin mematuhi standar keamanan internasional (ISO 27001) dan regulasi perlindungan data Indonesia.
             </p>
           </motion.div>

@@ -73,9 +73,11 @@ export function Sidebar({ userDivision }: SidebarProps) {
   return (
     <>
       {/* Mobile backdrop */}
-      <div
+      <button
+        type="button"
+        aria-label="Tutup menu navigasi"
         className={cn(
-          "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity",
+          "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity cursor-default",
           !isCollapsed && "opacity-100",
           isCollapsed && "opacity-0 pointer-events-none"
         )}

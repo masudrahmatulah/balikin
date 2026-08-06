@@ -45,17 +45,17 @@ const comparisonRows = [
 const logicPoints = [
   {
     icon: Wallet,
-    title: 'Logika Biaya Kerugian vs Harga Proteksi',
-    desc: 'Harga satu lisensi pintar Balikin hanya Rp35.000. Bandingkan dengan biaya, waktu, dan kepanikan jika Anda harus mengurus ulang KTP, SIM, STNK di dalam dompet yang hilang, atau membeli kunci paspor dan kunci motor baru yang nilainya jutaan rupiah. Membiarkan barang berharga tanpa proteksi digital adalah kecerobohan yang mahal.',
+    title: 'Rp35.000 vs Ribetnya Kehilangan Dompet',
+    desc: 'Harga satu lisensi pintar Balikin hanya Rp35.000. Bandingkan dengan biaya, waktu, dan kepanikan jika Anda harus mengurus ulang KTP, SIM, STNK di dalam dompet yang hilang, atau membeli kunci paspor dan kunci motor baru yang nilainya jutaan rupiah. Investasi Rp35.000 sekali ini jauh lebih ringan dibanding kerepotan mengurus dokumen atau membeli barang pengganti.',
   },
   {
     icon: ShieldAlert,
-    title: 'Logika Keamanan Privasi',
+    title: 'Privasi Anda Tetap Aman',
     desc: 'Menempelkan nomor WhatsApp langsung pada barang berharga sama saja dengan membagikan data pribadi Anda ke ribuan orang asing di jalanan. Dengan Balikin, Anda membuka pintu bagi penemu berniat baik untuk mengembalikan barang, sekaligus mengunci rapat pintu bagi pelaku kejahatan siber.',
   },
   {
     icon: Zap,
-    title: 'Logika Ketahanan Sistem',
+    title: 'Selalu Siap, Tanpa Baterai',
     desc: 'Alat elektronik bisa rusak terkena air, kehabisan baterai, atau mati total saat Anda sangat membutuhkannya. Balikin menggunakan kode QR berbasis web yang melekat pada material kokoh—siap bekerja mendeteksi barang Anda kapan saja, tahun kapan saja, tanpa pernah kehabisan daya.',
   },
 ];
@@ -65,10 +65,10 @@ export function WhyBuyComparisonSection() {
     <section className="container mx-auto px-4 py-16">
       <ScrollReveal>
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
             Mengapa Anda Jelas Merugi Jika Tidak Menggunakan Balikin?
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Gantungan kunci biasa tidak bisa bicara. Bluetooth tracker terlalu mahal. Menulis nomor HP di barang mengundang bahaya.
             Ini adalah perbandingan logis mengapa Balikin adalah satu-satunya solusi yang masuk akal.
           </p>
@@ -79,20 +79,20 @@ export function WhyBuyComparisonSection() {
         <div className="max-w-5xl mx-auto mb-16 overflow-x-auto rounded-xl border shadow-sm">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="min-w-[160px]">Tantangan Perlindungan Barang</TableHead>
-                <TableHead className="min-w-[220px]">Pelacak Bluetooth (AirTag/SmartTag)</TableHead>
-                <TableHead className="min-w-[220px]">Menulis Nomor HP di Barang</TableHead>
-                <TableHead className="min-w-[220px] bg-blue-50 text-blue-700">Sistem Smart Tag Balikin</TableHead>
+              <TableRow className="bg-gray-50 dark:bg-slate-800">
+                <TableHead className="min-w-[160px] dark:text-white">Tantangan Perlindungan Barang</TableHead>
+                <TableHead className="min-w-[220px] dark:text-white">Pelacak Bluetooth (AirTag/SmartTag)</TableHead>
+                <TableHead className="min-w-[220px] dark:text-white">Menulis Nomor HP di Barang</TableHead>
+                <TableHead className="min-w-[220px] bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">Sistem Smart Tag Balikin</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {comparisonRows.map((row) => (
-                <TableRow key={row.aspect}>
-                  <TableCell className="font-medium text-gray-900">{row.aspect}</TableCell>
-                  <TableCell className="text-sm text-gray-600">{row.bluetooth}</TableCell>
-                  <TableCell className="text-sm text-gray-600">{row.phoneNumber}</TableCell>
-                  <TableCell className="text-sm text-gray-800 bg-blue-50/50 font-medium">{row.balikin}</TableCell>
+                <TableRow key={row.aspect} className="dark:border-slate-700">
+                  <TableCell className="font-medium text-gray-900 dark:text-white">{row.aspect}</TableCell>
+                  <TableCell className="text-sm text-gray-600 dark:text-gray-300">{row.bluetooth}</TableCell>
+                  <TableCell className="text-sm text-gray-600 dark:text-gray-300">{row.phoneNumber}</TableCell>
+                  <TableCell className="text-sm text-gray-800 bg-blue-50/50 dark:bg-blue-500/10 dark:text-gray-200 font-medium">{row.balikin}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -102,7 +102,7 @@ export function WhyBuyComparisonSection() {
 
       <ScrollReveal delay={0.25}>
         <div className="max-w-3xl mx-auto text-center mb-8">
-          <h3 className="text-2xl font-bold">3 Hukum Logika yang Tidak Bisa Dibantah Konsumen</h3>
+          <h3 className="text-2xl font-bold dark:text-white">3 Alasan Kenapa Balikin Layak Jadi Pilihan Anda</h3>
         </div>
       </ScrollReveal>
 
@@ -121,8 +121,8 @@ export function WhyBuyComparisonSection() {
                   <div className="flex justify-center mb-4">
                     <point.icon className="h-10 w-10 text-blue-600" aria-hidden="true" />
                   </div>
-                  <h4 className="font-bold mb-2 text-center">{point.title}</h4>
-                  <p className="text-sm text-gray-600">{point.desc}</p>
+                  <h4 className="font-bold mb-2 text-center dark:text-white">{point.title}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{point.desc}</p>
                 </CardContent>
               </Card>
             </motion.div>

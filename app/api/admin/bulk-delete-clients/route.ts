@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
-import { user, tags, scanLogs, studentKitData, emergencyInformation } from "@/db/schema";
+import { user, tags, studentKitData } from "@/db/schema";
 import { inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -38,24 +38,12 @@ export async function POST(req: NextRequest) {
     // 1. Delete student kit data
     await db.delete(studentKitData).where(inArray(studentKitData.userId, userIds));
 
-    // 2. Delete emergency info
-    await db.delete(emergencyInformation).where(inArray(emergencyInformation.userId, userIds));
-
-    // 3. Delete scan logs (by finding tags first, then deleting their scan logs)
-    const userTags = await db.query.tags.findMany({
-      where: inArray(tags.ownerId, userIds),
-      columns: { id: true },
-    });
-
-    if (userTags.length > 0) {
-      const tagIds = userTags.map((t) => t.id);
-      await db.delete(scanLogs).where(inArray(scanLogs.tagId, tagIds));
-    }
-
-    // 4. Delete tags
+    // 2. Delete tags owned by these users.
+    // scan_logs and emergency_information reference tags with ON DELETE CASCADE,
+    // so they're cleaned up automatically by Postgres.
     await db.delete(tags).where(inArray(tags.ownerId, userIds));
 
-    // 5. Delete users
+    // 3. Delete users
     await db.delete(user).where(inArray(user.id, userIds));
 
     return NextResponse.json({

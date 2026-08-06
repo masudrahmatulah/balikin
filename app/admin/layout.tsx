@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
+import { getPendingOrdersCount } from "@/lib/admin-stats";
 import { Sidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminErrorBoundary } from "@/components/admin/error-boundary";
@@ -19,6 +20,7 @@ export default async function AdminLayout({
 
   // Get user division from session
   const userDivision = session.user.division;
+  const pendingOrdersCount = await getPendingOrdersCount();
 
   return (
     <div className="min-h-screen bg-neutral text-primary font-body selection:bg-tertiary/20">
@@ -27,6 +29,7 @@ export default async function AdminLayout({
         <AdminHeader
           session={session}
           showMobileMenu={true}
+          pendingOrdersCount={pendingOrdersCount}
         />
         <main className="pt-24 px-8 pb-12 max-w-[1600px] mx-auto">
           <AdminErrorBoundary>
