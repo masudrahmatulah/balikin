@@ -38,7 +38,7 @@ export function StatCard({
     <div
       className={cn(
         "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
-        highlight && "border-2 border-tertiary/40 bg-tertiary/[0.03]",
+        highlight && "border-2 border-blue-600/40 bg-blue-600/[0.03]",
         className
       )}
     >
@@ -62,8 +62,8 @@ export function StatCard({
             className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center",
               highlight
-                ? "bg-tertiary/10 text-tertiary"
-                : "bg-primary/5 text-primary"
+                ? "bg-blue-600/10 text-blue-600"
+                : "bg-blue-600/5 text-blue-600"
             )}
           >
             <Icon size={20} strokeWidth={2} />
@@ -72,8 +72,8 @@ export function StatCard({
       </div>
       <p
         className={cn(
-          "font-display font-bold text-2xl text-primary",
-          highlight && "text-tertiary"
+          "font-display font-bold text-2xl text-gray-900",
+          highlight && "text-blue-600"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
@@ -105,7 +105,7 @@ export function StatCardWithChart({
     <div
       className={cn(
         "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
-        highlight && "border-2 border-tertiary/40 bg-tertiary/[0.03]",
+        highlight && "border-2 border-blue-600/40 bg-blue-600/[0.03]",
         className
       )}
     >
@@ -124,14 +124,14 @@ export function StatCardWithChart({
             </div>
           )}
         </div>
-        <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-blue-600/5 text-blue-600 flex items-center justify-center">
           <Icon size={20} strokeWidth={2} />
         </div>
       </div>
       <p
         className={cn(
-          "font-display font-bold text-2xl text-primary",
-          highlight && "text-tertiary"
+          "font-display font-bold text-2xl text-gray-900",
+          highlight && "text-blue-600"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
@@ -141,7 +141,7 @@ export function StatCardWithChart({
           {chartData.map((height, index) => (
             <div
               key={index}
-              className="flex-1 bg-primary/10 rounded-t-sm transition-all hover:bg-tertiary/30"
+              className="flex-1 bg-blue-600/10 rounded-t-sm transition-all hover:bg-purple-600/30"
               style={{ height: `${(height / maxChartValue) * 100}%` }}
             />
           ))}
