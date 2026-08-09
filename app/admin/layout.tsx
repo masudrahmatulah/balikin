@@ -23,7 +23,7 @@ export default async function AdminLayout({
   const pendingOrdersCount = await getPendingOrdersCount();
 
   return (
-    <div className="min-h-screen bg-neutral text-primary font-body selection:bg-tertiary/20">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white text-gray-900 font-body selection:bg-blue-600/20">
       <Sidebar userDivision={userDivision} />
       <div className="lg:ml-sidebar-width">
         <AdminHeader

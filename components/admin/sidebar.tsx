@@ -87,7 +87,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 h-screen w-[248px] bg-primary flex flex-col py-6 px-3 z-50 transition-transform duration-300",
+          "fixed left-0 top-0 h-screen w-[248px] bg-gradient-to-b from-blue-700 via-blue-700 to-purple-800 flex flex-col py-6 px-3 z-50 transition-transform duration-300",
           "lg:translate-x-0",
           isCollapsed ? "-translate-x-full" : "translate-x-0"
         )}
@@ -95,12 +95,12 @@ export function Sidebar({ userDivision }: SidebarProps) {
         {/* Logo Section */}
         <div className="mb-8 px-2">
           <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-tertiary/20 transition-transform group-hover:scale-105">
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-blue-900/40 transition-transform group-hover:scale-105">
               <Image src="/logo.png" alt="Balikin" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-base font-display font-bold text-white leading-tight">Balikin</h1>
-              <p className="text-[11px] text-white/40 tracking-wide uppercase">Admin</p>
+              <p className="text-[11px] text-white/50 tracking-wide uppercase">Admin</p>
             </div>
           </Link>
         </div>
@@ -117,17 +117,17 @@ export function Sidebar({ userDivision }: SidebarProps) {
                 className={cn(
                   "group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative",
                   isActive
-                    ? "bg-white/10 text-white font-semibold"
-                    : "text-white/50 hover:bg-white/5 hover:text-white/90"
+                    ? "bg-white/15 text-white font-semibold shadow-inner"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-tertiary" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
                 )}
                 <ItemIcon className="w-[18px] h-[18px]" strokeWidth={2} />
                 <span className="text-sm">{item.title}</span>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="ml-auto px-2 py-0.5 bg-tertiary text-white text-[11px] font-semibold rounded-full">
+                  <span className="ml-auto px-2 py-0.5 bg-white text-blue-700 text-[11px] font-semibold rounded-full">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
@@ -141,7 +141,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
           {/* Settings Link */}
           <Link
             href="/admin/settings"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-white/50 hover:bg-white/5 hover:text-white/90 rounded-xl transition-colors"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-white/60 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
           >
             <Settings className="w-[18px] h-[18px]" />
             <span>Settings</span>
@@ -150,7 +150,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
           {/* Audit Logs Link */}
           <Link
             href="/admin/audit-logs"
-            className="flex items-center gap-3 px-3 py-2 text-sm text-white/50 hover:bg-white/5 hover:text-white/90 rounded-xl transition-colors"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-white/60 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
           >
             <ScrollText className="w-[18px] h-[18px]" />
             <span>Audit Logs</span>
