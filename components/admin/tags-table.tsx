@@ -28,14 +28,25 @@ interface TagsTableProps {
   tags: TagWithOwner[];
 }
 
+const UNCLAIMED_OWNER_VALUE = "__unclaimed__";
+
 export function TagsTable({ tags }: TagsTableProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "normal" | "lost">("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
+
+  const owners = Array.from(
+    new Map(
+      tags
+        .filter((tag) => tag.ownerId && tag.owner)
+        .map((tag) => [tag.ownerId as string, tag.owner as TagOwner])
+    ).entries()
+  ).sort((a, b) => (a[1].name || a[1].email).localeCompare(b[1].name || b[1].email));
 
   const filteredTags = tags.filter((tag) => {
     const matchesSearch =
@@ -44,7 +55,10 @@ export function TagsTable({ tags }: TagsTableProps) {
       tag.owner?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tag.owner?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || tag.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesOwner =
+      ownerFilter === "all" ||
+      (ownerFilter === UNCLAIMED_OWNER_VALUE ? !tag.ownerId : tag.ownerId === ownerFilter);
+    return matchesSearch && matchesStatus && matchesOwner;
   });
 
   const handleSelectAll = () => {
@@ -106,6 +120,20 @@ export function TagsTable({ tags }: TagsTableProps) {
           <option value="all">Semua Status</option>
           <option value="normal">Normal</option>
           <option value="lost">Hilang</option>
+        </select>
+        <select
+          value={ownerFilter}
+          onChange={(e) => setOwnerFilter(e.target.value)}
+          aria-label="Filter owner"
+          className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Semua Owner</option>
+          <option value={UNCLAIMED_OWNER_VALUE}>Unclaimed</option>
+          {owners.map(([ownerId, owner]) => (
+            <option key={ownerId} value={ownerId}>
+              {owner.name || owner.email}
+            </option>
+          ))}
         </select>
       </div>
 

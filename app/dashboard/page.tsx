@@ -52,7 +52,7 @@ async function DashboardContent({ limitReached }: { limitReached?: boolean }) {
       <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
         <div className="mb-6">
           <p className="text-sm text-slate-500">Selamat datang kembali</p>
-          <h2 className="text-2xl font-bold text-slate-900">{displayName} 👋</h2>
+          <h2 className="text-2xl font-display font-bold text-slate-900">{displayName} 👋</h2>
         </div>
 
         <DashboardStatusBanner totalTags={tags.length} lostTags={lostTagCount} />

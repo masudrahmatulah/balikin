@@ -8,11 +8,11 @@ import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, ShoppingCart, Sparkles, QrCode, MessageCircleHeart, Infinity as InfinityIcon, ZoomIn } from 'lucide-react';
+import { Check, ShoppingCart, Sparkles, QrCode, MessageCircleHeart, Infinity as InfinityIcon, ZoomIn, PackagePlus, Trash2, MessageCircle } from 'lucide-react';
 import { SimpleUrgencyBadge } from '@/components/landing/urgency-badge';
 import { ImageLightbox, type LightboxImage } from '@/components/landing/image-lightbox';
-
-const BASE_PRICE = 35000;
+import { PRODUCT_CATALOG } from '@/lib/product-catalog';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 type MaterialId = 'vinyl' | 'acrylic' | 'stainless';
 type ShapeId = 'bulat' | 'oval' | 'persegi-panjang' | 'persegi-panjang-motif' | 'persegi-panjang-timbul' | 'segi-delapan' | 'heart';
@@ -21,19 +21,17 @@ const materials: {
   id: MaterialId;
   name: string;
   desc: string;
-  addOn: number;
   hasShapes?: boolean;
   comingSoon?: boolean;
 }[] = [
-  { id: 'vinyl', name: 'Premium Vinyl Sticker', desc: 'Standar, sudah termasuk di harga lisensi', addOn: 0 },
+  { id: 'vinyl', name: 'Premium Vinyl Sticker', desc: 'Standar, sudah termasuk di harga lisensi' },
   {
     id: 'acrylic',
     name: 'Wadah Premium Acrylic Tag',
     desc: 'Bulat, Oval, Kotak, atau Heart',
-    addOn: 10000,
     hasShapes: true,
   },
-  { id: 'stainless', name: 'Wadah Tactical Stainless / Metal', desc: 'Untuk koper atau barang outdoor', addOn: 29000, comingSoon: true },
+  { id: 'stainless', name: 'Wadah Tactical Stainless / Metal', desc: 'Untuk koper atau barang outdoor', comingSoon: true },
 ];
 
 const shapes: { id: ShapeId; name: string; image: string }[] = [
@@ -48,6 +46,25 @@ const shapes: { id: ShapeId; name: string; image: string }[] = [
 
 const CUSTOM_PRINT_PRICE = 5000;
 
+type StickerPackId = 'stiker-pro' | 'stiker-daily' | 'stiker-family' | 'stiker-micro';
+
+const stickerPacks: { id: StickerPackId; label: string; desc: string }[] = [
+  { id: 'stiker-pro', label: `Pro (isi ${PRODUCT_CATALOG['stiker-pro'].packSize})`, desc: 'Cocok untuk kebutuhan ringan' },
+  { id: 'stiker-family', label: `Family (isi ${PRODUCT_CATALOG['stiker-family'].packSize})`, desc: 'Paling populer' },
+  { id: 'stiker-daily', label: `Daily (isi ${PRODUCT_CATALOG['stiker-daily'].packSize})`, desc: 'Untuk pemakaian harian' },
+  { id: 'stiker-micro', label: `Micro (isi ${PRODUCT_CATALOG['stiker-micro'].packSize})`, desc: 'Paling banyak isinya' },
+];
+
+const DEFAULT_STICKER_PACK: StickerPackId = 'stiker-family';
+
+// Vinyl selalu flat Rp59.000 per pack (lihat PRODUCT_CATALOG), acrylic flat harga armor-tag,
+// jadi harga ditampilkan berdasarkan produk asli di katalog, bukan hitungan base+addon.
+const MATERIAL_STARTING_PRICE: Record<MaterialId, { price: number; unit: string } | null> = {
+  vinyl: { price: PRODUCT_CATALOG['stiker-family'].price, unit: '/ pack' },
+  acrylic: { price: PRODUCT_CATALOG['armor-tag'].price, unit: '/ pcs' },
+  stainless: null,
+};
+
 function formatRupiah(value: number) {
   return `Rp${value.toLocaleString('id-ID')}`;
 }
@@ -55,18 +72,60 @@ function formatRupiah(value: number) {
 export function LicenseConfiguratorSection() {
   const [material, setMaterial] = useState<MaterialId>('vinyl');
   const [shape, setShape] = useState<ShapeId>('bulat');
+  const [stickerPack, setStickerPack] = useState<StickerPackId>(DEFAULT_STICKER_PACK);
   const [customPrint, setCustomPrint] = useState(false);
   const [previewShape, setPreviewShape] = useState<ShapeId | null>(null);
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
+  const [mixCart, setMixCart] = useState<{ packId: StickerPackId; qty: number }[]>([]);
 
   const selectedMaterial = materials.find((m) => m.id === material)!;
   const activeShape = shapes.find((s) => s.id === (previewShape ?? shape))!;
 
+  const checkoutProductKey = material === 'vinyl' ? stickerPack : 'armor-tag';
+  const checkoutProduct = PRODUCT_CATALOG[checkoutProductKey];
+  const packSize = checkoutProduct.packSize;
+
   const total = useMemo(() => {
-    let sum = BASE_PRICE + selectedMaterial.addOn;
+    let sum = checkoutProduct.price;
     if (customPrint) sum += CUSTOM_PRINT_PRICE;
     return sum;
-  }, [selectedMaterial, customPrint]);
+  }, [checkoutProduct, customPrint]);
+
+  const addToMixCart = () => {
+    setMixCart((prev) => {
+      const existing = prev.find((item) => item.packId === stickerPack);
+      if (existing) {
+        return prev.map((item) => (item.packId === stickerPack ? { ...item, qty: item.qty + 1 } : item));
+      }
+      return [...prev, { packId: stickerPack, qty: 1 }];
+    });
+  };
+
+  const updateMixCartQty = (packId: StickerPackId, delta: number) => {
+    setMixCart((prev) =>
+      prev
+        .map((item) => (item.packId === packId ? { ...item, qty: item.qty + delta } : item))
+        .filter((item) => item.qty > 0)
+    );
+  };
+
+  const removeFromMixCart = (packId: StickerPackId) => {
+    setMixCart((prev) => prev.filter((item) => item.packId !== packId));
+  };
+
+  const mixCartTotal = mixCart.reduce((sum, item) => sum + PRODUCT_CATALOG[item.packId].price * item.qty, 0);
+
+  const mixCartWhatsappHref = useMemo(() => {
+    if (mixCart.length === 0) return '';
+    const lines = mixCart
+      .map((item) => {
+        const p = stickerPacks.find((sp) => sp.id === item.packId)!;
+        return `- ${item.qty}x Stiker Balikin ${p.label}`;
+      })
+      .join('\n');
+    const message = `Halo, saya ingin pesan kombinasi paket stiker Balikin:\n${lines}\nTotal estimasi: ${formatRupiah(mixCartTotal)}. Mohon info proses pemesanannya.`;
+    return `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(message)}`;
+  }, [mixCart, mixCartTotal]);
 
   return (
     <section id="konfigurator" className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-16">
@@ -83,7 +142,7 @@ export function LicenseConfiguratorSection() {
               Rakit Lisensi <span className="bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">Balikin</span> Anda Sendiri
             </h2>
             <p className="text-gray-600 dark:text-gray-300">
-              Harga dasar Rp35.000 sudah termasuk 1 Lisensi Akun/ID QR unik di platform balikin.online + media standar. Pilih wadah dan opsi desain, harga otomatis menyesuaikan.
+              Setiap pack sudah termasuk Lisensi Akun/ID QR unik di platform balikin.online untuk setiap tag. Pilih wadah, paket, dan opsi desain, harga otomatis menyesuaikan.
             </p>
           </div>
         </ScrollReveal>
@@ -149,7 +208,9 @@ export function LicenseConfiguratorSection() {
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{m.desc}</p>
                     <span className="text-sm font-semibold text-orange-600">
-                      {m.comingSoon ? '' : m.addOn === 0 ? 'Termasuk' : `+${formatRupiah(m.addOn)}`}
+                      {MATERIAL_STARTING_PRICE[m.id]
+                        ? `${formatRupiah(MATERIAL_STARTING_PRICE[m.id]!.price)} ${MATERIAL_STARTING_PRICE[m.id]!.unit}`
+                        : ''}
                     </span>
                   </button>
                 ))}
@@ -157,7 +218,7 @@ export function LicenseConfiguratorSection() {
             </div>
 
             {material === 'vinyl' && (
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                 <button
                   type="button"
                   onClick={() => setLightboxImage({ src: '/desains/sticker1.webp', alt: 'Premium Vinyl Sticker' })}
@@ -174,6 +235,108 @@ export function LicenseConfiguratorSection() {
                     <ZoomIn className="h-4 w-4 text-indigo-600" aria-hidden="true" />
                   </span>
                 </button>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">2. Pilih Jumlah Pack</h3>
+                    <Link
+                      href="/stickers"
+                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                      Lihat detail & isi tiap paket →
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {stickerPacks.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setStickerPack(p.id)}
+                        className={`inline-flex flex-col items-start gap-0.5 px-4 py-2 rounded-xl border-2 text-left transition-all ${
+                          stickerPack === p.id
+                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-indigo-300'
+                        }`}
+                        aria-pressed={stickerPack === p.id}
+                      >
+                        <span className="flex items-center gap-1.5 text-sm font-medium">
+                          {stickerPack === p.id && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                          {p.label}
+                        </span>
+                        <span className={`text-xs ${stickerPack === p.id ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {p.desc}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addToMixCart}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                  >
+                    <PackagePlus className="h-4 w-4" aria-hidden="true" />
+                    Mau campur beberapa paket? Tambahkan ke pesanan
+                  </button>
+
+                  {mixCart.length > 0 && (
+                    <div className="mt-3 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-500/5 p-3 space-y-2">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Pesanan campuran Anda:</p>
+                      {mixCart.map((item) => {
+                        const p = stickerPacks.find((sp) => sp.id === item.packId)!;
+                        return (
+                          <div key={item.packId} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">{p.label}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 rounded-md bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 px-1.5 py-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => updateMixCartQty(item.packId, -1)}
+                                  aria-label={`Kurangi ${p.label}`}
+                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
+                                >
+                                  −
+                                </button>
+                                <span className="w-4 text-center text-xs font-semibold">{item.qty}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateMixCartQty(item.packId, 1)}
+                                  aria-label={`Tambah ${p.label}`}
+                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeFromMixCart(item.packId)}
+                                aria-label={`Hapus ${p.label} dari pesanan campuran`}
+                                className="text-gray-400 hover:text-red-500"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div className="flex items-center justify-between pt-2 border-t border-indigo-200 dark:border-indigo-500/30 text-sm font-semibold text-gray-900 dark:text-white">
+                        <span>Estimasi Total</span>
+                        <span>{formatRupiah(mixCartTotal)}</span>
+                      </div>
+                      <a
+                        href={mixCartWhatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 transition-colors"
+                      >
+                        <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                        Pesan Campuran via WhatsApp
+                      </a>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400 text-center">
+                        Pesanan campuran diproses manual oleh admin via WhatsApp, terpisah dari checkout otomatis.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
 
@@ -236,7 +399,7 @@ export function LicenseConfiguratorSection() {
 
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                {selectedMaterial.hasShapes ? '3.' : '2.'} Opsi Desain
+                {selectedMaterial.hasShapes || material === 'vinyl' ? '3.' : '2.'} Opsi Desain
               </h3>
               <button
                 type="button"
@@ -264,20 +427,20 @@ export function LicenseConfiguratorSection() {
             <Card className="border-0 bg-gradient-to-br from-indigo-600 to-violet-700 shadow-xl shadow-indigo-300/40 sticky top-24 overflow-hidden">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-white mb-4">Ringkasan Lisensi</h3>
+
+                <div className="mb-4 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs text-indigo-100">
+                  Dijual per pack berisi <span className="font-semibold text-white">{packSize} pcs</span>, bukan satuan. Harga mengikuti paket yang Anda pilih.
+                </div>
+
                 <ul className="space-y-2 text-sm text-indigo-100 mb-4">
                   <li className="flex justify-between">
-                    <span>Lisensi Akun/ID QR + Vinyl</span>
-                    <span>{formatRupiah(BASE_PRICE)}</span>
+                    <span>
+                      {material === 'vinyl'
+                        ? `Vinyl Sticker Pack ${stickerPacks.find((p) => p.id === stickerPack)?.label}`
+                        : `${selectedMaterial.name}${selectedMaterial.hasShapes ? ` (${shapes.find((s) => s.id === shape)?.name})` : ''}`}
+                    </span>
+                    <span>{formatRupiah(checkoutProduct.price)}</span>
                   </li>
-                  {selectedMaterial.addOn > 0 && (
-                    <li className="flex justify-between">
-                      <span>
-                        {selectedMaterial.name}
-                        {selectedMaterial.hasShapes ? ` (${shapes.find((s) => s.id === shape)?.name})` : ''}
-                      </span>
-                      <span>+{formatRupiah(selectedMaterial.addOn)}</span>
-                    </li>
-                  )}
                   {customPrint && (
                     <li className="flex justify-between">
                       <span>Cetak Kustom Nama/Foto</span>
@@ -285,18 +448,23 @@ export function LicenseConfiguratorSection() {
                     </li>
                   )}
                 </ul>
-                <div className="border-t border-white/20 pt-4 mb-6 flex items-center justify-between">
-                  <span className="font-semibold text-white">Total</span>
-                  <motion.span
-                    key={total}
-                    initial={{ scale: 1.15, opacity: 0.6 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-2xl font-bold text-amber-300"
-                  >
-                    {formatRupiah(total)}
-                  </motion.span>
+                <div className="border-t border-white/20 pt-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-white">Total</span>
+                    <motion.span
+                      key={total}
+                      initial={{ scale: 1.15, opacity: 0.6 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="text-2xl font-bold text-amber-300"
+                    >
+                      {formatRupiah(total)}
+                    </motion.span>
+                  </div>
+                  <p className="text-xs text-indigo-200 mt-1 text-right">
+                    {formatRupiah(Math.round(checkoutProduct.price / packSize))} / pcs dalam pack
+                  </p>
                 </div>
-                <Link href="/stickers" className="block">
+                <Link href={`/stickers/checkout?product=${checkoutProductKey}`} className="block">
                   <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-900/30 border-0" size="lg">
                     <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
                     Aktifkan Lisensi Ini

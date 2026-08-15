@@ -25,6 +25,7 @@ import { getSiteSettings } from '@/app/actions/site-settings';
 
 interface ProfilePageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }
 
 export const metadata: Metadata = buildMetadata({
@@ -82,8 +83,10 @@ const getRecentScans = unstable_cache(
   { revalidate: 60, tags: ['scan-logs'] }
 );
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { slug } = await params;
+  const { preview } = await searchParams;
+  const isPreview = preview === '1';
 
   const tag = await getTagBySlug(slug);
 
@@ -114,7 +117,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     headers: await headers(),
   });
 
-  if (session?.user?.id && tag.ownerId === session.user.id) {
+  if (session?.user?.id && tag.ownerId === session.user.id && !isPreview) {
     // Owner is viewing - redirect to appropriate page
     if (tag.autoActivateModule) {
       // Bundle tag - redirect to specific module

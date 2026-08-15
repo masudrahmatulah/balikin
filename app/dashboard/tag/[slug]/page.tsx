@@ -129,7 +129,7 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                   </a>
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
-                  <a href={`/p/${slug}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`/p/${slug}?preview=1`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Buka Halaman Publik
                   </a>
