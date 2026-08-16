@@ -31,6 +31,9 @@ export function HomePage() {
       {/* Product showcase gallery: detailed large images of every product variant */}
       <ProductShowcaseSection />
 
+      {/* Free Pass lead capture */}
+      <FreePassLeadSection />
+
       {/* Interactive configurator: material/shape/design add-ons with live price */}
       <LicenseConfiguratorSection />
 
@@ -48,9 +51,6 @@ export function HomePage() {
 
       {/* Trust & Security Section */}
       <TrustSecuritySection />
-
-      {/* Free Pass lead capture */}
-      <FreePassLeadSection />
 
       {/* FAQ Section */}
       <FAQSection />
