@@ -294,11 +294,12 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               )}
 
               {tag.contactWhatsapp && (
-                <div className="text-center pt-4">
+                <div className="flex justify-center pt-4">
                   <WhatsAppButton
                     phone={tag.contactWhatsapp}
                     message={tag.customMessage || `Halo, saya ingin bertanya tentang tag "${tag.name}".`}
                     variant="outline"
+                    className="w-full sm:w-auto"
                   />
                 </div>
               )}
