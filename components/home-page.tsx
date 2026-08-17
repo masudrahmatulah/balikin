@@ -25,7 +25,9 @@ export function HomePage() {
 
       {/* Gallery slider */}
       <section className="container mx-auto px-4 py-12 md:py-16">
-        <GallerySlider />
+        <div className="max-w-5xl mx-auto">
+          <GallerySlider />
+        </div>
       </section>
 
       {/* Product showcase gallery: detailed large images of every product variant */}
