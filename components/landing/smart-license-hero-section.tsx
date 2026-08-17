@@ -39,7 +39,7 @@ export function SmartLicenseHeroSection() {
           className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white"
         >
           Perkenalkan <span className="gradient-text">Balikin Smart License</span>
-          <br className="hidden md:block" />
+          <br className="hidden md:block" />{" "}
           Ketenangan Jiwa untuk Barang Berharga Anda
         </motion.h1>
 
