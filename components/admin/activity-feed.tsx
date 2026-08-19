@@ -77,36 +77,36 @@ const defaultActivities: Activity[] = [
 
 export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-display font-semibold text-primary">System Activity</h3>
-        <p className="text-sm text-gray-500 mt-1">Recent system events and activities</p>
+      <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+        <h3 className="font-display text-lg font-semibold text-blue-700 dark:text-blue-300">System Activity</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Recent system events and activities</p>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50">
+            <tr className="bg-blue-50/60 dark:bg-slate-800/70">
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Event</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Event</span>
               </th>
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Reference</span>
               </th>
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Admin</span>
               </th>
               <th className="px-6 py-3 text-right">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Status</span>
               </th>
               <th className="px-6 py-3 text-right">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Time</span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {activities.map((activity) => (
               <ActivityRow
                 key={activity.id}
@@ -124,13 +124,13 @@ export function ActivityFeed({ activities = defaultActivities }: ActivityFeedPro
       </div>
 
       {/* Pagination */}
-      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-        <span className="text-sm text-gray-600">Showing {activities.length} of 128 events</span>
+      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+        <span className="text-sm text-gray-600 dark:text-slate-400">Showing {activities.length} of 128 events</span>
         <div className="flex gap-2">
-          <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
+          <button className="rounded-full border border-blue-100 px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
             Previous
           </button>
-          <button className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90">
+          <button className="rounded-full bg-blue-600 px-4 py-2 text-sm text-white shadow-md shadow-blue-600/20 hover:bg-blue-700">
             Next
           </button>
         </div>

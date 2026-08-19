@@ -80,14 +80,14 @@ export function SystemHealthMonitor() {
   const StatusIcon = health ? getStatusConfig(health.systemStatus).icon : Activity;
 
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <Activity className="h-5 w-5 text-blue-600" />
             System Health
           </CardTitle>
-          <CardDescription className="mt-1">
+          <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
             WhatsApp API & notification system status
           </CardDescription>
         </div>
@@ -214,7 +214,7 @@ export function SystemHealthMonitor() {
 
 export function SystemHealthMonitorSkeleton() {
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader>
         <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
         <div className="h-4 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-2" />

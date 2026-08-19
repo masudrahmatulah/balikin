@@ -37,7 +37,7 @@ interface City {
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} className="mt-1 text-xs text-red-600" role="alert">
+    <p id={id} className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
       {message}
     </p>
   );
@@ -200,7 +200,7 @@ export function CheckoutForm({
       {/* General form error — dipisah dari per-field error */}
       {formError && (
         <div
-          className="p-3 text-sm text-red-700 bg-red-50 rounded-md border border-red-200"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
           role="alert"
           aria-atomic="true"
         >
@@ -210,7 +210,7 @@ export function CheckoutForm({
 
       {/* Nama Penerima */}
       <div>
-        <Label htmlFor="recipientName">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="recipientName">
           Nama Penerima <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Input
@@ -220,6 +220,7 @@ export function CheckoutForm({
           placeholder="Contoh: Budi Santoso"
           maxLength={100}
           autoComplete="name"
+          className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.recipientName}
           aria-describedby={fieldErrors.recipientName ? 'recipientName-error' : undefined}
         />
@@ -228,7 +229,7 @@ export function CheckoutForm({
 
       {/* Nomor WhatsApp */}
       <div>
-        <Label htmlFor="phone">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="phone">
           Nomor WhatsApp <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Input
@@ -239,10 +240,11 @@ export function CheckoutForm({
           maxLength={20}
           inputMode="tel"
           autoComplete="tel"
+          className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.phone}
           aria-describedby={fieldErrors.phone ? 'phone-error' : 'phone-hint'}
         />
-        <p id="phone-hint" className="mt-1 text-xs text-gray-500">
+        <p id="phone-hint" className="mt-1 text-xs text-gray-500 dark:text-slate-400">
           Format: 628xxxxxxxxxx (tanpa tanda + atau 0 di depan)
         </p>
         <FieldError id="phone-error" message={fieldErrors.phone} />
@@ -250,11 +252,12 @@ export function CheckoutForm({
 
       {/* Segmentasi CRM — wajib untuk pipeline B2B (checkout.md Section 1) */}
       <div>
-        <Label htmlFor="segment">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="segment">
           Produk ini untuk kepentingan? <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Select value={segment} onValueChange={setSegment} required>
           <SelectTrigger
+            className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="segment"
             aria-invalid={!!fieldErrors.segment}
             aria-describedby={fieldErrors.segment ? 'segment-error' : undefined}
@@ -272,7 +275,7 @@ export function CheckoutForm({
 
       {/* Alamat Lengkap */}
       <div>
-        <Label htmlFor="addressLine">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="addressLine">
           Alamat Lengkap <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Textarea
@@ -282,6 +285,7 @@ export function CheckoutForm({
           rows={4}
           placeholder="Jalan, nomor rumah, RT/RW, kecamatan, patokan"
           maxLength={500}
+          className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.addressLine}
           aria-describedby={fieldErrors.addressLine ? 'addressLine-error' : undefined}
         />
@@ -290,11 +294,12 @@ export function CheckoutForm({
 
       {/* Provinsi */}
       <div>
-        <Label htmlFor="province">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="province">
           Provinsi <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Select value={selectedProvince} onValueChange={handleProvinceChange} disabled={isLoadingProvinces}>
           <SelectTrigger
+            className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="province"
             aria-invalid={!!fieldErrors.province}
             aria-describedby={fieldErrors.province ? 'province-error' : undefined}
@@ -314,11 +319,12 @@ export function CheckoutForm({
 
       {/* Kota */}
       <div>
-        <Label htmlFor="city">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="city">
           Kota <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Select value={selectedCity} onValueChange={setSelectedCity} disabled={isLoadingCities || !selectedProvince}>
           <SelectTrigger
+            className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="city"
             aria-invalid={!!fieldErrors.city}
             aria-describedby={fieldErrors.city ? 'city-error' : undefined}
@@ -340,11 +346,12 @@ export function CheckoutForm({
 
       {/* Kurir */}
       <div>
-        <Label htmlFor="courier">
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="courier">
           Kurir Pengiriman <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
         <Select value={selectedCourier} onValueChange={setSelectedCourier}>
           <SelectTrigger
+            className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="courier"
             aria-invalid={!!fieldErrors.courier}
             aria-describedby={fieldErrors.courier ? 'courier-error' : undefined}
@@ -365,7 +372,7 @@ export function CheckoutForm({
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300 dark:hover:bg-blue-950/60"
           disabled={!selectedCity || !selectedCourier || isCheckingShipping}
           onClick={handleCheckShipping}
           aria-busy={isCheckingShipping}
@@ -380,7 +387,7 @@ export function CheckoutForm({
           )}
         </Button>
         {shippingError && (
-          <p className="mt-1 text-xs text-red-600" role="alert">
+          <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
             {shippingError}
           </p>
         )}
@@ -389,7 +396,7 @@ export function CheckoutForm({
       {/* Kode Pos (dari dropdown kota jika ada) */}
       {selectedCity && (
         <div>
-          <Label htmlFor="postalCode">
+          <Label className="text-slate-700 dark:text-slate-200" htmlFor="postalCode">
             Kode Pos <span className="text-red-500" aria-hidden="true">*</span>
           </Label>
           <Input
@@ -401,6 +408,7 @@ export function CheckoutForm({
             maxLength={10}
             inputMode="numeric"
             autoComplete="postal-code"
+            className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
             aria-invalid={!!fieldErrors.postalCode}
             aria-describedby={fieldErrors.postalCode ? 'postalCode-error' : undefined}
           />
@@ -410,7 +418,7 @@ export function CheckoutForm({
 
       {/* Kode Voucher (opsional) */}
       <div>
-        <Label htmlFor="voucherCode">Kode Voucher (Opsional)</Label>
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="voucherCode">Kode Voucher (Opsional)</Label>
         <Input
           id="voucherCode"
           name="voucherCode"
@@ -419,6 +427,7 @@ export function CheckoutForm({
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
+          className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.voucherCode}
           aria-describedby={fieldErrors.voucherCode ? 'voucherCode-error' : undefined}
           style={{ textTransform: 'uppercase' }}
@@ -428,13 +437,14 @@ export function CheckoutForm({
 
       {/* Catatan Tambahan */}
       <div>
-        <Label htmlFor="notes">Catatan Tambahan (Opsional)</Label>
+        <Label className="text-slate-700 dark:text-slate-200" htmlFor="notes">Catatan Tambahan (Opsional)</Label>
         <Textarea
           id="notes"
           name="notes"
           rows={3}
           placeholder="Contoh: kirim sore hari, warna helm, atau kebutuhan khusus lainnya"
           maxLength={300}
+          className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.notes}
           aria-describedby={fieldErrors.notes ? 'notes-error' : undefined}
         />
@@ -443,7 +453,7 @@ export function CheckoutForm({
 
       <Button
         type="submit"
-        className="w-full bg-emerald-600 hover:bg-emerald-700"
+        className="w-full border-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-900/20 hover:from-orange-600 hover:to-amber-600 focus-visible:ring-orange-500"
         disabled={isPending}
         aria-busy={isPending}
       >
