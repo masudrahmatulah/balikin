@@ -44,18 +44,23 @@ export default async function AdminPage() {
   const recentTagsData = recentTags.status === "fulfilled" ? recentTags.value : [];
 
   return (
-    <div className="space-y-6" role="main" aria-label="Admin Dashboard">
+    <div className="space-y-8" role="main" aria-label="Admin Dashboard">
       {/* Page Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <header className="relative overflow-hidden rounded-3xl border border-blue-100/80 bg-white/70 p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 md:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-700/10" aria-hidden="true" />
+        <div className="relative flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-display font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <div className="mb-3 inline-flex items-center rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 dark:from-blue-950/60 dark:to-purple-950/60 dark:text-blue-300">
+            Balikin Admin Control Center
+          </div>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">Dashboard Overview</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             Real-time metrics and operational controls
           </p>
         </div>
-        <nav className="flex gap-3" aria-label="Dashboard actions">
+        <nav className="relative flex w-full gap-3 md:w-auto" aria-label="Dashboard actions">
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 bg-white text-gray-700 text-sm font-medium rounded-full hover:bg-gray-50 focus:ring-2 focus:ring-blue-600/40 focus:outline-none transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-600/40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 md:flex-none"
             aria-label="Search dashboard"
             type="button"
           >
@@ -63,7 +68,7 @@ export default async function AdminPage() {
             <span>Search</span>
           </button>
           <button
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 focus:ring-2 focus:ring-blue-600/40 focus:ring-offset-2 focus:outline-none transition-colors shadow-md shadow-blue-600/25 hover:shadow-lg"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-orange-900/20 transition-colors hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:ring-offset-2 md:flex-none"
             aria-label="Export dashboard data as CSV"
             type="button"
           >
@@ -71,6 +76,7 @@ export default async function AdminPage() {
             <span>Export CSV</span>
           </button>
         </nav>
+        </div>
       </header>
 
       {/* Dashboard Stats */}
@@ -86,8 +92,8 @@ export default async function AdminPage() {
 
       {/* Operational Overview Section */}
       <section aria-labelledby="operational-overview-heading">
-        <h2 id="operational-overview-heading" className="text-lg font-display font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <span className="w-1 h-5 rounded-full bg-gradient-to-b from-blue-600 to-purple-600" aria-hidden="true"></span>
+        <h2 id="operational-overview-heading" className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-gray-900 dark:text-white">
+          <span className="h-5 w-1 rounded-full bg-gradient-to-b from-blue-600 to-purple-600" aria-hidden="true"></span>
           Operational Overview
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

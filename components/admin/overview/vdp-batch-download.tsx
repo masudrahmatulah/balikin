@@ -66,14 +66,14 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
   };
 
   return (
-    <Card className={className}>
+    <Card className={`border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 ${className ?? ""}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Download className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <Download className="h-5 w-5 text-blue-600" />
             VDP Batch Download
           </CardTitle>
-          <CardDescription className="mt-1">
+          <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
             One-click batch QR Code downloads
           </CardDescription>
         </div>
@@ -91,7 +91,7 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
               Material Type
             </label>
             <Select value={materialType} onValueChange={setMaterialType} disabled={isDownloading}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full border-blue-100 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -108,7 +108,7 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
               Format
             </label>
             <Select value={format} onValueChange={(v: "pdf" | "zip") => setFormat(v)} disabled={isDownloading}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full border-blue-100 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -154,7 +154,7 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
         <Button
           onClick={handleDownload}
           disabled={isDownloading}
-          className="w-full gap-2"
+          className="w-full gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-900/20 hover:from-orange-600 hover:to-amber-600"
         >
           {isDownloading ? (
             <>
@@ -175,7 +175,7 @@ export function VdpBatchDownload({ className }: VdpBatchDownloadProps) {
 
 export function VdpBatchDownloadSkeleton() {
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader>
         <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
         <div className="h-4 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-2" />

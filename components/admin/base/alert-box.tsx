@@ -23,27 +23,27 @@ export function AlertBox({
   const alertConfig = {
     info: {
       icon: Info,
-      bgClass: "bg-blue-50 border-blue-200",
-      textClass: "text-blue-800",
-      titleClass: "text-blue-900",
+      bgClass: "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800",
+      textClass: "text-blue-800 dark:text-blue-200",
+      titleClass: "text-blue-900 dark:text-blue-100",
     },
     warning: {
       icon: AlertTriangle,
-      bgClass: "bg-amber-50 border-amber-200",
-      textClass: "text-amber-800",
-      titleClass: "text-amber-900",
+      bgClass: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800",
+      textClass: "text-amber-800 dark:text-amber-200",
+      titleClass: "text-amber-900 dark:text-amber-100",
     },
     success: {
       icon: CheckCircle,
-      bgClass: "bg-green-50 border-green-200",
-      textClass: "text-green-800",
-      titleClass: "text-green-900",
+      bgClass: "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800",
+      textClass: "text-green-800 dark:text-green-200",
+      titleClass: "text-green-900 dark:text-green-100",
     },
     error: {
       icon: XCircle,
-      bgClass: "bg-red-50 border-red-200",
-      textClass: "text-red-800",
-      titleClass: "text-red-900",
+      bgClass: "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800",
+      textClass: "text-red-800 dark:text-red-200",
+      titleClass: "text-red-900 dark:text-red-100",
     },
   };
 
@@ -100,27 +100,27 @@ export function AlertCard({
   const alertConfig = {
     info: {
       icon: Info,
-      bgClass: "bg-blue-50 border-blue-200",
-      textClass: "text-blue-800",
-      titleClass: "text-blue-900",
+      bgClass: "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800",
+      textClass: "text-blue-800 dark:text-blue-200",
+      titleClass: "text-blue-900 dark:text-blue-100",
     },
     warning: {
       icon: AlertTriangle,
-      bgClass: "bg-amber-50 border-amber-200",
-      textClass: "text-amber-800",
-      titleClass: "text-amber-900",
+      bgClass: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800",
+      textClass: "text-amber-800 dark:text-amber-200",
+      titleClass: "text-amber-900 dark:text-amber-100",
     },
     success: {
       icon: CheckCircle,
-      bgClass: "bg-green-50 border-green-200",
-      textClass: "text-green-800",
-      titleClass: "text-green-900",
+      bgClass: "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800",
+      textClass: "text-green-800 dark:text-green-200",
+      titleClass: "text-green-900 dark:text-green-100",
     },
     error: {
       icon: XCircle,
-      bgClass: "bg-red-50 border-red-200",
-      textClass: "text-red-800",
-      titleClass: "text-red-900",
+      bgClass: "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800",
+      textClass: "text-red-800 dark:text-red-200",
+      titleClass: "text-red-900 dark:text-red-100",
     },
   };
 
@@ -128,10 +128,10 @@ export function AlertCard({
   const DisplayIcon = icon || config.icon;
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden", config.bgClass)}>
-      <div className="p-4 border-b border-gray-200">
+    <div className={cn("overflow-hidden rounded-2xl border", config.bgClass)}>
+      <div className="border-b border-slate-200/70 p-4 dark:border-slate-700/70">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/80 bg-white dark:border-slate-700 dark:bg-slate-800">
             <DisplayIcon size={20} className={config.textClass} />
           </div>
           <div>
@@ -145,10 +145,10 @@ export function AlertCard({
         </div>
       </div>
       {items && items.length > 0 && (
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-slate-200/70 dark:divide-slate-700/70">
           {items.map((item, index) => (
             <div key={index} className="px-4 py-3 flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
                 {item.label}
               </span>
               <span className="text-sm font-bold text-amber-600">
@@ -159,11 +159,11 @@ export function AlertCard({
         </div>
       )}
       {primaryAction && (
-        <div className="p-4 bg-white/50">
+        <div className="bg-white/50 p-4 dark:bg-slate-900/20">
           <button
             onClick={primaryAction.onClick}
             className={cn(
-              "w-full py-2 px-4 rounded-md text-sm font-semibold text-white transition-colors",
+              "w-full rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors",
               type === "error" && "bg-red-600 hover:bg-red-700",
               type === "warning" && "bg-amber-600 hover:bg-amber-700",
               type === "success" && "bg-green-600 hover:bg-green-700",

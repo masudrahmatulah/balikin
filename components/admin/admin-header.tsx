@@ -62,7 +62,7 @@ export function AdminHeader({
   }[session.user.division || "admin"] || "Admin";
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-sidebar-width h-16 bg-white/90 backdrop-blur-md border-b border-gray-200/70 shadow-sm flex justify-between items-center px-6 z-40">
+    <header className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-blue-100/80 bg-white/85 px-4 shadow-sm backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/85 sm:px-6 lg:left-sidebar-width">
       {/* Left Section: Search & Nav */}
       <div className="flex items-center gap-4 flex-1">
         {/* Mobile Menu Toggle */}
@@ -71,7 +71,7 @@ export function AdminHeader({
             onClick={() => {
               window.dispatchEvent(new CustomEvent("toggle-sidebar"));
             }}
-            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="rounded-lg p-2 text-gray-600 transition-colors hover:bg-blue-50 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
             aria-label="Buka/tutup menu navigasi"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -90,8 +90,8 @@ export function AdminHeader({
           <Link
             href="/admin/blog"
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-full transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
             )}
           >
             Blog
@@ -99,8 +99,8 @@ export function AdminHeader({
           <Link
             href="/admin/sticker-orders"
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-full transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
             )}
           >
             Orders
@@ -113,8 +113,8 @@ export function AdminHeader({
           <Link
             href="/admin/analytics"
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-full transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
             )}
           >
             Analytics
@@ -130,33 +130,33 @@ export function AdminHeader({
         </div>
 
         {/* Notifications */}
-        <button className="relative p-2 text-gray-500 hover:bg-blue-50 hover:text-blue-700 rounded-full transition-colors" aria-label="Notifikasi">
+        <button className="relative rounded-full p-2 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-300" aria-label="Notifikasi">
           <Bell size={20} aria-hidden="true" />
           {(pendingOrdersCount > 0 || pendingRequestsCount > 0) && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white" />
+             <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-orange-500 ring-2 ring-white dark:ring-slate-900" />
           )}
         </button>
 
         {/* Divider */}
-        <div className="hidden sm:block w-[1px] h-6 bg-gray-200" />
+        <div className="hidden h-6 w-px bg-slate-200 dark:bg-slate-700 sm:block" />
 
         {/* User Profile */}
         <div className="hidden sm:flex items-center gap-3">
-          <div className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors">
+          <div className="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:bg-blue-50 dark:hover:bg-slate-800">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-purple-600 shadow-md shadow-blue-600/20 rounded-xl flex items-center justify-center text-white font-semibold">
               {session.user.name?.[0] || session.user.email[0].toUpperCase()}
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {session.user.name || "Admin User"}
               </p>
-              <p className="text-xs text-gray-500">{divisionBadge}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400">{divisionBadge}</p>
             </div>
           </div>
 
           <button
             onClick={handleSignOut}
-            className="p-2 text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-full transition-colors"
+            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-950/40"
             title="Sign out"
             aria-label="Keluar"
           >
