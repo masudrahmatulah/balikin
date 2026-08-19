@@ -61,6 +61,7 @@ export async function generateA5StickerSheet(
 
   const qrSize = qrSizeMap[productKey];
   const compositeOps: sharp.OverlayOptions[] = [];
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
 
   // Generate QR codes for each tag
   for (let i = 0; i < Math.min(tags.length, positions.length); i++) {
@@ -68,7 +69,7 @@ export async function generateA5StickerSheet(
     const [posX, posY] = positions[i];
 
     // Generate QR code
-    const qrBuffer = await QRCode.toBuffer(tag.slug, {
+    const qrBuffer = await QRCode.toBuffer(`${baseUrl}/p/${tag.slug}`, {
       width: 10,
       margin: 1,
       color: {

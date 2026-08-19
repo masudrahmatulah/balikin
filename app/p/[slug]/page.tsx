@@ -117,6 +117,12 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     headers: await headers(),
   });
 
+  // Sticker QR codes use the public URL for ongoing scans. Before the sheet is
+  // activated, route the first scan into the PIN-protected claim flow.
+  if (isUnclaimed && isStickerTag && !isPreview) {
+    redirect(`/claim/${tag.id}`);
+  }
+
   if (session?.user?.id && tag.ownerId === session.user.id && !isPreview) {
     // Owner is viewing - redirect to appropriate page
     if (tag.autoActivateModule) {

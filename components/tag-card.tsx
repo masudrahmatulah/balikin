@@ -79,18 +79,18 @@ const TagHeader = memo(({
   hasTabTwoEnabled?: boolean | null;
   isOpen: boolean;
 }) => (
-  <CardHeader className={`cursor-pointer transition-colors hover:bg-slate-50/50 ${isOpen ? 'border-b border-slate-100' : 'pb-4'}`}>
+  <CardHeader className={`cursor-pointer transition-colors hover:bg-blue-50/50 dark:hover:bg-slate-800/60 ${isOpen ? 'border-b border-blue-100 dark:border-slate-700' : 'pb-4'}`}>
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className={`rounded-xl p-2 flex-shrink-0 ${status === 'lost' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+        <div className={`rounded-xl p-2 flex-shrink-0 ${status === 'lost' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 dark:from-blue-950/60 dark:to-indigo-950/50 dark:text-blue-300'}`}>
           {status === 'lost' ? <AlertTriangle className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-lg font-semibold text-slate-950 truncate">
+            <CardTitle className="truncate text-lg font-semibold text-slate-950 dark:text-white">
               {name}
             </CardTitle>
-            <Badge variant={status === 'lost' ? 'destructive' : 'success'} className={`px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 ${status !== 'lost' ? 'bg-emerald-600' : ''}`}>
+              <Badge variant={status === 'lost' ? 'destructive' : 'success'} className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${status !== 'lost' ? 'bg-blue-600' : ''}`}>
               {status === 'lost' ? 'Hilang' : 'Normal'}
             </Badge>
             {hasTabTwoEnabled && (
@@ -109,7 +109,7 @@ const TagHeader = memo(({
               size="sm"
               showTier={isFreeTag}
             />
-            <Badge variant="outline" className="border-slate-200 bg-white text-slate-600 text-xs">
+              <Badge variant="outline" className="border-blue-100 bg-white text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
               {productLabel}
             </Badge>
           </div>
@@ -161,14 +161,14 @@ const InsightSection = memo(({
   }, [isLost, scanCount, isFreeTag, isStickerTag]);
 
   return (
-    <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-white/70' : 'border-slate-200 bg-slate-50/90'}`}>
+    <div className={`rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-red-50/70 dark:border-red-800 dark:bg-red-950/30' : 'border-blue-100 bg-gradient-to-br from-blue-50/80 to-purple-50/60 dark:border-slate-700 dark:from-blue-950/30 dark:to-purple-950/20'}`}>
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+        <div className={`mt-0.5 rounded-xl p-2 ${isLost ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
           {isLost ? <AlertTriangle className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-950">Insight cepat</p>
-          <p className="mt-1 text-sm leading-6 text-slate-600">{insightText}</p>
+          <p className="text-sm font-semibold text-slate-950 dark:text-white">Insight cepat</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{insightText}</p>
         </div>
       </div>
     </div>
@@ -295,7 +295,7 @@ export const TagCard = memo(function TagCard({
 
   if (isEditing) {
     return (
-      <Card className={isLost ? 'border-red-200 shadow-sm shadow-red-100' : 'shadow-sm'}>
+      <Card className={isLost ? 'border-red-200 bg-white/90 shadow-sm shadow-red-100 dark:border-red-800 dark:bg-slate-900/90' : 'border-blue-100 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90'}>
         <CardHeader>
           <CardTitle>Edit Tag</CardTitle>
         </CardHeader>
@@ -347,20 +347,20 @@ export const TagCard = memo(function TagCard({
               maxLength={MAX_INPUT_LENGTH.reward}
             />
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-950">Notifikasi scan saat mode hilang</p>
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">Notifikasi scan saat mode hilang</p>
             <div className="mt-4 space-y-4">
               {isFreeTag ? (
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
                   Email alert selalu aktif untuk versi free dan dikirim ke akun Anda{ownerEmail ? ` (${ownerEmail})` : ''}.
                 </div>
               ) : (
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <Label htmlFor={`edit-email-alert-${id}`} className="text-sm font-medium text-slate-900">
+                    <Label htmlFor={`edit-email-alert-${id}`} className="text-sm font-medium text-slate-900 dark:text-white">
                       Email alert
                     </Label>
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                       Aktifkan jika Anda juga ingin menerima ringkasan scan di email{ownerEmail ? ` (${ownerEmail})` : ''}.
                     </p>
                   </div>
@@ -375,16 +375,16 @@ export const TagCard = memo(function TagCard({
               )}
 
               {isFreeTag ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
                   WhatsApp alert hanya tersedia untuk tag premium.
                 </div>
               ) : (
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <Label htmlFor={`edit-wa-alert-${id}`} className="text-sm font-medium text-slate-900">
+                    <Label htmlFor={`edit-wa-alert-${id}`} className="text-sm font-medium text-slate-900 dark:text-white">
                       WhatsApp alert
                     </Label>
-                    <p className="mt-1 text-sm text-slate-600">
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                       {isStickerTag
                         ? 'Sticker Vinyl mengirim alert scan instan lewat jalur standar ke nomor WhatsApp tag Anda.'
                         : 'Acrylic Premium mengutamakan jalur priority WhatsApp alert, lalu otomatis fallback ke jalur standar jika dibutuhkan.'}
@@ -431,21 +431,21 @@ export const TagCard = memo(function TagCard({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`group overflow-hidden border shadow-lg transition-all duration-300 ${isOpen ? 'hover:-translate-y-1 hover:shadow-xl' : ''} ${isLost ? 'border-red-200 bg-red-50/60 shadow-red-100/60' : 'border-white/80 bg-white/95 shadow-slate-200/70'}`}>
+      <Card className={`group overflow-hidden rounded-3xl border-2 shadow-lg transition-all duration-300 dark:shadow-black/20 ${isOpen ? 'hover:-translate-y-1 hover:shadow-xl' : ''} ${isLost ? 'border-red-200 bg-red-50/60 shadow-red-100/60 dark:border-red-800 dark:bg-red-950/30' : 'border-blue-100/80 bg-white/95 shadow-blue-900/5 dark:border-slate-700 dark:bg-slate-900/90'}`}>
         {/* Collapsed Header - Always Visible */}
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-colors hover:bg-slate-50/50 ${isOpen ? 'border-b border-slate-100' : 'pb-4'}`}>
+          <CardHeader className={`cursor-pointer transition-colors hover:bg-blue-50/50 dark:hover:bg-slate-800/60 ${isOpen ? 'border-b border-blue-100 dark:border-slate-700' : 'pb-4'}`}>
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className={`rounded-xl p-2 flex-shrink-0 ${isLost ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                <div className={`rounded-xl p-2 flex-shrink-0 ${isLost ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 dark:from-blue-950/60 dark:to-indigo-950/50 dark:text-blue-300'}`}>
                   {isLost ? <AlertTriangle className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg font-semibold text-slate-950 truncate">
+                    <CardTitle className="truncate text-lg font-semibold text-slate-950 dark:text-white">
                       {name}
                     </CardTitle>
-                    <Badge variant={isLost ? 'destructive' : 'success'} className={`px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 ${isLost ? '' : 'bg-emerald-600'}`}>
+                    <Badge variant={isLost ? 'destructive' : 'success'} className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${isLost ? '' : 'bg-blue-600'}`}>
                       {isLost ? 'Hilang' : 'Normal'}
                     </Badge>
                     {hasTabTwoEnabled && (
@@ -464,7 +464,7 @@ export const TagCard = memo(function TagCard({
                       size="sm"
                       showTier={isFreeTag}
                     />
-                    <Badge variant="outline" className="border-slate-200 bg-white text-slate-600 text-xs">
+                    <Badge variant="outline" className="border-blue-100 bg-white text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       {productLabel}
                     </Badge>
                   </div>
@@ -483,8 +483,8 @@ export const TagCard = memo(function TagCard({
                     disabled={isLoading}
                     className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
                       isLost
-                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                         ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-950/70'
+                         : 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700'
                     }`}
                     aria-label={isLost ? `Nonaktifkan mode hilang ${name}` : `Aktifkan mode hilang ${name}`}
                   >
@@ -518,13 +518,13 @@ export const TagCard = memo(function TagCard({
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="rounded-2xl border border-blue-100 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-800/70">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{isFreeTag ? 'Info scan' : 'Total scan'}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <ScanLine className="h-4 w-4 text-cyan-600" />
-                  <p className="text-lg font-semibold text-slate-950">{scanCount}</p>
+                  <p className="text-lg font-semibold text-slate-950 dark:text-white">{scanCount}</p>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   {scanCount > 0
                     ? isFreeTag
                       ? 'Aktivitas scan tercatat. Detail tracking lebih lengkap tersedia untuk premium.'
@@ -533,26 +533,26 @@ export const TagCard = memo(function TagCard({
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="rounded-2xl border border-blue-100 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-800/70">
                 <p className="text-xs uppercase tracking-[0.18em] text-slate-400">WhatsApp owner</p>
                 <div className="mt-2 flex items-center gap-2">
                   <MessageCircle className="h-4 w-4 text-emerald-600" />
-                  <p className="text-sm font-medium text-slate-950">{contactWhatsapp || 'Belum diisi'}</p>
+                  <p className="text-sm font-medium text-slate-950 dark:text-white">{contactWhatsapp || 'Belum diisi'}</p>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Kontak ini dipakai penemu untuk menghubungi Anda.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="rounded-2xl border border-blue-100 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-800/70">
               <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
+                  <div className="rounded-xl bg-blue-100 p-2 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-950">Aturan notifikasi scan</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                  <p className="text-sm font-semibold text-slate-950 dark:text-white">Aturan notifikasi scan</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {isFreeTag
                       ? `Free hanya mengirim alert scan ke email akun Anda${ownerEmail ? ` (${ownerEmail})` : ''}.`
                       : isStickerTag
@@ -581,12 +581,12 @@ export const TagCard = memo(function TagCard({
               </div>
             </div>
 
-            <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-red-50/70' : 'border-slate-200 bg-slate-50/90'}`}>
+            <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${isLost ? 'border-red-200 bg-red-50/70 dark:border-red-800 dark:bg-red-950/30' : 'border-blue-100 bg-blue-50/60 dark:border-slate-700 dark:bg-slate-800/60'}`}>
               <div>
-                <Label htmlFor={`toggle-${id}`} className="text-sm font-semibold text-slate-950">
+                <Label htmlFor={`toggle-${id}`} className="text-sm font-semibold text-slate-950 dark:text-white">
                   Status Hilang
                 </Label>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Aktifkan saat barang benar-benar hilang agar halaman publik berubah jadi prioritas tinggi.
                 </p>
               </div>
@@ -600,9 +600,9 @@ export const TagCard = memo(function TagCard({
             </div>
 
             {customMessage && (
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/90 p-4">
-                <p className="text-sm font-semibold text-slate-950">{isFreeTag ? 'Pesan sapaan' : isStickerTag ? 'Pesan sticker' : 'Pesan personal'}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-700">{customMessage}</p>
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/90 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">{isFreeTag ? 'Pesan sapaan' : isStickerTag ? 'Pesan sticker' : 'Pesan personal'}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700 dark:text-slate-300">{customMessage}</p>
               </div>
             )}
 
@@ -635,7 +635,7 @@ export const TagCard = memo(function TagCard({
 
           </CardContent>
 
-          <CardFooter className="flex flex-col items-stretch justify-between gap-3 border-t border-slate-100 bg-white/70 pt-5 sm:flex-row sm:items-center">
+           <CardFooter className="flex flex-col items-stretch justify-between gap-3 border-t border-blue-100 bg-white/70 pt-5 dark:border-slate-700 dark:bg-slate-900/60 sm:flex-row sm:items-center">
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} disabled={isLoading}>
                 <Pencil className="mr-2 h-4 w-4" />
