@@ -1,4 +1,6 @@
-export const FREE_TAG_LIMIT = 2;
+export const FREE_TAG_LIMIT = 1;
+export const FREE_TAG_TRIAL_DAYS = 7;
+export const PREMIUM_UPGRADE_PRICE = 25000; // Upgrade tag free -> premium (digital only, tanpa fisik)
 
 // Harga produk sesuai strategi update_produk.md
 export const PREMIUM_PRICE = 54000;       // Balikin Armor Tag
@@ -24,13 +26,14 @@ export const RAJAONGKIR_BASE_URL = 'https://rajaongkir.komerce.id/api/v1';
 export const RAJAONGKIR_ORIGIN_CITY_ID = process.env.RAJAONGKIR_ORIGIN_CITY_ID ?? '153'; // Hulu Sungai Selatan / Kandangan
 export const STICKER_WEIGHT_GRAMS = 500; // Estimasi 1 pack stiker + packaging
 
-// Midtrans QRIS Payment
-export const MIDTRANS_ENV = process.env.MIDTRANS_ENV ?? 'sandbox';
-export const MIDTRANS_BASE_URL = MIDTRANS_ENV === 'production'
-  ? 'https://app.midtrans.com/snap'
-  : 'https://app.sandbox.midtrans.com/snap';
-export const NEXT_PUBLIC_MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? '';
-export const MIDTRANS_PAYMENT_TYPE = 'qris'; // QRIS payment method
-export const MIDTRANS_SNAP_URL = MIDTRANS_ENV === 'production'
-  ? 'https://app.midtrans.com/snap/snap.js'
-  : 'https://app.sandbox.midtrans.com/snap/snap.js';
+// Komerce Payment API (collaborator.komerce.id) — menggantikan Midtrans
+// API key sama seperti RajaOngkir (Developer > Settings > Api Key di https://collaborator.komerce.id)
+export const KOMERCE_ENV = process.env.KOMERCE_ENV ?? 'sandbox';
+export const KOMERCE_PAYMENT_BASE_URL = KOMERCE_ENV === 'production'
+  ? 'https://api.collaborator.komerce.id/user'
+  : 'https://api-sandbox.collaborator.komerce.id/user';
+export const KOMERCE_PAYMENT_PAGE_URL = KOMERCE_ENV === 'production'
+  ? 'https://pay.komerce.id'
+  : 'https://pay-sandbox.komerce.id';
+export const KOMERCE_PAYMENT_METHOD = 'qris'; // QRIS payment method
+export const KOMERCE_PAYMENT_CALLBACK_SECRET = process.env.KOMERCE_PAYMENT_CALLBACK_SECRET ?? 'balikin-komerce-callback-secret';

@@ -196,8 +196,31 @@ export const tags = pgTable('tags', {
   autoActivateModule: text('auto_activate_module'), // 'student' | 'otomotif' | 'pertanian' | 'diklat' | null
   welcomeShown: boolean('welcome_shown').default(false),
   onboardingCompleted: boolean('onboarding_completed').default(false),
+  expiresAt: timestamp('expires_at'), // Free tier trial deadline; null for premium/lifetime tags
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const tagUpgradeOrders = pgTable('tag_upgrade_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  paymentStatus: text('payment_status').default('pending').notNull(), // 'pending' | 'paid' | 'failed'
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const tagUpgradeOrdersRelations = relations(tagUpgradeOrders, ({ one }) => ({
+  tag: one(tags, {
+    fields: [tagUpgradeOrders.tagId],
+    references: [tags.id],
+  }),
+  user: one(user, {
+    fields: [tagUpgradeOrders.userId],
+    references: [user.id],
+  }),
+}));
 
 export const tagsRelations = relations(tags, ({ many, one }) => ({
   owner: one(user, {
@@ -218,6 +241,7 @@ export const tagsRelations = relations(tags, ({ many, one }) => ({
     fields: [tags.sheetId],
     references: [stickerSheets.id],
   }),
+  upgradeOrders: many(tagUpgradeOrders),
 }));
 
 export const stickerOrdersRelations = relations(stickerOrders, ({ one, many }) => ({

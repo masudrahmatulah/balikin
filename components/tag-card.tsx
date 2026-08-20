@@ -36,13 +36,10 @@ import {
 import { updateTagStatus, updateTag, deleteTag } from '@/app/actions/tag';
 import { useRouter } from 'next/navigation';
 import { VerifiedBadge } from '@/components/verified-badge';
-import {
-  STICKER_ORDER_WHATSAPP_MESSAGE,
-  UPGRADE_WHATSAPP_MESSAGE,
-  WHATSAPP_ORDER_NUMBER,
-} from '@/lib/constants';
+import { TagUpgradeButton } from '@/components/tag-upgrade-button';
 import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct } from '@/lib/product';
 import type { ProductType } from '@/lib/product';
+import { getTagExpirationDate, isTagExpired } from '@/lib/tag-expiration';
 import { GraduationCap } from 'lucide-react';
 
 // Constants
@@ -192,6 +189,7 @@ interface TagCardProps {
   whatsappAlertsEnabled?: boolean | null;
   ownerEmail?: string | null;
   createdAt: Date | null;
+  expiresAt?: Date | null;
   scanCount?: number;
   hasTabTwoEnabled?: boolean | null;
   hasStudentKit?: boolean | null;
@@ -212,6 +210,7 @@ export const TagCard = memo(function TagCard({
   whatsappAlertsEnabled,
   ownerEmail,
   createdAt,
+  expiresAt,
   scanCount = 0,
   hasTabTwoEnabled,
   hasStudentKit,
@@ -219,6 +218,8 @@ export const TagCard = memo(function TagCard({
   const router = useRouter();
   const isLost = status === 'lost';
   const isFreeTag = isFreeProduct({ productType: productType ?? null, tier: tier ?? null } as { productType: ProductType | null; tier: string | null; });
+  const isExpired = isFreeTag && isTagExpired({ tier, expiresAt, createdAt });
+  const expirationDate = isFreeTag ? getTagExpirationDate({ tier, expiresAt, createdAt }) : null;
   const isStickerTag = isStickerProduct({ productType: productType ?? null, tier: tier ?? null } as { productType: ProductType | null; tier: string | null; });
   const isAcrylicTag = isAcrylicProduct({ productType: productType ?? null, tier: tier ?? null } as { productType: ProductType | null; tier: string | null; });
   const productLabel = getTagProductLabel({ productType: productType ?? null, tier: tier ?? null } as { productType: ProductType | null; tier: string | null; });
@@ -445,8 +446,8 @@ export const TagCard = memo(function TagCard({
                     <CardTitle className="truncate text-lg font-semibold text-slate-950 dark:text-white">
                       {name}
                     </CardTitle>
-                    <Badge variant={isLost ? 'destructive' : 'success'} className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${isLost ? '' : 'bg-blue-600'}`}>
-                      {isLost ? 'Hilang' : 'Normal'}
+                    <Badge variant={isExpired ? 'outline' : isLost ? 'destructive' : 'success'} className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${isExpired ? 'border-amber-300 bg-amber-50 text-amber-700' : isLost ? '' : 'bg-blue-600'}`}>
+                      {isExpired ? 'Kedaluwarsa' : isLost ? 'Hilang' : 'Normal'}
                     </Badge>
                     {hasTabTwoEnabled && (
                       <Badge variant="default" className="px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] flex-shrink-0 bg-purple-600 text-white">
@@ -507,6 +508,15 @@ export const TagCard = memo(function TagCard({
               isFreeTag={isFreeTag}
               isStickerTag={isStickerTag}
             />
+
+            {isExpired && (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription>
+                  Masa aktif tag free ini sudah berakhir. Upgrade ke premium untuk mengaktifkannya kembali.
+                </AlertDescription>
+              </Alert>
+            )}
 
             {isLost && (
               <Alert variant="destructive" className="border-red-200 bg-red-100/80 text-red-950">
@@ -616,19 +626,18 @@ export const TagCard = memo(function TagCard({
                     <div>
                       <p className="text-sm font-semibold text-amber-950">Upgrade dari Digital Tag Free</p>
                       <p className="mt-1 text-sm leading-6 text-amber-800">
-                        Ubah DIY digital tag ini jadi sticker vinyl isi 6 yang lebih tahan hujan, tahan pakai, dan langsung siap ditempel di helm, laptop, atau koper.
+                        Aktifkan fitur premium untuk tag ini dengan pembayaran aman melalui QRIS.
                       </p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-amber-300 bg-white text-amber-800 hover:bg-amber-100"
-                    onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(STICKER_ORDER_WHATSAPP_MESSAGE || UPGRADE_WHATSAPP_MESSAGE)}`, '_blank')}
-                  >
-                    Pesan Sticker
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
+                  <div className="flex flex-col items-end gap-1">
+                    <TagUpgradeButton tagId={id} />
+                    {expirationDate && !isExpired && (
+                      <span className="text-xs text-amber-700">
+                        Aktif sampai {expirationDate.toLocaleDateString('id-ID')}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

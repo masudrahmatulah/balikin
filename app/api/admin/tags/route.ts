@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { tags } from "@/db/schema";
+import { FREE_TAG_TRIAL_DAYS } from "@/lib/constants";
 
 export const runtime = "nodejs";
 
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       isVerified: resolvedProductType === "sticker",
       emailAlertsEnabled: isPremium ? false : true,
       whatsappAlertsEnabled: isPremium ? true : false,
+      expiresAt: isPremium ? null : new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
     }).returning();
 
     return NextResponse.json({ tag: newTag[0] }, { status: 201 });
