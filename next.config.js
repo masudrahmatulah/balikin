@@ -31,11 +31,6 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'midtrans.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'www.bi.go.id',
         pathname: '/**',
       },

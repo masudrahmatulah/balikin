@@ -17,6 +17,10 @@
     {
       "path": "/api/cron/chat-cleanup",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/free-tag-expiration",
+      "schedule": "0 3 * * *"
     }
   ],
   "headers": [

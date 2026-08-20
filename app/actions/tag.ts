@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { FREE_TAG_LIMIT } from '@/lib/constants';
+import { FREE_TAG_LIMIT, FREE_TAG_TRIAL_DAYS } from '@/lib/constants';
 import { ProductType } from '@/lib/product';
 import { revalidatePath } from 'next/cache';
 
@@ -193,6 +193,7 @@ export async function createTag(data: CreateTagInput) {
     whatsappAlertsEnabled: isPremium ? (data.whatsappAlertsEnabled ?? true) : false,
     bundleId: data.bundleId || null,
     claimedAt: data.claimedAt || null,
+    expiresAt: isPremium ? null : new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
   });
 
   revalidatePath('/dashboard');
@@ -215,8 +216,16 @@ export async function updateTagStatus(tagId: string, status: 'normal' | 'lost') 
 export async function updateTagTier(tagId: string, tier: 'free' | 'premium') {
   await requireTagOwnership(tagId);
 
+  if (tier === 'premium') {
+    throw new Error('Upgrade premium harus dilakukan melalui pembayaran online (QRIS).');
+  }
+
   await db.update(tags)
-    .set({ tier, productType: tier === 'premium' ? 'acrylic' : 'free' })
+    .set({
+      tier,
+      productType: tier === 'premium' ? 'acrylic' : 'free',
+      expiresAt: tier === 'premium' ? null : new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
+    })
     .where(eq(tags.id, tagId));
 
   revalidatePath('/dashboard');
@@ -248,6 +257,13 @@ export async function updateTag(
 
   if (!tag) {
     throw new Error('Tag not found');
+  }
+
+  if (
+    tag.tier !== 'premium'
+    && (data.tier === 'premium' || (data.productType && data.productType !== 'free'))
+  ) {
+    throw new Error('Upgrade premium harus dilakukan melalui pembayaran online (QRIS).');
   }
 
   const nextProductType = data.productType ?? (tag.productType as ProductType | undefined) ?? (tag.tier === 'premium' ? 'acrylic' : 'free');
