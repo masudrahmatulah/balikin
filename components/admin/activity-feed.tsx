@@ -1,7 +1,7 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import { ActivityRow } from "./base/activity-row";
-import { Package, AlertTriangle, Truck, XCircle, ClipboardList, PackagePlus, type LucideIcon } from "lucide-react";
 
 interface Activity {
   id: string;
@@ -15,67 +15,10 @@ interface Activity {
 }
 
 interface ActivityFeedProps {
-  activities?: Activity[];
+  activities: Activity[];
 }
 
-const defaultActivities: Activity[] = [
-  {
-    id: "1",
-    event: "Batch B-204 Generated",
-    icon: Package,
-    reference: "#BTC-204-981",
-    admin: "Admin S.",
-    timestamp: "10:42:01 AM",
-    status: "success",
-  },
-  {
-    id: "2",
-    event: "Suspicious User Flagged",
-    icon: AlertTriangle,
-    reference: "USR-882-P",
-    admin: "System (AI)",
-    timestamp: "09:15:33 AM",
-    status: "pending",
-  },
-  {
-    id: "3",
-    event: "Shipment Dispatched",
-    icon: Truck,
-    reference: "#ORD-9021-X",
-    admin: "Warehouse A",
-    timestamp: "08:02:11 AM",
-    status: "transit",
-  },
-  {
-    id: "4",
-    event: "VDP Error: Invalid Resi",
-    icon: XCircle,
-    reference: "#TX-7711",
-    admin: "Admin J.",
-    timestamp: "07:44:59 AM",
-    status: "failed",
-  },
-  {
-    id: "5",
-    event: "New Order #8842",
-    icon: ClipboardList,
-    reference: "#ORD-8842",
-    admin: "Customer Service",
-    timestamp: "07:30:15 AM",
-    status: "success",
-  },
-  {
-    id: "6",
-    event: "Bundle Generation Started",
-    icon: PackagePlus,
-    reference: "#BND-456",
-    admin: "System",
-    timestamp: "07:15:22 AM",
-    status: "pending",
-  },
-];
-
-export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
+export function ActivityFeed({ activities }: ActivityFeedProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       {/* Header */}
@@ -107,33 +50,35 @@ export function ActivityFeed({ activities = defaultActivities }: ActivityFeedPro
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {activities.map((activity) => (
-              <ActivityRow
-                key={activity.id}
-                icon={activity.icon as any}
-                iconClassName={activity.iconClassName}
-                event={activity.event}
-                reference={activity.reference}
-                admin={activity.admin}
-                timestamp={activity.timestamp}
-                status={activity.status}
-              />
-            ))}
+            {activities.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
+                  Belum ada aktivitas terbaru.
+                </td>
+              </tr>
+            ) : (
+              activities.map((activity) => (
+                <ActivityRow
+                  key={activity.id}
+                  icon={activity.icon as any}
+                  iconClassName={activity.iconClassName}
+                  event={activity.event}
+                  reference={activity.reference}
+                  admin={activity.admin}
+                  timestamp={activity.timestamp}
+                  status={activity.status}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Footer */}
       <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
-        <span className="text-sm text-gray-600 dark:text-slate-400">Showing {activities.length} of 128 events</span>
-        <div className="flex gap-2">
-          <button className="rounded-full border border-blue-100 px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
-            Previous
-          </button>
-          <button className="rounded-full bg-blue-600 px-4 py-2 text-sm text-white shadow-md shadow-blue-600/20 hover:bg-blue-700">
-            Next
-          </button>
-        </div>
+        <span className="text-sm text-gray-600 dark:text-slate-400">
+          Menampilkan {activities.length} aktivitas terbaru
+        </span>
       </div>
     </div>
   );

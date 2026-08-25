@@ -27,6 +27,15 @@ export function GeoScanHeatmap() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const updateTheme = () => setIsDark(document.documentElement.classList.contains("dark"));
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -153,12 +162,13 @@ export function GeoScanHeatmap() {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "rgba(0, 0, 0, 0.8)",
-                        border: "none",
+                        backgroundColor: isDark ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.98)",
+                        border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
                         borderRadius: "8px",
                         padding: "12px",
                       }}
-                      itemStyle={{ color: "#fff" }}
+                      labelStyle={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                      itemStyle={{ color: isDark ? "#cbd5e1" : "#334155" }}
                     />
                     <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                       {chartData.map((_, index) => (

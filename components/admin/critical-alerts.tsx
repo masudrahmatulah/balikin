@@ -18,15 +18,18 @@ interface RecentTag {
 interface CriticalAlertsProps {
   materials?: MaterialAlert[];
   recentTags?: RecentTag[];
+  dbConnected?: boolean;
+  pendingPaymentOrders?: number;
 }
 
-const defaultMaterials: MaterialAlert[] = [
-  { name: "Acrylic QR Tags (L)", quantity: 12 },
-  { name: "Sticker Vinyl Roll", quantity: 2 },
-  { name: "QR Code Sheets", quantity: 5 },
-];
+const defaultMaterials: MaterialAlert[] = [];
 
-export function CriticalAlerts({ materials = defaultMaterials, recentTags }: CriticalAlertsProps) {
+export function CriticalAlerts({
+  materials = defaultMaterials,
+  recentTags,
+  dbConnected = true,
+  pendingPaymentOrders = 0,
+}: CriticalAlertsProps) {
   const highPriority = materials.filter((m) => m.quantity <= 5);
   const mediumPriority = materials.filter((m) => m.quantity > 5 && m.quantity <= 10);
   const lowPriority = materials.filter((m) => m.quantity > 10);
@@ -94,28 +97,40 @@ export function CriticalAlerts({ materials = defaultMaterials, recentTags }: Cri
 
       {/* Operational Status */}
       <AlertCard
-        type="info"
+        type={dbConnected ? "info" : "error"}
         icon={Settings2}
         title="Operational Status"
         message="System and service status"
       >
         <div className="space-y-3">
-          <div className="flex items-center justify-between py-2 border-b border-gray-200">
-            <span className="text-sm text-gray-700">Production Line</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-              Operational
+          <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-slate-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">Database</span>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                dbConnected
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+              }`}
+            >
+              {dbConnected ? "Connected" : "Error"}
             </span>
           </div>
-          <div className="flex items-center justify-between py-2 border-b border-gray-200">
-            <span className="text-sm text-gray-700">API Gateway</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-              99.9% Up
+          <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-slate-700">
+            <span className="text-sm text-gray-700 dark:text-gray-300">Menunggu Pembayaran</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+              {pendingPaymentOrders} order
             </span>
           </div>
           <div className="flex items-center justify-between py-2">
-            <span className="text-sm text-gray-700">Database</span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-              Connected
+            <span className="text-sm text-gray-700 dark:text-gray-300">Stok Material Kritis</span>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                materials.length > 0
+                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+              }`}
+            >
+              {materials.length} item
             </span>
           </div>
         </div>

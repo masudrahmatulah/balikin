@@ -28,6 +28,7 @@ export const DivisionPermissions = {
     'vdp_batch_download',
     'system_health_monitor',
     'sticker_sheets',
+    'sticker_orders',
   ],
   [Division.CUSTOMER_SERVICE]: [
     'payment_verification',
@@ -105,7 +106,10 @@ export const DivisionNavigation = {
     { title: 'VDP Tool', href: '/admin/vdp-tool', icon: '🔧' },
     { title: 'Tags', href: '/admin/tags', icon: '🏷️' },
     { title: 'Payments', href: '/admin/payments', icon: '💳' },
+    { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
     { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
+    { title: 'Blog', href: '/admin/blog', icon: '📝' },
+    { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.CUSTOMER_SERVICE]: [
     { title: 'Dashboard', href: '/admin/cs', icon: '📊' },
@@ -116,6 +120,8 @@ export const DivisionNavigation = {
     { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
     { title: 'Requests', href: '/admin/requests', icon: '📨' },
     { title: 'Modules', href: '/admin/modules', icon: '🧩' },
+    { title: 'Blog', href: '/admin/blog', icon: '📝' },
+    { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.MARKETING]: [
     { title: 'Dashboard', href: '/admin/marketing', icon: '📊' },
@@ -123,6 +129,8 @@ export const DivisionNavigation = {
     { title: 'Conversion Funnel', href: '/admin/marketing/conversion', icon: '🔄' },
     { title: 'Module Performance', href: '/admin/marketing/modules', icon: '📊' },
     { title: 'Campaigns', href: '/admin/marketing/campaigns', icon: '🎯' },
+    { title: 'Blog', href: '/admin/blog', icon: '📝' },
+    { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.ADMIN]: [
     // Admin sees all navigation items from all divisions
@@ -136,6 +144,8 @@ export const DivisionNavigation = {
       { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
       { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
       { title: 'Analytics', href: '/admin/marketing/analytics', icon: '📈' },
+      { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
+      { title: 'Blog', href: '/admin/blog', icon: '📝' },
       { title: 'Modules', href: '/admin/modules', icon: '🧩' },
       { title: 'Material Logs', href: '/admin/material-logs', icon: '📋' },
       { title: 'VDP Tool', href: '/admin/vdp-tool', icon: '🔧' },

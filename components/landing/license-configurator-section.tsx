@@ -44,8 +44,6 @@ const shapes: { id: ShapeId; name: string; image: string }[] = [
   { id: 'heart', name: 'Heart', image: '/satu2/with_bg/hati.webp' },
 ];
 
-const CUSTOM_PRINT_PRICE = 5000;
-
 type StickerPackId = 'stiker-pro' | 'stiker-daily' | 'stiker-family' | 'stiker-micro';
 
 const stickerPacks: { id: StickerPackId; label: string; desc: string }[] = [
@@ -73,7 +71,6 @@ export function LicenseConfiguratorSection() {
   const [material, setMaterial] = useState<MaterialId>('vinyl');
   const [shape, setShape] = useState<ShapeId>('bulat');
   const [stickerPack, setStickerPack] = useState<StickerPackId>(DEFAULT_STICKER_PACK);
-  const [customPrint, setCustomPrint] = useState(false);
   const [previewShape, setPreviewShape] = useState<ShapeId | null>(null);
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
   const [mixCart, setMixCart] = useState<{ packId: StickerPackId; qty: number }[]>([]);
@@ -85,11 +82,7 @@ export function LicenseConfiguratorSection() {
   const checkoutProduct = PRODUCT_CATALOG[checkoutProductKey];
   const packSize = checkoutProduct.packSize;
 
-  const total = useMemo(() => {
-    let sum = checkoutProduct.price;
-    if (customPrint) sum += CUSTOM_PRINT_PRICE;
-    return sum;
-  }, [checkoutProduct, customPrint]);
+  const total = checkoutProduct.price;
 
   const addToMixCart = () => {
     setMixCart((prev) => {
@@ -396,31 +389,6 @@ export function LicenseConfiguratorSection() {
                 </div>
               </motion.div>
             )}
-
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                {selectedMaterial.hasShapes || material === 'vinyl' ? '3.' : '2.'} Opsi Desain
-              </h3>
-              <button
-                type="button"
-                onClick={() => setCustomPrint((v) => !v)}
-                className={`w-full text-left rounded-xl border-2 p-4 transition-all bg-white dark:bg-white/5 ${
-                  customPrint ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 shadow-md shadow-indigo-100' : 'border-gray-200 dark:border-white/10 hover:border-indigo-300'
-                }`}
-                aria-pressed={customPrint}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">Cetak Kustom Nama / Foto Sendiri</span>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Tercetak langsung di atas tag fisik</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-orange-600">+{formatRupiah(CUSTOM_PRINT_PRICE)}</span>
-                    {customPrint && <Check className="h-4 w-4 text-indigo-600" aria-hidden="true" />}
-                  </div>
-                </div>
-              </button>
-            </div>
           </div>
 
           <div className="lg:col-span-1">
@@ -441,12 +409,6 @@ export function LicenseConfiguratorSection() {
                     </span>
                     <span>{formatRupiah(checkoutProduct.price)}</span>
                   </li>
-                  {customPrint && (
-                    <li className="flex justify-between">
-                      <span>Cetak Kustom Nama/Foto</span>
-                      <span>+{formatRupiah(CUSTOM_PRINT_PRICE)}</span>
-                    </li>
-                  )}
                 </ul>
                 <div className="border-t border-white/20 pt-4 mb-6">
                   <div className="flex items-center justify-between">

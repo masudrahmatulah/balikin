@@ -21,9 +21,10 @@ async function getAdminSessionCore() {
       headers: headersList,
     });
 
-    // Add 5 second timeout for session retrieval
+    // Add 8 second timeout for session retrieval: cold connections to Supabase
+    // (TLS handshake) made the previous 5s limit flaky, logging admins out randomly
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Session retrieval timeout')), 5000)
+      setTimeout(() => reject(new Error('Session retrieval timeout')), 8000)
     );
 
     const session = await Promise.race([sessionPromise, timeoutPromise]) as Awaited<ReturnType<typeof auth.api.getSession>>;
@@ -33,17 +34,24 @@ async function getAdminSessionCore() {
       return null;
     }
 
-    // Query database to get the user's role and division with timeout
-    const dbUserPromise = db.query.user.findFirst({
-      where: eq(user.id, session.user.id),
-    });
+    // Query database to get the user's role and division with timeout + one retry,
+    // so a slow/cold DB connection doesn't log out a valid admin.
+    const fetchDbUser = (timeoutMs: number) =>
+      Promise.race([
+        db.query.user.findFirst({
+          where: eq(user.id, session.user.id),
+        }),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error('Database query timeout')), timeoutMs)
+        ),
+      ]);
 
-    // Add 3 second timeout for database query
-    const dbTimeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Database query timeout')), 3000)
-    );
-
-    const dbUser = await Promise.race([dbUserPromise, dbTimeoutPromise]) as Awaited<ReturnType<typeof db.query.user.findFirst>>;
+    let dbUser: Awaited<ReturnType<typeof db.query.user.findFirst>>;
+    try {
+      dbUser = await fetchDbUser(4000);
+    } catch (firstError) {
+      dbUser = await fetchDbUser(6000);
+    }
 
     if (!dbUser) {
       logError(new AuthenticationError('User not found in database'), 'getAdminSession');
