@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getSystemHealthStats } from "@/app/admin/actions/overview-actions";
-import { Activity, CheckCircle2, AlertTriangle, XCircle, RotateCw, MessageSquare, Zap } from "lucide-react";
+import { Activity, CheckCircle2, AlertTriangle, XCircle, RotateCw, MessageSquare } from "lucide-react";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 
 interface SystemHealthData {
@@ -15,11 +15,6 @@ interface SystemHealthData {
   totalNotifications: number;
   successfulNotifications: number;
   failedNotifications: number;
-  apiQuota: {
-    remaining: number;
-    total: number;
-    resetAt: string;
-  };
 }
 
 export function SystemHealthMonitor() {
@@ -181,24 +176,6 @@ export function SystemHealthMonitor() {
                   )}
                   style={{ width: `${health.successRate}%` }}
                 />
-              </div>
-            </div>
-
-            {/* API Quota */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  API Quota
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {health.apiQuota.remaining.toLocaleString()} / {health.apiQuota.total.toLocaleString()}
-                </span>
-                <span className="text-gray-500 dark:text-gray-400">
-                  {Math.round((health.apiQuota.remaining / health.apiQuota.total) * 100)}% remaining
-                </span>
               </div>
             </div>
           </div>

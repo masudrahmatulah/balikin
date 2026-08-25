@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
 import { AdminCard } from "./base/admin-card";
 import { StatCard, StatCardWithChart } from "./base/stat-card";
 import { Users, Star, Package, CheckCircle2 } from "lucide-react";
@@ -16,23 +15,44 @@ interface MaterialAlert {
   lowStockItems?: Array<{ materialType: string; quantity: number; unit: string }>;
 }
 
+interface TagDistributionSlice {
+  label: string;
+  percent: number;
+}
+
+interface ProductionStats {
+  total: number;
+  completed: number;
+  pending: number;
+}
+
 interface DashboardStatsProps {
   totalUsers: number;
   totalTags: number;
   lostTags: number;
+  premiumTags: number;
   revenue: {
     daily: RevenueStats;
     monthly: RevenueStats;
   };
   materials: MaterialAlert;
+  dailyOrdersSeries: number[];
+  tagDistribution: TagDistributionSlice[];
+  production: ProductionStats;
 }
+
+const DISTRIBUTION_COLORS = ["#2563eb", "#10b981", "#9ca3af"];
 
 export function DashboardStats({
   totalUsers,
   totalTags,
   lostTags,
+  premiumTags,
   revenue,
   materials,
+  dailyOrdersSeries,
+  tagDistribution,
+  production,
 }: DashboardStatsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -43,56 +63,43 @@ export function DashboardStats({
     }).format(amount);
   };
 
-  const revenueTrend = totalTags > 0
-    ? { value: Math.round((totalTags / 100) * 12), isPositive: true }
-    : { value: 0, isPositive: false };
+  // Real conversion rate: premium tags / total tags
+  const premiumConversion = totalTags > 0 ? (premiumTags / totalTags) * 100 : 0;
 
-  const lostTrend = lostTags > 0
-    ? { value: Math.floor(lostTags * 0.3), isPositive: false }
-    : { value: 0, isPositive: true };
+  // Real print-queue completion rate
+  const completionRate = production.total > 0
+    ? Math.round((production.completed / production.total) * 100)
+    : 0;
 
-  const conversionTrend = { value: 34.2, isPositive: true };
-  const dailyOrders = 128;
-  const dailyOrdersTrend = { value: 14, isPositive: true };
+  // Real distribution percentages for the donut SVG
+  const slices = tagDistribution.length > 0
+    ? tagDistribution
+    : [{ label: "No data", percent: 100 }];
+  let accumulated = 0;
+  const circumference = 100;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Total Tags - Primary Metric */}
       <StatCard
-        label="Total Tag Aktif"
+        label="Total Tag Terdaftar"
         value={totalTags}
-        trend={revenueTrend}
-        trendLabel="vs last month"
         highlight={lostTags > 0}
       />
 
       {/* Active Lost Items - Highlighted */}
-      {lostTags > 0 ? (
-        <StatCard
-          label="Laporan Barang Hilang"
-          value={lostTags}
-          trend={lostTrend}
-          trendLabel="active items"
-          highlight
-        />
-      ) : (
-        <StatCard
-          label="Laporan Barang Hilang"
-          value={0}
-          trend={{ value: 0, isPositive: true }}
-          trendLabel="no active reports"
-        />
-      )}
+      <StatCard
+        label="Laporan Barang Hilang"
+        value={lostTags}
+        trendLabel={lostTags > 0 ? "active items" : "no active reports"}
+        highlight={lostTags > 0}
+      />
 
       {/* Monthly Revenue */}
       <StatCard
         label="Pendapatan (Bulan Ini)"
         value={formatCurrency(revenue.monthly.total)}
-        trend={{
-          value: Math.round((revenue.monthly.total / 10000000) * 5),
-          isPositive: revenue.monthly.total > 0,
-        }}
-        trendLabel="vs last month"
+        trendLabel={`${revenue.monthly.count} order dibayar`}
       />
 
       {/* Total Users */}
@@ -105,17 +112,17 @@ export function DashboardStats({
       {/* Premium Conversion */}
       <StatCard
         label="Konversi Premium"
-        value="34.2%"
-        trend={conversionTrend}
+        value={`${premiumConversion.toFixed(1)}%`}
         icon={Star}
+        trendLabel={`${premiumTags} dari ${totalTags} tag`}
       />
 
       {/* Daily Orders with Chart */}
       <StatCardWithChart
-        label="Order Harian"
-        value={dailyOrders}
-        chartData={[40, 65, 45, 90, 55, 80, 75]}
-        trend={dailyOrdersTrend}
+        label="Order Dibayar Hari Ini"
+        value={revenue.daily.count}
+        chartData={dailyOrdersSeries}
+        trendLabel="7 hari terakhir"
         icon={Package}
       />
 
@@ -125,64 +132,69 @@ export function DashboardStats({
           <div className="w-20 h-20 flex-shrink-0">
             <svg viewBox="0 0 36 36" className="w-full h-full">
               <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563eb" strokeWidth="3" strokeDasharray="60 40" strokeLinecap="round" />
-              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#10b981" strokeWidth="3" strokeDasharray="25 75" strokeLinecap="round" strokeDashoffset="-60" />
+              {slices.map((slice, idx) => {
+                const dash = (slice.percent / circumference) * circumference;
+                const offset = -accumulated;
+                accumulated += slice.percent;
+                return (
+                  <circle
+                    key={slice.label}
+                    cx="18"
+                    cy="18"
+                    r="15.9"
+                    fill="none"
+                    stroke={DISTRIBUTION_COLORS[idx % DISTRIBUTION_COLORS.length]}
+                    strokeWidth="3"
+                    strokeDasharray={`${dash} ${circumference - dash}`}
+                    strokeLinecap="round"
+                    strokeDashoffset={offset}
+                  />
+                );
+              })}
             </svg>
           </div>
           <div className="flex-1 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <span className="text-sm text-gray-700">Stickers</span>
+            {slices.map((slice, idx) => (
+              <div key={slice.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: DISTRIBUTION_COLORS[idx % DISTRIBUTION_COLORS.length] }}
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{slice.label}</span>
+                </div>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">{slice.percent}%</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">60%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-sm text-gray-700">Acrylic</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-900">25%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full" />
-                <span className="text-sm text-gray-700">Other</span>
-              </div>
-              <span className="text-sm font-semibold text-gray-900">15%</span>
-            </div>
+            ))}
           </div>
         </div>
       </AdminCard>
 
-      {/* Production Efficiency */}
-      <AdminCard title="Production Efficiency" variant="bordered" className="h-full">
+      {/* Print Queue Status */}
+      <AdminCard title="Print Queue" variant="bordered" className="h-full">
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Daily Target</span>
-              <span className="font-semibold text-gray-900">85%</span>
+              <span className="text-gray-600 dark:text-gray-400">Selesai</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{completionRate}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: "85%" }} />
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${completionRate}%` }} />
             </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              {production.completed} dari {production.total} batch
+            </p>
           </div>
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Weekly Average</span>
-              <span className="font-semibold text-gray-900">92%</span>
+              <span className="text-gray-600 dark:text-gray-400">Menunggu Proses</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{production.pending}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-amber-500 h-2 rounded-full" style={{ width: "92%" }} />
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">Defect Rate</span>
-              <span className="font-semibold text-green-600">2.3%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: "2.3%" }} />
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div
+                className={cn("h-2 rounded-full", production.pending > 0 ? "bg-amber-500" : "bg-green-500")}
+                style={{ width: `${production.total > 0 ? (production.pending / production.total) * 100 : 0}%` }}
+              />
             </div>
           </div>
         </div>
@@ -201,16 +213,13 @@ export function DashboardStats({
                 key={idx}
                 className="flex justify-between items-center py-2 border-b border-gray-200 last:border-0"
               >
-                <span className="text-sm text-gray-700">{item.materialType}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{item.materialType}</span>
                 <span className="text-sm font-bold text-amber-600">
                   {item.quantity} {item.unit}
                 </span>
               </div>
             ))}
           </div>
-          <button className="w-full mt-4 py-2 px-4 bg-amber-600 text-white text-sm font-semibold rounded-md hover:bg-amber-700 transition-colors">
-            Order Supplies
-          </button>
         </AdminCard>
       ) : (
         <AdminCard
@@ -218,7 +227,7 @@ export function DashboardStats({
           variant="bordered"
           className="col-span-1 md:col-span-2 lg:col-span-1"
         >
-          <div className="flex items-center gap-3 text-gray-600">
+          <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
             <CheckCircle2 className="w-6 h-6 text-green-600" />
             <span className="text-sm">Semua material dalam stok</span>
           </div>

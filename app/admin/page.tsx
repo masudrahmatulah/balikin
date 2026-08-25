@@ -12,8 +12,8 @@ import {
   ActivityFeedSkeleton,
   CriticalAlertsSkeleton,
 } from "@/components/admin/skeletons";
-import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer } from "./data-access";
-import { Download, Search } from "lucide-react";
+import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer, getRecentActivityServer } from "./data-access";
+import { Search } from "lucide-react";
 
 export default async function AdminPage() {
   const session = await getAdminSession();
@@ -23,25 +23,34 @@ export default async function AdminPage() {
   }
 
   // Fetch dashboard data in parallel with error resilience
-  const [dashboardStats, pendingCounts, recentTags] = await Promise.allSettled([
+  const [dashboardStats, pendingCounts, recentTags, recentActivity] = await Promise.allSettled([
     getDashboardStatsServer(),
     getPendingCountsServer(),
     getRecentTagsServer(4),
+    getRecentActivityServer(8),
   ]);
+
+  const dbConnected = dashboardStats.status === "fulfilled";
 
   const stats = dashboardStats.status === "fulfilled" ? dashboardStats.value : {
     totalUsers: 0,
     totalTags: 0,
     totalOrders: 0,
     lostTags: 0,
+    premiumTags: 0,
+    exactTagsCount: 0,
     revenue: {
       daily: { total: 0, count: 0, period: "daily" },
       monthly: { total: 0, count: 0, period: "monthly" },
     },
     materials: { total: 0, lowStockCount: 0, lowStockItems: [] },
+    dailyOrdersSeries: [0, 0, 0, 0, 0, 0, 0],
+    tagDistribution: [] as Array<{ label: string; percent: number }>,
+    production: { total: 0, completed: 0, pending: 0 },
   };
 
   const recentTagsData = recentTags.status === "fulfilled" ? recentTags.value : [];
+  const activityData = recentActivity.status === "fulfilled" ? recentActivity.value : [];
 
   return (
     <div className="space-y-8" role="main" aria-label="Admin Dashboard">
@@ -67,14 +76,6 @@ export default async function AdminPage() {
             <Search size={16} aria-hidden="true" />
             <span>Search</span>
           </button>
-          <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-sm font-medium text-white shadow-md shadow-orange-900/20 transition-colors hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:ring-offset-2 md:flex-none"
-            aria-label="Export dashboard data as CSV"
-            type="button"
-          >
-            <Download size={16} aria-hidden="true" />
-            <span>Export CSV</span>
-          </button>
         </nav>
         </div>
       </header>
@@ -83,10 +84,14 @@ export default async function AdminPage() {
       <section aria-label="Key Metrics">
         <DashboardStats
           totalUsers={stats.totalUsers}
-          totalTags={stats.totalTags}
+          totalTags={stats.exactTagsCount || stats.totalTags}
           lostTags={stats.lostTags}
+          premiumTags={stats.premiumTags}
           revenue={stats.revenue}
           materials={stats.materials}
+          dailyOrdersSeries={stats.dailyOrdersSeries}
+          tagDistribution={stats.tagDistribution}
+          production={stats.production}
         />
       </section>
 
@@ -114,12 +119,14 @@ export default async function AdminPage() {
       {/* Dashboard Body - Main Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section aria-label="Recent Activity">
-          <ActivityFeed />
+          <ActivityFeed activities={activityData} />
         </section>
         <section aria-label="Critical Alerts">
           <CriticalAlerts
             materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))}
             recentTags={recentTagsData}
+            dbConnected={dbConnected}
+            pendingPaymentOrders={pendingCounts.status === "fulfilled" ? pendingCounts.value.pendingOrders : 0}
           />
         </section>
       </div>

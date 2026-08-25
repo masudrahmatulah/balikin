@@ -32,7 +32,7 @@ export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
         )
         .limit(1),
       { total: 0, count: 0 },
-      2000
+      5000
     );
 
     return {
@@ -59,7 +59,7 @@ export async function getMaterialStockAlerts() {
         limit: 100, // Prevent large result sets
       }),
       [],
-      2000
+      5000
     );
 
     // Filter materials that are below low stock threshold

@@ -1,12 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
-import { GlobalSearch } from "./global-search";
 import { WITAClock } from "./wita-clock";
-import { Bell, LogOut, User } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 
 interface AdminUser {
   id: string;
@@ -79,47 +76,6 @@ export function AdminHeader({
             </svg>
           </button>
         )}
-
-        {/* Global Search */}
-        <div className="hidden md:block flex-1 max-w-md">
-          <GlobalSearch className="w-full" />
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden xl:flex items-center gap-1">
-          <Link
-            href="/admin/blog"
-            className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
-            )}
-          >
-            Blog
-          </Link>
-          <Link
-            href="/admin/sticker-orders"
-            className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
-            )}
-          >
-            Orders
-            {pendingOrdersCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
-                {pendingOrdersCount}
-              </span>
-            )}
-          </Link>
-          <Link
-            href="/admin/analytics"
-            className={cn(
-              "rounded-full px-4 py-2 text-sm font-medium transition-colors",
-              "text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-blue-300"
-            )}
-          >
-            Analytics
-          </Link>
-        </nav>
       </div>
 
       {/* Right Section: Notifications, Actions, Profile */}
