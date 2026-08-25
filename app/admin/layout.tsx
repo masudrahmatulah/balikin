@@ -23,7 +23,15 @@ export default async function AdminLayout({
   const pendingOrdersCount = await getPendingOrdersCount();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-blue-50 via-white to-white font-body text-gray-900 selection:bg-blue-600/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100">
+    <div
+      className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-blue-50 via-white to-white font-body text-gray-900 selection:bg-blue-600/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 dark:text-slate-100"
+      style={
+        {
+          "--font-display": "var(--font-body)",
+          "--font-label": "var(--font-body)",
+        } as React.CSSProperties
+      }
+    >
       <div className="pointer-events-none fixed -right-24 top-16 z-0 h-80 w-80 rounded-full bg-purple-300/15 blur-3xl dark:bg-purple-700/10" aria-hidden="true" />
       <div className="pointer-events-none fixed bottom-0 left-1/3 z-0 h-72 w-72 rounded-full bg-blue-300/15 blur-3xl dark:bg-blue-700/10" aria-hidden="true" />
       <Sidebar userDivision={userDivision} />
