@@ -4,49 +4,60 @@ import { gte, lte, and, sql, eq } from "drizzle-orm";
 import { withQueryTimeout } from "@/lib/postgres-utils";
 
 export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
-  const now = new Date();
-  let startDate: Date;
+  const stats = await getRevenueStatsBoth();
+  return period === "daily" ? { ...stats.daily, period } : { ...stats.monthly, period };
+}
 
-  if (period === "daily") {
-    // Start of today (UTC)
-    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  } else {
-    // Start of this month (UTC)
-    startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  }
+/**
+ * Daily & monthly paid-order revenue in ONE round trip.
+ * Monthly range covers the daily range, so a single query from month start
+ * with FILTER conditions replaces two separate queries.
+ */
+export async function getRevenueStatsBoth() {
+  const now = new Date();
+  const dayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
   try {
-    // Use timeout protection for the revenue query
-    const revenue = await withQueryTimeout(
-      () => db
-        .select({
-          total: sql<number>`COALESCE(SUM(${stickerOrders.totalAmount}), 0)`,
-          count: sql<number>`COUNT(*)`,
-        })
-        .from(stickerOrders)
-        .where(
-          and(
-            eq(stickerOrders.paymentStatus, "paid"),
-            gte(stickerOrders.createdAt, startDate)
+    const rows = await withQueryTimeout(
+      () =>
+        db
+          .select({
+            dailyTotal: sql<number>`COALESCE(SUM(${stickerOrders.totalAmount}) FILTER (WHERE ${stickerOrders.createdAt} >= ${dayStart.toISOString()}::timestamptz), 0)`,
+            dailyCount: sql<number>`COUNT(*) FILTER (WHERE ${stickerOrders.createdAt} >= ${dayStart.toISOString()}::timestamptz)`,
+            monthlyTotal: sql<number>`COALESCE(SUM(${stickerOrders.totalAmount}), 0)`,
+            monthlyCount: sql<number>`COUNT(*)`,
+          })
+          .from(stickerOrders)
+          .where(
+            and(
+              eq(stickerOrders.paymentStatus, "paid"),
+              gte(stickerOrders.createdAt, monthStart)
+            )
           )
-        )
-        .limit(1),
-      { total: 0, count: 0 },
+          .limit(1),
+      null,
       5000
     );
 
+    const row = rows?.[0];
     return {
-      total: revenue[0]?.total || 0,
-      count: revenue[0]?.count || 0,
-      period,
+      daily: {
+        total: Number(row?.dailyTotal || 0),
+        count: Number(row?.dailyCount || 0),
+        period: "daily",
+      },
+      monthly: {
+        total: Number(row?.monthlyTotal || 0),
+        count: Number(row?.monthlyCount || 0),
+        period: "monthly",
+      },
     };
   } catch (error) {
     console.error('Error fetching revenue stats:', error);
-    // Return default values on error/timeout
     return {
-      total: 0,
-      count: 0,
-      period,
+      daily: { total: 0, count: 0, period: "daily" },
+      monthly: { total: 0, count: 0, period: "monthly" },
     };
   }
 }

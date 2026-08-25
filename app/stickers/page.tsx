@@ -103,7 +103,7 @@ export default function StickersPage() {
                   Pilih Paket <span className="bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">Sticker Vinyl</span> Sesuai Kebutuhan
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Setiap sticker terhubung ke Lisensi Akun/ID QR Balikin, Anonymous Chat Protection, dan alert WhatsApp saat barang Anda ditemukan.
+                  Setiap sticker terhubung ke Lisensi Akun/ID QR Balikin, proteksi privasi nomor HP, dan alert WhatsApp saat barang Anda ditemukan.
                 </p>
               </div>
               <div className="relative mx-auto h-40 w-40 sm:h-48 sm:w-48 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-lg shadow-indigo-100/50 dark:from-white/5 dark:to-white/5 dark:border-white/10">

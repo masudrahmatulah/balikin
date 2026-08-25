@@ -12,7 +12,7 @@ import {
   ActivityFeedSkeleton,
   CriticalAlertsSkeleton,
 } from "@/components/admin/skeletons";
-import { getDashboardStatsServer, getPendingCountsServer, getRecentTagsServer, getRecentActivityServer } from "./data-access";
+import { getDashboardStatsServer, getRecentTagsServer, getRecentActivityServer } from "./data-access";
 import { Search } from "lucide-react";
 
 export default async function AdminPage() {
@@ -23,9 +23,8 @@ export default async function AdminPage() {
   }
 
   // Fetch dashboard data in parallel with error resilience
-  const [dashboardStats, pendingCounts, recentTags, recentActivity] = await Promise.allSettled([
+  const [dashboardStats, recentTags, recentActivity] = await Promise.allSettled([
     getDashboardStatsServer(),
-    getPendingCountsServer(),
     getRecentTagsServer(4),
     getRecentActivityServer(8),
   ]);
@@ -36,6 +35,7 @@ export default async function AdminPage() {
     totalUsers: 0,
     totalTags: 0,
     totalOrders: 0,
+    pendingOrders: 0,
     lostTags: 0,
     premiumTags: 0,
     exactTagsCount: 0,
@@ -126,7 +126,7 @@ export default async function AdminPage() {
             materials={stats.materials.lowStockItems?.map(m => ({ name: m.materialType, quantity: m.quantity }))}
             recentTags={recentTagsData}
             dbConnected={dbConnected}
-            pendingPaymentOrders={pendingCounts.status === "fulfilled" ? pendingCounts.value.pendingOrders : 0}
+            pendingPaymentOrders={stats.pendingOrders}
           />
         </section>
       </div>
