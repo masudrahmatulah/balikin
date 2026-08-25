@@ -30,13 +30,13 @@ export const siteConfig = {
     "stiker qr code koper",
     "gantungan kunci motor qr code",
     // Tech Features
-    "qr code whatsapp anonim",
+    "qr code whatsapp",
     "lacak lokasi dari scan qr",
     "sistem pelacakan qr code",
     "mode hilang qr code",
     "sistem lost and found",
     "sistem pelacakan barang hilang",
-    "anonymous whatsapp gateway",
+    "notifikasi whatsapp barang ditemukan",
     "scan logging dengan lokasi",
     // Use Cases
     "cara agar barang tidak hilang",

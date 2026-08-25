@@ -304,7 +304,9 @@ export function CheckoutForm({
             aria-invalid={!!fieldErrors.province}
             aria-describedby={fieldErrors.province ? 'province-error' : undefined}
           >
-            <SelectValue placeholder={isLoadingProvinces ? 'Memuat...' : 'Pilih Provinsi'} />
+            <SelectValue placeholder={isLoadingProvinces ? 'Memuat...' : 'Pilih Provinsi'}>
+              {(value: string) => provinces.find((prov) => prov.province_id === value)?.province ?? ''}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {provinces.map((prov) => (
@@ -331,7 +333,9 @@ export function CheckoutForm({
           >
             <SelectValue
               placeholder={!selectedProvince ? 'Pilih provinsi dulu' : isLoadingCities ? 'Memuat...' : 'Pilih Kota'}
-            />
+            >
+              {(value: string) => cities.find((city) => city.city_id === value)?.city_name ?? ''}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {cities.map((city) => (
@@ -356,7 +360,11 @@ export function CheckoutForm({
             aria-invalid={!!fieldErrors.courier}
             aria-describedby={fieldErrors.courier ? 'courier-error' : undefined}
           >
-            <SelectValue placeholder="Pilih Kurir" />
+            <SelectValue placeholder="Pilih Kurir">
+              {(value: string) =>
+                value === 'jne' ? 'JNE' : value === 'tiki' ? 'TIKI' : value === 'pos' ? 'POS Indonesia' : ''
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="jne">JNE</SelectItem>

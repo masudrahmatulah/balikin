@@ -32,7 +32,7 @@ const comparisonRows = [
     aspect: 'Keamanan Privasi',
     bluetooth: 'Aman, tapi memicu risiko stalking jarak dekat jika disalahgunakan orang lain.',
     phoneNumber: 'Sangat Berbahaya. Nomor Anda bisa dicatat penjahat untuk penipuan, spam, atau teror WA.',
-    balikin: '100% Aman. Penemu menghubungi Anda via Chat Sistem Anonim tanpa tahu nomor HP Anda.',
+    balikin: '100% Aman. Penemu menghubungi Anda via tombol WhatsApp — nomor HP Anda tidak tercetak di barang.',
   },
   {
     aspect: 'Radius Pelacakan',

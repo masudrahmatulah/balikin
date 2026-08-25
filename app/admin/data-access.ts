@@ -17,60 +17,60 @@ async function getDashboardStatsCore() {
   const tagsCount = await getTagsApproximateCount();
 
   // All queries in ONE parallel block to minimize connection-pool pressure.
-  // Timeout raised to 5000ms: cold connections to Supabase need a TLS handshake
-  // before the first query can run, so 2000ms caused frequent false timeouts.
+  // Counts are consolidated into a single round trip via scalar subqueries, and
+  // daily+monthly revenue into one FILTER query — critical because every query
+  // pays ~250ms network latency to Supabase.
+  // Timeout 5000ms: cold connections need a TLS handshake before the first query.
   const [
-    usersResult,
-    ordersResult,
-    tagsSummary,
-    dailyRevenue,
-    monthlyRevenue,
+    summaryRes,
+    revenue,
     materialAlerts,
     dailyOrdersSeries,
     tagDistributionRows,
     printStats,
   ] = await Promise.all([
     withQueryTimeout(
-      () => db.select({ count: count() }).from(user),
-      { count: 0 },
-      5000
-    ),
-    withQueryTimeout(
-      () => db.select({ count: count() }).from(stickerOrders),
-      { count: 0 },
-      5000
-    ),
-    withQueryTimeout(
       () =>
-        db
-          .select({
-            total: sql<number>`count(*)`,
-            lost: sql<number>`count(*) filter (where ${tags.status} = 'lost')`,
-            premium: sql<number>`count(*) filter (where ${tags.tier} <> 'free')`,
-          })
-          .from(tags)
-          .where(eq(tags.app_id, 'balikin_id')),
-      { total: 0, lost: 0, premium: 0 },
+        db.execute(sql`
+          SELECT
+            (SELECT count(*) FROM ${user}) AS total_users,
+            (SELECT count(*) FROM ${stickerOrders}) AS total_orders,
+            (SELECT count(*) FROM ${stickerOrders} WHERE ${stickerOrders.paymentStatus} = 'pending') AS pending_orders,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id') AS tags_total,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id' AND ${tags.status} = 'lost') AS tags_lost,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id' AND ${tags.tier} <> 'free') AS tags_premium
+        `),
+      null,
       5000
     ),
-    getRevenueStats('daily'),
-    getRevenueStats('monthly'),
+    getRevenueStatsBoth(),
     getMaterialStockAlerts(),
     getDailyOrdersSeries(),
     getTagDistribution(),
     getPrintQueueStats(),
   ]);
 
+  const summaryRows: any[] =
+    summaryRes && typeof summaryRes === 'object'
+      ? 'rows' in (summaryRes as any) && Array.isArray((summaryRes as any).rows)
+        ? (summaryRes as any).rows
+        : Array.isArray(summaryRes)
+          ? summaryRes
+          : []
+      : [];
+  const s = summaryRows[0] ?? {};
+
   return {
-    totalUsers: usersResult[0]?.count || 0,
+    totalUsers: Number(s.total_users || 0),
     totalTags: tagsCount,
-    totalOrders: ordersResult[0]?.count || 0,
-    lostTags: Number(tagsSummary[0]?.lost || 0),
-    premiumTags: Number(tagsSummary[0]?.premium || 0),
-    exactTagsCount: Number(tagsSummary[0]?.total || 0),
+    totalOrders: Number(s.total_orders || 0),
+    pendingOrders: Number(s.pending_orders || 0),
+    lostTags: Number(s.tags_lost || 0),
+    premiumTags: Number(s.tags_premium || 0),
+    exactTagsCount: Number(s.tags_total || 0),
     revenue: {
-      daily: dailyRevenue,
-      monthly: monthlyRevenue,
+      daily: revenue.daily,
+      monthly: revenue.monthly,
     },
     materials: materialAlerts,
     dailyOrdersSeries,

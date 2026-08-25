@@ -152,8 +152,8 @@ export function LicenseConfiguratorSection() {
             <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
               <MessageCircleHeart className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="font-medium text-sm text-gray-900 dark:text-white">Anonymous Chat Protection</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Penemu hubungi Anda tanpa lihat nomor HP</p>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">Privasi Terjaga</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Nomor HP Anda tidak tercetak di tag fisik</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
