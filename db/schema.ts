@@ -74,6 +74,7 @@ export const stickerOrders = pgTable('sticker_orders', {
   paymentStatus: text('payment_status').default('pending').notNull(),
   paymentMethod: text('payment_method').default('manual_qris').notNull(),
   productType: text('product_type').default('sticker').notNull(),
+  stickerColorTheme: text('sticker_color_theme').default('navy-premium'),
   recipientName: text('recipient_name').notNull(),
   phone: text('phone').notNull(),
   addressLine: text('address_line').notNull(),
@@ -87,6 +88,9 @@ export const stickerOrders = pgTable('sticker_orders', {
   destinationCityId: text('destination_city_id'), // RajaOngkir city ID
   destinationCityName: text('destination_city_name'),
   totalAmount: integer('total_amount').notNull(),
+  // Acrylic backside design: default = Balikin logo; custom = customer-uploaded image (+Rp10.000/order)
+  backsideCustom: boolean('backside_custom').default(false).notNull(),
+  backsideCustomImageUrl: text('backside_custom_image_url'),
   paymentProofUrl: text('payment_proof_url'),
   verifiedAt: timestamp('verified_at'),
   createdAt: timestamp('created_at').defaultNow(),

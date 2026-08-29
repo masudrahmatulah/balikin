@@ -77,7 +77,8 @@ export default async function StickerOrderDetailPage({
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3 text-sm text-slate-600">
-              {order.stickerColorTheme && (
+              <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
+              {order.productType === 'sticker' && order.stickerColorTheme && (
                 <p className="flex items-center gap-2">
                   <span className="font-medium text-slate-900">Warna Sticker:</span>
                   <span
@@ -88,9 +89,25 @@ export default async function StickerOrderDetailPage({
                   {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
                 </p>
               )}
-              <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
               <p><span className="font-medium text-slate-900">Metode Bayar:</span> {STICKER_PAYMENT_LABEL}</p>
               <p><span className="font-medium text-slate-900">Total:</span> Rp{order.totalAmount.toLocaleString('id-ID')}</p>
+              {order.backsideCustom && (
+                <p>
+                  <span className="font-medium text-slate-900">Sisi Belakang:</span>{' '}
+                  {order.backsideCustomImageUrl ? (
+                    <a
+                      href={order.backsideCustomImageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline hover:text-blue-800"
+                    >
+                      Gambar custom (+Rp10.000)
+                    </a>
+                  ) : (
+                    'Gambar custom (+Rp10.000)'
+                  )}
+                </p>
+              )}
               <p><span className="font-medium text-slate-900">Penerima:</span> {order.recipientName}</p>
               <p><span className="font-medium text-slate-900">WhatsApp:</span> {order.phone}</p>
               <p><span className="font-medium text-slate-900">Alamat:</span> {order.addressLine}, {order.city}, {order.postalCode}</p>

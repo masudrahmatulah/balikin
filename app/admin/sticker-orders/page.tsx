@@ -38,7 +38,10 @@ export default async function AdminStickerOrdersPage({
     paymentStatus: order.paymentStatus,
     status: order.status,
     bundleCount: order.bundles.length,
+    productType: order.productType,
     stickerColorTheme: order.stickerColorTheme,
+    backsideCustom: order.backsideCustom,
+    backsideCustomImageUrl: order.backsideCustomImageUrl,
     createdAtLabel: order.createdAt
       ? new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
       : '',

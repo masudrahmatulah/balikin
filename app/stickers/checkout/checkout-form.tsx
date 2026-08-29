@@ -1,25 +1,30 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
+import Image from 'next/image';
 import { createStickerOrder } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ProductKey } from '@/lib/product-catalog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ImagePlus, Trash2 } from 'lucide-react';
 import { type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 interface CheckoutFormProps {
   onSuccess: (orderId: string) => void;
-  stickerColorTheme: StickerColorTheme;
   productKey: ProductKey;
+  stickerColorTheme: StickerColorTheme;
   onShippingCostChange: (cost: number, courier: string, cityId: string, cityName: string) => void;
   shippingCost: number | null;
   shippingCourier: string;
   destinationCityId: string;
   destinationCityName: string;
+  backsideCustom: boolean;
+  backsideCustomImageUrl: string;
+  onBacksideChange: (custom: boolean, imageUrl: string) => void;
 }
 
 type FieldErrors = Record<string, string>;
@@ -47,18 +52,25 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export function CheckoutForm({
   onSuccess,
-  stickerColorTheme,
   productKey,
+  stickerColorTheme,
   onShippingCostChange,
   shippingCost,
   shippingCourier,
   destinationCityId,
   destinationCityName,
+  backsideCustom,
+  backsideCustomImageUrl,
+  onBacksideChange,
 }: CheckoutFormProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [segment, setSegment] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [isUploadingBackside, setIsUploadingBackside] = useState(false);
+  const [backsideUploadError, setBacksideUploadError] = useState<string | null>(null);
+
+  const isAcrylic = productKey === 'armor-tag';
 
   // Shipping state
   const [provinces, setProvinces] = useState<Province[]>([]);
@@ -156,9 +168,39 @@ export function CheckoutForm({
     }
   };
 
+  const handleBacksideFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingBackside(true);
+    setBacksideUploadError(null);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const response = await fetch('/api/upload/custom-backside', {
+        method: 'POST',
+        body,
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Gagal mengupload gambar');
+      }
+      onBacksideChange(true, data.url);
+    } catch (error) {
+      setBacksideUploadError(error instanceof Error ? error.message : 'Gagal mengupload gambar');
+    } finally {
+      setIsUploadingBackside(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSubmit = async (formData: FormData) => {
     setFieldErrors({});
     setFormError(null);
+
+    if (isAcrylic && backsideCustom && !backsideCustomImageUrl) {
+      setFormError('Upload gambar custom untuk sisi belakang terlebih dahulu');
+      return;
+    }
 
     // Validate shipping cost is selected
     if (shippingCost === null) {
@@ -174,12 +216,14 @@ export function CheckoutForm({
       notes: String(formData.get('notes') ?? ''),
       segment,
       voucherCode: String(formData.get('voucherCode') ?? ''),
-      stickerColorTheme,
       productKey,
+      stickerColorTheme,
       shippingCost,
       shippingCourier,
       destinationCityId,
       destinationCityName,
+      backsideCustom: isAcrylic ? backsideCustom : false,
+      backsideCustomImageUrl: isAcrylic ? backsideCustomImageUrl : '',
     };
 
     // Client-side guard untuk segment (wajib)
@@ -462,6 +506,92 @@ export function CheckoutForm({
         />
         <FieldError id="notes-error" message={fieldErrors.notes} />
       </div>
+
+      {isAcrylic && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <Label className="text-slate-800 dark:text-slate-100" htmlFor="backsideCustom">
+                Custom Image Sisi Belakang
+              </Label>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Tanpa custom: sisi belakang menggunakan logo Balikin. Dengan custom: sisi depan QR code, sisi
+                belakang gambar Anda. Biaya tambahan <span className="font-semibold text-amber-700 dark:text-amber-400">Rp10.000</span>.
+              </p>
+            </div>
+            <Switch
+              id="backsideCustom"
+              checked={backsideCustom}
+              onCheckedChange={(checked) => {
+                onBacksideChange(checked, checked ? backsideCustomImageUrl : '');
+              }}
+            />
+          </div>
+
+          {backsideCustom && (
+            <div className="mt-4">
+              {backsideCustomImageUrl ? (
+                <div className="flex items-center gap-3">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700">
+                    <Image
+                      src={backsideCustomImageUrl}
+                      alt="Pratinjau gambar custom sisi belakang"
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-300">Gambar custom siap digunakan.</p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onBacksideChange(true, '')}
+                      className="w-fit border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                      Ganti / Hapus
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label
+                    htmlFor="backsideFile"
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 bg-white/60 px-4 py-6 text-sm font-medium text-amber-700 transition-colors hover:border-amber-400 hover:bg-amber-50 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                  >
+                    {isUploadingBackside ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        Mengupload gambar...
+                      </>
+                    ) : (
+                      <>
+                        <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                        Pilih gambar (JPG, PNG, WebP — maks 5MB)
+                      </>
+                    )}
+                  </label>
+                  <Input
+                    id="backsideFile"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    disabled={isUploadingBackside}
+                    onChange={handleBacksideFileChange}
+                  />
+                  {backsideUploadError && (
+                    <p className="mt-2 text-xs text-red-600 dark:text-red-400" role="alert">
+                      {backsideUploadError}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <Button
         type="submit"

@@ -10,8 +10,8 @@ import { ClipboardPenLine } from 'lucide-react';
 import { type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 interface CheckoutClientProps {
-  stickerColorTheme: StickerColorTheme;
   productKey: ProductKey;
+  stickerColorTheme: StickerColorTheme;
 }
 
 export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClientProps) {
@@ -21,6 +21,13 @@ export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClient
   const [shippingCourier, setShippingCourier] = useState<string>('');
   const [destinationCityId, setDestinationCityId] = useState<string>('');
   const [destinationCityName, setDestinationCityName] = useState<string>('');
+  const [backsideCustom, setBacksideCustom] = useState(false);
+  const [backsideCustomImageUrl, setBacksideCustomImageUrl] = useState('');
+
+  const handleBacksideChange = (custom: boolean, imageUrl: string) => {
+    setBacksideCustom(custom);
+    setBacksideCustomImageUrl(imageUrl);
+  };
 
   const handleShippingCostChange = (
     cost: number,
@@ -54,19 +61,27 @@ export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClient
         </CardHeader>
         <CardContent className="pt-6">
           <CheckoutForm
-            stickerColorTheme={stickerColorTheme}
             productKey={productKey}
+            stickerColorTheme={stickerColorTheme}
             onShippingCostChange={handleShippingCostChange}
             shippingCost={shippingCost}
             shippingCourier={shippingCourier}
             destinationCityId={destinationCityId}
             destinationCityName={destinationCityName}
+            backsideCustom={backsideCustom}
+            backsideCustomImageUrl={backsideCustomImageUrl}
+            onBacksideChange={handleBacksideChange}
             onSuccess={handleSuccess}
           />
         </CardContent>
       </Card>
       <div className="order-1 lg:order-2 lg:sticky lg:top-24">
-        <OrderSummary product={product} stickerColorTheme={stickerColorTheme} shippingCost={shippingCost} />
+        <OrderSummary
+          product={product}
+          stickerColorTheme={stickerColorTheme}
+          shippingCost={shippingCost}
+          backsideCustom={backsideCustom}
+        />
       </div>
     </div>
   );

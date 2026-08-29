@@ -72,7 +72,13 @@ export default async function AdminStickerOrderDetailPage({
           <CardContent className="flex flex-wrap gap-2">
             <Badge variant="outline">{order.paymentStatus}</Badge>
             <Badge variant="outline">{order.status}</Badge>
-            {order.stickerColorTheme && (
+            <Badge variant="outline">{order.city}</Badge>
+            {order.productType === 'acrylic' && (
+              <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                Acrylic
+              </Badge>
+            )}
+            {order.productType === 'sticker' && order.stickerColorTheme && (
               <Badge variant="outline" className="border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
                 <span
                   className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full border border-black/10"
@@ -82,8 +88,25 @@ export default async function AdminStickerOrderDetailPage({
                 Warna: {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
               </Badge>
             )}
-            <Badge variant="outline">{order.city}</Badge>
+            {order.backsideCustom && (
+              <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                Custom Backside (+Rp10rb)
+              </Badge>
+            )}
           </CardContent>
+          {order.backsideCustom && order.backsideCustomImageUrl && (
+            <CardContent className="pt-0">
+              <p className="mb-2 text-sm font-medium text-gray-900 dark:text-white">Gambar custom sisi belakang:</p>
+              <a href={order.backsideCustomImageUrl} target="_blank" rel="noopener noreferrer">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={order.backsideCustomImageUrl}
+                  alt="Custom backside"
+                  className="h-40 w-40 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+                />
+              </a>
+            </CardContent>
+          )}
         </Card>
 
         {order.bundles.length === 0 ? (
