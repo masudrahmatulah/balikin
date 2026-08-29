@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,7 +61,10 @@ export interface StickerOrderRow {
   paymentStatus: string;
   status: string;
   bundleCount: number;
+  productType: string;
   stickerColorTheme: string | null;
+  backsideCustom: boolean;
+  backsideCustomImageUrl: string | null;
   createdAtLabel: string;
 }
 
@@ -217,7 +221,14 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">{order.paymentStatus}</Badge>
-                    {order.stickerColorTheme && (
+                    <Badge variant="outline">{order.status}</Badge>
+                    <Badge variant="outline">bundle {order.bundleCount}</Badge>
+                    {order.productType === 'acrylic' && (
+                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                        Acrylic
+                      </Badge>
+                    )}
+                    {order.productType === 'sticker' && order.stickerColorTheme && (
                       <Badge variant="outline" className="border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
                         <span
                           className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full border border-black/10"
@@ -227,8 +238,11 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                         {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
                       </Badge>
                     )}
-                    <Badge variant="outline">{order.status}</Badge>
-                    <Badge variant="outline">bundle {order.bundleCount}</Badge>
+                    {order.backsideCustom && (
+                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                        Custom Backside (+Rp10rb)
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -250,6 +264,31 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                     Alamat: <span className="font-medium text-gray-900">{order.city}</span>
                   </div>
                 </div>
+
+                {order.backsideCustom && order.backsideCustomImageUrl && (
+                  <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700">
+                      <Image
+                        src={order.backsideCustomImageUrl}
+                        alt={`Custom backside ${order.recipientName}`}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                    </div>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Sisi belakang memakai gambar custom customer.
+                      <a
+                        href={order.backsideCustomImageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1.5 text-xs font-medium text-amber-700 underline hover:text-amber-900 dark:text-amber-400"
+                      >
+                        Buka gambar
+                      </a>
+                    </p>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   {order.paymentStatus !== 'paid' && (

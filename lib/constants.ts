@@ -4,6 +4,7 @@ export const PREMIUM_UPGRADE_PRICE = 25000; // Upgrade tag free -> premium (digi
 
 // Harga produk sesuai strategi update_produk.md
 export const PREMIUM_PRICE = 54000;       // Balikin Armor Tag
+export const BACKSIDE_CUSTOM_PRICE = 10000; // Custom image sisi belakang acrylic (+Rp10.000/order)
 export const STICKER_PACK_PRICE = 59000;  // Semua varian stiker (Pro/Daily/Micro/Family)
 export const STICKER_PACK_SIZE = 12;      // Default: Family (12 QR campuran)
 

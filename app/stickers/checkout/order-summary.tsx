@@ -1,21 +1,23 @@
-import { QrCode, Shield } from 'lucide-react';
+import { QrCode, Shield, ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { STICKER_PAYMENT_LABEL, STICKER_QRIS_NOTES } from '@/lib/constants';
+import { STICKER_PAYMENT_LABEL, STICKER_QRIS_NOTES, BACKSIDE_CUSTOM_PRICE } from '@/lib/constants';
 import { type PRODUCT_CATALOG } from '@/lib/product-catalog';
 import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 type ProductEntry = (typeof PRODUCT_CATALOG)[keyof typeof PRODUCT_CATALOG];
 
 interface OrderSummaryProps {
-  stickerColorTheme?: StickerColorTheme;
   product: ProductEntry;
+  stickerColorTheme?: StickerColorTheme;
   shippingCost?: number | null;
+  backsideCustom?: boolean;
 }
 
-export function OrderSummary({ product, stickerColorTheme, shippingCost }: OrderSummaryProps) {
-  const grandTotal = shippingCost !== null && shippingCost !== undefined
-    ? product.price + shippingCost
-    : product.price;
+export function OrderSummary({ product, stickerColorTheme, shippingCost, backsideCustom = false }: OrderSummaryProps) {
+  const shipping = shippingCost !== null && shippingCost !== undefined ? shippingCost : 0;
+  const customFee = product.productType === 'acrylic' && backsideCustom ? BACKSIDE_CUSTOM_PRICE : 0;
+  const hasShipping = shippingCost !== null && shippingCost !== undefined;
+  const grandTotal = product.price + customFee + shipping;
 
   return (
     <div className="space-y-4">
@@ -61,12 +63,21 @@ export function OrderSummary({ product, stickerColorTheme, shippingCost }: Order
             <span>Harga Produk</span>
             <span className="font-medium text-slate-900 dark:text-white">Rp{product.price.toLocaleString('id-ID')}</span>
           </div>
+          {customFee > 0 && (
+            <div className="flex justify-between gap-4">
+              <span className="flex items-center gap-1.5">
+                <ImageIcon className="h-3.5 w-3.5 text-amber-600" aria-hidden="true" />
+                Custom Image Belakang
+              </span>
+              <span className="font-medium text-slate-900 dark:text-white">+Rp{customFee.toLocaleString('id-ID')}</span>
+            </div>
+          )}
           <div className="flex justify-between gap-4 text-sm text-slate-500 dark:text-slate-400">
             <span>Ongkir</span>
-            {shippingCost === null || shippingCost === undefined ? (
+            {!hasShipping ? (
               <span className="text-right text-xs">Pilih kota &amp; kurir</span>
             ) : (
-              <span className="font-medium text-slate-900 dark:text-white">Rp{shippingCost.toLocaleString('id-ID')}</span>
+              <span className="font-medium text-slate-900 dark:text-white">Rp{shipping.toLocaleString('id-ID')}</span>
             )}
           </div>
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-4 dark:border-slate-700">
