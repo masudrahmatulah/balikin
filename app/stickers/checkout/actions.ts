@@ -8,6 +8,7 @@ import { stickerOrders, referralVouchers } from '@/db/schema';
 import { eq, and, lt, gt, sql } from 'drizzle-orm';
 import { STICKER_PAYMENT_METHOD } from '@/lib/constants';
 import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
+import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 
 // ─── Batas panjang field ───────────────────────────────────────────────────
 const MAX_FIELD_LENGTHS = {
@@ -117,6 +118,7 @@ export interface CreateOrderInput {
   notes?: string;
   segment: string;
   voucherCode?: string;
+  stickerColorTheme?: string;
   productKey?: string;
   shippingCost: number;
   shippingCourier: string;
@@ -155,6 +157,9 @@ export async function createStickerOrder(input: CreateOrderInput) {
   // Harga & productType SELALU ditentukan server dari katalog — tidak pernah dari client
   const catalogKey = resolveProductKey(input.productKey);
   const catalogEntry = PRODUCT_CATALOG[catalogKey];
+  const stickerColorTheme = catalogEntry.productType === 'sticker'
+    ? normalizeStickerColorTheme(input.stickerColorTheme)
+    : null;
   let basePrice = catalogEntry.price;
   let discountAmount = 0;
 
@@ -189,6 +194,7 @@ export async function createStickerOrder(input: CreateOrderInput) {
       postalCode,
       notes,
       shippingCost: verifiedShippingCost,
+      stickerColorTheme,
       shippingCourier: input.shippingCourier.toLowerCase(),
       destinationCityId: input.destinationCityId,
       destinationCityName: input.destinationCityName,

@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
 import { STICKER_PAYMENT_LABEL } from '@/lib/constants';
 import { getProductDisplayName } from '@/lib/product-catalog';
+import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +77,17 @@ export default async function StickerOrderDetailPage({
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3 text-sm text-slate-600">
+              {order.stickerColorTheme && (
+                <p className="flex items-center gap-2">
+                  <span className="font-medium text-slate-900">Warna Sticker:</span>
+                  <span
+                    className="h-4 w-4 rounded-full border border-black/10"
+                    style={{ backgroundColor: STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].accent }}
+                    aria-hidden="true"
+                  />
+                  {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
+                </p>
+              )}
               <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
               <p><span className="font-medium text-slate-900">Metode Bayar:</span> {STICKER_PAYMENT_LABEL}</p>
               <p><span className="font-medium text-slate-900">Total:</span> Rp{order.totalAmount.toLocaleString('id-ID')}</p>

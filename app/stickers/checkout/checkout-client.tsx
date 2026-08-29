@@ -7,12 +7,14 @@ import { OrderSummary } from './order-summary';
 import { type ProductKey, PRODUCT_CATALOG } from '@/lib/product-catalog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClipboardPenLine } from 'lucide-react';
+import { type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 interface CheckoutClientProps {
+  stickerColorTheme: StickerColorTheme;
   productKey: ProductKey;
 }
 
-export function CheckoutClient({ productKey }: CheckoutClientProps) {
+export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClientProps) {
   const router = useRouter();
   const product = PRODUCT_CATALOG[productKey];
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -52,6 +54,7 @@ export function CheckoutClient({ productKey }: CheckoutClientProps) {
         </CardHeader>
         <CardContent className="pt-6">
           <CheckoutForm
+            stickerColorTheme={stickerColorTheme}
             productKey={productKey}
             onShippingCostChange={handleShippingCostChange}
             shippingCost={shippingCost}
@@ -63,7 +66,7 @@ export function CheckoutClient({ productKey }: CheckoutClientProps) {
         </CardContent>
       </Card>
       <div className="order-1 lg:order-2 lg:sticky lg:top-24">
-        <OrderSummary product={product} shippingCost={shippingCost} />
+        <OrderSummary product={product} stickerColorTheme={stickerColorTheme} shippingCost={shippingCost} />
       </div>
     </div>
   );

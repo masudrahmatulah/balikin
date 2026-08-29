@@ -33,6 +33,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { GenerateBundleButton } from '@/components/admin/generate-bundle-button';
+import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import {
   bulkDeleteStickerOrders,
   bulkSetOrderStatus,
@@ -59,6 +60,7 @@ export interface StickerOrderRow {
   paymentStatus: string;
   status: string;
   bundleCount: number;
+  stickerColorTheme: string | null;
   createdAtLabel: string;
 }
 
@@ -215,6 +217,16 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline">{order.paymentStatus}</Badge>
+                    {order.stickerColorTheme && (
+                      <Badge variant="outline" className="border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+                        <span
+                          className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full border border-black/10"
+                          style={{ backgroundColor: STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].accent }}
+                          aria-hidden="true"
+                        />
+                        {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
+                      </Badge>
+                    )}
                     <Badge variant="outline">{order.status}</Badge>
                     <Badge variant="outline">bundle {order.bundleCount}</Badge>
                   </div>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PrintBundleButton } from '@/components/admin/print-bundle-button';
 import { getShapeLabel, getSizeLabel } from '@/lib/sticker-template';
+import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 
 export default async function AdminStickerOrderDetailPage({
   params,
@@ -71,6 +72,16 @@ export default async function AdminStickerOrderDetailPage({
           <CardContent className="flex flex-wrap gap-2">
             <Badge variant="outline">{order.paymentStatus}</Badge>
             <Badge variant="outline">{order.status}</Badge>
+            {order.stickerColorTheme && (
+              <Badge variant="outline" className="border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+                <span
+                  className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full border border-black/10"
+                  style={{ backgroundColor: STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].accent }}
+                  aria-hidden="true"
+                />
+                Warna: {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
+              </Badge>
+            )}
             <Badge variant="outline">{order.city}</Badge>
           </CardContent>
         </Card>
