@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ProductKey } from '@/lib/product-catalog';
 import { Loader2 } from 'lucide-react';
+import { type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 interface CheckoutFormProps {
   onSuccess: (orderId: string) => void;
+  stickerColorTheme: StickerColorTheme;
   productKey: ProductKey;
   onShippingCostChange: (cost: number, courier: string, cityId: string, cityName: string) => void;
   shippingCost: number | null;
@@ -45,6 +47,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 export function CheckoutForm({
   onSuccess,
+  stickerColorTheme,
   productKey,
   onShippingCostChange,
   shippingCost,
@@ -171,6 +174,7 @@ export function CheckoutForm({
       notes: String(formData.get('notes') ?? ''),
       segment,
       voucherCode: String(formData.get('voucherCode') ?? ''),
+      stickerColorTheme,
       productKey,
       shippingCost,
       shippingCourier,

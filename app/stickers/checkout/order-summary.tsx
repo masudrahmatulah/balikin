@@ -2,15 +2,17 @@ import { QrCode, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { STICKER_PAYMENT_LABEL, STICKER_QRIS_NOTES } from '@/lib/constants';
 import { type PRODUCT_CATALOG } from '@/lib/product-catalog';
+import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 type ProductEntry = (typeof PRODUCT_CATALOG)[keyof typeof PRODUCT_CATALOG];
 
 interface OrderSummaryProps {
+  stickerColorTheme?: StickerColorTheme;
   product: ProductEntry;
   shippingCost?: number | null;
 }
 
-export function OrderSummary({ product, shippingCost }: OrderSummaryProps) {
+export function OrderSummary({ product, stickerColorTheme, shippingCost }: OrderSummaryProps) {
   const grandTotal = shippingCost !== null && shippingCost !== undefined
     ? product.price + shippingCost
     : product.price;
@@ -42,6 +44,19 @@ export function OrderSummary({ product, shippingCost }: OrderSummaryProps) {
               {product.productType === 'acrylic' ? 'Akrilik Premium' : 'Vinyl Premium (UV Protected)'}
             </span>
           </div>
+          {product.productType === 'sticker' && stickerColorTheme && (
+            <div className="flex items-center justify-between gap-4">
+              <span>Warna Sticker</span>
+              <span className="flex items-center gap-2 text-right font-medium text-slate-900 dark:text-white">
+                <span
+                  className="h-4 w-4 rounded-full border border-black/10"
+                  style={{ background: `linear-gradient(135deg, ${STICKER_COLOR_THEMES[stickerColorTheme].background} 55%, ${STICKER_COLOR_THEMES[stickerColorTheme].accent} 55%)` }}
+                  aria-hidden="true"
+                />
+                {STICKER_COLOR_THEMES[stickerColorTheme].label}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between gap-4 border-t border-slate-200 pt-3 dark:border-slate-700">
             <span>Harga Produk</span>
             <span className="font-medium text-slate-900 dark:text-white">Rp{product.price.toLocaleString('id-ID')}</span>

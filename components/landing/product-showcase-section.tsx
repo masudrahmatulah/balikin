@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ZoomIn, Sparkles } from 'lucide-react';
+import { ZoomIn, Sparkles, QrCode, Lock } from 'lucide-react';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Badge } from '@/components/ui/badge';
 import { ImageLightbox, type LightboxImage } from '@/components/landing/image-lightbox';
+import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 const showcaseItems: LightboxImage[] = [
   { src: '/desains/sticker1.webp', alt: 'Premium Vinyl Sticker' },
@@ -17,6 +18,11 @@ const showcaseItems: LightboxImage[] = [
   { src: '/satu2/with_bg/segi delapan.webp', alt: 'Acrylic Tag Segi Delapan' },
   { src: '/satu2/with_bg/hati.webp', alt: 'Acrylic Tag Heart' },
 ];
+
+const colorShowcaseItems = (Object.keys(STICKER_COLOR_THEMES) as StickerColorTheme[]).map((id) => ({
+  id,
+  ...STICKER_COLOR_THEMES[id],
+}));
 
 export function ProductShowcaseSection() {
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
@@ -54,6 +60,58 @@ export function ProductShowcaseSection() {
               <p className="mt-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300">{item.alt}</p>
             </button>
           ))}
+        </div>
+      </ScrollReveal>
+
+      <ScrollReveal delay={0.15}>
+        <div className="max-w-5xl mx-auto mt-12">
+          <div className="text-center mb-6">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Contoh Pilihan Warna Sticker</h3>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              Pilih karakter warna yang paling sesuai dengan barang dan gaya Anda.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {colorShowcaseItems.map((theme) => (
+              <div key={theme.id} className="group">
+                <div
+                  className="relative aspect-[2.25] overflow-hidden rounded-xl p-2.5 shadow-md transition-transform group-hover:-translate-y-1 group-hover:shadow-lg lg:p-3"
+                  style={{ backgroundColor: theme.background }}
+                >
+                  <div className="flex h-full items-center gap-2 lg:gap-2.5">
+                    <div className="flex aspect-square h-full shrink-0 items-center justify-center rounded-lg bg-white p-1.5 lg:p-2">
+                      <QrCode className="h-full w-full text-gray-950" strokeWidth={1.8} aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 text-left">
+                      <div className="flex items-center gap-1.5">
+                        <Lock className="h-3 w-3 shrink-0 text-white sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+                        <p className="truncate text-[10px] font-black tracking-wide text-white sm:text-xs">PROTECTED</p>
+                      </div>
+                      <p className="truncate text-[8px] font-black tracking-tight text-white sm:text-[10px]">
+                        BY <span style={{ color: theme.accent }}>BALIKIN.ONLINE</span>
+                      </p>
+                      <p className="mt-1 truncate text-[7px] leading-tight sm:text-[8px]" style={{ color: theme.textMuted }}>
+                        If found, please scan to return this item.
+                      </p>
+                      <p className="truncate text-[7px] leading-tight sm:text-[8px]" style={{ color: theme.textMuted }}>
+                        Scan untuk Menghubungi Pemilik Barang
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-center gap-2">
+                  <span
+                    className="h-3 w-3 rounded-full border border-black/10"
+                    style={{ backgroundColor: theme.accent }}
+                    aria-hidden="true"
+                  />
+                  <p className="text-center text-sm font-semibold text-gray-700 dark:text-gray-200">{theme.label}</p>
+                </div>
+                <p className="mt-0.5 text-center text-xs text-gray-500 dark:text-gray-400">{theme.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </ScrollReveal>
 
