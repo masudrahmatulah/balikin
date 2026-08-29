@@ -5,9 +5,9 @@ import { faqItems } from "@/lib/site-content";
 import { JsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Balikin Smart Tag - QR Code Anti Hilang Indonesia dengan Anonymous WhatsApp Gateway",
+  title: "Balikin Smart Tag - QR Code Anti Hilang Indonesia dengan Notifikasi WhatsApp",
   description:
-    "Balikin Smart Tag: Platform Smart Lost and Found Indonesia dengan QR Code dinamis. Penemu WhatsApp Anda 100% anonim. Lacak lokasi barang hilang, mode hilang darurat, privasi terjaga. Sistem gantungan kunci anti hilang dengan teknologi QR code modern. Mulai gratis sekarang!",
+    "Balikin Smart Tag: Platform Smart Lost and Found Indonesia dengan QR Code dinamis. Nomor HP tidak tercetak di barang. Lacak lokasi barang hilang, mode hilang darurat, kontak bisa diperbarui kapan saja. Sistem gantungan kunci anti hilang dengan teknologi QR code modern. Mulai gratis sekarang!",
   path: "/",
   keywords: [
     // Branded keywords
@@ -24,12 +24,12 @@ export const metadata: Metadata = buildMetadata({
     "smart lost and found indonesia",
     "gantungan kunci anti hilang",
     // Tech Features keywords
-    "qr code whatsapp anonim",
+    "qr code whatsapp",
     "lacak lokasi dari scan qr",
     "sistem pelacakan qr code",
     "mode hilang qr code",
     "sistem lost and found",
-    "anonymous whatsapp gateway",
+    "notifikasi whatsapp barang ditemukan",
     // Use Cases keywords
     "tag koper jamaah haji",
     "stiker qr code koper",
@@ -59,7 +59,7 @@ const homeSchema = {
       alternateName: "Balikin Smart Tag",
       url: absoluteUrl("/"),
       description:
-        "Platform Smart Lost and Found Indonesia berbasis QR Code dinamis untuk menghubungkan barang hilang dengan pemiliknya melalui Anonymous WhatsApp Gateway dengan teknologi pelacakan lokasi real-time.",
+        "Platform Smart Lost and Found Indonesia berbasis QR Code dinamis untuk menghubungkan barang hilang dengan pemiliknya melalui notifikasi WhatsApp dengan teknologi pelacakan lokasi real-time.",
       logo: {
         "@type": "ImageObject",
         url: absoluteUrl("/logo-icon.png"),
@@ -76,7 +76,7 @@ const homeSchema = {
       knowsAbout: [
         "Smart Lost and Found System",
         "QR Code Technology",
-        "Anonymous WhatsApp Gateway",
+        "WhatsApp Notification System",
         "Location Tracking System",
       ],
     },
@@ -108,7 +108,7 @@ const homeSchema = {
       ],
       featureList: [
         "QR Code dinamis untuk pelacakan barang hilang",
-        "Anonymous WhatsApp Gateway dengan privasi 100%",
+        "Notifikasi WhatsApp saat barang ditemukan",
         "Live Scan Location Tracking dengan geo-lokasi akurat",
         "Lost Mode Emergency Display dengan desain darurat merah",
         "Real-time Alert System untuk notifikasi scan",
@@ -116,8 +116,8 @@ const homeSchema = {
         "Sistem identifikasi barang dengan QR code modern",
         "Gantungan kunci QR code anti hilang berkualitas",
       ],
-      description: "Sistem keamanan privasi untuk barang hilang dengan QR Code dinamis. Platform smart lost and found Indonesia yang menghubungkan penemu dengan pemilik barang secara aman dan anonim.",
-      keywords: "qr code barang hilang, qr code anti hilang, gantungan kunci qr code, smart lost and found, sistem pelacakan barang, anonymous whatsapp",
+      description: "Sistem keamanan privasi untuk barang hilang dengan QR Code dinamis. Platform smart lost and found Indonesia yang menghubungkan penemu dengan pemilik barang secara aman tanpa nomor HP tercetak di tag.",
+      keywords: "qr code barang hilang, qr code anti hilang, gantungan kunci qr code, smart lost and found, sistem pelacakan barang, whatsapp lost and found",
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: "4.8",
@@ -170,7 +170,7 @@ const homeSchema = {
       "@id": absoluteUrl("/#webpage"),
       url: absoluteUrl("/"),
       name: "Balikin Smart Tag - QR Code Anti Hilang & Platform Smart Lost and Found Indonesia",
-      description: "Balikin Smart Tag: Sistem QR code dinamis untuk barang hilang dengan privasi 100%. Anonymous WhatsApp gateway, lacak lokasi scan, mode hilang darurat. Gantungan kunci QR code anti hilang gratis.",
+      description: "Balikin Smart Tag: Sistem QR code dinamis untuk barang hilang dengan kontak fleksibel. Notifikasi WhatsApp, lacak lokasi scan, mode hilang darurat. Gantungan kunci QR code anti hilang gratis.",
       inLanguage: "id-ID",
       primaryImageOfPage: {
         "@type": "ImageObject",
@@ -179,12 +179,12 @@ const homeSchema = {
       about: {
         "@type": "Thing",
         name: "Smart Lost and Found System dengan QR Code Pelacakan",
-        description: "Sistem modern untuk menemukan barang hilang menggunakan teknologi QR code dengan fitur lokasi real-time dan komunikasi anonim",
+        description: "Sistem modern untuk menemukan barang hilang menggunakan teknologi QR code dengan fitur lokasi real-time dan notifikasi WhatsApp",
       },
       mainEntity: {
         "@type": "Thing",
         name: "Balikin Smart Tag",
-        description: "Platform terpadu untuk sistem lost and found dengan QR code anti hilang dan teknologi anonymous whatsapp gateway",
+        description: "Platform terpadu untuk sistem lost and found dengan QR code anti hilang dan teknologi notifikasi WhatsApp",
       },
       breadcrumb: {
         "@type": "BreadcrumbList",

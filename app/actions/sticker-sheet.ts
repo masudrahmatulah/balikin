@@ -6,7 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 import { hashValue } from '@/lib/crypto';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 /**
  * Master Activation Key (Lazy Activation) for VDP-stock sticker sheets.
@@ -153,6 +153,7 @@ export async function activateStickerSheet(
     });
 
     if (result.success) {
+      revalidateTag('tags');
       revalidatePath('/dashboard');
       revalidatePath('/p/[slug]');
     }
@@ -199,6 +200,7 @@ export async function claimStickerTagInActiveSheet(tagId: string, itemName: stri
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
+  revalidateTag('tags');
 
   return { success: true };
 }

@@ -7,6 +7,7 @@ import { logScan } from '@/app/actions/scan';
 import { MobileClaim } from '@/components/mobile/mobile-claim';
 import { JsonLd } from '@/components/json-ld';
 import { isFreeProduct, isStickerProduct } from '@/lib/product';
+import { isTagExpired } from '@/lib/tag-expiration';
 
 interface MobileClaimPageProps {
   params: Promise<{ slug: string }>;
@@ -67,24 +68,29 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     notFound();
   }
 
-  // Log scan for all tag visits (non-blocking)
-  logScan(tag.id).catch(console.error);
-
   const isLost = tag.status === 'lost';
   const isFreeTag = isFreeProduct(tag);
   const isStickerTag = isStickerProduct(tag);
+  const isExpired = isFreeTag && isTagExpired(tag);
+
+  // Expired free tags are shown without exposing owner contact information.
+  if (!isExpired) {
+    logScan(tag.id).catch(console.error);
+  }
 
   // Get recent scan logs and emergency info in parallel
   let recentScans: typeof scanLogs.$inferSelect[] = [];
   let emergencyInfo: typeof emergencyInformation.$inferSelect | null = null;
 
-  if (isLost && !isFreeTag) {
-    [recentScans, emergencyInfo] = await Promise.all([
-      getRecentScans(tag.id, isStickerTag),
-      getEmergencyInfo(tag.id),
-    ]);
-  } else {
-    emergencyInfo = await getEmergencyInfo(tag.id);
+  if (!isExpired) {
+    if (isLost && !isFreeTag) {
+      [recentScans, emergencyInfo] = await Promise.all([
+        getRecentScans(tag.id, isStickerTag),
+        getEmergencyInfo(tag.id),
+      ]);
+    } else {
+      emergencyInfo = await getEmergencyInfo(tag.id);
+    }
   }
 
   // Generate structured data for lost items
@@ -120,6 +126,7 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
         isLost={isLost}
         isFreeTag={isFreeTag}
         isStickerTag={isStickerTag}
+        isExpired={isExpired}
         isUnclaimed={!tag.ownerId}
         recentScans={recentScans}
         emergencyInfo={emergencyInfo}

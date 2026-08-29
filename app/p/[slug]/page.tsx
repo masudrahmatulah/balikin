@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, AlertTriangle, Gift, Award } from 'lucide-react';
 import { buildMetadata } from '@/lib/seo';
 import { getTagProductLabel, isAcrylicProduct, isFreeProduct, isStickerProduct } from '@/lib/product';
+import { isTagExpired } from '@/lib/tag-expiration';
 import { TabSwitcherHandler } from './tab-switcher-handler';
 import { EmergencyInfoDisplay } from './emergency-info-display';
 import { StudentKitModuleContent } from './private/student/content';
@@ -97,6 +98,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const isLost = tag.status === 'lost';
   const isUnclaimed = !tag.ownerId;
   const isFreeTag = isFreeProduct(tag);
+  const isExpired = isFreeTag && isTagExpired(tag);
   const isStickerTag = isStickerProduct(tag);
   const isAcrylicTag = isAcrylicProduct(tag);
   const productLabel = getTagProductLabel(tag);
@@ -116,6 +118,31 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
+  if (isExpired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-amber-50 px-4 py-8">
+        <Card className="w-full max-w-md border-amber-200 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-amber-900">Tag Sudah Kedaluwarsa</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-amber-800">
+            <p>Masa aktif digital tag free <strong>{tag.name}</strong> adalah 7 hari dan telah berakhir.</p>
+            <p>Pemilik perlu melakukan upgrade ke premium agar tag dapat digunakan kembali.</p>
+            {session?.user?.id === tag.ownerId && (
+              <p className="font-medium">Silakan buka dashboard untuk melanjutkan upgrade.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Sticker QR codes use the public URL for ongoing scans. Before the sheet is
+  // activated, route the first scan into the PIN-protected claim flow.
+  if (isUnclaimed && isStickerTag && !isPreview) {
+    redirect(`/claim/${tag.id}`);
+  }
 
   if (session?.user?.id && tag.ownerId === session.user.id && !isPreview) {
     // Owner is viewing - redirect to appropriate page
@@ -243,9 +270,10 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                           : `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang.`
                       }
                       label="Hubungi Pemilik via WhatsApp"
-                      variant="destructive"
+                      variant="whatsapp"
                       size="lg"
-                      className="w-full px-6 py-6 text-base sm:w-auto sm:px-8"
+                      prominent
+                      className="w-full sm:w-auto"
                     />
                   </div>
                   {/* Location Sharing Button */}
@@ -294,11 +322,12 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               )}
 
               {tag.contactWhatsapp && (
-                <div className="text-center pt-4">
+                <div className="flex justify-center pt-4">
                   <WhatsAppButton
                     phone={tag.contactWhatsapp}
                     message={tag.customMessage || `Halo, saya ingin bertanya tentang tag "${tag.name}".`}
-                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto"
                   />
                 </div>
               )}

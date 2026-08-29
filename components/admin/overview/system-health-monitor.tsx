@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getSystemHealthStats } from "@/app/admin/actions/overview-actions";
-import { Activity, CheckCircle2, AlertTriangle, XCircle, RotateCw, MessageSquare, Zap } from "lucide-react";
+import { Activity, CheckCircle2, AlertTriangle, XCircle, RotateCw, MessageSquare } from "lucide-react";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 
 interface SystemHealthData {
@@ -15,11 +15,6 @@ interface SystemHealthData {
   totalNotifications: number;
   successfulNotifications: number;
   failedNotifications: number;
-  apiQuota: {
-    remaining: number;
-    total: number;
-    resetAt: string;
-  };
 }
 
 export function SystemHealthMonitor() {
@@ -80,14 +75,14 @@ export function SystemHealthMonitor() {
   const StatusIcon = health ? getStatusConfig(health.systemStatus).icon : Activity;
 
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <Activity className="h-5 w-5 text-blue-600" />
             System Health
           </CardTitle>
-          <CardDescription className="mt-1">
+          <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
             WhatsApp API & notification system status
           </CardDescription>
         </div>
@@ -183,24 +178,6 @@ export function SystemHealthMonitor() {
                 />
               </div>
             </div>
-
-            {/* API Quota */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  API Quota
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {health.apiQuota.remaining.toLocaleString()} / {health.apiQuota.total.toLocaleString()}
-                </span>
-                <span className="text-gray-500 dark:text-gray-400">
-                  {Math.round((health.apiQuota.remaining / health.apiQuota.total) * 100)}% remaining
-                </span>
-              </div>
-            </div>
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -214,7 +191,7 @@ export function SystemHealthMonitor() {
 
 export function SystemHealthMonitorSkeleton() {
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader>
         <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
         <div className="h-4 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-2" />

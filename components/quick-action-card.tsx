@@ -13,53 +13,53 @@ interface QuickActionCardProps {
 
 const colorVariants = {
   blue: {
-    bg: 'bg-blue-50',
-    iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
+    bg: 'bg-white/85 dark:bg-slate-900/80',
+    iconBg: 'bg-gradient-to-br from-blue-600 to-indigo-600',
     iconText: 'text-white',
-    border: 'border-blue-200',
-    hoverBorder: 'hover:border-blue-300',
-    hoverBg: 'hover:bg-blue-100/50',
-    shadow: 'shadow-blue-100/40',
+    border: 'border-blue-100',
+    hoverBorder: 'hover:border-blue-300 dark:border-slate-700 dark:hover:border-blue-700',
+    hoverBg: 'hover:bg-blue-50/70 dark:hover:bg-blue-950/30',
+    shadow: 'shadow-blue-100/40 dark:shadow-none',
     hoverShadow: 'hover:shadow-blue-200/60',
   },
   emerald: {
-    bg: 'bg-emerald-50',
-    iconBg: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+    bg: 'bg-white/85 dark:bg-slate-900/80',
+    iconBg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
     iconText: 'text-white',
-    border: 'border-emerald-200',
-    hoverBorder: 'hover:border-emerald-300',
-    hoverBg: 'hover:bg-emerald-100/50',
-    shadow: 'shadow-emerald-100/40',
-    hoverShadow: 'hover:shadow-emerald-200/60',
+    border: 'border-indigo-100',
+    hoverBorder: 'hover:border-indigo-300 dark:border-slate-700 dark:hover:border-indigo-700',
+    hoverBg: 'hover:bg-indigo-50/70 dark:hover:bg-indigo-950/30',
+    shadow: 'shadow-indigo-100/40 dark:shadow-none',
+    hoverShadow: 'hover:shadow-indigo-200/60',
   },
   amber: {
-    bg: 'bg-amber-50',
-    iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600',
+    bg: 'bg-white/85 dark:bg-slate-900/80',
+    iconBg: 'bg-gradient-to-br from-orange-500 to-amber-500',
     iconText: 'text-white',
-    border: 'border-amber-200',
-    hoverBorder: 'hover:border-amber-300',
-    hoverBg: 'hover:bg-amber-100/50',
-    shadow: 'shadow-amber-100/40',
-    hoverShadow: 'hover:shadow-amber-200/60',
+    border: 'border-orange-100',
+    hoverBorder: 'hover:border-orange-300 dark:border-slate-700 dark:hover:border-orange-700',
+    hoverBg: 'hover:bg-orange-50/70 dark:hover:bg-orange-950/30',
+    shadow: 'shadow-orange-100/40 dark:shadow-none',
+    hoverShadow: 'hover:shadow-orange-200/60',
   },
   purple: {
-    bg: 'bg-purple-50',
+    bg: 'bg-white/85 dark:bg-slate-900/80',
     iconBg: 'bg-gradient-to-br from-purple-500 to-purple-600',
     iconText: 'text-white',
-    border: 'border-purple-200',
-    hoverBorder: 'hover:border-purple-300',
-    hoverBg: 'hover:bg-purple-100/50',
-    shadow: 'shadow-purple-100/40',
+    border: 'border-purple-100',
+    hoverBorder: 'hover:border-purple-300 dark:border-slate-700 dark:hover:border-purple-700',
+    hoverBg: 'hover:bg-purple-50/70 dark:hover:bg-purple-950/30',
+    shadow: 'shadow-purple-100/40 dark:shadow-none',
     hoverShadow: 'hover:shadow-purple-200/60',
   },
   slate: {
-    bg: 'bg-slate-50',
-    iconBg: 'bg-gradient-to-br from-slate-600 to-slate-700',
+    bg: 'bg-white/85 dark:bg-slate-900/80',
+    iconBg: 'bg-gradient-to-br from-slate-600 to-slate-800',
     iconText: 'text-white',
     border: 'border-slate-200',
-    hoverBorder: 'hover:border-slate-300',
-    hoverBg: 'hover:bg-slate-100/50',
-    shadow: 'shadow-slate-100/40',
+    hoverBorder: 'hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600',
+    hoverBg: 'hover:bg-slate-100/70 dark:hover:bg-slate-800',
+    shadow: 'shadow-slate-100/40 dark:shadow-none',
     hoverShadow: 'hover:shadow-slate-200/60',
   },
 };
@@ -78,7 +78,7 @@ export function QuickActionCard({
     <Link
       href={href}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300',
+        'group relative overflow-hidden rounded-2xl border-2 p-5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
         variant.bg,
         variant.border,
         variant.hoverBorder,
@@ -102,10 +102,10 @@ export function QuickActionCard({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">
+          <h3 className="text-base font-semibold text-slate-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
             {title}
           </h3>
-          <p className="mt-1 text-sm text-slate-600 line-clamp-2">
+          <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">
             {description}
           </p>
         </div>
@@ -119,7 +119,7 @@ export function QuickActionCard({
           )}
         >
           <svg
-            className="h-4 w-4 text-slate-600"
+             className="h-4 w-4 text-slate-600 dark:text-slate-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

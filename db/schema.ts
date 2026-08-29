@@ -74,6 +74,7 @@ export const stickerOrders = pgTable('sticker_orders', {
   paymentStatus: text('payment_status').default('pending').notNull(),
   paymentMethod: text('payment_method').default('manual_qris').notNull(),
   productType: text('product_type').default('sticker').notNull(),
+  stickerColorTheme: text('sticker_color_theme').default('navy-premium'),
   recipientName: text('recipient_name').notNull(),
   phone: text('phone').notNull(),
   addressLine: text('address_line').notNull(),
@@ -87,6 +88,9 @@ export const stickerOrders = pgTable('sticker_orders', {
   destinationCityId: text('destination_city_id'), // RajaOngkir city ID
   destinationCityName: text('destination_city_name'),
   totalAmount: integer('total_amount').notNull(),
+  // Acrylic backside design: default = Balikin logo; custom = customer-uploaded image (+Rp10.000/order)
+  backsideCustom: boolean('backside_custom').default(false).notNull(),
+  backsideCustomImageUrl: text('backside_custom_image_url'),
   paymentProofUrl: text('payment_proof_url'),
   verifiedAt: timestamp('verified_at'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -196,8 +200,31 @@ export const tags = pgTable('tags', {
   autoActivateModule: text('auto_activate_module'), // 'student' | 'otomotif' | 'pertanian' | 'diklat' | null
   welcomeShown: boolean('welcome_shown').default(false),
   onboardingCompleted: boolean('onboarding_completed').default(false),
+  expiresAt: timestamp('expires_at'), // Free tier trial deadline; null for premium/lifetime tags
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const tagUpgradeOrders = pgTable('tag_upgrade_orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
+  paymentStatus: text('payment_status').default('pending').notNull(), // 'pending' | 'paid' | 'failed'
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const tagUpgradeOrdersRelations = relations(tagUpgradeOrders, ({ one }) => ({
+  tag: one(tags, {
+    fields: [tagUpgradeOrders.tagId],
+    references: [tags.id],
+  }),
+  user: one(user, {
+    fields: [tagUpgradeOrders.userId],
+    references: [user.id],
+  }),
+}));
 
 export const tagsRelations = relations(tags, ({ many, one }) => ({
   owner: one(user, {
@@ -218,6 +245,7 @@ export const tagsRelations = relations(tags, ({ many, one }) => ({
     fields: [tags.sheetId],
     references: [stickerSheets.id],
   }),
+  upgradeOrders: many(tagUpgradeOrders),
 }));
 
 export const stickerOrdersRelations = relations(stickerOrders, ({ one, many }) => ({

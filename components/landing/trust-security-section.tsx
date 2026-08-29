@@ -29,9 +29,9 @@ const securityPillars = [
     id: 'payment',
     icon: CreditCard,
     title: 'Gerbang Pembayaran Resmi',
-    subtitle: 'Powered by Midtrans',
+    subtitle: 'Powered by Komerce',
     description:
-      'Setiap transaksi lunas via QRIS diproses langsung oleh Midtrans. Berizin resmi dan diawasi oleh Bank Indonesia. Balikin tidak pernah menyimpan data keuangan Anda.',
+      'Setiap transaksi lunas via QRIS diproses langsung oleh Komerce Payment API. QRIS berstandar Bank Indonesia dan Balikin tidak pernah menyimpan data keuangan Anda.',
     color: 'from-green-500 to-emerald-500',
   },
 ];
@@ -52,10 +52,12 @@ const trustLogos = [
     type: 'image',
   },
   {
-    name: 'Midtrans',
+    name: 'Komerce',
     label: 'Payment Gateway',
-    imageSrc: '/midtrans.webp',
-    type: 'image',
+    bgColor: 'bg-white',
+    textColor: 'text-green-600',
+    emoji: 'K',
+    type: 'emoji',
   },
 ];
 

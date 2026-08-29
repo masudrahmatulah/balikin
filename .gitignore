@@ -14,6 +14,9 @@
 /.next.backup/
 /out/
 
+# local dev uploads (fallback saat BLOB_READ_WRITE_TOKEN tidak ada)
+/public/uploads/
+
 # production
 /build
 

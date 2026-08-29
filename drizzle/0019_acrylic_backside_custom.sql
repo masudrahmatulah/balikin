@@ -1,0 +1,2 @@
+ALTER TABLE "balikin_sticker_orders" ADD COLUMN "backside_custom" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "balikin_sticker_orders" ADD COLUMN "backside_custom_image_url" text;

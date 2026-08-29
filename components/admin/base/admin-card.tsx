@@ -34,19 +34,19 @@ export function AdminCard({
   noPadding = false,
 }: AdminCardProps) {
   const variantStyles = {
-    default: "border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow",
-    bordered: "border-2 border-blue-600/20 shadow-md hover:shadow-lg transition-shadow",
+    default: "border border-blue-100/80 bg-white/90 shadow-sm hover:-translate-y-0.5 hover:shadow-lg transition-all dark:border-slate-700 dark:bg-slate-900/90",
+    bordered: "border-2 border-blue-600/20 bg-white/90 shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all dark:border-blue-500/30 dark:bg-slate-900/90",
     highlighted:
-      "border-2 border-blue-600/40 bg-blue-600/[0.03] shadow-md hover:shadow-lg transition-shadow",
+      "border-2 border-blue-600/40 bg-gradient-to-br from-blue-50/80 to-purple-50/60 shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all dark:from-blue-950/30 dark:to-purple-950/20",
   };
 
   const content = (
     <div className={cn(variantStyles[variant], "rounded-2xl", className)}>
       {title && (
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-display font-semibold text-gray-900">{title}</h3>
+        <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+          <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
           {description && (
-            <p className="text-sm text-gray-500 mt-1">{description}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{description}</p>
           )}
         </div>
       )}

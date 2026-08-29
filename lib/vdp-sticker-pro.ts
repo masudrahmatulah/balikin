@@ -19,6 +19,11 @@ import {
   FAMILY_ROW_PRODUCTS,
 } from './sticker-template';
 import { renderText } from './sticker-fonts';
+import {
+  DEFAULT_STICKER_COLOR_THEME,
+  STICKER_COLOR_THEMES,
+  type StickerColorTheme,
+} from './sticker-color-themes';
 
 type ProtectedCardProductKey = Extract<StickerProductKey, 'stiker-pro' | 'stiker-daily' | 'stiker-micro'>;
 
@@ -30,10 +35,6 @@ const MM_TO_PX = DPI / 25.4;
 const A5_WIDTH_PX = Math.round(A5_WIDTH_MM * MM_TO_PX);
 const A5_HEIGHT_PX = Math.round(A5_HEIGHT_MM * MM_TO_PX);
 
-const BG_COLOR = '#2e3742';
-const RED_COLOR = '#d9382f';
-const TEXT_MUTED = '#dbe0e6';
-
 export interface StickerProTag {
   id: string;
   slug: string;
@@ -43,7 +44,14 @@ export interface StickerProTag {
 /**
  * Render a single "Protected by Balikin.Online" card (background + lock icon + copy, QR composited on top)
  */
-async function renderProtectedCard(slug: string, widthPx: number, heightPx: number, serialNumber?: string): Promise<Buffer> {
+async function renderProtectedCard(
+  slug: string,
+  widthPx: number,
+  heightPx: number,
+  serialNumber?: string,
+  colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
+): Promise<Buffer> {
+  const colors = STICKER_COLOR_THEMES[colorTheme];
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
   const qrUrl = `${baseUrl}/p/${slug}`;
 
@@ -85,7 +93,7 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
   // fontconfig, which is unavailable in the Vercel serverless container.
   const backgroundSvg = Buffer.from(`
     <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="${widthPx}" height="${heightPx}" rx="${cardRadius}" ry="${cardRadius}" fill="${BG_COLOR}"/>
+      <rect x="0" y="0" width="${widthPx}" height="${heightPx}" rx="${cardRadius}" ry="${cardRadius}" fill="${colors.background}"/>
       <rect x="${whiteBoxX}" y="${whiteBoxY}" width="${whiteBoxSize}" height="${whiteBoxSize}" rx="${boxRadius}" ry="${boxRadius}" fill="#ffffff"/>
       <g transform="translate(${centerX - lockSize / 2}, ${lockY})">
         <path d="M ${lockSize * 0.22} ${lockSize * 0.42} v-${lockSize * 0.16} a ${lockSize * 0.28} ${lockSize * 0.28} 0 0 1 ${lockSize * 0.56} 0 v${lockSize * 0.16}"
@@ -117,9 +125,9 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
   });
   compositeOps.push({ input: protectedText.buffer, ...centered(protectedText, protectedTopY) });
 
-  const byLineTopY = protectedTopY + protectedText.height + Math.round(titleFontSize * 0.15);
+  const byLineTopY = protectedTopY + protectedText.height + Math.round(titleFontSize * 0.25);
   const byLineText = await renderText(
-    `<span foreground="#ffffff">BY </span><span foreground="${RED_COLOR}">BALIKIN.ONLINE</span>`,
+    `<span foreground="#ffffff">BY </span><span foreground="${colors.accent}">BALIKIN.ONLINE</span>`,
     { bold: true, size: titleFontSize, letterSpacing: 1 }
   );
   compositeOps.push({ input: byLineText.buffer, ...centered(byLineText, byLineTopY) });
@@ -143,10 +151,10 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
   };
 
   const tagline2Text = await renderTaglineFit(
-    '<span foreground="' + TEXT_MUTED + '">Identitas Pemilik Terenkripsi Aman.</span>'
+    '<span foreground="' + colors.textMuted + '">Scan untuk Menghubungi Pemilik Barang</span>'
   );
   const tagline1Text = await renderTaglineFit(
-    '<span foreground="' + TEXT_MUTED + '">Temukan barang ini? Pindai untuk mengembalikan.</span>'
+    '<span foreground="' + colors.textMuted + '">If found, please scan to return this item.</span>'
   );
 
   let cursorFromBottom = heightPx - bottomMarginPx;
@@ -175,7 +183,11 @@ async function renderProtectedCard(slug: string, widthPx: number, heightPx: numb
 /**
  * Generate a single A5 sheet of "Protected by Balikin.Online" cards (Pro or Daily)
  */
-export async function generateProtectedCardSheet(tags: StickerProTag[], productKey: ProtectedCardProductKey): Promise<Buffer> {
+export async function generateProtectedCardSheet(
+  tags: StickerProTag[],
+  productKey: ProtectedCardProductKey,
+  colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
+): Promise<Buffer> {
   let canvas = await sharp({
     create: {
       width: A5_WIDTH_PX,
@@ -202,7 +214,7 @@ export async function generateProtectedCardSheet(tags: StickerProTag[], productK
     const tag = tags[i];
     const posY = startYPX + i * (itemHeightPX + spacingPX);
 
-    const cardBuffer = await renderProtectedCard(tag.slug, itemWidthPX, itemHeightPX, tag.serialNumber);
+    const cardBuffer = await renderProtectedCard(tag.slug, itemWidthPX, itemHeightPX, tag.serialNumber, colorTheme);
 
     compositeOps.push({
       input: cardBuffer,
@@ -221,13 +233,17 @@ export async function generateProtectedCardSheet(tags: StickerProTag[], productK
 /**
  * Async generator for "Protected by Balikin.Online" A5 sheets (Pro or Daily), for streaming into a ZIP/PDF
  */
-export async function* generateProtectedCardStream(tags: StickerProTag[], productKey: ProtectedCardProductKey): AsyncGenerator<Buffer, void, unknown> {
+export async function* generateProtectedCardStream(
+  tags: StickerProTag[],
+  productKey: ProtectedCardProductKey,
+  colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
+): AsyncGenerator<Buffer, void, unknown> {
   const config = getStickerProductConfig(productKey);
   const itemsPerSheet = config.total;
 
   for (let i = 0; i < tags.length; i += itemsPerSheet) {
     const sheetTags = tags.slice(i, i + itemsPerSheet);
-    yield await generateProtectedCardSheet(sheetTags, productKey);
+    yield await generateProtectedCardSheet(sheetTags, productKey, colorTheme);
   }
 }
 
@@ -236,7 +252,10 @@ export async function* generateProtectedCardStream(tags: StickerProTag[], produc
  * "Protected By" cards as fit, stacked top to bottom (largest to smallest), each row
  * centered horizontally since the card widths differ per product.
  */
-export async function generateFamilyCardSheet(tags: StickerProTag[]): Promise<Buffer> {
+export async function generateFamilyCardSheet(
+  tags: StickerProTag[],
+  colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
+): Promise<Buffer> {
   let canvas = await sharp({
     create: {
       width: A5_WIDTH_PX,
@@ -261,7 +280,7 @@ export async function generateFamilyCardSheet(tags: StickerProTag[]): Promise<Bu
     const itemHeightPX = rowHeightsPX[i];
     const posX = Math.round((A5_WIDTH_PX - itemWidthPX) / 2);
 
-    const cardBuffer = await renderProtectedCard(tags[i].slug, itemWidthPX, itemHeightPX, tags[i].serialNumber);
+    const cardBuffer = await renderProtectedCard(tags[i].slug, itemWidthPX, itemHeightPX, tags[i].serialNumber, colorTheme);
     compositeOps.push({ input: cardBuffer, left: posX, top: currentY });
 
     currentY += itemHeightPX + spacingPX;
@@ -277,11 +296,14 @@ export async function generateFamilyCardSheet(tags: StickerProTag[]): Promise<Bu
 /**
  * Async generator for "Stiker Balikin Family" A5 sheets, for streaming into a ZIP/PDF
  */
-export async function* generateFamilyCardStream(tags: StickerProTag[]): AsyncGenerator<Buffer, void, unknown> {
+export async function* generateFamilyCardStream(
+  tags: StickerProTag[],
+  colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
+): AsyncGenerator<Buffer, void, unknown> {
   const itemsPerSheet = FAMILY_ROW_PRODUCTS.length;
 
   for (let i = 0; i < tags.length; i += itemsPerSheet) {
     const sheetTags = tags.slice(i, i + itemsPerSheet);
-    yield await generateFamilyCardSheet(sheetTags);
+    yield await generateFamilyCardSheet(sheetTags, colorTheme);
   }
 }

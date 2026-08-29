@@ -13,6 +13,7 @@ import { SimpleUrgencyBadge } from '@/components/landing/urgency-badge';
 import { ImageLightbox, type LightboxImage } from '@/components/landing/image-lightbox';
 import { PRODUCT_CATALOG } from '@/lib/product-catalog';
 import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
+import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 type MaterialId = 'vinyl' | 'acrylic' | 'stainless';
 type ShapeId = 'bulat' | 'oval' | 'persegi-panjang' | 'persegi-panjang-motif' | 'persegi-panjang-timbul' | 'segi-delapan' | 'heart';
@@ -44,8 +45,6 @@ const shapes: { id: ShapeId; name: string; image: string }[] = [
   { id: 'heart', name: 'Heart', image: '/satu2/with_bg/hati.webp' },
 ];
 
-const CUSTOM_PRINT_PRICE = 5000;
-
 type StickerPackId = 'stiker-pro' | 'stiker-daily' | 'stiker-family' | 'stiker-micro';
 
 const stickerPacks: { id: StickerPackId; label: string; desc: string }[] = [
@@ -73,10 +72,10 @@ export function LicenseConfiguratorSection() {
   const [material, setMaterial] = useState<MaterialId>('vinyl');
   const [shape, setShape] = useState<ShapeId>('bulat');
   const [stickerPack, setStickerPack] = useState<StickerPackId>(DEFAULT_STICKER_PACK);
-  const [customPrint, setCustomPrint] = useState(false);
+  const [stickerColorTheme, setStickerColorTheme] = useState<StickerColorTheme>('navy-premium');
   const [previewShape, setPreviewShape] = useState<ShapeId | null>(null);
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
-  const [mixCart, setMixCart] = useState<{ packId: StickerPackId; qty: number }[]>([]);
+  const [mixCart, setMixCart] = useState<{ packId: StickerPackId; qty: number; colorTheme: StickerColorTheme }[]>([]);
 
   const selectedMaterial = materials.find((m) => m.id === material)!;
   const activeShape = shapes.find((s) => s.id === (previewShape ?? shape))!;
@@ -85,32 +84,36 @@ export function LicenseConfiguratorSection() {
   const checkoutProduct = PRODUCT_CATALOG[checkoutProductKey];
   const packSize = checkoutProduct.packSize;
 
-  const total = useMemo(() => {
-    let sum = checkoutProduct.price;
-    if (customPrint) sum += CUSTOM_PRINT_PRICE;
-    return sum;
-  }, [checkoutProduct, customPrint]);
+  const total = checkoutProduct.price;
 
   const addToMixCart = () => {
     setMixCart((prev) => {
-      const existing = prev.find((item) => item.packId === stickerPack);
+      const existing = prev.find((item) => item.packId === stickerPack && item.colorTheme === stickerColorTheme);
       if (existing) {
-        return prev.map((item) => (item.packId === stickerPack ? { ...item, qty: item.qty + 1 } : item));
+        return prev.map((item) => (
+          item.packId === stickerPack && item.colorTheme === stickerColorTheme
+            ? { ...item, qty: item.qty + 1 }
+            : item
+        ));
       }
-      return [...prev, { packId: stickerPack, qty: 1 }];
+      return [...prev, { packId: stickerPack, qty: 1, colorTheme: stickerColorTheme }];
     });
   };
 
-  const updateMixCartQty = (packId: StickerPackId, delta: number) => {
+  const updateMixCartQty = (packId: StickerPackId, colorTheme: StickerColorTheme, delta: number) => {
     setMixCart((prev) =>
       prev
-        .map((item) => (item.packId === packId ? { ...item, qty: item.qty + delta } : item))
+        .map((item) => (
+          item.packId === packId && item.colorTheme === colorTheme
+            ? { ...item, qty: item.qty + delta }
+            : item
+        ))
         .filter((item) => item.qty > 0)
     );
   };
 
-  const removeFromMixCart = (packId: StickerPackId) => {
-    setMixCart((prev) => prev.filter((item) => item.packId !== packId));
+  const removeFromMixCart = (packId: StickerPackId, colorTheme: StickerColorTheme) => {
+    setMixCart((prev) => prev.filter((item) => item.packId !== packId || item.colorTheme !== colorTheme));
   };
 
   const mixCartTotal = mixCart.reduce((sum, item) => sum + PRODUCT_CATALOG[item.packId].price * item.qty, 0);
@@ -120,7 +123,7 @@ export function LicenseConfiguratorSection() {
     const lines = mixCart
       .map((item) => {
         const p = stickerPacks.find((sp) => sp.id === item.packId)!;
-        return `- ${item.qty}x Stiker Balikin ${p.label}`;
+        return `- ${item.qty}x Stiker Balikin ${p.label} - warna ${STICKER_COLOR_THEMES[item.colorTheme].label}`;
       })
       .join('\n');
     const message = `Halo, saya ingin pesan kombinasi paket stiker Balikin:\n${lines}\nTotal estimasi: ${formatRupiah(mixCartTotal)}. Mohon info proses pemesanannya.`;
@@ -159,8 +162,8 @@ export function LicenseConfiguratorSection() {
             <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
               <MessageCircleHeart className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
-                <p className="font-medium text-sm text-gray-900 dark:text-white">Anonymous Chat Protection</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Penemu hubungi Anda tanpa lihat nomor HP</p>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">Privasi Terjaga</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Nomor HP Anda tidak tercetak di tag fisik</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
@@ -237,8 +240,40 @@ export function LicenseConfiguratorSection() {
                 </button>
 
                 <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-3">2. Pilih Warna Sticker</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {(Object.keys(STICKER_COLOR_THEMES) as StickerColorTheme[]).map((colorId) => {
+                      const color = STICKER_COLOR_THEMES[colorId];
+                      const isSelected = stickerColorTheme === colorId;
+                      return (
+                        <button
+                          key={colorId}
+                          type="button"
+                          onClick={() => setStickerColorTheme(colorId)}
+                          className={`rounded-xl border-2 p-2 text-left transition-all ${
+                            isSelected
+                              ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100 dark:bg-indigo-500/10'
+                              : 'border-gray-200 hover:border-indigo-300 dark:border-white/10'
+                          }`}
+                          aria-pressed={isSelected}
+                        >
+                          <span
+                            className="mb-2 block h-7 w-full rounded-md border border-black/10"
+                            style={{ background: `linear-gradient(135deg, ${color.background} 55%, ${color.accent} 55%)` }}
+                            aria-hidden="true"
+                          />
+                          <span className="block truncate text-xs font-semibold text-gray-900 dark:text-white">{color.label}</span>
+                          <span className="mt-0.5 block truncate text-[10px] text-gray-500 dark:text-gray-400">{color.description}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Warna pilihan akan dicatat pada pesanan Anda.
+                  </p>
+
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">2. Pilih Jumlah Pack</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">3. Pilih Jumlah Pack</h3>
                     <Link
                       href="/stickers"
                       className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -284,13 +319,15 @@ export function LicenseConfiguratorSection() {
                       {mixCart.map((item) => {
                         const p = stickerPacks.find((sp) => sp.id === item.packId)!;
                         return (
-                          <div key={item.packId} className="flex items-center justify-between text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">{p.label}</span>
-                            <div className="flex items-center gap-2">
+                         <div key={`${item.packId}-${item.colorTheme}`} className="flex items-center justify-between text-sm">
+                           <span className="text-gray-700 dark:text-gray-300">
+                             {p.label} · {STICKER_COLOR_THEMES[item.colorTheme].label}
+                           </span>
+                           <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1.5 rounded-md bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 px-1.5 py-0.5">
                                 <button
                                   type="button"
-                                  onClick={() => updateMixCartQty(item.packId, -1)}
+                                   onClick={() => updateMixCartQty(item.packId, item.colorTheme, -1)}
                                   aria-label={`Kurangi ${p.label}`}
                                   className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
                                 >
@@ -299,7 +336,7 @@ export function LicenseConfiguratorSection() {
                                 <span className="w-4 text-center text-xs font-semibold">{item.qty}</span>
                                 <button
                                   type="button"
-                                  onClick={() => updateMixCartQty(item.packId, 1)}
+                                   onClick={() => updateMixCartQty(item.packId, item.colorTheme, 1)}
                                   aria-label={`Tambah ${p.label}`}
                                   className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
                                 >
@@ -308,7 +345,7 @@ export function LicenseConfiguratorSection() {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => removeFromMixCart(item.packId)}
+                                 onClick={() => removeFromMixCart(item.packId, item.colorTheme)}
                                 aria-label={`Hapus ${p.label} dari pesanan campuran`}
                                 className="text-gray-400 hover:text-red-500"
                               >
@@ -396,31 +433,6 @@ export function LicenseConfiguratorSection() {
                 </div>
               </motion.div>
             )}
-
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                {selectedMaterial.hasShapes || material === 'vinyl' ? '3.' : '2.'} Opsi Desain
-              </h3>
-              <button
-                type="button"
-                onClick={() => setCustomPrint((v) => !v)}
-                className={`w-full text-left rounded-xl border-2 p-4 transition-all bg-white dark:bg-white/5 ${
-                  customPrint ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 shadow-md shadow-indigo-100' : 'border-gray-200 dark:border-white/10 hover:border-indigo-300'
-                }`}
-                aria-pressed={customPrint}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">Cetak Kustom Nama / Foto Sendiri</span>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Tercetak langsung di atas tag fisik</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-orange-600">+{formatRupiah(CUSTOM_PRINT_PRICE)}</span>
-                    {customPrint && <Check className="h-4 w-4 text-indigo-600" aria-hidden="true" />}
-                  </div>
-                </div>
-              </button>
-            </div>
           </div>
 
           <div className="lg:col-span-1">
@@ -441,12 +453,6 @@ export function LicenseConfiguratorSection() {
                     </span>
                     <span>{formatRupiah(checkoutProduct.price)}</span>
                   </li>
-                  {customPrint && (
-                    <li className="flex justify-between">
-                      <span>Cetak Kustom Nama/Foto</span>
-                      <span>+{formatRupiah(CUSTOM_PRINT_PRICE)}</span>
-                    </li>
-                  )}
                 </ul>
                 <div className="border-t border-white/20 pt-4 mb-6">
                   <div className="flex items-center justify-between">
@@ -464,7 +470,7 @@ export function LicenseConfiguratorSection() {
                     {formatRupiah(Math.round(checkoutProduct.price / packSize))} / pcs dalam pack
                   </p>
                 </div>
-                <Link href={`/stickers/checkout?product=${checkoutProductKey}`} className="block">
+                <Link href={`/stickers/checkout?product=${checkoutProductKey}&color=${stickerColorTheme}`} className="block">
                   <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-900/30 border-0" size="lg">
                     <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
                     Aktifkan Lisensi Ini

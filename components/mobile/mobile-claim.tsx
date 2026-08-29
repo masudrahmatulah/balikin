@@ -33,6 +33,7 @@ interface MobileClaimProps {
   isLost: boolean;
   isFreeTag: boolean;
   isStickerTag: boolean;
+  isExpired: boolean;
   isUnclaimed: boolean;
   recentScans: Array<{
     id: string;
@@ -53,6 +54,7 @@ export function MobileClaim({
   isLost,
   isFreeTag,
   isStickerTag,
+  isExpired,
   isUnclaimed,
   recentScans,
   emergencyInfo
@@ -76,6 +78,20 @@ export function MobileClaim({
       window.open(`tel:${emergencyInfo.emergencyContact}`, '_blank');
     }
   };
+
+  if (isExpired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-amber-50 px-4 py-8">
+        <main className="w-full max-w-md rounded-3xl border border-amber-200 bg-white p-6 text-center shadow-xl">
+          <Clock className="mx-auto h-10 w-10 text-amber-600" aria-hidden="true" />
+          <h1 className="mt-4 text-xl font-bold text-gray-900">Tag Sudah Kedaluwarsa</h1>
+          <p className="mt-3 text-sm leading-6 text-gray-600">
+            Masa aktif digital tag free ini adalah 7 hari. Pemilik perlu melakukan upgrade ke premium agar tag dapat digunakan kembali.
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">

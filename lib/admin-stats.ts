@@ -1,10 +1,10 @@
 import { db } from '@/db';
-import { stickerOrders, modulePurchaseOrders } from '@/db/schema';
+import { stickerOrders, modulePurchaseOrders, tagUpgradeOrders } from '@/db/schema';
 import { eq, count, or } from 'drizzle-orm';
 
 /**
  * Get pending orders count for admin header badge
- * Includes both sticker orders and module purchase orders
+ * Includes sticker orders, module purchase orders, and tag upgrade payments
  */
 export async function getPendingOrdersCount() {
   // Get pending sticker orders count
@@ -31,8 +31,15 @@ export async function getPendingOrdersCount() {
     );
   const pendingModuleOrdersCount = pendingModuleOrdersResult[0]?.count || 0;
 
-  // Total pending orders (sticker + module)
-  return pendingStickerOrdersCount + pendingModuleOrdersCount;
+  // Get pending tag upgrade payments count (QRIS)
+  const pendingUpgradeResult = await db
+    .select({ count: count() })
+    .from(tagUpgradeOrders)
+    .where(eq(tagUpgradeOrders.paymentStatus, 'pending'));
+  const pendingUpgradeCount = pendingUpgradeResult[0]?.count || 0;
+
+  // Total pending orders (sticker + module + tag upgrade)
+  return pendingStickerOrdersCount + pendingModuleOrdersCount + pendingUpgradeCount;
 }
 
 /**
