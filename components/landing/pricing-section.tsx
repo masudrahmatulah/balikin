@@ -36,7 +36,7 @@ const productGroups = [
     badge: 'GANTUNGAN',
     features: [
       'Semua fitur Gratis + Hardware Fisik',
-      '🔑 Balikin Armor Tag - Premium Acrylic (Rp 54k)',
+      '🔑 Premium Acrylic Tag - Premium Acrylic (Rp 54k)',
       '⭐ Durable & Weather-resistant',
       '🎨 Desain premium eksklusif',
       '📱 QR Code terintegrasi sempurna',

@@ -1262,6 +1262,8 @@ export const siteSettings = pgTable('site_settings', {
   // Public tag page greeting shown for non-lost tags.
   // Supports {{ownerName}} placeholder, replaced with the tag owner's account name.
   tagGreetingTemplate: text('tag_greeting_template'),
+  // Admin WhatsApp number for receiving order notifications.
+  adminWhatsappNumber: text('admin_whatsapp_number'),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 

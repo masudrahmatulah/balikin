@@ -44,7 +44,7 @@ export const faqItems = [
   {
     question: "Berapa biaya menggunakan Balikin?",
     answer:
-      "Versi digital Balikin gratis selamanya dengan maksimal 2 tag. Jika ingin produk fisik premium dan fitur tambahan, Anda bisa upgrade ke Premium seharga Rp35.000 per tag.",
+      "Versi digital Balikin gratis selamanya dengan maksimal 1 tag. Jika ingin produk fisik premium dan fitur tambahan, Anda bisa upgrade ke Premium seharga Rp35.000 per tag.",
   },
   {
     question: "Apakah perlu install aplikasi?",
@@ -64,7 +64,7 @@ export const faqItems = [
   {
     question: "Apakah ada batas jumlah tag?",
     answer:
-      "Untuk pengguna gratis, maksimal 2 tag digital. Untuk kebutuhan lebih banyak dan produk fisik premium, Anda bisa upgrade ke Premium.",
+      "Untuk pengguna gratis, maksimal 1 tag digital. Untuk kebutuhan lebih banyak dan produk fisik premium, Anda bisa upgrade ke Premium.",
   },
   // SEO Note: 6 new FAQ items targeting long-tail keywords for search traffic
   {
@@ -95,7 +95,7 @@ export const faqItems = [
   {
     question: "Berapa harga Smart Tag Balikin untuk paket keluarga?",
     answer:
-      "Versi digital gratis (maksimal 2 tag). Premium Rp 35.000/tag (termasuk hardware akrilik/stiker premium). Untuk keluarga, kami sarankan bundle pack agar lebih hemat.",
+      "Versi digital gratis (maksimal 1 tag). Premium Rp 35.000/tag (termasuk hardware akrilik/stiker premium). Untuk keluarga, kami sarankan bundle pack agar lebih hemat.",
   },
 ];
 

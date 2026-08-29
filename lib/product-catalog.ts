@@ -1,5 +1,5 @@
 export const PRODUCT_CATALOG = {
-  'armor-tag':       { name: 'Balikin Armor Tag',     price: 54000,  packSize: 1,   productType: 'acrylic' },
+  'armor-tag':       { name: 'Premium Acrylic Tag', price: 54000, packSize: 1,   productType: 'acrylic' },
   'stiker-pro':      { name: 'Stiker Balikin Pro',    price: 59000,  packSize: 8,   productType: 'sticker' },
   'stiker-daily':    { name: 'Stiker Balikin Daily',  price: 59000,  packSize: 15,  productType: 'sticker' },
   'stiker-micro':    { name: 'Stiker Balikin Micro',  price: 59000,  packSize: 24,  productType: 'sticker' },
@@ -20,7 +20,7 @@ export function resolveProductKey(raw: string | null | undefined): ProductKey {
 // productType (kolom sticker_orders.product_type) tidak menyimpan nama produk spesifik,
 // jadi nama tampilan direkonstruksi dari productType + packSize yang sudah tersimpan di order.
 const PRODUCT_TYPE_LABELS: Record<string, string> = {
-  acrylic: 'Balikin Armor Tag',
+  acrylic: 'Premium Acrylic Tag',
   sticker: 'Sticker Vinyl Pack',
   bundle: 'Balikin Bundle Pack',
 };
