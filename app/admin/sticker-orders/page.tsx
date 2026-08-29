@@ -5,17 +5,8 @@ import {
   getStickerOrders,
   getStickerOrdersCount,
 } from './data-access';
-import { GenerateBundleButton } from '@/components/admin/generate-bundle-button';
-import { verifyStickerOrder, updateStickerOrderStatus } from './actions';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { StickerOrdersManager, type StickerOrderRow } from '@/components/admin/sticker-orders-manager';
 
 export default async function AdminStickerOrdersPage({
   searchParams,
@@ -34,7 +25,27 @@ export default async function AdminStickerOrdersPage({
   ]);
 
   const totalPages = Math.ceil(totalCount / 20);
-  const ORDERS_PER_PAGE = 20;
+
+  const rows: StickerOrderRow[] = orders.map((order) => ({
+    id: order.id,
+    recipientName: order.recipientName,
+    phone: order.phone,
+    city: order.city,
+    email: order.user?.email ?? '-',
+    totalAmount: order.totalAmount,
+    packQuantity: order.packQuantity,
+    unitCountPerPack: order.unitCountPerPack,
+    paymentStatus: order.paymentStatus,
+    status: order.status,
+    bundleCount: order.bundles.length,
+    productType: order.productType,
+    stickerColorTheme: order.stickerColorTheme,
+    backsideCustom: order.backsideCustom,
+    backsideCustomImageUrl: order.backsideCustomImageUrl,
+    createdAtLabel: order.createdAt
+      ? new Date(order.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+      : '',
+  }));
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -44,7 +55,7 @@ export default async function AdminStickerOrdersPage({
               Sticker Orders
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Verifikasi pembayaran dan generate bundle sticker pack.
+              Kelola order sticker: verifikasi pembayaran, generate bundle, edit, hapus (satuan atau massal).
             </p>
           </div>
           <Link href="/admin">
@@ -52,107 +63,7 @@ export default async function AdminStickerOrdersPage({
           </Link>
         </div>
 
-        <div className="grid gap-4">
-          {orders.length === 0 ? (
-            <Card>
-              <CardContent className="py-10 text-center text-sm text-gray-600">
-                Belum ada order sticker.
-              </CardContent>
-            </Card>
-          ) : (
-            orders.map((order) => (
-              <Card key={order.id}>
-                <CardHeader>
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Order {order.id}</CardTitle>
-                      <CardDescription>
-                        {order.recipientName} • {order.city} •{' '}
-                        {order.user?.email}
-                      </CardDescription>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{order.paymentStatus}</Badge>
-                      <Badge variant="outline">{order.status}</Badge>
-                      <Badge variant="outline">
-                        bundle {order.bundles.length}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-3 text-sm text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      WhatsApp:{' '}
-                      <span className="font-medium text-gray-900">
-                        {order.phone}
-                      </span>
-                    </div>
-                    <div>
-                      Total:{' '}
-                      <span className="font-medium text-gray-900">
-                        Rp{order.totalAmount.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <div>
-                      Pack:{' '}
-                      <span className="font-medium text-gray-900">
-                        {order.packQuantity} x {order.unitCountPerPack}
-                      </span>
-                    </div>
-                    <div>
-                      Alamat:{' '}
-                      <span className="font-medium text-gray-900">
-                        {order.city}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {order.paymentStatus !== 'paid' && (
-                      <form action={verifyStickerOrder.bind(null, order.id)}>
-                        <Button type="submit" size="sm" aria-label="Verifikasi pembayaran order">
-                          Verifikasi Bayar
-                        </Button>
-                      </form>
-                    )}
-
-                    {order.paymentStatus === 'paid' &&
-                      order.bundles.length === 0 && (
-                        <GenerateBundleButton orderId={order.id} />
-                      )}
-
-                    {order.status === 'in_production' && (
-                      <form
-                        action={updateStickerOrderStatus.bind(null, order.id, 'shipped')}
-                      >
-                        <Button type="submit" size="sm" variant="outline" aria-label="Tandai order sebagai dikirim">
-                          Tandai Shipped
-                        </Button>
-                      </form>
-                    )}
-
-                    {order.status === 'shipped' && (
-                      <form
-                        action={updateStickerOrderStatus.bind(null, order.id, 'completed')}
-                      >
-                        <Button type="submit" size="sm" variant="outline" aria-label="Tandai order sebagai selesai">
-                          Tandai Completed
-                        </Button>
-                      </form>
-                    )}
-
-                    <Link href={`/admin/sticker-orders/${order.id}`}>
-                      <Button size="sm" variant="ghost" aria-label={`Lihat detail bundle order ${order.id}`}>
-                        Lihat Detail Bundle
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+        <StickerOrdersManager orders={rows} />
 
         {totalPages > 1 && (
           <div className="mt-6 flex items-center justify-center gap-2">

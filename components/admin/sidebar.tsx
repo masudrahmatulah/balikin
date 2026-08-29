@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { DivisionNavigation, DivisionInfo, type DivisionType } from "@/lib/admin-divisions";
+import { GlobalSearch } from "./global-search";
 import {
   Settings,
   ScrollText,
@@ -23,8 +24,11 @@ import {
   Puzzle,
   LineChart,
   Repeat,
+  RotateCcw,
+  Boxes,
   Target,
   KeyRound,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +50,8 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "Client Management": Users,
   "Sticker Orders": Package,
   "Master PIN Stiker": KeyRound,
+  Blog: ScrollText,
+  "Strategic Analytics": LineChart,
   Requests: Inbox,
   Modules: Puzzle,
   Analytics: LineChart,
@@ -54,9 +60,27 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   Campaigns: Target,
 };
 
+// Sub-menus for the Strategic Analytics page (maps to its tabs via ?tab= query param)
+const STRATEGIC_ANALYTICS_SUBMENU: Array<{ label: string; tab: string; icon: LucideIcon }> = [
+  { label: "Conversion Funnel", tab: "conversion", icon: Repeat },
+  { label: "Recovery & Geo", tab: "recovery-geo", icon: RotateCcw },
+  { label: "Batch Activation", tab: "bundles", icon: Boxes },
+];
+
+const STRATEGIC_ANALYTICS_TITLE = "Strategic Analytics";
+
 export function Sidebar({ userDivision }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const isOnAnalytics = pathname.startsWith("/admin/analytics");
+  const [analyticsOpen, setAnalyticsOpen] = useState(isOnAnalytics);
+
+  useEffect(() => {
+    if (isOnAnalytics) setAnalyticsOpen(true);
+  }, [isOnAnalytics]);
+
+  const activeAnalyticsTab = searchParams.get("tab") ?? "conversion";
 
   // Listen for mobile menu toggle events
   useEffect(() => {
@@ -93,7 +117,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
         )}
       >
         {/* Logo Section */}
-        <div className="mb-8 px-2">
+        <div className="mb-4 px-2">
           <Link href="/admin" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-blue-900/40 transition-transform group-hover:scale-105">
               <Image src="/logo.png" alt="Balikin" width={40} height={40} className="w-full h-full object-cover" />
@@ -105,11 +129,69 @@ export function Sidebar({ userDivision }: SidebarProps) {
           </Link>
         </div>
 
+        {/* Global Search */}
+        <div className="mb-6 px-1">
+          <GlobalSearch className="w-full" />
+        </div>
+
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
             const ItemIcon = NAV_ICONS[item.title] || LayoutDashboard;
+
+            // Strategic Analytics renders as an expandable group with sub-menus
+            if (item.title === STRATEGIC_ANALYTICS_TITLE) {
+              return (
+                <div key={`${item.href}-${item.title}`}>
+                  <button
+                    type="button"
+                    onClick={() => setAnalyticsOpen((v) => !v)}
+                    aria-expanded={analyticsOpen}
+                    className={cn(
+                      "group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative",
+                      isActive
+                        ? "bg-white/15 text-white font-semibold shadow-inner"
+                        : "text-white/60 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    {isActive && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                    )}
+                    <ItemIcon className="w-[18px] h-[18px]" strokeWidth={2} />
+                    <span className="text-sm">{item.title}</span>
+                    <ChevronDown
+                      className={cn("ml-auto w-4 h-4 transition-transform", analyticsOpen && "rotate-180")}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {analyticsOpen && (
+                    <div className="mt-0.5 space-y-0.5">
+                      {STRATEGIC_ANALYTICS_SUBMENU.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const subActive = isOnAnalytics && activeAnalyticsTab === sub.tab;
+                        return (
+                          <Link
+                            key={sub.tab}
+                            href={`/admin/analytics?tab=${sub.tab}`}
+                            className={cn(
+                              "flex items-center gap-2.5 rounded-lg py-2 pr-3 pl-9 text-sm transition-all",
+                              subActive
+                                ? "bg-white/10 text-white font-medium"
+                                : "text-white/50 hover:bg-white/5 hover:text-white"
+                            )}
+                          >
+                            <SubIcon className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+                            <span>{sub.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={`${item.href}-${item.title}`}

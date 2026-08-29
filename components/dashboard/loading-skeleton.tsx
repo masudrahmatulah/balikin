@@ -1,9 +1,9 @@
 export function DashboardSkeleton() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-slate-600">Loading dashboard...</p>
+        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+        <p className="text-slate-600 dark:text-slate-300">Memuat ruang proteksi Anda...</p>
       </div>
     </div>
   );

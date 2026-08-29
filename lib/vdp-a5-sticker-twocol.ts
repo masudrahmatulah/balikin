@@ -86,6 +86,7 @@ export async function generateA5TwoColStickerSheet(
   // Get product config
   const config = getStickerProductConfig(productKey);
   const compositeOps: sharp.OverlayOptions[] = [];
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
 
   // Calculate position start (centered on page)
   const itemWidthMM = config.itemWidth;
@@ -121,7 +122,7 @@ export async function generateA5TwoColStickerSheet(
     const basePosY = startYPX + row * (itemHeightPX + spacingPX);
 
     // Generate QR code
-    const qrBuffer = await QRCode.toBuffer(tag.slug, {
+    const qrBuffer = await QRCode.toBuffer(`${baseUrl}/p/${tag.slug}`, {
       width: 10,
       margin: 1,
       color: { dark: '#000000', light: '#ffffff' },

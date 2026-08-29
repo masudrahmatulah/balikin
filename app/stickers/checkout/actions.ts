@@ -6,8 +6,9 @@ import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import { stickerOrders, referralVouchers } from '@/db/schema';
 import { eq, and, lt, gt, sql } from 'drizzle-orm';
-import { STICKER_PAYMENT_METHOD } from '@/lib/constants';
+import { STICKER_PAYMENT_METHOD, BACKSIDE_CUSTOM_PRICE } from '@/lib/constants';
 import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
+import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 
 // ─── Batas panjang field ───────────────────────────────────────────────────
 const MAX_FIELD_LENGTHS = {
@@ -118,10 +119,13 @@ export interface CreateOrderInput {
   segment: string;
   voucherCode?: string;
   productKey?: string;
+  stickerColorTheme?: string;
   shippingCost: number;
   shippingCourier: string;
   destinationCityId: string;
   destinationCityName: string;
+  backsideCustom?: boolean;
+  backsideCustomImageUrl?: string;
 }
 
 // ─── Server Action ─────────────────────────────────────────────────────────
@@ -155,8 +159,27 @@ export async function createStickerOrder(input: CreateOrderInput) {
   // Harga & productType SELALU ditentukan server dari katalog — tidak pernah dari client
   const catalogKey = resolveProductKey(input.productKey);
   const catalogEntry = PRODUCT_CATALOG[catalogKey];
+  const stickerColorTheme = catalogEntry.productType === 'sticker'
+    ? normalizeStickerColorTheme(input.stickerColorTheme)
+    : null;
   let basePrice = catalogEntry.price;
   let discountAmount = 0;
+
+  // Custom backside image hanya berlaku untuk produk acrylic (+Rp10.000/order)
+  let backsideCustom = false;
+  let backsideCustomImageUrl: string | null = null;
+  if (catalogEntry.productType === 'acrylic' && input.backsideCustom) {
+    backsideCustom = true;
+    const imageUrl = input.backsideCustomImageUrl?.trim();
+    if (!imageUrl || !imageUrl.startsWith('https://')) {
+      throw new Error('Custom image sisi belakang wajib diupload');
+    }
+    if (imageUrl.length > 2000) {
+      throw new Error('URL custom image tidak valid');
+    }
+    backsideCustomImageUrl = imageUrl;
+    basePrice += BACKSIDE_CUSTOM_PRICE;
+  }
 
   // Validasi voucher (opsional) — atomic SQL anti-race-condition (checkout.md Section 4A)
   if (input.voucherCode?.trim()) {
@@ -194,8 +217,11 @@ export async function createStickerOrder(input: CreateOrderInput) {
       destinationCityName: input.destinationCityName,
       paymentMethod: STICKER_PAYMENT_METHOD,
       productType: catalogEntry.productType,
+      stickerColorTheme,
       packQuantity: 1,
       unitCountPerPack: catalogEntry.packSize,
+      backsideCustom,
+      backsideCustomImageUrl,
       totalAmount,
     })
     .returning();

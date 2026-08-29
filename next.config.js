@@ -21,17 +21,17 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'assets.vercel.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'supabase.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'midtrans.com',
         pathname: '/**',
       },
       {

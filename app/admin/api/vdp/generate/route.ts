@@ -16,6 +16,7 @@ import JSZip from "jszip";
 import { calculateGridPositions, calculateA5StickerPositions, getStickerProductConfig, type StickerShape, type StickerSize, type StickerProductKey } from "@/lib/sticker-template";
 import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { put } from '@vercel/blob';
+import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 
 // Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
 const STICKER_PRODUCT_CODE: Record<string, string> = {
@@ -36,6 +37,7 @@ interface VDPGenerateRequest {
   stickerShape?: "circle" | "square" | "rectangle";
   stickerSize?: "small" | "medium" | "large";
   stickerProductKey?: StickerProductKey;
+  stickerColorTheme?: string;
   adminId: string;
   isCustom: boolean; // Custom photo order flag
   customPhotoData?: string; // Base64 encoded photo data
@@ -162,7 +164,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, adminId, isCustom, customPhotoData, singleTag }: VDPGenerateRequest = body;
+    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag }: VDPGenerateRequest = body;
 
     if (!batchName || !quantity || !materialType || !productType || !paperSize) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -454,11 +456,12 @@ export async function POST(request: NextRequest) {
       }));
 
       console.log('[API] Generating', allTags.length, 'A5 sticker sheets for product:', stickerProductKey);
+      const selectedColorTheme = normalizeStickerColorTheme(stickerColorTheme);
 
       const stickerSheetStream = stickerProductKey === "stiker-pro" || stickerProductKey === "stiker-daily" || stickerProductKey === "stiker-micro"
-        ? generateProtectedCardStream(a5Tags, stickerProductKey)
+        ? generateProtectedCardStream(a5Tags, stickerProductKey, selectedColorTheme)
         : stickerProductKey === "stiker-family"
-          ? generateFamilyCardStream(a5Tags)
+          ? generateFamilyCardStream(a5Tags, selectedColorTheme)
           : generateA5TwoColStickerStream(a5Tags, stickerProductKey as StickerProductKey);
 
       const sheetBuffers: Buffer[] = [];

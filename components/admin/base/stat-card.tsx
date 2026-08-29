@@ -37,14 +37,14 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
-        highlight && "border-2 border-blue-600/40 bg-blue-600/[0.03]",
+        "rounded-2xl border border-blue-100/80 bg-white/90 p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90",
+        highlight && "border-2 border-blue-600/40 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/30",
         className
       )}
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+           <p className="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">
             {label}
           </p>
           {trend && (
@@ -53,7 +53,7 @@ export function StatCard({
               <span className={cn("text-xs font-semibold", trendColor)}>
                 {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs text-gray-500">{trendLabel}</span>
+               <span className="text-xs text-gray-500 dark:text-slate-400">{trendLabel}</span>
             </div>
           )}
         </div>
@@ -62,8 +62,8 @@ export function StatCard({
             className={cn(
               "w-10 h-10 rounded-xl flex items-center justify-center",
               highlight
-                ? "bg-blue-600/10 text-blue-600"
-                : "bg-blue-600/5 text-blue-600"
+                 ? "bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300"
+                 : "bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600 dark:from-blue-950/60 dark:to-purple-950/50 dark:text-blue-300"
             )}
           >
             <Icon size={20} strokeWidth={2} />
@@ -72,8 +72,8 @@ export function StatCard({
       </div>
       <p
         className={cn(
-          "font-display font-bold text-2xl text-gray-900",
-          highlight && "text-blue-600"
+           "font-display text-2xl font-bold text-gray-900 dark:text-white",
+           highlight && "text-blue-600 dark:text-blue-300"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
@@ -104,14 +104,14 @@ export function StatCardWithChart({
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
-        highlight && "border-2 border-blue-600/40 bg-blue-600/[0.03]",
+        "rounded-2xl border border-blue-100/80 bg-white/90 p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/90",
+        highlight && "border-2 border-blue-600/40 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/40 dark:to-purple-950/30",
         className
       )}
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+           <p className="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">
             {label}
           </p>
           {trend && (
@@ -120,7 +120,7 @@ export function StatCardWithChart({
               <span className={cn("text-xs font-semibold", trendColor)}>
                 {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs text-gray-500">{trendLabel}</span>
+               <span className="text-xs text-gray-500 dark:text-slate-400">{trendLabel}</span>
             </div>
           )}
         </div>
@@ -130,8 +130,8 @@ export function StatCardWithChart({
       </div>
       <p
         className={cn(
-          "font-display font-bold text-2xl text-gray-900",
-          highlight && "text-blue-600"
+          "font-display text-2xl font-bold text-gray-900 dark:text-white",
+          highlight && "text-blue-600 dark:text-blue-300"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}

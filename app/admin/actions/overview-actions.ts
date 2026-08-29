@@ -144,19 +144,14 @@ export async function getSystemHealthStats() {
         systemStatus = 'degraded';
       }
 
-      // Note: API quota would need to be tracked separately or from external service
-      // For now, we'll return placeholder data
+      // Note: API quota tracking requires integration with the provider API (Wablas/Resend)
+      // and is intentionally omitted rather than showing placeholder numbers.
       return {
         systemStatus,
         successRate: Math.round(successRate * 10) / 10,
         totalNotifications,
         successfulNotifications,
         failedNotifications,
-        apiQuota: {
-          remaining: 8500, // Placeholder - should come from API provider
-          total: 10000,
-          resetAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        },
       };
     },
     ["admin-system-health-stats-v1"],

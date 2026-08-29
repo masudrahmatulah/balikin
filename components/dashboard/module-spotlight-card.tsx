@@ -46,8 +46,8 @@ export function ModuleSpotlightCard() {
       className={cn(
         'border-2 overflow-hidden transition-all duration-300',
         isExiting ? 'opacity-0 scale-95 mb-0' : 'opacity-100 scale-100 mb-6',
-        'bg-gradient-to-r from-slate-50 to-white dark:from-slate-900 dark:to-slate-800',
-        'border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800'
+        'bg-gradient-to-r from-blue-50 via-white to-purple-50 dark:from-blue-950/40 dark:via-slate-900 dark:to-purple-950/30',
+        'border-blue-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800'
       )}
     >
       <CardContent className="p-4">
@@ -79,15 +79,15 @@ export function ModuleSpotlightCard() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 font-medium"
+                className="font-medium text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
               >
                 <span className="hidden sm:inline">Lihat</span>
                 <span className="sm:hidden">→</span>
               </Button>
             </Link>
-            <button
-              onClick={handleDismiss}
-              className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+             <button
+               onClick={handleDismiss}
+               className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-blue-100 dark:hover:bg-slate-800"
               aria-label="Tutup"
             >
               <X className="h-4 w-4 text-slate-400" />

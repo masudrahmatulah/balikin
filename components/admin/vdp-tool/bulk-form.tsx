@@ -14,6 +14,11 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Package, X, CheckCircle, Upload, Image as ImageIcon } from "lucide-react";
 import { getStickerProductInfo, getStickerProductConfig, type StickerProductKey } from "@/lib/sticker-template";
+import {
+  DEFAULT_STICKER_COLOR_THEME,
+  STICKER_COLOR_THEMES,
+  type StickerColorTheme,
+} from "@/lib/sticker-color-themes";
 
 interface BulkFormProps {
   adminId: string;
@@ -29,6 +34,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
     paperSize: "a5" as "a4" | "a3" | "a5",
     stickerProductKey: "stiker-family" as StickerProductKey,
+    stickerColorTheme: DEFAULT_STICKER_COLOR_THEME as StickerColorTheme,
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
     isCustom: false,
@@ -149,6 +155,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         productType: "standard",
         paperSize: "a5",
         stickerProductKey: "stiker-family",
+        stickerColorTheme: DEFAULT_STICKER_COLOR_THEME,
         stickerShape: "circle",
         stickerSize: "medium",
         isCustom: false,
@@ -406,6 +413,33 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               <p className="font-body text-[10px] text-secondary/60">
                 Estimated sheets: {getEstimatedSheets()} (based on {formData.quantity} quantity)
               </p>
+
+              <div className="space-y-2 pt-2 border-t border-secondary/10">
+                <Label htmlFor="stickerColorTheme" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
+                  Sticker Color
+                </Label>
+                <Select
+                  value={formData.stickerColorTheme}
+                  onValueChange={(value: StickerColorTheme) => updateFormData({ stickerColorTheme: value })}
+                >
+                  <SelectTrigger id="stickerColorTheme" className="font-body text-sm rounded-sm border-secondary/20 h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="font-body text-sm">
+                    {(Object.entries(STICKER_COLOR_THEMES) as [StickerColorTheme, (typeof STICKER_COLOR_THEMES)[StickerColorTheme]][]).map(([value, theme]) => (
+                      <SelectItem key={value} value={value}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-4 w-4 rounded-full border border-black/15"
+                            style={{ background: `linear-gradient(135deg, ${theme.background} 55%, ${theme.accent} 55%)` }}
+                          />
+                          <span>{theme.label} <span className="text-secondary/60">- {theme.description}</span></span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 

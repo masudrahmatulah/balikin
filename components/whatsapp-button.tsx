@@ -2,23 +2,26 @@
 
 import { MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface WhatsAppButtonProps {
   phone: string;
   message?: string;
   label?: string;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'whatsapp' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
+  prominent?: boolean;
 }
 
 export function WhatsAppButton({
   phone,
   message = 'Halo, saya menemukan barang ini.',
   label = 'Hubungi via WhatsApp',
-  variant = 'default',
+  variant = 'whatsapp',
   size = 'default',
   className,
+  prominent = false,
 }: WhatsAppButtonProps) {
   const handleContact = () => {
     // Format phone number - remove any non-digit characters
@@ -32,9 +35,20 @@ export function WhatsAppButton({
       onClick={handleContact}
       variant={variant}
       size={size}
-      className={className}
+      className={cn(
+        'font-semibold',
+        variant === 'whatsapp' && prominent && 'rounded-full px-8 py-6 text-base',
+        className
+      )}
     >
-      <MessageCircle className="mr-2 h-4 w-4" />
+      <span
+        className={cn(
+          'flex h-6 w-6 items-center justify-center rounded-full bg-white/20',
+          variant === 'outline' && 'bg-green-100 text-green-700'
+        )}
+      >
+        <MessageCircle className="h-4 w-4" />
+      </span>
       {label}
     </Button>
   );

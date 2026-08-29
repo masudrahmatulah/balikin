@@ -1,7 +1,7 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import { ActivityRow } from "./base/activity-row";
-import { Package, AlertTriangle, Truck, XCircle, ClipboardList, PackagePlus, type LucideIcon } from "lucide-react";
 
 interface Activity {
   id: string;
@@ -15,125 +15,70 @@ interface Activity {
 }
 
 interface ActivityFeedProps {
-  activities?: Activity[];
+  activities: Activity[];
 }
 
-const defaultActivities: Activity[] = [
-  {
-    id: "1",
-    event: "Batch B-204 Generated",
-    icon: Package,
-    reference: "#BTC-204-981",
-    admin: "Admin S.",
-    timestamp: "10:42:01 AM",
-    status: "success",
-  },
-  {
-    id: "2",
-    event: "Suspicious User Flagged",
-    icon: AlertTriangle,
-    reference: "USR-882-P",
-    admin: "System (AI)",
-    timestamp: "09:15:33 AM",
-    status: "pending",
-  },
-  {
-    id: "3",
-    event: "Shipment Dispatched",
-    icon: Truck,
-    reference: "#ORD-9021-X",
-    admin: "Warehouse A",
-    timestamp: "08:02:11 AM",
-    status: "transit",
-  },
-  {
-    id: "4",
-    event: "VDP Error: Invalid Resi",
-    icon: XCircle,
-    reference: "#TX-7711",
-    admin: "Admin J.",
-    timestamp: "07:44:59 AM",
-    status: "failed",
-  },
-  {
-    id: "5",
-    event: "New Order #8842",
-    icon: ClipboardList,
-    reference: "#ORD-8842",
-    admin: "Customer Service",
-    timestamp: "07:30:15 AM",
-    status: "success",
-  },
-  {
-    id: "6",
-    event: "Bundle Generation Started",
-    icon: PackagePlus,
-    reference: "#BND-456",
-    admin: "System",
-    timestamp: "07:15:22 AM",
-    status: "pending",
-  },
-];
-
-export function ActivityFeed({ activities = defaultActivities }: ActivityFeedProps) {
+export function ActivityFeed({ activities }: ActivityFeedProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-display font-semibold text-primary">System Activity</h3>
-        <p className="text-sm text-gray-500 mt-1">Recent system events and activities</p>
+      <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+        <h3 className="font-display text-lg font-semibold text-blue-700 dark:text-blue-300">System Activity</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Recent system events and activities</p>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50">
+            <tr className="bg-blue-50/60 dark:bg-slate-800/70">
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Event</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Event</span>
               </th>
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Reference</span>
               </th>
               <th className="px-6 py-3 text-left">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Admin</span>
               </th>
               <th className="px-6 py-3 text-right">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Status</span>
               </th>
               <th className="px-6 py-3 text-right">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Time</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">Time</span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
-            {activities.map((activity) => (
-              <ActivityRow
-                key={activity.id}
-                icon={activity.icon as any}
-                iconClassName={activity.iconClassName}
-                event={activity.event}
-                reference={activity.reference}
-                admin={activity.admin}
-                timestamp={activity.timestamp}
-                status={activity.status}
-              />
-            ))}
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {activities.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
+                  Belum ada aktivitas terbaru.
+                </td>
+              </tr>
+            ) : (
+              activities.map((activity) => (
+                <ActivityRow
+                  key={activity.id}
+                  icon={activity.icon as any}
+                  iconClassName={activity.iconClassName}
+                  event={activity.event}
+                  reference={activity.reference}
+                  admin={activity.admin}
+                  timestamp={activity.timestamp}
+                  status={activity.status}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-        <span className="text-sm text-gray-600">Showing {activities.length} of 128 events</span>
-        <div className="flex gap-2">
-          <button className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
-            Previous
-          </button>
-          <button className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90">
-            Next
-          </button>
-        </div>
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 dark:border-slate-800">
+        <span className="text-sm text-gray-600 dark:text-slate-400">
+          Menampilkan {activities.length} aktivitas terbaru
+        </span>
       </div>
     </div>
   );

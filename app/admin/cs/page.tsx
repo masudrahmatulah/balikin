@@ -106,7 +106,7 @@ export default async function CSDashboardPage() {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold mb-4">Aksi Cepat</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3" role="list">
-          <Link href="/admin/sticker-orders" role="listitem">
+          <Link href="/admin/payments" role="listitem">
             <Button className="w-full gap-2" aria-label={`Verifikasi ${pendingPaymentsCount} pembayaran pending`}>
               <CreditCard className="w-4 h-4" aria-hidden="true" />
               Verifikasi Pembayaran

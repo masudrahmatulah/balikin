@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { getBatchActivationMetrics } from "@/app/admin/actions/overview-actions";
 import { RefreshCw, AlertTriangle, CheckCircle2, Package, TrendingUp } from "lucide-react";
@@ -30,6 +29,7 @@ export function BatchActivationMetrics() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(false);
+  const [showAllBundles, setShowAllBundles] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -175,7 +175,7 @@ export function BatchActivationMetrics() {
                   Institution Activation Rates
                 </p>
                 <div className="space-y-2" role="list" aria-label="Bundle activation list">
-                  {data.bundles.slice(0, 6).map((bundle, index) => (
+                  {(showAllBundles ? data.bundles : data.bundles.slice(0, 6)).map((bundle, index) => (
                     <div
                       key={index}
                       className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
@@ -205,21 +205,26 @@ export function BatchActivationMetrics() {
                           <span>Progress</span>
                           <span>{bundle.claimedItems} / {bundle.totalItems} claimed</span>
                         </div>
-                        <Progress value={bundle.activationRate} className="h-2" aria-label={`Bundle progress: ${bundle.claimedItems} of ${bundle.totalItems} items claimed`}>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                           <div
-                            className={cn("h-full transition-all", getActivationRateBg(bundle.activationRate))}
+                            className={cn("h-full rounded-full transition-all", getActivationRateBg(bundle.activationRate))}
                             style={{ width: `${bundle.activationRate}%` }}
                             aria-hidden="true"
                           />
-                        </Progress>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {data.bundles.length > 6 && (
-                  <Button variant="outline" className="w-full" aria-label={`View all ${data.bundles.length} bundles`}>
-                    View All {data.bundles.length} Bundles
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    aria-label={showAllBundles ? `Show only top 6 bundles` : `View all ${data.bundles.length} bundles`}
+                    onClick={() => setShowAllBundles((v) => !v)}
+                  >
+                    {showAllBundles ? "Show Less" : `View All ${data.bundles.length} Bundles`}
                   </Button>
                 )}
               </div>

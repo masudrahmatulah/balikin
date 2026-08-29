@@ -13,18 +13,18 @@ const steps = [
   },
   {
     icon: ShieldCheck,
-    title: 'Sistem Menyamarkan Nomor Anda',
-    desc: 'Anonymous WhatsApp Gateway kami menyembunyikan nomor asli pemilik sepenuhnya.',
+    title: 'Halaman Info Tag Terbuka',
+    desc: 'Penemu melihat halaman info barang Anda — nomor HP tidak tercetak di tag fisik.',
   },
   {
     icon: MessageCircle,
     title: 'Pesan Aman Terkirim',
-    desc: 'Penemu mengirim pesan lewat tombol WhatsApp — chat langsung sampai ke Anda tanpa nomor terekspos.',
+    desc: 'Penemu klik tombol WhatsApp dan langsung terhubung ke Anda tanpa install aplikasi.',
   },
   {
     icon: UserCircle2,
     title: 'Anda Terhubung, Privasi Tetap Terjaga',
-    desc: 'Anda balas seperti biasa. Barang kembali, nomor pribadi Anda tetap 100% rahasia.',
+    desc: 'Anda balas seperti biasa. Barang kembali, dan nomor bisa Anda ganti kapan saja dari dashboard.',
   },
 ];
 
@@ -48,7 +48,7 @@ export function QrScanSimulatorSection() {
           <div className="max-w-2xl mx-auto text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">Simulasi: Saat Barang Anda Ditemukan</h2>
             <p className="text-gray-600 dark:text-gray-300">
-              Begini alur kerja sistem saat seseorang memindai QR code di barang Anda — tanpa membocorkan nomor WhatsApp asli.
+              Begini alur kerja sistem saat seseorang memindai QR code di barang Anda — cepat dan tanpa perlu aplikasi.
             </p>
           </div>
         </ScrollReveal>

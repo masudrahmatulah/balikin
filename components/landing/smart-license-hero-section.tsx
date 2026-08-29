@@ -7,7 +7,7 @@ import { ArrowRight, ShieldCheck, ZapOff, Infinity as InfinityIcon, Lock } from 
 import { FloatingIcon } from '@/components/landing/floating-icon';
 
 const licenseHighlights = [
-  { icon: Lock, label: 'Anonymous Chat Protection' },
+  { icon: Lock, label: 'Proteksi Data Diri' },
   { icon: ZapOff, label: 'Bebas Baterai' },
   { icon: InfinityIcon, label: 'Berlaku Seumur Hidup' },
 ];
@@ -50,7 +50,7 @@ export function SmartLicenseHeroSection() {
           className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto dark:text-gray-300"
         >
           Anda tidak sedang membeli akrilik atau stiker. Anda mengaktifkan{' '}
-          <span className="font-semibold text-gray-800 dark:text-gray-200">lisensi proteksi digital</span> — privasi terjaga lewat Anonymous Chat, tanpa baterai, dan berlaku seumur hidup.
+          <span className="font-semibold text-gray-800 dark:text-gray-200">lisensi proteksi digital</span> — nomor HP Anda tidak tercetak di barang, tanpa baterai, dan berlaku seumur hidup.
         </motion.p>
 
         <motion.p

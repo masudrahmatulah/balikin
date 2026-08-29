@@ -64,14 +64,14 @@ export function ManufacturingQueueMetrics() {
   ];
 
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 shadow-sm dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Printer className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <Printer className="h-5 w-5 text-blue-600" />
             Manufacturing Queue
           </CardTitle>
-          <CardDescription className="mt-1">
+          <CardDescription className="mt-1 text-slate-500 dark:text-slate-400">
             Ready to Print orders by material type
           </CardDescription>
         </div>
@@ -117,9 +117,9 @@ export function ManufacturingQueueMetrics() {
           </div>
         )}
 
-        <Button
+          <Button
           variant="outline"
-          className="w-full mt-4 gap-2"
+          className="mt-4 w-full gap-2 border-blue-100 text-blue-700 hover:bg-blue-50 hover:text-blue-800 dark:border-slate-700 dark:text-blue-300 dark:hover:bg-slate-800"
           onClick={() => router.push("/admin/print-queue")}
         >
           <Printer className="w-4 h-4" />
@@ -132,7 +132,7 @@ export function ManufacturingQueueMetrics() {
 
 export function ManufacturingQueueMetricsSkeleton() {
   return (
-    <Card>
+    <Card className="border-blue-100/80 bg-white/90 dark:border-slate-700 dark:bg-slate-900/90">
       <CardHeader>
         <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
         <div className="h-4 w-64 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-2" />
