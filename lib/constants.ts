@@ -3,7 +3,7 @@ export const FREE_TAG_TRIAL_DAYS = 7;
 export const PREMIUM_UPGRADE_PRICE = 25000; // Upgrade tag free -> premium (digital only, tanpa fisik)
 
 // Harga produk sesuai strategi update_produk.md
-export const PREMIUM_PRICE = 54000;       // Balikin Armor Tag
+export const PREMIUM_PRICE = 54000;       // Premium Acrylic Tag
 export const BACKSIDE_CUSTOM_PRICE = 10000; // Custom image sisi belakang acrylic (+Rp10.000/order)
 export const STICKER_PACK_PRICE = 59000;  // Semua varian stiker (Pro/Daily/Micro/Family)
 export const STICKER_PACK_SIZE = 12;      // Default: Family (12 QR campuran)
@@ -14,7 +14,7 @@ export const STICKER_QRIS_NOTES = 'Scan QRIS lalu transfer sesuai nominal. Order
 
 export const WHATSAPP_ORDER_NUMBER = process.env.WHATSAPP_ORDER_NUMBER || '6281234567890';
 
-export const UPGRADE_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Balikin Armor Tag Premium. Mohon infonya.`;
+export const UPGRADE_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Premium Acrylic Tag Premium. Mohon infonya.`;
 export const STICKER_ORDER_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Stiker Balikin Family (12 QR campuran).`;
 
 // Ongkir flat cadangan jika API logistik timeout (checkout.md Section 4B)

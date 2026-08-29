@@ -77,6 +77,7 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
             src={value}
             alt="Cover preview"
             fill
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />
           <Button

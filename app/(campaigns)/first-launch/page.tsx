@@ -55,6 +55,7 @@ export default function FirstLaunchPage() {
             alt="Balikin Smart Tag Preview"
             fill
             priority
+            sizes="100vw"
             className="object-cover object-center z-0"
           />
           {/* Gradient Overlay */}
@@ -173,6 +174,7 @@ export default function FirstLaunchPage() {
                       src={shape.image}
                       alt={shape.name}
                       fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-contain"
                     />
                   </div>

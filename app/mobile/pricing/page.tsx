@@ -13,7 +13,7 @@ const pricingPlans = [
     name: "Gratis",
     price: "Rp0",
     features: [
-      "Maksimal 2 tag digital",
+      "Maksimal 1 tag digital",
       "QR code unik",
       "Update data kontak real-time",
       "Mode hilang",
