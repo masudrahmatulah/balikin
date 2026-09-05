@@ -40,6 +40,8 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
             <img
               src="/logo-icon.png"
               alt="Balikin Logo"
+              width={260}
+              height={80}
               className="h-10 w-auto max-w-[140px] transition-transform group-hover:scale-[1.03] sm:max-w-[180px]"
             />
           </Link>

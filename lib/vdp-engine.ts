@@ -1,12 +1,14 @@
 /**
  * VDP Engine (Variable Data Printing) for Balikin Physical Production
- * 6-Column Layout: 2 Packets × 3 Columns (QR Utama, Logo, QR Aktivasi)
+ * 4-Column Layout: 2 Packets × 2 Columns (QR Utama, Logo/Foto)
+ * Token aktivasi tetap disimpan di DB dan dikirim manual via email/WA.
  * Using Sharp for compositing with explicit pixel coordinates
  */
 
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import pLimit from 'p-limit';
+import { openSync as fontkitOpenSync } from 'fontkit';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import {
@@ -84,6 +86,125 @@ async function getLogoBuffer(): Promise<Buffer> {
 }
 
 // ============================================================================
+// EMBEDDED FONT (serverless-safe text rendering)
+// ============================================================================
+
+// Vercel serverless tidak punya font sistem (tanpa DejaVu/Arial), sehingga
+// SVG <text> yang diraster Sharp/librsvg tampil sebagai kotak-kotak
+// (librsvg di sini juga mengabaikan @font-face). Solusi: render semua teks
+// sebagai path vektor via fontkit memakai DejaVu Sans yang dibundel di
+// lib/fonts — deterministik di environment mana pun.
+let vdpFontRegular: any = null;
+let vdpFontBold: any = null;
+
+function getVdpFont(bold: boolean): any {
+  if (bold) {
+    if (!vdpFontBold) {
+      vdpFontBold = fontkitOpenSync(
+        path.join(process.cwd(), 'lib', 'fonts', 'DejaVuSans-Bold.ttf')
+      );
+    }
+    return vdpFontBold;
+  }
+  if (!vdpFontRegular) {
+    vdpFontRegular = fontkitOpenSync(
+      path.join(process.cwd(), 'lib', 'fonts', 'DejaVuSans.ttf')
+    );
+  }
+  return vdpFontRegular;
+}
+
+const r2 = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Render satu baris teks rata-tengah sebagai grup path SVG.
+ * `y` adalah baseline (sama konvensinya dengan atribut y pada <text>).
+ */
+function renderTextPaths(
+  text: string,
+  cx: number,
+  y: number,
+  fontSizePx: number,
+  fill: string,
+  bold = false,
+  trackingPx = 0
+): string {
+  if (!text) return '';
+  const font = getVdpFont(bold);
+  const scale = fontSizePx / font.unitsPerEm;
+  const run = font.layout(text);
+  const glyphs = run.glyphs as any[];
+  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
+  // `pen` dalam px output (transform SVG: translate dulu lalu scale,
+  // sehingga offset translate harus sudah dalam px, bukan unit font).
+  let pen = 0;
+  const parts: string[] = [];
+  for (let i = 0; i < glyphs.length; i++) {
+    const g = glyphs[i];
+    const d = g.path ? g.path.toSVG() : '';
+    if (d) {
+      parts.push(`<g transform="translate(${r2(pen)} 0) scale(${r2(scale)} ${r2(-scale)})"><path d="${d}"/></g>`);
+    }
+    const advUnits = positions && positions[i] ? positions[i].xAdvance : g.advanceWidth;
+    pen += advUnits * scale;
+    if (i < glyphs.length - 1) pen += trackingPx;
+  }
+  const totalWidth = pen;
+  const startX = cx - totalWidth / 2;
+  return `<g fill="${fill}" transform="translate(${r2(startX)} ${r2(y)})">${parts.join('')}</g>`;
+}
+
+/** Lebar px sebuah teks pada ukuran font tertentu (untuk sizing badge). */
+function measureTextWidth(
+  text: string,
+  fontSizePx: number,
+  bold = false,
+  trackingPx = 0
+): number {
+  if (!text) return 0;
+  const font = getVdpFont(bold);
+  const scale = fontSizePx / font.unitsPerEm;
+  const run = font.layout(text);
+  const glyphs = run.glyphs as any[];
+  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
+  let pen = 0;
+  for (let i = 0; i < glyphs.length; i++) {
+    pen += (positions && positions[i] ? positions[i].xAdvance : glyphs[i].advanceWidth) * scale;
+    if (i < glyphs.length - 1) pen += trackingPx;
+  }
+  return pen;
+}
+
+const BADGE_FILL = '#B8422E'; // Heritage Tertiary (Accent Red) Balikin
+
+/**
+ * Judul modern: pill/badge merah brand berisi teks putih besar.
+ * Badge menempati pita atas [bandY0, bandY1]; teks caps di-center vertikal
+ * via tinggi cap (≈0.73×font size, tanpa descender untuk huruf kapital).
+ */
+function renderTitleBadge(
+  text: string,
+  cx: number,
+  bandY0: number,
+  bandY1: number,
+  fontSizePx: number,
+  maxWidthPx: number,
+  trackingPx = 1
+): string {
+  const padX = Math.round(fontSizePx * 0.45);
+  const textWidth = measureTextWidth(text, fontSizePx, true, trackingPx);
+  const badgeW = Math.min(textWidth + padX * 2, maxWidthPx);
+  const badgeH = bandY1 - bandY0;
+  const badgeX = cx - badgeW / 2;
+  const capH = fontSizePx * 0.73;
+  const baseline = bandY0 + badgeH / 2 + capH / 2;
+  return (
+    `<rect x="${r2(badgeX)}" y="${r2(bandY0)}" width="${r2(badgeW)}" height="${r2(badgeH)}" rx="${r2(badgeH / 2)}" fill="${BADGE_FILL}"/>` +
+    renderTextPaths(text, cx, r2(baseline), fontSizePx, '#FFFFFF', true, trackingPx)
+  );
+}
+
+// ============================================================================
 // CUSTOM PHOTO FETCHER (Vercel Blob)
 // ============================================================================
 
@@ -135,32 +256,83 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const contentHeightPx = mmToPx(contentHeightMm ?? config.qrSizeMm);
   const topMarginPx = mmToPx(config.qrTopMarginMm);
   const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
-  const contentX = (widthPx - contentWidthPx) / 2;
-  // Center the QR/logo vertically in the die-cut shape rather than hugging the
-  // curvature-safety top margin. Aktivasi cells additionally reserve space
-  // below for the PIN + serial text (pinText/serialText below), so their
-  // centering is capped to whatever leaves that text room.
-  const verticalCenterPx = (heightPx - contentHeightPx) / 2;
-  const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
-  const maxAktivasiContentY = heightPx - contentHeightPx - BOTTOM_TEXT_RESERVE_PX;
-  const contentY = isAktivasi
-    ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
-    : Math.max(topMarginPx, verticalCenterPx);
   const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
 
+  // Kolom QR akrilik: badge pill merah berisi judul putih besar di atas +
+  // caption di bawah QR. Font diskala dari lebar cell agar mudah terbaca di
+  // semua bentuk (kecil seperti square/circle maupun tinggi seperti
+  // octagon/rectangle). Bentuk lengkung (heart/circle/octagon) menyempit di
+  // tepi atas-bawah, jadi judul/caption digeser ke dalam agar tidak menabrak
+  // garis potong.
+  const hasQrLabels = !isAktivasi && !!topLabel && !!bottomLabel;
+  const baseTopFontPx = Math.min(34, Math.max(20, Math.round(widthPx * 0.088)));
+  const baseBottomFontPx = Math.min(18, Math.max(12, Math.round(widthPx * 0.05)));
+  const topFontPx = config.maskType === 'heart'
+    ? Math.min(baseTopFontPx, 24)
+    : config.maskType === 'circle'
+      ? Math.min(baseTopFontPx, 28)
+      : baseTopFontPx;
+  const bottomFontPx = config.maskType === 'heart'
+    ? Math.min(baseBottomFontPx, 14)
+    : baseBottomFontPx;
+  const maskExtraTopPx = config.maskType === 'heart' ? 26 : config.maskType === 'circle' ? 12 : config.maskType === 'octagon' ? 14 : 0;
+  const maskExtraBottomPx = config.maskType === 'heart' ? 38 : config.maskType === 'circle' ? 10 : config.maskType === 'octagon' ? 10 : 0;
+  // Pita badge: mulai di bawah tepi potong, tinggi = font + padding pill.
+  const badgePadYPx = hasQrLabels ? Math.round(topFontPx * 0.32) : 0;
+  const badgeY0Px = hasQrLabels ? maskExtraTopPx + 4 : 0;
+  const badgeY1Px = hasQrLabels ? badgeY0Px + topFontPx + badgePadYPx * 2 : 0;
+  const topReservePx = hasQrLabels ? badgeY1Px + 8 : 0;
+  const bottomReservePx = hasQrLabels ? bottomFontPx + 22 + maskExtraBottomPx : 0;
+  // Lebar badge maksimum: hormati penyempitan tepi atas bentuk lengkung.
+  const badgeMaxWidthPx = widthPx - (10 + maskExtraTopPx) * 2;
+
+  let contentX: number;
+  let contentY: number;
+  let displayWidthPx: number;
+  let displayHeightPx: number;
+  if (hasQrLabels) {
+    // Sisakan ruang atas & bawah untuk teks, lalu muatkan QR di antaranya.
+    // Jika QR config lebih tinggi dari ruang tersedia, kecilkan tampilan
+    // (downscale) agar tidak menabrak judul/caption/garis potong.
+    const availableH = Math.max(50, heightPx - topReservePx - bottomReservePx);
+    const scale = Math.min(1, availableH / contentHeightPx);
+    displayWidthPx = Math.round(contentWidthPx * scale);
+    displayHeightPx = Math.round(contentHeightPx * scale);
+    contentX = (widthPx - displayWidthPx) / 2;
+    contentY = topReservePx + Math.max(0, (availableH - displayHeightPx) / 2);
+  } else {
+    // Center the QR/logo vertically in the die-cut shape rather than hugging the
+    // curvature-safety top margin. Aktivasi cells additionally reserve space
+    // below for the PIN + serial text (pinText/serialText below), so their
+    // centering is capped to whatever leaves that text room.
+    displayWidthPx = contentWidthPx;
+    displayHeightPx = contentHeightPx;
+    contentX = (widthPx - displayWidthPx) / 2;
+    const verticalCenterPx = (heightPx - displayHeightPx) / 2;
+    const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
+    const maxAktivasiContentY = heightPx - displayHeightPx - BOTTOM_TEXT_RESERVE_PX;
+    contentY = isAktivasi
+      ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
+      : Math.max(topMarginPx, verticalCenterPx);
+  }
+
   const labelText = isAktivasi
-    ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="9" font-weight="bold" fill="#7c3aed" text-anchor="middle">AKTIVASI</text>`
-    : topLabel
-      ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
-      : '';
+    ? renderTextPaths('AKTIVASI', widthPx / 2, Math.max(topMarginPx - 6, 10), 9, '#7c3aed', true)
+    : hasQrLabels
+      ? renderTitleBadge(topLabel as string, widthPx / 2, badgeY0Px, badgeY1Px, topFontPx, badgeMaxWidthPx, 1)
+      : topLabel
+        ? renderTextPaths(topLabel, widthPx / 2, Math.max(topMarginPx - 6, 10), 8, '#1f2937', true)
+        : '';
 
   const pinText = pin
-    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
-    : bottomLabel
-      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
-      : '';
+    ? renderTextPaths(`PIN: ${pin}`, widthPx / 2, Math.min(contentY + displayHeightPx + 22, heightPx - 8), 13, '#ef4444', true)
+    : hasQrLabels
+      ? renderTextPaths(bottomLabel as string, widthPx / 2, Math.min(contentY + displayHeightPx + bottomFontPx + 6, heightPx - 10), bottomFontPx, '#111111', true)
+      : bottomLabel
+        ? renderTextPaths(bottomLabel, widthPx / 2, Math.min(contentY + displayHeightPx + 16, heightPx - 8), 7, '#4b5563', false)
+        : '';
 
-  const serialText = `<text x="${widthPx / 2}" y="${heightPx - 4}" font-family="sans-serif" font-size="6.5" fill="#94a3b8" text-anchor="middle">${serial}</text>`;
+  const serialText = renderTextPaths(serial, widthPx / 2, heightPx - 4, 6.5, '#94a3b8', false);
 
   const svg = `
     <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
@@ -169,7 +341,7 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
       </defs>
       <g clip-path="url(#${clipId})">
         <rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>
-        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${contentWidthPx}" height="${contentHeightPx}" preserveAspectRatio="xMidYMid slice"/>
+        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${displayWidthPx}" height="${displayHeightPx}" preserveAspectRatio="xMidYMid meet"/>
       </g>
       ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
       ${labelText}
@@ -186,15 +358,16 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
 // ============================================================================
 
 /**
- * Generate one row of stickers with consistent 3-column layout per packet
+ * Generate one row of stickers with consistent 2-column layout per packet
  *
- * PAKET LAYOUT (3 kolom per paket):
+ * PAKET LAYOUT (2 kolom per paket):
  * - Kolom 1: QR Utama (untuk scan jika barang ditemukan/hilang)
  * - Kolom 2: Logo Balikin atau Foto Kustom
- * - Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
  *
- * Untuk pesanan massal: QR Utama + Logo + QR Aktivasi
- * Untuk pesanan custom: QR Utama + Foto + QR Aktivasi (tetap 3 kolom)
+ * Untuk pesanan massal: QR Utama + Logo
+ * Untuk pesanan custom: QR Utama + Foto (tetap 2 kolom)
+ * Token aktivasi tidak dicetak; dikirim manual via email/WA dan
+ * diminta pada scan pertama.
  */
 export async function generateOneRowSticker(
   tagA: TagVDPData,
@@ -206,7 +379,7 @@ export async function generateOneRowSticker(
   const kotakHeightPx = mmToPx(config.heightMm);
   const qrSizePx = mmToPx(config.qrSizeMm);
 
-  const PACKET_COLS = 3;
+  const PACKET_COLS = 2;
   const numPackets = tagB ? 2 : 1;
   const canvasWidth = numPackets * PACKET_COLS * kotakWidthPx;
 
@@ -227,14 +400,15 @@ export async function generateOneRowSticker(
       `https://balikin.id/p/${tag.slug}`,
       { width: qrSizePx, margin: 1 }
     );
+    // Kolom kiri (QR): judul besar SCAN DISINI + caption di bawah QR.
+    // Berlaku untuk semua varian akrilik; kolom kanan (logo) tetap polos.
     const kotak1 = await sharp(buildKotakSvg({
       shapeKey,
       contentDataUri: qrUtamaDataUri,
       serial: tag.serialNumber || '',
       isAktivasi: false,
-      ...(shapeKey === 'oval'
-        ? { topLabel: 'SCAN disini', bottomLabel: 'Untuk Hubungi Pemiliknya' }
-        : {}),
+      topLabel: 'SCAN DISINI',
+      bottomLabel: 'Untuk Hubungi Pemiliknya',
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
@@ -263,20 +437,6 @@ export async function generateOneRowSticker(
       contentHeightMm: config.logoHeightMm,
     })).png().toBuffer();
     layers.push({ input: kotak2, top: 0, left: offsetLeftPx + kotakWidthPx });
-
-    // Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
-    const qrAktivasiDataUri = await QRCode.toDataURL(
-      `https://balikin.id/activate?slug=${tag.slug}&token=${tag.activationTokenHash || ''}`,
-      { width: qrSizePx, margin: 1 }
-    );
-    const kotak3 = await sharp(buildKotakSvg({
-      shapeKey,
-      contentDataUri: qrAktivasiDataUri,
-      serial: tag.serialNumber || '',
-      pin: tag.activationPinPlain,
-      isAktivasi: true,
-    })).png().toBuffer();
-    layers.push({ input: kotak3, top: 0, left: offsetLeftPx + kotakWidthPx * 2 });
   }
 
   await buildPacket(tagA, 0);

@@ -127,6 +127,7 @@ export function GallerySlider() {
                 className="object-contain"
                 priority
                 quality={90}
+                sizes="100vw"
               />
             </motion.div>
           </AnimatePresence>

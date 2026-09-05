@@ -9,6 +9,7 @@ import { eq, and, lt, gt, sql } from 'drizzle-orm';
 import { STICKER_PAYMENT_METHOD, BACKSIDE_CUSTOM_PRICE } from '@/lib/constants';
 import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
+import { sendStickerOrderNotificationToAdmin } from '@/lib/whatsapp';
 
 // ─── Batas panjang field ───────────────────────────────────────────────────
 const MAX_FIELD_LENGTHS = {
@@ -171,7 +172,7 @@ export async function createStickerOrder(input: CreateOrderInput) {
   if (catalogEntry.productType === 'acrylic' && input.backsideCustom) {
     backsideCustom = true;
     const imageUrl = input.backsideCustomImageUrl?.trim();
-    if (!imageUrl || !imageUrl.startsWith('https://')) {
+    if (!imageUrl || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('/uploads/'))) {
       throw new Error('Custom image sisi belakang wajib diupload');
     }
     if (imageUrl.length > 2000) {
@@ -225,6 +226,16 @@ export async function createStickerOrder(input: CreateOrderInput) {
       totalAmount,
     })
     .returning();
+
+  await sendStickerOrderNotificationToAdmin({
+    orderId: order.id,
+    userName: session.user.name || session.user.email || '',
+    userEmail: session.user.email || '',
+    productType: catalogEntry.productType,
+    totalAmount,
+    recipientName,
+    phone,
+  });
 
   return order;
 }

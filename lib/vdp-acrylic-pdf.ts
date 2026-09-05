@@ -1,6 +1,6 @@
 /**
- * Combine the 6-column acrylic VDP row PNGs (Sharp output, one row = 2 packets
- * of QR/Logo/QR) into a single multi-page PDF sized to the selected paper
+ * Combine the 4-column acrylic VDP row PNGs (Sharp output, one row = 2 packets
+ * of QR/Logo) into a single multi-page PDF sized to the selected paper
  * (A3/A4/A5), packing as many rows per page as fit instead of shipping one
  * PNG file per row.
  */

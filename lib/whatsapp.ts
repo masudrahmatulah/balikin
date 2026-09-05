@@ -570,6 +570,69 @@ https://balikin.id/admin/module-orders
 }
 
 /**
+ * Send sticker order notification to admin
+ */
+interface StickerOrderNotificationOptions {
+  orderId: string;
+  userName: string;
+  userEmail: string;
+  productType: string;
+  totalAmount: number;
+  recipientName: string;
+  phone: string;
+}
+
+export async function sendStickerOrderNotificationToAdmin({
+  orderId,
+  userName,
+  userEmail,
+  productType,
+  totalAmount,
+  recipientName,
+  phone,
+}: StickerOrderNotificationOptions): Promise<WhatsAppSendResult> {
+  const timestamp = new Date().toLocaleString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const productLabel = productType === 'acrylic' ? 'Premium Acrylic Tag' : 'Stiker Vinyl';
+
+  const message = `💰 [BALIKIN] Order Stiker Baru
+
+Order ID: ${orderId}
+User: *${userName}* (${userEmail})
+Produk: *${productLabel}*
+Nominal: *${formatRupiah(totalAmount)}*
+Penerima: ${recipientName}
+HP: ${phone}
+
+⏰ Waktu: ${timestamp}
+
+➡️ Action: Login ke admin dashboard untuk verifikasi
+https://balikin.id/admin/sticker-orders
+
+— Balikin Sticker Orders`;
+
+  const config = resolveChannelProvider('standard');
+  const targetPhone = process.env.WHATSAPP_ORDER_NUMBER!;
+
+  try {
+    return await sendFonnteMessage(targetPhone, message, 'STICKER ORDER', config);
+  } catch (error) {
+    return {
+      success: false,
+      channel: config.channel,
+      provider: config.provider,
+      error: error instanceof Error ? error.message : 'Unknown WhatsApp error',
+    };
+  }
+}
+
+/**
  * Send payment verified notification to user
  */
 export async function sendModulePaymentVerifiedNotificationToUser({

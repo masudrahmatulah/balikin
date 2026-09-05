@@ -39,10 +39,11 @@ export function UploadPaymentProof({ orderId }: UploadPaymentProofProps) {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const uploadResponse = await fetch('/api/upload/payment-proof', {
-        method: 'POST',
-        body: formData,
-      });
+       const uploadResponse = await fetch('/api/upload/payment-proof', {
+         method: 'POST',
+         body: formData,
+         credentials: 'include',
+       });
 
       if (!uploadResponse.ok) {
         throw new Error('Failed to upload file');
