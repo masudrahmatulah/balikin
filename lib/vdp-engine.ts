@@ -154,6 +154,56 @@ function renderTextPaths(
   return `<g fill="${fill}" transform="translate(${r2(startX)} ${r2(y)})">${parts.join('')}</g>`;
 }
 
+/** Lebar px sebuah teks pada ukuran font tertentu (untuk sizing badge). */
+function measureTextWidth(
+  text: string,
+  fontSizePx: number,
+  bold = false,
+  trackingPx = 0
+): number {
+  if (!text) return 0;
+  const font = getVdpFont(bold);
+  const scale = fontSizePx / font.unitsPerEm;
+  const run = font.layout(text);
+  const glyphs = run.glyphs as any[];
+  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
+  let pen = 0;
+  for (let i = 0; i < glyphs.length; i++) {
+    pen += (positions && positions[i] ? positions[i].xAdvance : glyphs[i].advanceWidth) * scale;
+    if (i < glyphs.length - 1) pen += trackingPx;
+  }
+  return pen;
+}
+
+const BADGE_FILL = '#B8422E'; // Heritage Tertiary (Accent Red) Balikin
+
+/**
+ * Judul modern: pill/badge merah brand berisi teks putih besar.
+ * Badge menempati pita atas [bandY0, bandY1]; teks caps di-center vertikal
+ * via tinggi cap (≈0.73×font size, tanpa descender untuk huruf kapital).
+ */
+function renderTitleBadge(
+  text: string,
+  cx: number,
+  bandY0: number,
+  bandY1: number,
+  fontSizePx: number,
+  maxWidthPx: number,
+  trackingPx = 1
+): string {
+  const padX = Math.round(fontSizePx * 0.45);
+  const textWidth = measureTextWidth(text, fontSizePx, true, trackingPx);
+  const badgeW = Math.min(textWidth + padX * 2, maxWidthPx);
+  const badgeH = bandY1 - bandY0;
+  const badgeX = cx - badgeW / 2;
+  const capH = fontSizePx * 0.73;
+  const baseline = bandY0 + badgeH / 2 + capH / 2;
+  return (
+    `<rect x="${r2(badgeX)}" y="${r2(bandY0)}" width="${r2(badgeW)}" height="${r2(badgeH)}" rx="${r2(badgeH / 2)}" fill="${BADGE_FILL}"/>` +
+    renderTextPaths(text, cx, r2(baseline), fontSizePx, '#FFFFFF', true, trackingPx)
+  );
+}
+
 // ============================================================================
 // CUSTOM PHOTO FETCHER (Vercel Blob)
 // ============================================================================
@@ -208,26 +258,33 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
   const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
 
-  // Kolom QR akrilik: judul besar di atas + caption di bawah QR.
-  // Font diskala dari lebar cell agar mudah terbaca di semua bentuk
-  // (kecil seperti square/circle maupun tinggi seperti octagon/rectangle).
-  // Bentuk lengkung (heart/circle/octagon) menyempit di tepi atas-bawah,
-  // jadi judul/caption digeser ke dalam agar tidak menabrak garis potong.
+  // Kolom QR akrilik: badge pill merah berisi judul putih besar di atas +
+  // caption di bawah QR. Font diskala dari lebar cell agar mudah terbaca di
+  // semua bentuk (kecil seperti square/circle maupun tinggi seperti
+  // octagon/rectangle). Bentuk lengkung (heart/circle/octagon) menyempit di
+  // tepi atas-bawah, jadi judul/caption digeser ke dalam agar tidak menabrak
+  // garis potong.
   const hasQrLabels = !isAktivasi && !!topLabel && !!bottomLabel;
-  const baseTopFontPx = Math.min(30, Math.max(17, Math.round(widthPx * 0.072)));
+  const baseTopFontPx = Math.min(34, Math.max(20, Math.round(widthPx * 0.088)));
   const baseBottomFontPx = Math.min(18, Math.max(12, Math.round(widthPx * 0.05)));
   const topFontPx = config.maskType === 'heart'
-    ? Math.min(baseTopFontPx, 22)
+    ? Math.min(baseTopFontPx, 24)
     : config.maskType === 'circle'
-      ? Math.min(baseTopFontPx, 24)
+      ? Math.min(baseTopFontPx, 28)
       : baseTopFontPx;
   const bottomFontPx = config.maskType === 'heart'
     ? Math.min(baseBottomFontPx, 14)
     : baseBottomFontPx;
   const maskExtraTopPx = config.maskType === 'heart' ? 26 : config.maskType === 'circle' ? 12 : config.maskType === 'octagon' ? 14 : 0;
   const maskExtraBottomPx = config.maskType === 'heart' ? 38 : config.maskType === 'circle' ? 10 : config.maskType === 'octagon' ? 10 : 0;
-  const topReservePx = hasQrLabels ? topFontPx + 12 + maskExtraTopPx : 0;
+  // Pita badge: mulai di bawah tepi potong, tinggi = font + padding pill.
+  const badgePadYPx = hasQrLabels ? Math.round(topFontPx * 0.32) : 0;
+  const badgeY0Px = hasQrLabels ? maskExtraTopPx + 4 : 0;
+  const badgeY1Px = hasQrLabels ? badgeY0Px + topFontPx + badgePadYPx * 2 : 0;
+  const topReservePx = hasQrLabels ? badgeY1Px + 8 : 0;
   const bottomReservePx = hasQrLabels ? bottomFontPx + 22 + maskExtraBottomPx : 0;
+  // Lebar badge maksimum: hormati penyempitan tepi atas bentuk lengkung.
+  const badgeMaxWidthPx = widthPx - (10 + maskExtraTopPx) * 2;
 
   let contentX: number;
   let contentY: number;
@@ -262,7 +319,7 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const labelText = isAktivasi
     ? renderTextPaths('AKTIVASI', widthPx / 2, Math.max(topMarginPx - 6, 10), 9, '#7c3aed', true)
     : hasQrLabels
-      ? renderTextPaths(topLabel as string, widthPx / 2, topReservePx - 6, topFontPx, '#111111', true, 0.5)
+      ? renderTitleBadge(topLabel as string, widthPx / 2, badgeY0Px, badgeY1Px, topFontPx, badgeMaxWidthPx, 1)
       : topLabel
         ? renderTextPaths(topLabel, widthPx / 2, Math.max(topMarginPx - 6, 10), 8, '#1f2937', true)
         : '';
