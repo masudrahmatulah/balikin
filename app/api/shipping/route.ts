@@ -7,10 +7,21 @@ import {
   SHIPPING_FALLBACK_LUAR_KALSEL,
 } from '@/lib/constants';
 
-const API_KEY = process.env.RAJAONGKIR_API_KEY;
+export const dynamic = 'force-dynamic';
 
-if (!API_KEY) {
-  throw new Error('RAJAONGKIR_API_KEY is not defined in environment variables');
+// API key dibaca lazy di dalam handler (bukan top-level) agar `next build`
+// tidak crash saat page-data collection bila env belum diset di Vercel.
+// Tanpa key, handler membalas 500 JSON rapi saat runtime.
+function getApiKey(): string | null {
+  return process.env.RAJAONGKIR_API_KEY || null;
+}
+
+function missingKeyResponse() {
+  console.error('RAJAONGKIR_API_KEY is not defined in environment variables');
+  return NextResponse.json(
+    { success: false, error: 'Shipping service is not configured' },
+    { status: 500 }
+  );
 }
 
 type KomerceResponse<T> = {
@@ -44,12 +55,14 @@ async function fetchWithTimeout<T>(
 
 // GET /api/shipping?type=provinces
 async function handleGetProvinces() {
+  const apiKey = getApiKey();
+  if (!apiKey) return missingKeyResponse();
   try {
     const response = await fetchWithTimeout<
       KomerceResponse<Array<{ id: number; name: string }>>
     >(`${RAJAONGKIR_BASE_URL}/destination/province`, {
       headers: {
-        key: API_KEY,
+        key: apiKey,
       },
     });
 
@@ -75,6 +88,8 @@ async function handleGetProvinces() {
 
 // GET /api/shipping?type=cities&province=<id>
 async function handleGetCities(provinceId: string) {
+  const apiKey = getApiKey();
+  if (!apiKey) return missingKeyResponse();
   if (!provinceId) {
     return NextResponse.json(
       { success: false, error: 'Province ID is required' },
@@ -87,7 +102,7 @@ async function handleGetCities(provinceId: string) {
       KomerceResponse<Array<{ id: number; name: string; zip_code: string }>>
     >(`${RAJAONGKIR_BASE_URL}/destination/city/${provinceId}`, {
       headers: {
-        key: API_KEY,
+        key: apiKey,
       },
     });
 
@@ -115,6 +130,8 @@ async function handleGetCities(provinceId: string) {
 
 // POST /api/shipping
 async function handleGetCost(body: unknown) {
+  const apiKey = getApiKey();
+  if (!apiKey) return missingKeyResponse();
   try {
     const input = body as {
       destinationCityId?: string;
@@ -154,7 +171,7 @@ async function handleGetCost(body: unknown) {
     >(`${RAJAONGKIR_BASE_URL}/calculate/domestic-cost`, {
       method: 'POST',
       headers: {
-        key: API_KEY,
+        key: apiKey,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
