@@ -26,6 +26,7 @@ export const getSiteSettings = unstable_cache(
     });
     return {
       tagGreetingTemplate: row?.tagGreetingTemplate || DEFAULT_TAG_GREETING_TEMPLATE,
+      adminWhatsappNumber: row?.adminWhatsappNumber || null,
     };
   },
   ['site-settings'],
@@ -33,11 +34,6 @@ export const getSiteSettings = unstable_cache(
 );
 
 export async function updateTagGreetingTemplate(template: string) {
-  const session = await getAdminSessionForAction();
-  if (!session) {
-    return { error: 'Anda tidak memiliki akses admin.' };
-  }
-
   const trimmed = template.trim();
   if (!trimmed) {
     return { error: 'Template pesan tidak boleh kosong.' };
@@ -45,23 +41,38 @@ export async function updateTagGreetingTemplate(template: string) {
   if (trimmed.length > MAX_TEMPLATE_LENGTH) {
     return { error: `Template pesan maksimal ${MAX_TEMPLATE_LENGTH} karakter.` };
   }
+  return updateSiteSettings({ tagGreetingTemplate: trimmed });
+}
+
+export async function updateAdminWhatsappNumber(number: string) {
+  const session = await getAdminSessionForAction();
+  if (!session) {
+    return { error: 'Anda tidak memiliki akses admin.' };
+  }
+  return updateSiteSettings({ adminWhatsappNumber: number });
+}
+
+async function updateSiteSettings(data: { tagGreetingTemplate?: string; adminWhatsappNumber?: string | null }) {
+  const session = await getAdminSessionForAction();
+  if (!session) {
+    return { error: 'Anda tidak memiliki akses admin.' };
+  }
 
   try {
     await db
       .insert(siteSettings)
-      .values({ id: SETTINGS_ID, tagGreetingTemplate: trimmed, updatedAt: new Date() })
+      .values({ id: SETTINGS_ID, ...data, updatedAt: new Date() })
       .onConflictDoUpdate({
         target: siteSettings.id,
-        set: { tagGreetingTemplate: trimmed, updatedAt: new Date() },
+        set: { ...data, updatedAt: new Date() },
       });
 
     revalidateTag('site-settings');
     revalidatePath('/admin/settings');
-    revalidatePath('/p/[slug]', 'page');
 
     return { success: true };
   } catch (error) {
-    console.error('Error updating tag greeting template:', error);
+    console.error('Error updating site settings:', error);
     return { error: 'Gagal menyimpan pengaturan. Silakan coba lagi.' };
   }
 }

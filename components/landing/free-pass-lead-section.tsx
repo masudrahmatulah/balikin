@@ -13,12 +13,12 @@ const steps = [
   },
   {
     icon: QrCode,
-    title: 'Klaim 2 Tag QR Gratis',
+    title: 'Klaim 1 Tag QR Gratis',
     desc: 'Langsung tersedia di dashboard Anda — siap dipakai kapan saja.',
   },
   {
     icon: Tags,
-    title: 'Pasang di 2 Barang Favorit',
+    title: 'Pasang di Barang Favorit',
     desc: 'Tempel di dompet, tas, atau kunci. Rasakan sendiri sistemnya bekerja.',
   },
 ];
@@ -33,11 +33,11 @@ export function FreePassLeadSection() {
             Balikin Free Pass
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
-            2 Tag QR Gratis, Cuma Butuh Daftar & Login
+            1 Tag QR Gratis, Cuma Butuh Daftar & Login
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
             Tidak perlu beli dulu untuk membuktikan sistemnya bekerja. Buat akun sekarang,
-            dan 2 tag QR digital langsung jadi milik Anda — gratis selamanya.
+            dan 1 tag QR digital langsung jadi milik Anda — gratis selamanya.
           </p>
         </div>
       </ScrollReveal>
@@ -65,7 +65,7 @@ export function FreePassLeadSection() {
         <div className="max-w-md mx-auto text-center">
           <Link href="/sign-up">
             <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all">
-              Daftar & Klaim 2 Tag Gratis
+              Daftar & Klaim 1 Tag Gratis
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Button>
           </Link>

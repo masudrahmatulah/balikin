@@ -84,7 +84,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       description: 'gantungan kunci Smart & Simple untuk proteksi maksimal',
       products: [
         {
-          name: 'Balikin Armor Tag',
+          name: 'Premium Acrylic Tag',
           price: 'Rp 54.000',
           icon: Shield,
           features: [

@@ -77,7 +77,7 @@ const ORDER_STATUS_OPTIONS = [
 
 const PRODUCT_TYPE_OPTIONS = [
   { value: 'sticker', label: 'Stiker (Rp59.000/pack)', basePrice: 59000 },
-  { value: 'acrylic', label: 'Armor Tag Acrylic (Rp54.000/pcs)', basePrice: 54000 },
+  { value: 'acrylic', label: 'Premium Acrylic Tag (Rp54.000/pcs)', basePrice: 54000 },
   { value: 'bundle', label: 'Bundle (Rp89.000/pack)', basePrice: 89000 },
 ];
 

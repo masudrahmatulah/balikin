@@ -31,7 +31,7 @@ const PREMIUM_PRICE = 35000;
 const WHATSAPP_NUMBER = '6281234567890';
 
 const freeFeatures = [
-  { text: 'Maksimal 2 Tag Digital', included: true },
+  { text: 'Maksimal 1 Tag Digital', included: true },
   { text: 'QR Code Generator', included: true },
   { text: 'Scan Logging dengan Lokasi', included: true },
   { text: 'Alert Scan via Email', included: true },

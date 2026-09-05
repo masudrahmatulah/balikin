@@ -179,6 +179,7 @@ export function CheckoutForm({
       const response = await fetch('/api/upload/custom-backside', {
         method: 'POST',
         body,
+        credentials: 'include',
       });
       const data = await response.json();
       if (!response.ok || !data.url) {
@@ -533,12 +534,10 @@ export function CheckoutForm({
               {backsideCustomImageUrl ? (
                 <div className="flex items-center gap-3">
                   <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700">
-                    <Image
+                    <img
                       src={backsideCustomImageUrl}
                       alt="Pratinjau gambar custom sisi belakang"
-                      fill
-                      className="object-cover"
-                      sizes="80px"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
