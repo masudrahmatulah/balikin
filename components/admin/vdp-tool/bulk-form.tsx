@@ -255,7 +255,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               <div>
                 <p className="font-label text-sm font-bold text-primary">Custom Photo Order</p>
                 <p className="font-body text-[10px] text-secondary/60">
-                  Replace logo with custom photo (layout: QR Utama + Foto + QR Aktivasi)
+                  Replace logo with custom photo (layout: QR Utama + Foto)
                 </p>
               </div>
             </div>

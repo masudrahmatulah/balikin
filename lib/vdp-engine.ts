@@ -1,6 +1,7 @@
 /**
  * VDP Engine (Variable Data Printing) for Balikin Physical Production
- * 6-Column Layout: 2 Packets × 3 Columns (QR Utama, Logo, QR Aktivasi)
+ * 4-Column Layout: 2 Packets × 2 Columns (QR Utama, Logo/Foto)
+ * Token aktivasi tetap disimpan di DB dan dikirim manual via email/WA.
  * Using Sharp for compositing with explicit pixel coordinates
  */
 
@@ -186,15 +187,16 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
 // ============================================================================
 
 /**
- * Generate one row of stickers with consistent 3-column layout per packet
+ * Generate one row of stickers with consistent 2-column layout per packet
  *
- * PAKET LAYOUT (3 kolom per paket):
+ * PAKET LAYOUT (2 kolom per paket):
  * - Kolom 1: QR Utama (untuk scan jika barang ditemukan/hilang)
  * - Kolom 2: Logo Balikin atau Foto Kustom
- * - Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
  *
- * Untuk pesanan massal: QR Utama + Logo + QR Aktivasi
- * Untuk pesanan custom: QR Utama + Foto + QR Aktivasi (tetap 3 kolom)
+ * Untuk pesanan massal: QR Utama + Logo
+ * Untuk pesanan custom: QR Utama + Foto (tetap 2 kolom)
+ * Token aktivasi tidak dicetak; dikirim manual via email/WA dan
+ * diminta pada scan pertama.
  */
 export async function generateOneRowSticker(
   tagA: TagVDPData,
@@ -206,7 +208,7 @@ export async function generateOneRowSticker(
   const kotakHeightPx = mmToPx(config.heightMm);
   const qrSizePx = mmToPx(config.qrSizeMm);
 
-  const PACKET_COLS = 3;
+  const PACKET_COLS = 2;
   const numPackets = tagB ? 2 : 1;
   const canvasWidth = numPackets * PACKET_COLS * kotakWidthPx;
 
@@ -263,20 +265,6 @@ export async function generateOneRowSticker(
       contentHeightMm: config.logoHeightMm,
     })).png().toBuffer();
     layers.push({ input: kotak2, top: 0, left: offsetLeftPx + kotakWidthPx });
-
-    // Kolom 3: QR Aktivasi (untuk aktivasi setelah barang diterima)
-    const qrAktivasiDataUri = await QRCode.toDataURL(
-      `https://balikin.id/activate?slug=${tag.slug}&token=${tag.activationTokenHash || ''}`,
-      { width: qrSizePx, margin: 1 }
-    );
-    const kotak3 = await sharp(buildKotakSvg({
-      shapeKey,
-      contentDataUri: qrAktivasiDataUri,
-      serial: tag.serialNumber || '',
-      pin: tag.activationPinPlain,
-      isAktivasi: true,
-    })).png().toBuffer();
-    layers.push({ input: kotak3, top: 0, left: offsetLeftPx + kotakWidthPx * 2 });
   }
 
   await buildPacket(tagA, 0);
