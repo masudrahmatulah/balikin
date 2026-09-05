@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // STEP 1: Create printBatches entry first (for 6-column VDP)
+    // STEP 1: Create printBatches entry first (for 4-column acrylic VDP)
     let batchNumber: string | null = null;
     // Generate batch number like "B01-001" for all non-sticker materials
     const countResult = await db.query.printBatches.findMany({
@@ -569,7 +569,7 @@ export async function POST(request: NextRequest) {
       itemsPerSheet = config.total;
       estimatedSheets = Math.ceil(quantity / itemsPerSheet);
     } else {
-      // 6-column VDP
+      // 4-column acrylic VDP (2 paket x QR Utama + Logo/Foto)
       const shape: StickerShape = (stickerShape as StickerShape) || "circle";
       const size: StickerSize = (stickerSize as StickerSize) || "medium";
       const gridPositions = calculateGridPositions(shape, size, paperSize as "a4" | "a3", "landscape");
@@ -577,10 +577,10 @@ export async function POST(request: NextRequest) {
       estimatedSheets = Math.ceil(quantity / itemsPerSheet);
     }
 
-    const vdpMode = isA5Sticker ? "a5-sticker" : "6-column";
+    const vdpMode = isA5Sticker ? "a5-sticker" : "4-column";
     const materialUsed = isA5Sticker
       ? `${estimatedSheets} lembar A5 (A5 Sticker - ${stickerProductKey})`
-      : `${estimatedSheets} lembar ${paperSize.toUpperCase()} (6-Column VDP)`;
+      : `${estimatedSheets} lembar ${paperSize.toUpperCase()} (4-Column VDP)`;
 
     await db.insert(printQueue).values({
       id: randomUUID(),

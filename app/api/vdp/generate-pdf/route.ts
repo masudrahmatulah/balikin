@@ -1,6 +1,6 @@
 /**
  * VDP PNG Generation API with Streaming Output
- * Generates 6-column layout (2 tags × 3 columns) as PNG images
+ * Generates 4-column layout (2 tags × 2 columns: QR Utama + Logo/Foto) as PNG images
  */
 
 import { NextRequest } from 'next/server';
