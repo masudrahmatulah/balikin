@@ -136,30 +136,74 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const contentHeightPx = mmToPx(contentHeightMm ?? config.qrSizeMm);
   const topMarginPx = mmToPx(config.qrTopMarginMm);
   const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
-  const contentX = (widthPx - contentWidthPx) / 2;
-  // Center the QR/logo vertically in the die-cut shape rather than hugging the
-  // curvature-safety top margin. Aktivasi cells additionally reserve space
-  // below for the PIN + serial text (pinText/serialText below), so their
-  // centering is capped to whatever leaves that text room.
-  const verticalCenterPx = (heightPx - contentHeightPx) / 2;
-  const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
-  const maxAktivasiContentY = heightPx - contentHeightPx - BOTTOM_TEXT_RESERVE_PX;
-  const contentY = isAktivasi
-    ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
-    : Math.max(topMarginPx, verticalCenterPx);
   const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
+
+  // Kolom QR akrilik: judul besar di atas + caption di bawah QR.
+  // Font diskala dari lebar cell agar mudah terbaca di semua bentuk
+  // (kecil seperti square/circle maupun tinggi seperti octagon/rectangle).
+  // Bentuk lengkung (heart/circle/octagon) menyempit di tepi atas-bawah,
+  // jadi judul/caption digeser ke dalam agar tidak menabrak garis potong.
+  const hasQrLabels = !isAktivasi && !!topLabel && !!bottomLabel;
+  const baseTopFontPx = Math.min(30, Math.max(17, Math.round(widthPx * 0.072)));
+  const baseBottomFontPx = Math.min(18, Math.max(12, Math.round(widthPx * 0.05)));
+  const topFontPx = config.maskType === 'heart'
+    ? Math.min(baseTopFontPx, 22)
+    : config.maskType === 'circle'
+      ? Math.min(baseTopFontPx, 24)
+      : baseTopFontPx;
+  const bottomFontPx = config.maskType === 'heart'
+    ? Math.min(baseBottomFontPx, 14)
+    : baseBottomFontPx;
+  const maskExtraTopPx = config.maskType === 'heart' ? 26 : config.maskType === 'circle' ? 12 : config.maskType === 'octagon' ? 14 : 0;
+  const maskExtraBottomPx = config.maskType === 'heart' ? 38 : config.maskType === 'circle' ? 10 : config.maskType === 'octagon' ? 10 : 0;
+  const topReservePx = hasQrLabels ? topFontPx + 12 + maskExtraTopPx : 0;
+  const bottomReservePx = hasQrLabels ? bottomFontPx + 22 + maskExtraBottomPx : 0;
+
+  let contentX: number;
+  let contentY: number;
+  let displayWidthPx: number;
+  let displayHeightPx: number;
+  if (hasQrLabels) {
+    // Sisakan ruang atas & bawah untuk teks, lalu muatkan QR di antaranya.
+    // Jika QR config lebih tinggi dari ruang tersedia, kecilkan tampilan
+    // (downscale) agar tidak menabrak judul/caption/garis potong.
+    const availableH = Math.max(50, heightPx - topReservePx - bottomReservePx);
+    const scale = Math.min(1, availableH / contentHeightPx);
+    displayWidthPx = Math.round(contentWidthPx * scale);
+    displayHeightPx = Math.round(contentHeightPx * scale);
+    contentX = (widthPx - displayWidthPx) / 2;
+    contentY = topReservePx + Math.max(0, (availableH - displayHeightPx) / 2);
+  } else {
+    // Center the QR/logo vertically in the die-cut shape rather than hugging the
+    // curvature-safety top margin. Aktivasi cells additionally reserve space
+    // below for the PIN + serial text (pinText/serialText below), so their
+    // centering is capped to whatever leaves that text room.
+    displayWidthPx = contentWidthPx;
+    displayHeightPx = contentHeightPx;
+    contentX = (widthPx - displayWidthPx) / 2;
+    const verticalCenterPx = (heightPx - displayHeightPx) / 2;
+    const BOTTOM_TEXT_RESERVE_PX = 41; // gap to PIN (22) + PIN line + min gap to serial
+    const maxAktivasiContentY = heightPx - displayHeightPx - BOTTOM_TEXT_RESERVE_PX;
+    contentY = isAktivasi
+      ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
+      : Math.max(topMarginPx, verticalCenterPx);
+  }
 
   const labelText = isAktivasi
     ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="9" font-weight="bold" fill="#7c3aed" text-anchor="middle">AKTIVASI</text>`
-    : topLabel
-      ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
-      : '';
+    : hasQrLabels
+      ? `<text x="${widthPx / 2}" y="${topReservePx - 6}" font-family="Arial, Helvetica, sans-serif" font-size="${topFontPx}" font-weight="900" letter-spacing="0.5" fill="#111111" text-anchor="middle">${topLabel}</text>`
+      : topLabel
+        ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
+        : '';
 
   const pinText = pin
-    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
-    : bottomLabel
-      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + contentHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
-      : '';
+    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
+    : hasQrLabels
+      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + bottomFontPx + 6, heightPx - 10)}" font-family="Arial, Helvetica, sans-serif" font-size="${bottomFontPx}" font-weight="700" fill="#111111" text-anchor="middle">${bottomLabel}</text>`
+      : bottomLabel
+        ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
+        : '';
 
   const serialText = `<text x="${widthPx / 2}" y="${heightPx - 4}" font-family="sans-serif" font-size="6.5" fill="#94a3b8" text-anchor="middle">${serial}</text>`;
 
@@ -170,7 +214,7 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
       </defs>
       <g clip-path="url(#${clipId})">
         <rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>
-        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${contentWidthPx}" height="${contentHeightPx}" preserveAspectRatio="xMidYMid slice"/>
+        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${displayWidthPx}" height="${displayHeightPx}" preserveAspectRatio="xMidYMid meet"/>
       </g>
       ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
       ${labelText}
@@ -229,14 +273,15 @@ export async function generateOneRowSticker(
       `https://balikin.id/p/${tag.slug}`,
       { width: qrSizePx, margin: 1 }
     );
+    // Kolom kiri (QR): judul besar SCAN DISINI + caption di bawah QR.
+    // Berlaku untuk semua varian akrilik; kolom kanan (logo) tetap polos.
     const kotak1 = await sharp(buildKotakSvg({
       shapeKey,
       contentDataUri: qrUtamaDataUri,
       serial: tag.serialNumber || '',
       isAktivasi: false,
-      ...(shapeKey === 'oval'
-        ? { topLabel: 'SCAN disini', bottomLabel: 'Untuk Hubungi Pemiliknya' }
-        : {}),
+      topLabel: 'SCAN DISINI',
+      bottomLabel: 'Untuk Hubungi Pemiliknya',
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
