@@ -8,6 +8,7 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import pLimit from 'p-limit';
+import { openSync as fontkitOpenSync } from 'fontkit';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import {
@@ -82,6 +83,75 @@ async function getLogoBuffer(): Promise<Buffer> {
     .png()
     .toBuffer();
   return logoBufferCache;
+}
+
+// ============================================================================
+// EMBEDDED FONT (serverless-safe text rendering)
+// ============================================================================
+
+// Vercel serverless tidak punya font sistem (tanpa DejaVu/Arial), sehingga
+// SVG <text> yang diraster Sharp/librsvg tampil sebagai kotak-kotak
+// (librsvg di sini juga mengabaikan @font-face). Solusi: render semua teks
+// sebagai path vektor via fontkit memakai DejaVu Sans yang dibundel di
+// lib/fonts — deterministik di environment mana pun.
+let vdpFontRegular: any = null;
+let vdpFontBold: any = null;
+
+function getVdpFont(bold: boolean): any {
+  if (bold) {
+    if (!vdpFontBold) {
+      vdpFontBold = fontkitOpenSync(
+        path.join(process.cwd(), 'lib', 'fonts', 'DejaVuSans-Bold.ttf')
+      );
+    }
+    return vdpFontBold;
+  }
+  if (!vdpFontRegular) {
+    vdpFontRegular = fontkitOpenSync(
+      path.join(process.cwd(), 'lib', 'fonts', 'DejaVuSans.ttf')
+    );
+  }
+  return vdpFontRegular;
+}
+
+const r2 = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Render satu baris teks rata-tengah sebagai grup path SVG.
+ * `y` adalah baseline (sama konvensinya dengan atribut y pada <text>).
+ */
+function renderTextPaths(
+  text: string,
+  cx: number,
+  y: number,
+  fontSizePx: number,
+  fill: string,
+  bold = false,
+  trackingPx = 0
+): string {
+  if (!text) return '';
+  const font = getVdpFont(bold);
+  const scale = fontSizePx / font.unitsPerEm;
+  const run = font.layout(text);
+  const glyphs = run.glyphs as any[];
+  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
+  // `pen` dalam px output (transform SVG: translate dulu lalu scale,
+  // sehingga offset translate harus sudah dalam px, bukan unit font).
+  let pen = 0;
+  const parts: string[] = [];
+  for (let i = 0; i < glyphs.length; i++) {
+    const g = glyphs[i];
+    const d = g.path ? g.path.toSVG() : '';
+    if (d) {
+      parts.push(`<g transform="translate(${r2(pen)} 0) scale(${r2(scale)} ${r2(-scale)})"><path d="${d}"/></g>`);
+    }
+    const advUnits = positions && positions[i] ? positions[i].xAdvance : g.advanceWidth;
+    pen += advUnits * scale;
+    if (i < glyphs.length - 1) pen += trackingPx;
+  }
+  const totalWidth = pen;
+  const startX = cx - totalWidth / 2;
+  return `<g fill="${fill}" transform="translate(${r2(startX)} ${r2(y)})">${parts.join('')}</g>`;
 }
 
 // ============================================================================
@@ -190,22 +260,22 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   }
 
   const labelText = isAktivasi
-    ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="9" font-weight="bold" fill="#7c3aed" text-anchor="middle">AKTIVASI</text>`
+    ? renderTextPaths('AKTIVASI', widthPx / 2, Math.max(topMarginPx - 6, 10), 9, '#7c3aed', true)
     : hasQrLabels
-      ? `<text x="${widthPx / 2}" y="${topReservePx - 6}" font-family="Arial, Helvetica, sans-serif" font-size="${topFontPx}" font-weight="900" letter-spacing="0.5" fill="#111111" text-anchor="middle">${topLabel}</text>`
+      ? renderTextPaths(topLabel as string, widthPx / 2, topReservePx - 6, topFontPx, '#111111', true, 0.5)
       : topLabel
-        ? `<text x="${widthPx / 2}" y="${Math.max(topMarginPx - 6, 10)}" font-family="sans-serif" font-size="8" font-weight="bold" fill="#1f2937" text-anchor="middle">${topLabel}</text>`
+        ? renderTextPaths(topLabel, widthPx / 2, Math.max(topMarginPx - 6, 10), 8, '#1f2937', true)
         : '';
 
   const pinText = pin
-    ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + 22, heightPx - 8)}" font-family="sans-serif" font-size="13" font-weight="bold" fill="#ef4444" text-anchor="middle">PIN: ${pin}</text>`
+    ? renderTextPaths(`PIN: ${pin}`, widthPx / 2, Math.min(contentY + displayHeightPx + 22, heightPx - 8), 13, '#ef4444', true)
     : hasQrLabels
-      ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + bottomFontPx + 6, heightPx - 10)}" font-family="Arial, Helvetica, sans-serif" font-size="${bottomFontPx}" font-weight="700" fill="#111111" text-anchor="middle">${bottomLabel}</text>`
+      ? renderTextPaths(bottomLabel as string, widthPx / 2, Math.min(contentY + displayHeightPx + bottomFontPx + 6, heightPx - 10), bottomFontPx, '#111111', true)
       : bottomLabel
-        ? `<text x="${widthPx / 2}" y="${Math.min(contentY + displayHeightPx + 16, heightPx - 8)}" font-family="sans-serif" font-size="7" fill="#4b5563" text-anchor="middle">${bottomLabel}</text>`
+        ? renderTextPaths(bottomLabel, widthPx / 2, Math.min(contentY + displayHeightPx + 16, heightPx - 8), 7, '#4b5563', false)
         : '';
 
-  const serialText = `<text x="${widthPx / 2}" y="${heightPx - 4}" font-family="sans-serif" font-size="6.5" fill="#94a3b8" text-anchor="middle">${serial}</text>`;
+  const serialText = renderTextPaths(serial, widthPx / 2, heightPx - 4, 6.5, '#94a3b8', false);
 
   const svg = `
     <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
