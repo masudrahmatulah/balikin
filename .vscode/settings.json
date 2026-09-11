@@ -1,5 +1,13 @@
 {
-  "tunnel.forwardedPorts": [
-    { "localPort": 3000, "name": "Next.js Dev Server" }
-  ]
+  "remote.autoForwardPorts": true,
+  "remote.autoForwardPortsSource": "hybrid",
+  "remote.forwardOnOpen": true,
+  "remote.restoreForwardedPorts": true,
+  "remote.portsAttributes": {
+    "3000": {
+      "label": "Next.js Dev Server",
+      "protocol": "http",
+      "onAutoForward": "openPreview"
+    }
+  }
 }

@@ -111,11 +111,13 @@ export const ACRYLIC_SHAPES: Record<AcrylicShapeKey, AcrylicShapeConfig> = {
   "rectangle-emboss": {
     key: "rectangle-emboss",
     label: "Akrilik Persegi Panjang Timbul",
-    widthMm: 32,
+    widthMm: 30,
     heightMm: 45,
     maskType: "rect",
     qrSizeMm: 26,
     qrTopMarginMm: 3,
+    logoWidthMm: 30,
+    logoHeightMm: 45,
   },
 };
 
@@ -140,6 +142,24 @@ export function deriveAcrylicShapeKey(materialType?: string | null): AcrylicShap
 export function getAcrylicShapeConfig(shapeKey?: AcrylicShapeKey | null): AcrylicShapeConfig {
   if (shapeKey && ACRYLIC_SHAPES[shapeKey]) return ACRYLIC_SHAPES[shapeKey];
   return LEGACY_SHAPE;
+}
+
+// Usable width A5 landscape dengan margin 5mm (sinkron dengan PAGE_MARGIN_MM
+// di lib/vdp-acrylic-pdf.ts).
+const A5_LANDSCAPE_USABLE_MM = 210 - 2 * 5;
+
+/**
+ * Jumlah pasang per row PNG: 3 bila row 3 pasang (6 sel) muat di A5
+ * landscape skala 1:1, selain itu 2. Menjamin presisi die-cut tanpa
+ * scale-down paksa.
+ */
+export function getAcrylicPairsPerRow(
+  shapeKey?: AcrylicShapeKey | null,
+  paperSize?: string | null
+): 2 | 3 {
+  if (paperSize !== 'a5') return 2;
+  const config = getAcrylicShapeConfig(shapeKey);
+  return 6 * config.widthMm <= A5_LANDSCAPE_USABLE_MM ? 3 : 2;
 }
 
 /**

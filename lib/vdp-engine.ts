@@ -50,6 +50,8 @@ export interface PrintBatchData {
 export interface VDPOptions {
   isReprint?: boolean;
   includeActivation?: boolean;
+  /** Pasang per row PNG: 2 (default) atau 3 (A5 bila muat skala 1:1). */
+  pairsPerRow?: 2 | 3;
 }
 
 // ============================================================================
@@ -85,6 +87,17 @@ async function getLogoBuffer(): Promise<Buffer> {
   return logoBufferCache;
 }
 
+let rawLogoBufferCache: Buffer | null = null;
+
+// Logo mentah tanpa padding kotak: dipakai sel full-bleed (kolom 2
+// rectangle-emboss, 30x45) agar tidak ada bar putih ganda dari cache square
+// yang di-resize lagi ke box portrait.
+async function getRawLogoBuffer(): Promise<Buffer> {
+  if (rawLogoBufferCache) return rawLogoBufferCache;
+  rawLogoBufferCache = await readFile(path.join(process.cwd(), 'public', 'balikin_logo.png'));
+  return rawLogoBufferCache;
+}
+
 // ============================================================================
 // EMBEDDED FONT (serverless-safe text rendering)
 // ============================================================================
@@ -96,8 +109,45 @@ async function getLogoBuffer(): Promise<Buffer> {
 // lib/fonts — deterministik di environment mana pun.
 let vdpFontRegular: any = null;
 let vdpFontBold: any = null;
+let vdpFontDisplay: any = null;
+let vdpFontBodyRegular: any = null;
+let vdpFontBodyBold: any = null;
 
-function getVdpFont(bold: boolean): any {
+type VdpFontRole = 'legacy' | 'display' | 'body';
+
+function getVdpFont(bold: boolean, role: VdpFontRole = 'legacy'): any {
+  if (role === 'display') {
+    if (!vdpFontDisplay) {
+      try {
+        vdpFontDisplay = fontkitOpenSync(
+          path.join(process.cwd(), 'lib', 'fonts', 'Display-Bold.ttf')
+        );
+      } catch {
+        vdpFontDisplay = null;
+      }
+    }
+    if (vdpFontDisplay) return vdpFontDisplay;
+  }
+  if (role === 'body') {
+    try {
+      if (bold) {
+        if (!vdpFontBodyBold) {
+          vdpFontBodyBold = fontkitOpenSync(
+            path.join(process.cwd(), 'lib', 'fonts', 'Body-Bold.ttf')
+          );
+        }
+        return vdpFontBodyBold;
+      }
+      if (!vdpFontBodyRegular) {
+        vdpFontBodyRegular = fontkitOpenSync(
+          path.join(process.cwd(), 'lib', 'fonts', 'Body-Regular.ttf')
+        );
+      }
+      return vdpFontBodyRegular;
+    } catch {
+      // fall through to legacy
+    }
+  }
   if (bold) {
     if (!vdpFontBold) {
       vdpFontBold = fontkitOpenSync(
@@ -117,6 +167,67 @@ function getVdpFont(bold: boolean): any {
 const r2 = (n: number): number => Math.round(n * 100) / 100;
 
 /**
+ * Layout satu baris teks: path glyph per posisi pen + advance total + ink-box
+ * nyata (dari fontkit glyph bbox, unit font y-up). Ink-box dipakai untuk
+ * pemusatan presisi (badge); fallback ke advance bila bbox tak tersedia.
+ */
+function layoutTextRun(
+  text: string,
+  fontSizePx: number,
+  bold = false,
+  trackingPx = 0,
+  role: VdpFontRole = 'legacy'
+): { parts: string[]; totalWidth: number; inkMinX: number; inkMaxX: number; inkMinY: number; inkMaxY: number; scale: number } {
+  const font = getVdpFont(bold, role);
+  // Jangan bulatkan scale: r2(0.0155)=0.02 akan mengembangkan glyph ~29%.
+  // Pembulatan hanya untuk koordinat translate (penR).
+  const scale = fontSizePx / font.unitsPerEm;
+  const run = font.layout(text);
+  const glyphs = run.glyphs as any[];
+  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
+  // `pen` dalam px output (transform SVG: translate dulu lalu scale,
+  // sehingga offset translate harus sudah dalam px, bukan unit font).
+  let pen = 0;
+  let inkMinX = Infinity;
+  let inkMaxX = -Infinity;
+  let inkMinY = Infinity;
+  let inkMaxY = -Infinity;
+  const parts: string[] = [];
+  for (let i = 0; i < glyphs.length; i++) {
+    const g = glyphs[i];
+    const d = g.path ? g.path.toSVG() : '';
+    const penR = r2(pen);
+    if (d) {
+      parts.push(`<g transform="translate(${penR} 0) scale(${scale} ${-scale})"><path d="${d}"/></g>`);
+      try {
+        const bb = g.path.bbox as { minX: number; minY: number; maxX: number; maxY: number } | undefined;
+        if (bb && bb.maxX > bb.minX && bb.maxY > bb.minY) {
+          inkMinX = Math.min(inkMinX, penR + bb.minX * scale);
+          inkMaxX = Math.max(inkMaxX, penR + bb.maxX * scale);
+          inkMinY = Math.min(inkMinY, bb.minY);
+          inkMaxY = Math.max(inkMaxY, bb.maxY);
+        }
+      } catch {
+        // abaikan: fallback di bawah
+      }
+    }
+    const advUnits = positions && positions[i] ? positions[i].xAdvance : g.advanceWidth;
+    pen += advUnits * scale;
+    if (i < glyphs.length - 1) pen += trackingPx;
+  }
+  const totalWidth = pen;
+  if (inkMaxX < inkMinX) {
+    inkMinX = 0;
+    inkMaxX = totalWidth;
+  }
+  if (inkMaxY < inkMinY) {
+    inkMinY = 0;
+    inkMaxY = font.unitsPerEm * 0.73;
+  }
+  return { parts, totalWidth, inkMinX, inkMaxX, inkMinY, inkMaxY, scale };
+}
+
+/**
  * Render satu baris teks rata-tengah sebagai grup path SVG.
  * `y` adalah baseline (sama konvensinya dengan atribut y pada <text>).
  */
@@ -127,29 +238,11 @@ function renderTextPaths(
   fontSizePx: number,
   fill: string,
   bold = false,
-  trackingPx = 0
+  trackingPx = 0,
+  role: VdpFontRole = 'legacy'
 ): string {
   if (!text) return '';
-  const font = getVdpFont(bold);
-  const scale = fontSizePx / font.unitsPerEm;
-  const run = font.layout(text);
-  const glyphs = run.glyphs as any[];
-  const positions = (run as any).positions as Array<{ xAdvance: number }> | undefined;
-  // `pen` dalam px output (transform SVG: translate dulu lalu scale,
-  // sehingga offset translate harus sudah dalam px, bukan unit font).
-  let pen = 0;
-  const parts: string[] = [];
-  for (let i = 0; i < glyphs.length; i++) {
-    const g = glyphs[i];
-    const d = g.path ? g.path.toSVG() : '';
-    if (d) {
-      parts.push(`<g transform="translate(${r2(pen)} 0) scale(${r2(scale)} ${r2(-scale)})"><path d="${d}"/></g>`);
-    }
-    const advUnits = positions && positions[i] ? positions[i].xAdvance : g.advanceWidth;
-    pen += advUnits * scale;
-    if (i < glyphs.length - 1) pen += trackingPx;
-  }
-  const totalWidth = pen;
+  const { parts, totalWidth } = layoutTextRun(text, fontSizePx, bold, trackingPx, role);
   const startX = cx - totalWidth / 2;
   return `<g fill="${fill}" transform="translate(${r2(startX)} ${r2(y)})">${parts.join('')}</g>`;
 }
@@ -159,10 +252,11 @@ function measureTextWidth(
   text: string,
   fontSizePx: number,
   bold = false,
-  trackingPx = 0
+  trackingPx = 0,
+  role: VdpFontRole = 'legacy'
 ): number {
   if (!text) return 0;
-  const font = getVdpFont(bold);
+  const font = getVdpFont(bold, role);
   const scale = fontSizePx / font.unitsPerEm;
   const run = font.layout(text);
   const glyphs = run.glyphs as any[];
@@ -175,12 +269,15 @@ function measureTextWidth(
   return pen;
 }
 
-const BADGE_FILL = '#B8422E'; // Heritage Tertiary (Accent Red) Balikin
+const BADGE_GRAD_A = '#B8422E'; // Heritage Red Balikin
+const BADGE_GRAD_B = '#E76F2E'; // Modern amber-orange
+const BADGE_GRAD_C = '#F59E0B'; // Highlight amber
+const BADGE_STROKE = '#8C2F1F';
 
 /**
- * Judul modern: pill/badge merah brand berisi teks putih besar.
- * Badge menempati pita atas [bandY0, bandY1]; teks caps di-center vertikal
- * via tinggi cap (≈0.73×font size, tanpa descender untuk huruf kapital).
+ * Judul modern: pill gradient brand (merah → oranye → amber) + highlight atas.
+ * Teks display condensed putih, tracking 0.06-0.1em untuk caps kecil.
+ * `gradId` unik per-cell agar aman saat multi-cell dalam satu SVG.
  */
 function renderTitleBadge(
   text: string,
@@ -189,18 +286,62 @@ function renderTitleBadge(
   bandY1: number,
   fontSizePx: number,
   maxWidthPx: number,
-  trackingPx = 1
+  trackingPx = 1,
+  gradId = 'badgeGrad'
 ): string {
-  const padX = Math.round(fontSizePx * 0.45);
-  const textWidth = measureTextWidth(text, fontSizePx, true, trackingPx);
-  const badgeW = Math.min(textWidth + padX * 2, maxWidthPx);
+  const padX = Math.round(fontSizePx * 0.6);
+  const textWidth = measureTextWidth(text, fontSizePx, true, trackingPx, 'display');
+  // Lebar pil mengikuti INK (bukan advance) + padding lega agar tidak ada
+  // huruf terpotong di tepi pil.
+  const inkPre = layoutTextRun(text, fontSizePx, true, trackingPx, 'display');
+  const badgeW = Math.min(inkPre.inkMaxX - inkPre.inkMinX + padX * 2, maxWidthPx);
   const badgeH = bandY1 - bandY0;
   const badgeX = cx - badgeW / 2;
-  const capH = fontSizePx * 0.73;
-  const baseline = bandY0 + badgeH / 2 + capH / 2;
+  // Pusatkan INK (bukan advance): startX agar tengah ink-box = cx, baseline
+  // agar tengah vertikal ink = tengah pil.
+  const ink = inkPre;
+  const startX = cx - (ink.inkMinX + ink.inkMaxX) / 2;
+  const baseline = (bandY0 + bandY1) / 2 + ((ink.inkMaxY + ink.inkMinY) / 2) * ink.scale;
+  const inkText = `<g fill="#FFFFFF" transform="translate(${r2(startX)} ${r2(baseline)})">${ink.parts.join('')}</g>`;
   return (
-    `<rect x="${r2(badgeX)}" y="${r2(bandY0)}" width="${r2(badgeW)}" height="${r2(badgeH)}" rx="${r2(badgeH / 2)}" fill="${BADGE_FILL}"/>` +
-    renderTextPaths(text, cx, r2(baseline), fontSizePx, '#FFFFFF', true, trackingPx)
+    `<defs><linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${BADGE_GRAD_A}"/><stop offset="0.55" stop-color="${BADGE_GRAD_B}"/><stop offset="1" stop-color="${BADGE_GRAD_C}"/>` +
+    `</linearGradient></defs>` +
+    `<rect x="${r2(badgeX)}" y="${r2(bandY0)}" width="${r2(badgeW)}" height="${r2(badgeH)}" rx="${r2(badgeH / 2)}" fill="url(#${gradId})" stroke="${BADGE_STROKE}" stroke-width="1"/>` +
+    `<rect x="${r2(badgeX + 3)}" y="${r2(bandY0 + 2)}" width="${r2(Math.max(0, badgeW - 6))}" height="${r2(Math.max(0, badgeH * 0.42))}" rx="${r2(badgeH * 0.21)}" fill="#FFFFFF" opacity="0.18"/>` +
+    inkText
+  );
+}
+
+/**
+ * Caption bawah QR dua baris, two-tone: baris 1 = awal regular abu tua,
+ * baris 2 = kata terakhir bold hitam. Blok teks dipusatkan vertikal di gap
+ * [gapTopPx, gapBottomPx] (antara QR dan tepi bawah canvas).
+ */
+function renderBottomCaption(
+  text: string,
+  cx: number,
+  gapTopPx: number,
+  gapBottomPx: number,
+  fontSizePx: number
+): string {
+  const parts = text.trim().split(/\s+/);
+  if (parts.length < 2) {
+    const y = gapTopPx + Math.max(0, (gapBottomPx - gapTopPx - fontSizePx) / 2) + fontSizePx * 0.85;
+    return renderTextPaths(text, cx, y, fontSizePx, '#111111', true, 0, 'body');
+  }
+  const head = parts.slice(0, -1).join(' ');
+  const tail = parts[parts.length - 1];
+  const lineH = fontSizePx * 1.3;
+  const blockH = lineH * 2;
+  const avail = gapBottomPx - gapTopPx;
+  const y0 = avail >= blockH + 4
+    ? gapTopPx + (avail - blockH) / 2
+    : gapTopPx + 2;
+  const baseline1 = y0 + fontSizePx * 0.85;
+  return (
+    renderTextPaths(head, cx, baseline1, fontSizePx, '#374151', false, 0, 'body') +
+    renderTextPaths(tail, cx, baseline1 + lineH, fontSizePx, '#111111', true, 0, 'body')
   );
 }
 
@@ -257,6 +398,8 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const topMarginPx = mmToPx(config.qrTopMarginMm);
   const shapeTag = getShapeMarkup(config.maskType, widthPx, heightPx);
   const clipId = `clip${Math.random().toString(36).slice(2, 10)}`;
+  const gradId = `bg${Math.random().toString(36).slice(2, 10)}`;
+  const badgeGradId = `bdg${Math.random().toString(36).slice(2, 10)}`;
 
   // Kolom QR akrilik: badge pill merah berisi judul putih besar di atas +
   // caption di bawah QR. Font diskala dari lebar cell agar mudah terbaca di
@@ -266,7 +409,7 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   // garis potong.
   const hasQrLabels = !isAktivasi && !!topLabel && !!bottomLabel;
   const baseTopFontPx = Math.min(34, Math.max(20, Math.round(widthPx * 0.088)));
-  const baseBottomFontPx = Math.min(18, Math.max(12, Math.round(widthPx * 0.05)));
+  const baseBottomFontPx = Math.min(22, Math.max(13, Math.round(widthPx * 0.062)));
   const topFontPx = config.maskType === 'heart'
     ? Math.min(baseTopFontPx, 24)
     : config.maskType === 'circle'
@@ -278,9 +421,11 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const maskExtraTopPx = config.maskType === 'heart' ? 26 : config.maskType === 'circle' ? 12 : config.maskType === 'octagon' ? 14 : 0;
   const maskExtraBottomPx = config.maskType === 'heart' ? 38 : config.maskType === 'circle' ? 10 : config.maskType === 'octagon' ? 10 : 0;
   // Pita badge: mulai di bawah tepi potong, tinggi = font + padding pill.
+  // BADGE_TOP_MARGIN memberi space lega di atas SCAN DISINI agar tidak menempel garis potong.
   const badgePadYPx = hasQrLabels ? Math.round(topFontPx * 0.32) : 0;
-  const badgeY0Px = hasQrLabels ? maskExtraTopPx + 4 : 0;
-  const badgeY1Px = hasQrLabels ? badgeY0Px + topFontPx + badgePadYPx * 2 : 0;
+  const BADGE_TOP_MARGIN_PX = 14;
+  let badgeY0Px = hasQrLabels ? maskExtraTopPx + BADGE_TOP_MARGIN_PX : 0;
+  let badgeY1Px = hasQrLabels ? badgeY0Px + topFontPx + badgePadYPx * 2 : 0;
   const topReservePx = hasQrLabels ? badgeY1Px + 8 : 0;
   const bottomReservePx = hasQrLabels ? bottomFontPx + 22 + maskExtraBottomPx : 0;
   // Lebar badge maksimum: hormati penyempitan tepi atas bentuk lengkung.
@@ -294,8 +439,12 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
     // Sisakan ruang atas & bawah untuk teks, lalu muatkan QR di antaranya.
     // Jika QR config lebih tinggi dari ruang tersedia, kecilkan tampilan
     // (downscale) agar tidak menabrak judul/caption/garis potong.
+    // Heart menyempit tajam di bawah tengah: paksa QR ≤82% agar caption
+    // tetap di zona lebar, tidak terjepit di ujung bawah.
     const availableH = Math.max(50, heightPx - topReservePx - bottomReservePx);
-    const scale = Math.min(1, availableH / contentHeightPx);
+    const fitScale = Math.min(1, availableH / contentHeightPx);
+    const shapeCap = config.maskType === 'heart' ? 0.82 : 1;
+    const scale = Math.min(fitScale, shapeCap);
     displayWidthPx = Math.round(contentWidthPx * scale);
     displayHeightPx = Math.round(contentHeightPx * scale);
     contentX = (widthPx - displayWidthPx) / 2;
@@ -316,10 +465,29 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
       : Math.max(topMarginPx, verticalCenterPx);
   }
 
+  // Full-bleed (kolom 2 emboss: konten seukuran canvas): tempel tepat di
+  // origin agar tidak terdorong margin atas / terpotong bawah oleh clip.
+  const isFullBleed = !hasQrLabels && !isAktivasi && displayWidthPx >= widthPx && displayHeightPx >= heightPx;
+  if (isFullBleed) {
+    contentX = Math.round((widthPx - displayWidthPx) / 2);
+    contentY = Math.round((heightPx - displayHeightPx) / 2);
+  }
+
+  // Badge SCAN DISINI presisi di tengah gap [maskExtraTop, QR-top]: QR tidak
+  // digeser, hanya pita badge dipindah agar jarak atas-bawahnya simetris.
+  if (hasQrLabels) {
+    const badgeHpx = topFontPx + badgePadYPx * 2;
+    const gapAvail = contentY - maskExtraTopPx - badgeHpx;
+    if (gapAvail >= 8) {
+      badgeY0Px = maskExtraTopPx + Math.round(gapAvail / 2);
+      badgeY1Px = badgeY0Px + badgeHpx;
+    }
+  }
+
   const labelText = isAktivasi
     ? renderTextPaths('AKTIVASI', widthPx / 2, Math.max(topMarginPx - 6, 10), 9, '#7c3aed', true)
     : hasQrLabels
-      ? renderTitleBadge(topLabel as string, widthPx / 2, badgeY0Px, badgeY1Px, topFontPx, badgeMaxWidthPx, 1)
+      ? renderTitleBadge(topLabel as string, widthPx / 2, badgeY0Px, badgeY1Px, topFontPx, badgeMaxWidthPx, Math.max(1, Math.round(topFontPx * 0.06)), badgeGradId)
       : topLabel
         ? renderTextPaths(topLabel, widthPx / 2, Math.max(topMarginPx - 6, 10), 8, '#1f2937', true)
         : '';
@@ -327,25 +495,46 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   const pinText = pin
     ? renderTextPaths(`PIN: ${pin}`, widthPx / 2, Math.min(contentY + displayHeightPx + 22, heightPx - 8), 13, '#ef4444', true)
     : hasQrLabels
-      ? renderTextPaths(bottomLabel as string, widthPx / 2, Math.min(contentY + displayHeightPx + bottomFontPx + 6, heightPx - 10), bottomFontPx, '#111111', true)
+      ? renderBottomCaption(bottomLabel as string, widthPx / 2, contentY + displayHeightPx + 5, heightPx - maskExtraBottomPx - 10, bottomFontPx)
       : bottomLabel
         ? renderTextPaths(bottomLabel, widthPx / 2, Math.min(contentY + displayHeightPx + 16, heightPx - 8), 7, '#4b5563', false)
         : '';
 
-  const serialText = renderTextPaths(serial, widthPx / 2, heightPx - 4, 6.5, '#94a3b8', false);
+  const serialBaselineY = config.maskType === 'heart' ? heightPx - 24 : heightPx - 4;
+  // Full-bleed menimpa strip bawah dengan gambar: beri pil putih di belakang
+  // serial agar nomor produksi tetap terbaca.
+  const serialPill = isFullBleed && serial
+    ? (() => {
+        const w = measureTextWidth(serial, 6.5, false, 0, 'legacy') + 10;
+        return `<rect x="${r2(widthPx / 2 - w / 2)}" y="${r2(serialBaselineY - 8.5)}" width="${r2(w)}" height="11" rx="3" fill="#FFFFFF" opacity="0.85"/>`;
+      })()
+    : '';
+  const serialText = renderTextPaths(serial, widthPx / 2, serialBaselineY, 6.5, '#94a3b8', false);
+  const washDef = hasQrLabels
+    ? `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF7ED"/><stop offset="0.35" stop-color="#FFFFFF" stop-opacity="1"/><stop offset="1" stop-color="#FEF2F2"/></linearGradient>`
+    : '';
+  const washRect = hasQrLabels
+    ? `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="url(#${gradId})"/>`
+    : `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>`;
+  const qrFrame = hasQrLabels
+    ? `<rect x="${r2(contentX - 5)}" y="${r2(contentY - 5)}" width="${r2(displayWidthPx + 10)}" height="${r2(displayHeightPx + 10)}" rx="8" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.9"/>`
+    : '';
 
   const svg = `
     <svg width="${widthPx}" height="${heightPx}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <clipPath id="${clipId}">${shapeTag}/></clipPath>
+        ${washDef}
       </defs>
       <g clip-path="url(#${clipId})">
-        <rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>
+        ${washRect}
         <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${displayWidthPx}" height="${displayHeightPx}" preserveAspectRatio="xMidYMid meet"/>
+        ${qrFrame}
       </g>
       ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
       ${labelText}
       ${pinText}
+      ${serialPill}
       ${serialText}
     </svg>
   `;
@@ -372,6 +561,7 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
 export async function generateOneRowSticker(
   tagA: TagVDPData,
   tagB: TagVDPData | null,
+  tagC: TagVDPData | null = null,
   shapeKey: AcrylicShapeKey | null = null
 ): Promise<Buffer> {
   const config = getAcrylicShapeConfig(shapeKey);
@@ -380,7 +570,7 @@ export async function generateOneRowSticker(
   const qrSizePx = mmToPx(config.qrSizeMm);
 
   const PACKET_COLS = 2;
-  const numPackets = tagB ? 2 : 1;
+  const numPackets = tagC ? 3 : tagB ? 2 : 1;
   const canvasWidth = numPackets * PACKET_COLS * kotakWidthPx;
 
   const background = sharp({
@@ -412,19 +602,27 @@ export async function generateOneRowSticker(
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
-    // Kolom 2: Logo Balikin atau Foto Kustom (bisa punya ukuran sendiri agar
-    // lebih mendekati sisi kotak dibanding QR - lihat logoWidthMm/logoHeightMm)
+    // Kolom 2: Logo Balikin atau Foto Kustom. Sel full-bleed (logo seukuran
+    // canvas, mis. emboss 30x45) memakai file mentah + fit cover agar gambar
+    // mengisi penuh tanpa bar putih; sel biasa tetap pakai cache square + contain.
     const logoWidthPx = mmToPx(config.logoWidthMm ?? config.qrSizeMm);
     const logoHeightPx = mmToPx(config.logoHeightMm ?? config.qrSizeMm);
+    const isLogoFullBleed =
+      (config.logoWidthMm ?? 0) >= config.widthMm &&
+      (config.logoHeightMm ?? 0) >= config.heightMm;
     const rawContentBuffer = tag.isCustom && tag.customPhotoUrl
       ? await getCustomPhotoBuffer(tag.customPhotoUrl)
-      : await getLogoBuffer();
+      : isLogoFullBleed
+        ? await getRawLogoBuffer()
+        : await getLogoBuffer();
     const contentDataUri = bufferToDataUri(
       await sharp(rawContentBuffer)
-        .resize(logoWidthPx, logoHeightPx, {
-          fit: 'contain',
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        })
+        .resize(logoWidthPx, logoHeightPx, isLogoFullBleed
+          ? { fit: 'cover', position: 'center' }
+          : {
+              fit: 'contain',
+              background: { r: 255, g: 255, b: 255, alpha: 1 },
+            })
         .png()
         .toBuffer()
     );
@@ -443,6 +641,9 @@ export async function generateOneRowSticker(
   if (tagB) {
     await buildPacket(tagB, PACKET_COLS * kotakWidthPx);
   }
+  if (tagC) {
+    await buildPacket(tagC, 2 * PACKET_COLS * kotakWidthPx);
+  }
 
   return background.composite(layers).png().toBuffer();
 }
@@ -453,37 +654,30 @@ export async function generateOneRowSticker(
 
 /**
  * Generate PNG stream for a batch of tags
- * Yields PNG buffers one row at a time (2 tags per row)
+ * Yields PNG buffers one row at a time (pairsPerRow tags per row, default 2)
  */
 export async function* generateVDPStream(
   tags: TagVDPData[],
   shapeKey: AcrylicShapeKey | null = null,
   options: VDPOptions = {}
 ): AsyncGenerator<Buffer, void, unknown> {
-  for (let i = 0; i < tags.length; i += 2) {
-    const tagA: TagVDPData = {
-      id: tags[i].id,
-      slug: tags[i].slug,
-      activationTokenHash: tags[i].activationTokenHash || '',
-      activationPinPlain: tags[i].activationPinPlain || '',
-      serialNumber: tags[i].serialNumber || '',
-      isCustom: tags[i].isCustom || false,
-      name: tags[i].name,
-      customPhotoUrl: tags[i].customPhotoUrl,
-    };
+  const n = options.pairsPerRow === 3 ? 3 : 2;
+  const toVdp = (t: TagVDPData): TagVDPData => ({
+    id: t.id,
+    slug: t.slug,
+    activationTokenHash: t.activationTokenHash || '',
+    activationPinPlain: t.activationPinPlain || '',
+    serialNumber: t.serialNumber || '',
+    isCustom: t.isCustom || false,
+    name: t.name,
+    customPhotoUrl: t.customPhotoUrl,
+  });
+  for (let i = 0; i < tags.length; i += n) {
+    const tagA = toVdp(tags[i]);
+    const tagB = tags[i + 1] ? toVdp(tags[i + 1]) : null;
+    const tagC = n === 3 && tags[i + 2] ? toVdp(tags[i + 2] as TagVDPData) : null;
 
-    const tagB = tags[i + 1] ? {
-      id: tags[i + 1].id,
-      slug: tags[i + 1].slug,
-      activationTokenHash: tags[i + 1].activationTokenHash || '',
-      activationPinPlain: tags[i + 1].activationPinPlain || '',
-      serialNumber: tags[i + 1].serialNumber || '',
-      isCustom: tags[i + 1].isCustom || false,
-      name: tags[i + 1].name,
-      customPhotoUrl: tags[i + 1].customPhotoUrl,
-    } : null;
-
-    const buffer = await renderQueue(() => generateOneRowSticker(tagA, tagB, shapeKey));
+    const buffer = await renderQueue(() => generateOneRowSticker(tagA, tagB, tagC, shapeKey));
     yield buffer;
   }
 }

@@ -6,7 +6,7 @@ import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 import { eq, asc } from "drizzle-orm";
 import { generateVDPStream, generateBatchActivationData, type TagVDPData } from "@/lib/vdp-engine";
-import { deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
+import { deriveAcrylicShapeKey, getAcrylicPairsPerRow } from "@/lib/acrylic-shapes";
 import { generateA5StickerStream } from "@/lib/vdp-a5-sticker";
 import { generateA5TwoColStickerStream } from "@/lib/vdp-a5-sticker-twocol";
 import { generateProtectedCardStream, generateFamilyCardStream } from "@/lib/vdp-sticker-pro";
@@ -544,9 +544,11 @@ export async function POST(request: NextRequest) {
       }));
 
       const shapeKey = deriveAcrylicShapeKey(materialType);
+      // A5: 3 pasang/row bila muat skala 1:1 (emboss 180mm ≤ 200mm usable).
+      const pairsPerRow = getAcrylicPairsPerRow(shapeKey, paperSize);
 
       const rowBuffers: Buffer[] = [];
-      for await (const buffer of generateVDPStream(vdpTags, shapeKey)) {
+      for await (const buffer of generateVDPStream(vdpTags, shapeKey, { pairsPerRow })) {
         console.log('[API] Generated row', rowBuffers.length, 'buffer size:', buffer.length, 'bytes');
         rowBuffers.push(buffer);
       }
