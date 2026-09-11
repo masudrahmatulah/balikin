@@ -111,7 +111,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
       {/* Sidebar */}
         <aside
           className={cn(
-            "fixed left-0 top-0 h-screen w-[248px] bg-gradient-to-b from-red-700 via-red-700 to-red-900 flex flex-col py-6 px-3 z-50 transition-transform duration-300",
+            "fixed left-0 top-0 h-screen w-[248px] bg-gradient-to-b from-brand-navy-light via-brand-navy-light to-brand-navy flex flex-col py-6 px-3 z-50 transition-transform duration-300",
             "lg:translate-x-0",
             isCollapsed ? "-translate-x-full" : "translate-x-0"
           )}
@@ -119,7 +119,7 @@ export function Sidebar({ userDivision }: SidebarProps) {
         {/* Logo Section */}
         <div className="mb-4 px-2">
           <Link href="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-red-900/40 transition-transform group-hover:scale-105">
+            <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-black/40 transition-transform group-hover:scale-105">
               <Image src="/balikin_logo.webp" alt="Balikin" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div>

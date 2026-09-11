@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { WITAClock } from "./wita-clock";
 import { Bell, LogOut } from "lucide-react";
 
@@ -84,6 +85,9 @@ export function AdminHeader({
         <div className="hidden lg:flex items-center gap-3 mr-2">
           <WITAClock />
         </div>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Notifications */}
         <button className="relative rounded-full p-2 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-300" aria-label="Notifikasi">
