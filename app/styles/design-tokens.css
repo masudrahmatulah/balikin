@@ -20,6 +20,15 @@
   --color-brand-blue-800: #1e40af;
   --color-brand-blue-900: #1e3a8a;
 
+  /* Balikin Brand Colors (navy + red, dari desain landing page) */
+  --color-brand-navy-900: #07101f;
+  --color-brand-navy-800: #0c1729;
+  --color-brand-red-500: #ff1f2d;
+  --color-brand-red-600: #d90f1d;
+  --color-brand-red-400: #ff4854;
+  --color-brand-muted-dark: #a9b4c5;
+  --color-brand-surface-light: #f8fafc;
+
   /* Neutral/Gray Colors */
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;

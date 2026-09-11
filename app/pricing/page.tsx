@@ -79,7 +79,7 @@ async function PricingPage() {
       <ProductJsonLd
         name="Balikin QR Tag"
         description="Smart Lost & Found QR Tag untuk barang hilang"
-        imageUrl={absoluteUrl("/logo-icon.png")}
+        imageUrl={absoluteUrl("/balikin_logo.webp")}
         offers={offers}
       />
 

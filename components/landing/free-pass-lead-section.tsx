@@ -28,7 +28,7 @@ export function FreePassLeadSection() {
     <section className="container mx-auto px-4 py-16">
       <ScrollReveal>
         <div className="max-w-2xl mx-auto text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-red-100 text-brand-red-dark px-3 py-1 rounded-full text-xs font-medium mb-4 dark:bg-brand-red/15 dark:text-red-300">
             <Gift className="h-3.5 w-3.5" aria-hidden="true" />
             Balikin Free Pass
           </div>
@@ -47,11 +47,11 @@ export function FreePassLeadSection() {
           {steps.map((step, i) => (
             <div key={step.title} className="relative text-center px-4">
               <div className="flex justify-center mb-3">
-                <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-                  <step.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-brand-red/15 flex items-center justify-center">
+                  <step.icon className="h-6 w-6 text-brand-red dark:text-red-300" aria-hidden="true" />
                 </div>
               </div>
-              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">
+              <p className="text-xs font-semibold text-brand-red dark:text-red-300 mb-1">
                 Langkah {i + 1}
               </p>
               <h3 className="font-bold mb-1 dark:text-white">{step.title}</h3>
@@ -64,7 +64,7 @@ export function FreePassLeadSection() {
       <ScrollReveal delay={0.25}>
         <div className="max-w-md mx-auto text-center">
           <Link href="/sign-up">
-            <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all">
+            <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all">
               Daftar & Klaim 1 Tag Gratis
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Button>

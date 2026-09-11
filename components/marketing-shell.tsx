@@ -31,27 +31,31 @@ export function MarketingShell({
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white">
+    <main className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white">
       <header className="border-b bg-white/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-2 font-semibold" aria-label="Balikin Home">
-              <Image
-                src="/logo-icon.png"
-                alt="Balikin Logo"
-                width={260}
-                height={80}
-                priority
-                className="h-auto w-auto"
-                style={{ height: 'auto', maxHeight: '80px' }}
-              />
+              <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-[#07101f] shadow-md shadow-red-600/20">
+                <Image
+                  src="/balikin_logo.webp"
+                  alt="Balikin Logo"
+                  width={80}
+                  height={80}
+                  priority
+                  className="h-full w-full object-cover"
+                />
+              </span>
+              <span className="text-xl font-black tracking-tight text-slate-900">
+                BALIKIN
+              </span>
             </Link>
             <nav className="hidden gap-5 text-sm text-gray-600 md:flex" aria-label="Main navigation">
               {marketingNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded px-2 py-1"
+                  className="transition-colors hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1"
                 >
                   {link.label}
                 </Link>
@@ -78,7 +82,7 @@ export function MarketingShell({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-slate-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-slate-50 hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red"
                   onClick={closeMenu}
                 >
                   {link.label}
@@ -104,13 +108,13 @@ export function MarketingShell({
         <div className="container mx-auto flex flex-col gap-4 px-4 py-8 text-sm text-gray-600 md:flex-row md:items-center md:justify-between">
           <p className="max-w-md">&copy; {currentYear} Balikin. Smart Lost &amp; Found QR Tag.</p>
           <nav className="flex flex-wrap gap-4" aria-label="Footer navigation">
-            <Link href="/privacy-policy" className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded px-2 py-1">
+            <Link href="/privacy-policy" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded px-2 py-1">
+            <Link href="/terms" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
               Terms
             </Link>
-            <Link href="/contact" className="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 rounded px-2 py-1">
+            <Link href="/contact" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
               Contact
             </Link>
           </nav>

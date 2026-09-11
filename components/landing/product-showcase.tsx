@@ -99,7 +99,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           highlight: 'Gantungan kunci smart dan simple',
           category: 'physical',
           productKey: 'armor-tag',
-          images: ['/logo2.webp'],
+          images: ['/balikin_logo.webp'],
         },
         {
           name: 'Balikin Ultimate Pack',

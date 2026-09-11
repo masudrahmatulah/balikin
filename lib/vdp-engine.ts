@@ -382,6 +382,9 @@ interface KotakOptions {
   bottomLabel?: string;
   contentWidthMm?: number;
   contentHeightMm?: number;
+  /** Konten di-center presisi di tengah cell (abaikan margin atas),
+      dipakai logo full-bleed yang diperkecil agar ada margin. */
+  centerInCell?: boolean;
 }
 
 /**
@@ -389,7 +392,7 @@ interface KotakOptions {
  * to the wadah's die-cut outline (so nothing bleeds past the cut line), and
  * the same outline is redrawn unclipped as the cutting-mark stroke.
  */
-function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topLabel, bottomLabel, contentWidthMm, contentHeightMm }: KotakOptions): Buffer {
+function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topLabel, bottomLabel, contentWidthMm, contentHeightMm, centerInCell }: KotakOptions): Buffer {
   const config = getAcrylicShapeConfig(shapeKey);
   const widthPx = mmToPx(config.widthMm);
   const heightPx = mmToPx(config.heightMm);
@@ -462,7 +465,9 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
     const maxAktivasiContentY = heightPx - displayHeightPx - BOTTOM_TEXT_RESERVE_PX;
     contentY = isAktivasi
       ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
-      : Math.max(topMarginPx, verticalCenterPx);
+      : centerInCell
+        ? verticalCenterPx
+        : Math.max(topMarginPx, verticalCenterPx);
   }
 
   // Full-bleed (kolom 2 emboss: konten seukuran canvas): tempel tepat di
@@ -558,6 +563,10 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
  * Token aktivasi tidak dicetak; dikirim manual via email/WA dan
  * diminta pada scan pertama.
  */
+  // Jarak aman konten full-bleed dari garis potong (die-cut): logo tetap
+  // mengisi cell namun diperkecil merata agar ada margin putih di semua sisi.
+  const FULL_BLEED_INSET_MM = 1.5;
+
 export async function generateOneRowSticker(
   tagA: TagVDPData,
   tagB: TagVDPData | null,
@@ -603,13 +612,17 @@ export async function generateOneRowSticker(
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
     // Kolom 2: Logo Balikin atau Foto Kustom. Sel full-bleed (logo seukuran
-    // canvas, mis. emboss 30x45) memakai file mentah + fit cover agar gambar
-    // mengisi penuh tanpa bar putih; sel biasa tetap pakai cache square + contain.
-    const logoWidthPx = mmToPx(config.logoWidthMm ?? config.qrSizeMm);
-    const logoHeightPx = mmToPx(config.logoHeightMm ?? config.qrSizeMm);
+    // canvas, mis. emboss 30x45) memakai file mentah + fit cover, namun
+    // diperkecil merata (FULL_BLEED_INSET_MM) agar ada margin dari garis
+    // potong; sel biasa tetap pakai cache square + contain.
     const isLogoFullBleed =
       (config.logoWidthMm ?? 0) >= config.widthMm &&
       (config.logoHeightMm ?? 0) >= config.heightMm;
+    const bleedInsetMm = isLogoFullBleed ? FULL_BLEED_INSET_MM : 0;
+    const logoWidthMm = (config.logoWidthMm ?? config.qrSizeMm) - bleedInsetMm * 2;
+    const logoHeightMm = (config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2;
+    const logoWidthPx = mmToPx(logoWidthMm);
+    const logoHeightPx = mmToPx(logoHeightMm);
     const rawContentBuffer = tag.isCustom && tag.customPhotoUrl
       ? await getCustomPhotoBuffer(tag.customPhotoUrl)
       : isLogoFullBleed
@@ -631,8 +644,9 @@ export async function generateOneRowSticker(
       contentDataUri,
       serial: tag.serialNumber || '',
       isAktivasi: false,
-      contentWidthMm: config.logoWidthMm,
-      contentHeightMm: config.logoHeightMm,
+      contentWidthMm: logoWidthMm,
+      contentHeightMm: logoHeightMm,
+      centerInCell: isLogoFullBleed,
     })).png().toBuffer();
     layers.push({ input: kotak2, top: 0, left: offsetLeftPx + kotakWidthPx });
   }

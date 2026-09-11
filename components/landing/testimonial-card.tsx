@@ -33,11 +33,11 @@ export function TestimonialCard({ testimonial, index }: TestimonialCardProps) {
           ))}
         </div>
         <p className="text-gray-700 mb-6 relative">
-          <Quote className="absolute -top-2 -left-2 h-8 w-8 text-blue-100 opacity-50" />
+          <Quote className="absolute -top-2 -left-2 h-8 w-8 text-red-100 opacity-50" />
           <span className="relative">{testimonial.content}</span>
         </p>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-navy flex items-center justify-center text-white font-semibold">
             {testimonial.name.charAt(0)}
           </div>
           <div>

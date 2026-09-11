@@ -14,11 +14,12 @@ const licenseHighlights = [
 
 export function SmartLicenseHeroSection() {
   return (
-    <section className="container mx-auto px-4 py-16 md:py-24 text-center relative overflow-hidden dark:bg-slate-950">
+    <section className="container mx-auto px-4 py-16 md:py-24 text-center relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <FloatingIcon icon={ShieldCheck} delay={0} className="absolute top-20 left-10 opacity-10 h-24 w-24 text-blue-600" />
-        <FloatingIcon icon={Lock} delay={1} duration={5} className="absolute top-40 right-20 opacity-10 h-32 w-32 text-green-600" />
-        <FloatingIcon icon={InfinityIcon} delay={2} duration={7} className="absolute bottom-20 left-1/4 opacity-10 h-28 w-28 text-purple-600" />
+        <div className="absolute left-1/2 top-0 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-brand-red/10 blur-3xl dark:bg-brand-red/20" />
+        <FloatingIcon icon={ShieldCheck} delay={0} className="absolute top-20 left-10 opacity-10 h-24 w-24 text-brand-red" />
+        <FloatingIcon icon={Lock} delay={1} duration={5} className="absolute top-40 right-20 opacity-10 h-32 w-32 text-brand-red" />
+        <FloatingIcon icon={InfinityIcon} delay={2} duration={7} className="absolute bottom-20 left-1/4 opacity-10 h-28 w-28 text-brand-navy dark:text-white" />
       </div>
 
       <div className="max-w-4xl mx-auto relative z-10">
@@ -26,7 +27,7 @@ export function SmartLicenseHeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-red-50 text-brand-red-dark px-4 py-2 rounded-full text-sm font-medium mb-6 dark:from-brand-red/20 dark:to-brand-red/5 dark:text-red-300 border border-brand-red/20"
         >
           <ShieldCheck className="h-4 w-4" />
           Bukan Gantungan Kunci. Ini Sistem Proteksi Digital.
@@ -71,7 +72,7 @@ export function SmartLicenseHeroSection() {
           <Link href="#konfigurator">
             <Button
               size="lg"
-              className="text-lg px-8 py-6 shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all"
+              className="text-lg px-8 py-6 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all"
             >
               Aktifkan Lisensi Mulai Rp35.000
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -93,7 +94,7 @@ export function SmartLicenseHeroSection() {
               key={label}
               className="flex items-center gap-2 bg-white shadow-sm border rounded-full px-4 py-2 text-sm font-medium text-gray-700 dark:bg-slate-800 dark:border-slate-700 dark:text-gray-300"
             >
-              <Icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <Icon className="h-4 w-4 text-brand-red" aria-hidden="true" />
               {label}
             </div>
           ))}

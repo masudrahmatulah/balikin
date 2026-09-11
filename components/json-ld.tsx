@@ -206,7 +206,7 @@ export function OrganizationJsonLd({
   name = 'Balikin',
   description = 'Platform smart lost and found Indonesia dengan teknologi QR Smart Tag untuk melindungi barang berharga Anda.',
   url = 'https://balikin.online',
-  logo = 'https://balikin.online/logo-icon.png',
+  logo = 'https://balikin.online/balikin_logo.webp',
   sameAs = ['https://instagram.com/balikin.online'],
 }: OrganizationJsonLdProps) {
   return (

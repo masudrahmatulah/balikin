@@ -86,7 +86,7 @@ export function GallerySlider() {
   return (
     <div className="w-full">
       <div
-        className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center p-2 md:p-4"
+        className="relative w-full aspect-video md:aspect-[16/9] overflow-hidden rounded-3xl bg-gradient-to-r from-[#d90f1d] via-[#0c1729] to-[#07101f] flex items-center justify-center p-2 md:p-4"
         style={{ minHeight: '250px', maxHeight: '650px' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}

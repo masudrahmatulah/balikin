@@ -16,7 +16,7 @@ import { FooterSection } from '@/components/landing/footer-section';
 
 export function HomePage() {
   return (
-    <main id="main-content" className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+    <main id="main-content" className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white dark:from-brand-navy dark:via-brand-navy-light dark:to-brand-navy">
       {/* Header - Auth-Aware Navigation */}
       <SiteHeader />
 

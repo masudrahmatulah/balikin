@@ -31,7 +31,7 @@ export function ProductShowcaseSection() {
     <section className="container mx-auto px-4 py-16">
       <ScrollReveal>
         <div className="max-w-2xl mx-auto text-center mb-10">
-          <Badge className="mb-4 bg-indigo-600 text-white hover:bg-indigo-600">
+          <Badge className="mb-4 bg-brand-red text-white hover:bg-brand-red-dark">
             <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
             Galeri Produk
           </Badge>
@@ -51,10 +51,10 @@ export function ProductShowcaseSection() {
               onClick={() => setLightboxImage(item)}
               className="group text-left"
             >
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-md shadow-indigo-100/50 cursor-zoom-in transition-transform group-hover:scale-[1.02]">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-md shadow-red-100/50 cursor-zoom-in transition-transform group-hover:scale-[1.02]">
                 <Image src={item.src} alt={item.alt} fill className="object-contain p-5" sizes="(min-width: 1024px) 256px, (min-width: 640px) 33vw, 50vw" />
                 <span className="absolute bottom-2 right-2 rounded-full bg-white/90 p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ZoomIn className="h-4 w-4 text-indigo-600" aria-hidden="true" />
+                  <ZoomIn className="h-4 w-4 text-brand-red" aria-hidden="true" />
                 </span>
               </div>
               <p className="mt-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300">{item.alt}</p>

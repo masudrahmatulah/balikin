@@ -14,7 +14,7 @@ const securityPillars = [
     subtitle: 'Powered by Vercel',
     description:
       'Website dan sistem scan QR kami di-host pada jaringan server Vercel global. Dijamin super cepat, stabil, dan dilengkapi perlindungan otomatis dari serangan siber (DDoS Protection).',
-    color: 'from-blue-500 to-cyan-500',
+    color: 'from-brand-red to-brand-red-dark',
   },
   {
     id: 'privacy',
@@ -23,7 +23,7 @@ const securityPillars = [
     subtitle: 'Powered by Supabase',
     description:
       'Nomor WhatsApp dan alamat rumah Anda diisolasi menggunakan fitur Row Level Security (RLS) Supabase. Data Anda terenkripsi dan tidak akan bisa diintip oleh siapapun.',
-    color: 'from-purple-500 to-pink-500',
+    color: 'from-brand-navy-light to-brand-navy',
   },
   {
     id: 'payment',
@@ -32,7 +32,7 @@ const securityPillars = [
     subtitle: 'Powered by Komerce',
     description:
       'Setiap transaksi lunas via QRIS diproses langsung oleh Komerce Payment API. QRIS berstandar Bank Indonesia dan Balikin tidak pernah menyimpan data keuangan Anda.',
-    color: 'from-green-500 to-emerald-500',
+    color: 'from-[#ff8a3d] to-brand-red-dark',
   },
 ];
 
@@ -73,7 +73,7 @@ export function TrustSecuritySection() {
             viewport={{ once: true }}
             className="inline-flex items-center justify-center mb-4"
           >
-            <div className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-500/10 dark:to-purple-500/10 text-blue-700 dark:text-blue-400 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+            <div className="inline-block bg-gradient-to-r from-red-100 to-red-50 dark:from-brand-red/20 dark:to-brand-red/5 text-brand-red-dark dark:text-red-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border border-brand-red/20">
               🔐 Keamanan Data
             </div>
           </motion.div>
@@ -121,7 +121,7 @@ export function TrustSecuritySection() {
                   <CardContent className="p-8">
                     {/* Icon Background Gradient */}
                     <motion.div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pillar.color} flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 group-hover:shadow-xl transition-all`}
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pillar.color} flex items-center justify-center mb-6 shadow-lg shadow-red-600/20 group-hover:shadow-xl transition-all`}
                       whileHover={{ scale: 1.1 }}
                     >
                       <Icon className="h-7 w-7 text-white" />
@@ -129,7 +129,7 @@ export function TrustSecuritySection() {
 
                     {/* Title & Subtitle */}
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{pillar.title}</h3>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-4">{pillar.subtitle}</p>
+                    <p className="text-sm text-brand-red dark:text-red-300 font-medium mb-4">{pillar.subtitle}</p>
 
                     {/* Description */}
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm">{pillar.description}</p>
@@ -204,9 +204,9 @@ export function TrustSecuritySection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="mt-12 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg"
+            className="mt-12 p-4 bg-red-50 dark:bg-brand-red/10 border border-red-200 dark:border-brand-red/30 rounded-lg"
           >
-            <p className="text-xs text-blue-700 dark:text-blue-400">
+            <p className="text-xs text-brand-red-dark dark:text-red-300">
               <span className="font-bold">✓ Keamanan Terjamin:</span> Setiap aspek platform Balikin mematuhi standar keamanan internasional (ISO 27001) dan regulasi perlindungan data Indonesia.
             </p>
           </motion.div>

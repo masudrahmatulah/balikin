@@ -24,8 +24,8 @@ export function SocialProofSection() {
       <ScrollReveal delay={0.2}>
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           <Badge icon={Shield} text="Privasi Terjamin" colorClass="bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400" delay={0} />
-          <Badge icon={Gift} text="Gratis Selamanya" colorClass="bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" delay={0.1} />
-          <Badge icon={Smartphone} text="Tanpa Aplikasi" colorClass="bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400" delay={0.2} />
+          <Badge icon={Gift} text="Gratis Selamanya" colorClass="bg-red-100 text-brand-red-dark dark:bg-brand-red/15 dark:text-red-300" delay={0.1} />
+          <Badge icon={Smartphone} text="Tanpa Aplikasi" colorClass="bg-slate-900/5 text-brand-navy dark:bg-white/10 dark:text-white" delay={0.2} />
           <Badge icon={Zap} text="Setup 2 Menit" colorClass="bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400" delay={0.3} />
         </div>
       </ScrollReveal>
@@ -41,7 +41,7 @@ export function SocialProofSection() {
 
       <ScrollReveal delay={0.4}>
         <p className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-          <ShieldCheck className="h-4 w-4 text-blue-600" aria-hidden="true" />
+          <ShieldCheck className="h-4 w-4 text-brand-red" aria-hidden="true" />
           Upgrade ke lisensi premium untuk mendapatkan{' '}
           <span className="font-semibold text-gray-700 dark:text-gray-300">⭐ Verified Owner Badge</span> di halaman publik Anda.
         </p>

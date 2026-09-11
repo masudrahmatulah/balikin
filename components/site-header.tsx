@@ -46,7 +46,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm dark:bg-slate-900/90 dark:border-slate-700">
+    <header className="border-b bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm dark:bg-[#07101f]/90 dark:border-slate-700">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-3">
         {/* Logo */}
@@ -54,17 +54,20 @@ export function SiteHeader() {
             <motion.div
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.3 }}
+              className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-[#07101f] shadow-md shadow-red-600/20"
             >
               <Image
-                src="/logo-icon.png"
+                src="/balikin_logo.webp"
                 alt="Balikin Logo"
-                width={520}
+                width={80}
                 height={80}
                 priority
-                className="h-auto w-auto"
-                style={{ height: 'auto', maxHeight: '80px' }}
+                className="h-full w-full object-cover"
               />
             </motion.div>
+            <span className="truncate text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              BALIKIN
+            </span>
           </Link>
 
           <button
@@ -90,7 +93,7 @@ export function SiteHeader() {
             ) : isValidSession ? (
               <>
                 <Link href={dashboardUrl}>
-                  <Button className="shadow-lg shadow-blue-600/20">
+                  <Button className="shadow-lg shadow-red-600/20">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     {isAdmin ? 'Admin' : 'Dashboard'}
                   </Button>
@@ -111,7 +114,7 @@ export function SiteHeader() {
                   <Button variant="outline">Daftar</Button>
                 </Link>
                 <Link href="/sign-in">
-                  <Button className="shadow-lg shadow-blue-600/20">Masuk</Button>
+                  <Button className="shadow-lg shadow-red-600/20">Masuk</Button>
                 </Link>
               </>
             )}

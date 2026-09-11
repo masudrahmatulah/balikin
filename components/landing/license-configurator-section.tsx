@@ -131,18 +131,18 @@ export function LicenseConfiguratorSection() {
   }, [mixCart, mixCartTotal]);
 
   return (
-    <section id="konfigurator" className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-16">
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl dark:bg-indigo-600/20" aria-hidden="true" />
+    <section id="konfigurator" className="relative overflow-hidden bg-gradient-to-b from-red-50 via-white to-white dark:from-brand-navy dark:via-brand-navy-light dark:to-brand-navy py-16">
+      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-red/20 blur-3xl dark:bg-brand-red/20" aria-hidden="true" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-amber-300/30 blur-3xl dark:bg-amber-500/10" aria-hidden="true" />
       <div className="container relative mx-auto px-4">
         <ScrollReveal>
           <div className="max-w-2xl mx-auto text-center mb-12">
-            <Badge className="mb-4 bg-indigo-600 text-white hover:bg-indigo-600">
+            <Badge className="mb-4 bg-brand-red text-white hover:bg-brand-red-dark">
               <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
               Konfigurator Interaktif
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
-              Rakit Lisensi <span className="bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">Balikin</span> Anda Sendiri
+              Rakit Lisensi <span className="bg-gradient-to-r from-brand-red to-[#ff8a3d] bg-clip-text text-transparent">Balikin</span> Anda Sendiri
             </h2>
             <p className="text-gray-600 dark:text-gray-300">
               Setiap pack sudah termasuk Lisensi Akun/ID QR unik di platform balikin.online untuk setiap tag. Pilih wadah, paket, dan opsi desain, harga otomatis menyesuaikan.
@@ -152,22 +152,22 @@ export function LicenseConfiguratorSection() {
 
         <ScrollReveal delay={0.1}>
           <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
-            <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
-              <QrCode className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
+              <QrCode className="h-5 w-5 text-brand-red flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="font-medium text-sm text-gray-900 dark:text-white">1 Lisensi Akun/ID QR</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Unik, aman, berlaku seumur hidup</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
-              <MessageCircleHeart className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
+              <MessageCircleHeart className="h-5 w-5 text-brand-red flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="font-medium text-sm text-gray-900 dark:text-white">Privasi Terjaga</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Nomor HP Anda tidak tercetak di tag fisik</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 rounded-xl border border-indigo-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
-              <InfinityIcon className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-white/70 dark:bg-white/5 dark:border-white/10 p-4 shadow-sm">
+              <InfinityIcon className="h-5 w-5 text-brand-red flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div>
                 <p className="font-medium text-sm text-gray-900 dark:text-white">Bebas Baterai, Seumur Hidup</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Media fisik dicetak sesuai pilihan Anda</p>
@@ -195,8 +195,8 @@ export function LicenseConfiguratorSection() {
                       m.comingSoon
                         ? 'border-gray-200 dark:border-white/10 opacity-60 cursor-not-allowed'
                         : material === m.id
-                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 shadow-md shadow-indigo-100'
-                          : 'border-gray-200 dark:border-white/10 hover:border-indigo-300'
+                          ? 'border-brand-red bg-red-50 dark:bg-red-500/10 shadow-md shadow-red-100'
+                          : 'border-gray-200 dark:border-white/10 hover:border-red-300'
                     }`}
                     aria-pressed={material === m.id}
                   >
@@ -207,10 +207,10 @@ export function LicenseConfiguratorSection() {
                     )}
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-medium text-sm text-gray-900 dark:text-white">{m.name}</span>
-                      {!m.comingSoon && material === m.id && <Check className="h-4 w-4 text-indigo-600" aria-hidden="true" />}
+                      {!m.comingSoon && material === m.id && <Check className="h-4 w-4 text-brand-red" aria-hidden="true" />}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{m.desc}</p>
-                    <span className="text-sm font-semibold text-orange-600">
+                    <span className="text-sm font-semibold text-brand-red-dark dark:text-red-300">
                       {MATERIAL_STARTING_PRICE[m.id]
                         ? `${formatRupiah(MATERIAL_STARTING_PRICE[m.id]!.price)} ${MATERIAL_STARTING_PRICE[m.id]!.unit}`
                         : ''}
@@ -225,7 +225,7 @@ export function LicenseConfiguratorSection() {
                 <button
                   type="button"
                   onClick={() => setLightboxImage({ src: '/desains/sticker1.webp', alt: 'Premium Vinyl Sticker' })}
-                  className="group relative h-56 w-56 sm:h-64 sm:w-64 mx-auto sm:mx-0 block rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-lg shadow-indigo-100/50 cursor-zoom-in"
+                  className="group relative h-56 w-56 sm:h-64 sm:w-64 mx-auto sm:mx-0 block rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg shadow-red-100/50 cursor-zoom-in"
                 >
                   <Image
                     src="/desains/sticker1.webp"
@@ -235,7 +235,7 @@ export function LicenseConfiguratorSection() {
                     sizes="(min-width: 640px) 256px, 224px"
                   />
                   <span className="absolute bottom-3 right-3 rounded-full bg-white/90 p-2 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ZoomIn className="h-4 w-4 text-indigo-600" aria-hidden="true" />
+                    <ZoomIn className="h-4 w-4 text-brand-red" aria-hidden="true" />
                   </span>
                 </button>
 
@@ -252,8 +252,8 @@ export function LicenseConfiguratorSection() {
                           onClick={() => setStickerColorTheme(colorId)}
                           className={`rounded-xl border-2 p-2 text-left transition-all ${
                             isSelected
-                              ? 'border-indigo-600 bg-indigo-50 shadow-sm shadow-indigo-100 dark:bg-indigo-500/10'
-                              : 'border-gray-200 hover:border-indigo-300 dark:border-white/10'
+                              ? 'border-brand-red bg-red-50 shadow-sm shadow-red-100 dark:bg-red-500/10'
+                              : 'border-gray-200 hover:border-red-300 dark:border-white/10'
                           }`}
                           aria-pressed={isSelected}
                         >
@@ -276,7 +276,7 @@ export function LicenseConfiguratorSection() {
                     <h3 className="font-semibold text-gray-900 dark:text-white">3. Pilih Jumlah Pack</h3>
                     <Link
                       href="/stickers"
-                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                      className="text-xs font-medium text-brand-red dark:text-red-300 hover:underline"
                     >
                       Lihat detail & isi tiap paket →
                     </Link>
@@ -289,8 +289,8 @@ export function LicenseConfiguratorSection() {
                         onClick={() => setStickerPack(p.id)}
                         className={`inline-flex flex-col items-start gap-0.5 px-4 py-2 rounded-xl border-2 text-left transition-all ${
                           stickerPack === p.id
-                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200'
-                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-indigo-300'
+                            ? 'border-brand-red bg-brand-red text-white shadow-sm shadow-red-200'
+                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-red-300'
                         }`}
                         aria-pressed={stickerPack === p.id}
                       >
@@ -298,7 +298,7 @@ export function LicenseConfiguratorSection() {
                           {stickerPack === p.id && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                           {p.label}
                         </span>
-                        <span className={`text-xs ${stickerPack === p.id ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>
+                        <span className={`text-xs ${stickerPack === p.id ? 'text-red-100' : 'text-gray-500 dark:text-gray-400'}`}>
                           {p.desc}
                         </span>
                       </button>
@@ -307,14 +307,14 @@ export function LicenseConfiguratorSection() {
                   <button
                     type="button"
                     onClick={addToMixCart}
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-red dark:text-red-300 hover:text-brand-red-dark dark:hover:text-red-300"
                   >
                     <PackagePlus className="h-4 w-4" aria-hidden="true" />
                     Mau campur beberapa paket? Tambahkan ke pesanan
                   </button>
 
                   {mixCart.length > 0 && (
-                    <div className="mt-3 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-500/5 p-3 space-y-2">
+                    <div className="mt-3 rounded-xl border border-red-200 dark:border-brand-red/30 bg-red-50/50 dark:bg-red-500/5 p-3 space-y-2">
                       <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Pesanan campuran Anda:</p>
                       {mixCart.map((item) => {
                         const p = stickerPacks.find((sp) => sp.id === item.packId)!;
@@ -329,7 +329,7 @@ export function LicenseConfiguratorSection() {
                                   type="button"
                                    onClick={() => updateMixCartQty(item.packId, item.colorTheme, -1)}
                                   aria-label={`Kurangi ${p.label}`}
-                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
+                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-brand-red"
                                 >
                                   −
                                 </button>
@@ -338,7 +338,7 @@ export function LicenseConfiguratorSection() {
                                   type="button"
                                    onClick={() => updateMixCartQty(item.packId, item.colorTheme, 1)}
                                   aria-label={`Tambah ${p.label}`}
-                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-indigo-600"
+                                  className="h-5 w-5 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-brand-red"
                                 >
                                   +
                                 </button>
@@ -355,7 +355,7 @@ export function LicenseConfiguratorSection() {
                           </div>
                         );
                       })}
-                      <div className="flex items-center justify-between pt-2 border-t border-indigo-200 dark:border-indigo-500/30 text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="flex items-center justify-between pt-2 border-t border-red-200 dark:border-brand-red/30 text-sm font-semibold text-gray-900 dark:text-white">
                         <span>Estimasi Total</span>
                         <span>{formatRupiah(mixCartTotal)}</span>
                       </div>
@@ -393,8 +393,8 @@ export function LicenseConfiguratorSection() {
                         onBlur={() => setPreviewShape(null)}
                         className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
                           shape === s.id
-                            ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm shadow-indigo-200'
-                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-indigo-300'
+                            ? 'border-brand-red bg-brand-red text-white shadow-sm shadow-red-200'
+                            : 'border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-red-300'
                         }`}
                         aria-pressed={shape === s.id}
                       >
@@ -406,7 +406,7 @@ export function LicenseConfiguratorSection() {
                   <button
                     type="button"
                     onClick={() => setLightboxImage({ src: activeShape.image, alt: activeShape.name })}
-                    className="group relative h-56 w-56 sm:h-64 sm:w-64 flex-shrink-0 block rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-lg shadow-indigo-100/50 cursor-zoom-in"
+                    className="group relative h-56 w-56 sm:h-64 sm:w-64 flex-shrink-0 block rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-white border border-red-100 shadow-lg shadow-red-100/50 cursor-zoom-in"
                   >
                     <AnimatePresence mode="wait">
                       <motion.div
@@ -427,7 +427,7 @@ export function LicenseConfiguratorSection() {
                       </motion.div>
                     </AnimatePresence>
                     <span className="absolute bottom-3 right-3 z-10 rounded-full bg-white/90 p-2 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ZoomIn className="h-4 w-4 text-indigo-600" aria-hidden="true" />
+                      <ZoomIn className="h-4 w-4 text-brand-red" aria-hidden="true" />
                     </span>
                   </button>
                 </div>
@@ -436,15 +436,15 @@ export function LicenseConfiguratorSection() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card className="border-0 bg-gradient-to-br from-indigo-600 to-violet-700 shadow-xl shadow-indigo-300/40 sticky top-24 overflow-hidden">
+            <Card className="border border-brand-red/30 bg-gradient-to-br from-brand-navy-light to-brand-navy shadow-xl shadow-red-900/40 sticky top-24 overflow-hidden">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-white mb-4">Ringkasan Lisensi</h3>
 
-                <div className="mb-4 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs text-indigo-100">
+                <div className="mb-4 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs text-red-100">
                   Dijual per pack berisi <span className="font-semibold text-white">{packSize} pcs</span>, bukan satuan. Harga mengikuti paket yang Anda pilih.
                 </div>
 
-                <ul className="space-y-2 text-sm text-indigo-100 mb-4">
+                <ul className="space-y-2 text-sm text-red-100 mb-4">
                   <li className="flex justify-between">
                     <span>
                       {material === 'vinyl'
@@ -466,17 +466,17 @@ export function LicenseConfiguratorSection() {
                       {formatRupiah(total)}
                     </motion.span>
                   </div>
-                  <p className="text-xs text-indigo-200 mt-1 text-right">
+                  <p className="text-xs text-red-200 mt-1 text-right">
                     {formatRupiah(Math.round(checkoutProduct.price / packSize))} / pcs dalam pack
                   </p>
                 </div>
                 <Link href={`/stickers/checkout?product=${checkoutProductKey}&color=${stickerColorTheme}`} className="block">
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-900/30 border-0" size="lg">
+                  <Button className="w-full bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] text-white shadow-lg shadow-red-900/30 border-0" size="lg">
                     <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
                     Aktifkan Lisensi Ini
                   </Button>
                 </Link>
-                <p className="text-xs text-indigo-200 mt-3 text-center">
+                <p className="text-xs text-red-200 mt-3 text-center">
                   Satu kali bayar, berlaku seumur hidup. Cetak fisik diproses print-on-demand sesuai pilihan Anda.
                 </p>
               </CardContent>

@@ -42,7 +42,7 @@ export function QrScanSimulatorSection() {
   }, [autoPlay]);
 
   return (
-    <section id="simulator-qr" className="bg-gray-50 dark:bg-slate-900 py-16">
+    <section id="simulator-qr" className="bg-gray-50 dark:bg-brand-navy-light py-16">
       <div className="container mx-auto px-4">
         <ScrollReveal>
           <div className="max-w-2xl mx-auto text-center mb-12">
@@ -80,7 +80,7 @@ export function QrScanSimulatorSection() {
                 >
                   {(() => {
                     const Icon = steps[active].icon;
-                    return <Icon className="h-20 w-20 text-blue-600 mb-6" aria-hidden="true" />;
+                    return <Icon className="h-20 w-20 text-brand-red mb-6" aria-hidden="true" />;
                   })()}
                   <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{steps[active].title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{steps[active].desc}</p>
@@ -99,14 +99,14 @@ export function QrScanSimulatorSection() {
                   }}
                   className={`w-full text-left flex items-start gap-4 rounded-xl border-2 p-4 transition-all ${
                     active === i
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/10'
+                      ? 'border-brand-red bg-red-50 dark:bg-brand-red/10'
                       : 'border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600'
                   }`}
                   aria-pressed={active === i}
                 >
                   <div
                     className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      active === i ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'
+                      active === i ? 'bg-brand-red text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'
                     }`}
                   >
                     {i + 1}

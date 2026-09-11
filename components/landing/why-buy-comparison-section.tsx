@@ -83,7 +83,7 @@ export function WhyBuyComparisonSection() {
                 <TableHead className="min-w-[160px] dark:text-white">Tantangan Perlindungan Barang</TableHead>
                 <TableHead className="min-w-[220px] dark:text-white">Pelacak Bluetooth (AirTag/SmartTag)</TableHead>
                 <TableHead className="min-w-[220px] dark:text-white">Menulis Nomor HP di Barang</TableHead>
-                <TableHead className="min-w-[220px] bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">Sistem Smart Tag Balikin</TableHead>
+                <TableHead className="min-w-[220px] bg-red-50 text-brand-red-dark dark:bg-brand-red/10 dark:text-red-300">Sistem Smart Tag Balikin</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -92,7 +92,7 @@ export function WhyBuyComparisonSection() {
                   <TableCell className="font-medium text-gray-900 dark:text-white">{row.aspect}</TableCell>
                   <TableCell className="text-sm text-gray-600 dark:text-gray-300">{row.bluetooth}</TableCell>
                   <TableCell className="text-sm text-gray-600 dark:text-gray-300">{row.phoneNumber}</TableCell>
-                  <TableCell className="text-sm text-gray-800 bg-blue-50/50 dark:bg-blue-500/10 dark:text-gray-200 font-medium">{row.balikin}</TableCell>
+                  <TableCell className="text-sm text-gray-800 bg-red-50/60 dark:bg-brand-red/10 dark:text-gray-200 font-medium">{row.balikin}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -119,7 +119,7 @@ export function WhyBuyComparisonSection() {
               <Card className="h-full">
                 <CardContent className="pt-6">
                   <div className="flex justify-center mb-4">
-                    <point.icon className="h-10 w-10 text-blue-600" aria-hidden="true" />
+                    <point.icon className="h-10 w-10 text-brand-red" aria-hidden="true" />
                   </div>
                   <h4 className="font-bold mb-2 text-center dark:text-white">{point.title}</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300">{point.desc}</p>
@@ -133,7 +133,7 @@ export function WhyBuyComparisonSection() {
       <ScrollReveal delay={0.4}>
         <div className="text-center">
           <Link href="#konfigurator">
-            <Button size="lg" className="text-lg px-8 py-6 shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 transition-all">
+            <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all">
               Amankan Barang Saya Sekarang — Sebelum Terlambat
               <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Button>

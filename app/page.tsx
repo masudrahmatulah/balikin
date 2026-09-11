@@ -62,7 +62,7 @@ const homeSchema = {
         "Platform Smart Lost and Found Indonesia berbasis QR Code dinamis untuk menghubungkan barang hilang dengan pemiliknya melalui notifikasi WhatsApp dengan teknologi pelacakan lokasi real-time.",
       logo: {
         "@type": "ImageObject",
-        url: absoluteUrl("/logo-icon.png"),
+        url: absoluteUrl("/balikin_logo.webp"),
         width: 200,
         height: 200,
       },
@@ -214,7 +214,7 @@ const homeSchema = {
       "@type": "LocalBusiness",
       "@id": absoluteUrl("/#local-business"),
       name: "Balikin Smart Tag Indonesia",
-      image: absoluteUrl("/logo-icon.png"),
+      image: absoluteUrl("/balikin_logo.webp"),
       description: "Platform smart lost and found Indonesia dengan sistem QR code pelacakan barang hilang terkemuka",
       telephone: "+62XXX",
       areaServed: "ID",

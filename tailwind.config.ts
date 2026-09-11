@@ -55,7 +55,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Balikin Gold Theme Colors (Legacy/Alternative)
+        // Balikin Brand Colors (navy + red, dari desain landing page)
+        brand: {
+          navy: {
+            DEFAULT: "#07101f",
+            light: "#0c1729",
+          },
+          red: {
+            DEFAULT: "#ff1f2d",
+            dark: "#d90f1d",
+            light: "#ff4854",
+          },
+        },
         "surface-container": "#231f14",
         "status-critical": "#FF4D4D",
         "on-error": "#690005",
@@ -107,10 +118,10 @@ const config: Config = {
         // Mobile Design Tokens - Single Source of Truth for Mobile App
         mobile: {
           primary: {
-            DEFAULT: "#2563eb", // blue-600 equivalent
-            light: "#3b82f6", // blue-500
-            dark: "#1d4ed8", // blue-700
-            lighter: "#dbeafe", // blue-100
+            DEFAULT: "#ff1f2d", // brand red
+            light: "#ff4854",
+            dark: "#d90f1d",
+            lighter: "#fee2e5", // red-100
           },
           success: {
             DEFAULT: "#10b981", // emerald-600
@@ -133,7 +144,7 @@ const config: Config = {
             lighter: "#f3e8ff", // purple-100
           },
           background: {
-            DEFAULT: "#f0f9ff", // blue-50
+            DEFAULT: "#fef2f2", // red-50
             to: "#ffffff",
           },
         },
