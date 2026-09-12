@@ -49,12 +49,12 @@ BETTER_AUTH_URL=https://balikin.vercel.app
 NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin.vercel.app
 
 # EMAIL (RESEND)
-RESEND_API_KEY=REDACTED
+RESEND_API_KEY=isi-dari-dashboard-resend
 EMAIL_FROM="Balikin <noreply@balikin.masudrahmat.my.id>"
 
 # WHATSAPP (FONNTE) - Optional
-FONNTE_API_TOKEN=your_fonnte_token
-FONNTE_DEVICE_ID=your_device_id
+FONNTE_API_TOKEN=isi-dari-dashboard-fonnte
+FONNTE_DEVICE_ID=nomor-wa-device
 FONNTE_BASE_URL=https://api.fonnte.com
 WHATSAPP_ORDER_NUMBER=6282255905612
 ```

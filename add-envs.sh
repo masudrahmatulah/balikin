@@ -15,7 +15,7 @@ echo ""
 # Add all environment variables for production
 echo "Adding DATABASE_URL..."
 vercel env add DATABASE_URL production <<EOF
-postgresql://postgres:REDACTED@db.REDACTED.supabase.co:5432/postgres
+REDACTED-isi-manual-di-dashboard
 EOF
 
 echo "Adding NEXT_PUBLIC_APP_URL..."
@@ -30,7 +30,7 @@ EOF
 
 echo "Adding BETTER_AUTH_SECRET..."
 vercel env add BETTER_AUTH_SECRET production <<EOF
-REDACTED=
+REDACTED-isi-manual-di-dashboard
 EOF
 
 echo "Adding BETTER_AUTH_URL..."
@@ -45,17 +45,17 @@ EOF
 
 echo "Adding RESEND_API_KEY..."
 vercel env add RESEND_API_KEY production <<EOF
-REDACTED
+REDACTED-isi-manual-di-dashboard
 EOF
 
 echo "Adding FONNTE_API_TOKEN..."
 vercel env add FONNTE_API_TOKEN production <<EOF
-REDACTED
+REDACTED-isi-manual-di-dashboard
 EOF
 
 echo "Adding FONNTE_DEVICE_ID..."
 vercel env add FONNTE_DEVICE_ID production <<EOF
-087883956811
+REDACTED-nomor-wa-device
 EOF
 
 echo "Adding FONNTE_BASE_URL..."
@@ -65,12 +65,12 @@ EOF
 
 echo "Adding FONNTE_PRIORITY_API_TOKEN..."
 vercel env add FONNTE_PRIORITY_API_TOKEN production <<EOF
-REDACTED
+REDACTED-isi-manual-di-dashboard
 EOF
 
 echo "Adding FONNTE_PRIORITY_DEVICE_ID..."
 vercel env add FONNTE_PRIORITY_DEVICE_ID production <<EOF
-087883956811
+REDACTED-nomor-wa-device
 EOF
 
 echo "Adding FONNTE_PRIORITY_BASE_URL..."

@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type ProductKey } from '@/lib/product-catalog';
 import { Loader2, ImagePlus, Trash2 } from 'lucide-react';
+import { ImageCropper } from '@/components/image-cropper';
 import { type StickerColorTheme } from '@/lib/sticker-color-themes';
 
 interface CheckoutFormProps {
@@ -69,6 +70,8 @@ export function CheckoutForm({
   const [isPending, startTransition] = useTransition();
   const [isUploadingBackside, setIsUploadingBackside] = useState(false);
   const [backsideUploadError, setBacksideUploadError] = useState<string | null>(null);
+  const [cropImageUrl, setCropImageUrl] = useState<string | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
 
   const isAcrylic = productKey === 'armor-tag';
 
@@ -168,14 +171,35 @@ export function CheckoutForm({
     }
   };
 
-  const handleBacksideFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBacksideFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setBacksideUploadError('File harus berupa gambar (JPG, PNG, WebP)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setBacksideUploadError('Ukuran gambar maksimal 5MB');
+      return;
+    }
+    setBacksideUploadError(null);
+    if (cropImageUrl) URL.revokeObjectURL(cropImageUrl);
+    setCropImageUrl(URL.createObjectURL(file));
+    setCropOpen(true);
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    setCropOpen(false);
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+      setCropImageUrl(null);
+    }
     setIsUploadingBackside(true);
     setBacksideUploadError(null);
     try {
       const body = new FormData();
-      body.append('file', file);
+      body.append('file', blob, 'cropped.jpg');
       const response = await fetch('/api/upload/custom-backside', {
         method: 'POST',
         body,
@@ -190,7 +214,6 @@ export function CheckoutForm({
       setBacksideUploadError(error instanceof Error ? error.message : 'Gagal mengupload gambar');
     } finally {
       setIsUploadingBackside(false);
-      e.target.value = '';
     }
   };
 
@@ -600,6 +623,13 @@ export function CheckoutForm({
       >
         {isPending ? 'Memproses...' : 'Lanjutkan ke Instruksi Pembayaran'}
       </Button>
+
+      <ImageCropper
+        open={cropOpen}
+        onOpenChange={setCropOpen}
+        imageUrl={cropImageUrl}
+        onComplete={handleCropComplete}
+      />
     </form>
   );
 }

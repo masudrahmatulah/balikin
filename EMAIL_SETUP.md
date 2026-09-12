@@ -4,7 +4,7 @@
 
 ### Development (.env.local)
 ```bash
-RESEND_API_KEY="REDACTED"
+RESEND_API_KEY="isi-dari-dashboard-resend"
 FORCE_SEND_EMAIL="true"
 EMAIL_FROM="Balikin <noreply@balikin.masudrahmat.my.id>"
 ```
@@ -21,7 +21,7 @@ BETTER_AUTH_URL="https://balikin.masudrahmat.my.id"
 NEXT_PUBLIC_BETTER_AUTH_URL="https://balikin.masudrahmat.my.id"
 
 # Email (Resend)
-RESEND_API_KEY="REDACTED"
+RESEND_API_KEY="isi-dari-dashboard-resend"
 EMAIL_FROM="Balikin <noreply@balikin.masudrahmat.my.id>"
 
 # Optional: WhatsApp (Fonnte)
@@ -128,7 +128,7 @@ vercel env add NEXT_PUBLIC_BETTER_AUTH_URL
 | Variable | Value | Environment |
 |----------|-------|-------------|
 | `DATABASE_URL` | `postgresql://...` | Production |
-| `RESEND_API_KEY` | `re_G3jwz4vK_...` | Production |
+| `RESEND_API_KEY` | `REDACTED` | Production |
 | `EMAIL_FROM` | `Balikin <noreply@balikin.masudrahmat.my.id>` | Production |
 | `BETTER_AUTH_URL` | `https://balikin.masudrahmat.my.id` | Production |
 | `NEXT_PUBLIC_BETTER_AUTH_URL` | `https://balikin.masudrahmat.my.id` | Production |

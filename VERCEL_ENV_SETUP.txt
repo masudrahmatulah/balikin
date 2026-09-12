@@ -12,7 +12,7 @@
 
 # DATABASE (Wajib - dari Supabase)
 Name: DATABASE_URL
-Value: postgresql://postgres:REDACTED@db.REDACTED.supabase.co:5432/postgres
+REDACTED-isi-manual-di-dashboard
 Environments: Production, Preview, Development
 
 ---
@@ -33,7 +33,7 @@ Environments: Production
 
 # Auth Secret (Wajib)
 Name: BETTER_AUTH_SECRET
-Value: REDACTED=
+REDACTED-isi-manual-di-dashboard
 Environments: Production, Preview, Development
 
 ---
@@ -54,14 +54,14 @@ Environments: Production, Preview, Development
 
 # Resend API Key (Untuk email OTP)
 Name: RESEND_API_KEY
-Value: REDACTED
+REDACTED-isi-manual-di-dashboard
 Environments: Production, Preview, Development
 
 ---
 
 # Fonnte API Token (WhatsApp standard)
 Name: FONNTE_API_TOKEN
-Value: REDACTED
+REDACTED-isi-manual-di-dashboard
 Environments: Production, Preview, Development
 
 ---
@@ -82,7 +82,7 @@ Environments: Production, Preview, Development
 
 # Fonnte Priority API Token (WhatsApp premium)
 Name: FONNTE_PRIORITY_API_TOKEN
-Value: REDACTED
+REDACTED-isi-manual-di-dashboard
 Environments: Production, Preview, Development
 
 ---

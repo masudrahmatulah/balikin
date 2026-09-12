@@ -5,6 +5,7 @@ import { tags, user } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { hashValue } from "@/lib/crypto";
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { clearActivationSession } from "@/lib/activation-cookie";
 
 interface ActivateResult {
@@ -25,7 +26,7 @@ export async function processActivation(
   data: { slug: string; tokenOrPin: string }
 ): Promise<ActivateResult> {
   const session = await auth.api.getSession({
-    headers: new Headers({ cookie: "" }),
+    headers: await headers(),
   });
 
   if (!session) {
@@ -36,42 +37,41 @@ export async function processActivation(
   const hashInput = hashValue(data.tokenOrPin.trim().toUpperCase());
 
   try {
-    // Use transaction with row locking (SELECT FOR UPDATE) to prevent race conditions (Grill Guard 2.2)
+    // Transaksi + row lock (SELECT FOR UPDATE) cegah klaim ganda (Grill Guard 2.2)
+    // Query memakai parameter binding Drizzle — tanpa interpolasi string (anti SQL injection)
     const result = await db.transaction(async (tx) => {
-      // Find tag with row lock - prevents concurrent claims
-      const tag = await tx.execute(`
-        SELECT * FROM balikin_tags
-        WHERE slug = '${data.slug}' AND status = 'unclaimed'
-        FOR UPDATE
-      `);
+      const [tagData] = await tx
+        .select()
+        .from(tags)
+        .where(and(eq(tags.slug, data.slug), eq(tags.status, "unclaimed")))
+        .for("update");
 
-      if (!tag || tag.rows.length === 0) {
+      if (!tagData) {
         return { success: false, error: "Aset tidak ditemukan atau sudah diaktifkan." };
       }
 
-      const tagData = tag.rows[0] as any;
-
       // Verify hash matches either token OR PIN (both use same SHA-256 hashing)
       const isValid =
-        tagData.activation_token_hash === hashInput ||
-        tagData.activation_pin_hash === hashInput;
+        tagData.activationTokenHash === hashInput ||
+        tagData.activationPinHash === hashInput;
 
       if (!isValid) {
         return { success: false, error: "Kode Aktivasi atau PIN tidak cocok. Silakan coba lagi." };
       }
 
       // Update ownership with claimed_at timestamp
-      await tx.execute(`
-        UPDATE balikin_tags
-        SET owner_id = '${userId}',
-            status = 'claimed',
-            claimed_at = NOW()
-        WHERE id = '${tagData.id}'
-      `);
+      await tx
+        .update(tags)
+        .set({
+          ownerId: userId,
+          status: "claimed",
+          claimedAt: new Date(),
+        })
+        .where(eq(tags.id, tagData.id));
 
       return {
         success: true,
-        serialNumber: tagData.serial_number,
+        serialNumber: tagData.serialNumber ?? undefined,
         tagId: tagData.id,
       };
     });
@@ -82,12 +82,12 @@ export async function processActivation(
     }
 
     // Get user name for success message
-    const user = await db.query.user.findFirst({
+    const owner = await db.query.user.findFirst({
       where: eq(user.id, userId),
       columns: { name: true },
     });
 
-    return { ...result, userName: user?.name || undefined };
+    return { ...result, userName: owner?.name || undefined };
   } catch (error) {
     console.error("Activation error:", error);
     return { success: false, error: "Terjadi kesalahan sistem. Silakan coba lagi." };
