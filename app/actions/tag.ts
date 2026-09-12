@@ -8,6 +8,7 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { FREE_TAG_LIMIT, FREE_TAG_TRIAL_DAYS } from '@/lib/constants';
+import { hashValue } from '@/lib/crypto';
 import { ProductType } from '@/lib/product';
 import { revalidatePath } from 'next/cache';
 
@@ -308,7 +309,19 @@ export async function deleteTag(tagId: string) {
   return { success: true };
 }
 
-export async function claimTag(tagId: string) {
+/**
+ * Kode klaim khusus (PIN kemasan, hash SHA-256) wajib untuk scan pertama
+ * sticker & akrilik yang diproduksi via VDP. Tag lama tanpa PIN tetap
+ * bisa diklaim langsung agar tidak merusak alur yang sudah berjalan.
+ */
+function assertClaimPin(tag: { activationPinHash: string | null }, pin?: string): void {
+  if (!tag.activationPinHash) return;
+  if (!pin || hashValue(pin) !== tag.activationPinHash) {
+    throw new Error('Kode klaim salah. Masukkan kode khusus yang ada di dalam kemasan.');
+  }
+}
+
+export async function claimTag(tagId: string, pin?: string) {
   const session = await getClaimSession();
 
   if (!session?.user?.id) {
@@ -326,6 +339,9 @@ export async function claimTag(tagId: string) {
   if (tag.ownerId && tag.ownerId !== session.user.id) {
     throw new Error('Tag already owned by another user');
   }
+
+  // Scan pertama sticker & akrilik wajib kode klaim khusus (PIN kemasan)
+  assertClaimPin(tag, pin);
 
   if (tag.productType === 'sticker') {
     redirect(`/claim/${tagId}?step=name`);
@@ -341,7 +357,7 @@ export async function claimTag(tagId: string) {
   redirect('/dashboard');
 }
 
-export async function claimStickerTag(tagId: string, name: string) {
+export async function claimStickerTag(tagId: string, name: string, pin?: string) {
   const session = await getClaimSession();
 
   if (!session?.user?.id) {
@@ -359,6 +375,9 @@ export async function claimStickerTag(tagId: string, name: string) {
   if (tag.ownerId && tag.ownerId !== session.user.id) {
     throw new Error('Tag already owned by another user');
   }
+
+  // Scan pertama sticker wajib kode klaim khusus (PIN kemasan)
+  assertClaimPin(tag, pin);
 
   if (tag.productType !== 'sticker' || !tag.bundleId) {
     throw new Error('Tag ini bukan bagian dari sticker pack');

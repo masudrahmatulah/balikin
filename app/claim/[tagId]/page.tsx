@@ -266,20 +266,39 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
                 Beri nama sticker ini agar langsung muncul rapi di dashboard Anda.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form action={async (formData) => {
-                'use server';
-                const name = String(formData.get('name') ?? '').trim();
-                if (!name) {
-                  throw new Error('Nama barang wajib diisi');
-                }
-                await claimStickerTag(tagId, name);
-              }} className="space-y-4">
-                <div className="rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                  Sticker pack ini terhubung ke order atas nama <span className="font-medium text-slate-900">{stickerOrder.recipientName}</span>.
-                </div>
+          <CardContent>
+            {claimError && (
+              <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                {claimError}
+              </div>
+            )}
+            <form action={async (formData) => {
+              'use server';
+              const { redirect } = await import('next/navigation');
+              const name = String(formData.get('name') ?? '').trim();
+              if (!name) {
+                throw new Error('Nama barang wajib diisi');
+              }
+              const pin = String(formData.get('pin') ?? '').trim() || undefined;
+              try {
+                await claimStickerTag(tagId, name, pin);
+              } catch (e: unknown) {
+                const digest = (e as { digest?: string } | null)?.digest ?? '';
+                if (digest.startsWith('NEXT_REDIRECT')) throw e;
+                redirect(`/claim/${tagId}?error=${encodeURIComponent(e instanceof Error ? e.message : 'Gagal mengaktifkan sticker.')}`);
+              }
+            }} className="space-y-4">
+              <div className="rounded-lg bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                Sticker pack ini terhubung ke order atas nama <span className="font-medium text-slate-900">{stickerOrder.recipientName}</span>.
+              </div>
+              {tag.activationPinHash && (
                 <div>
-                  <Label htmlFor="name">Nama Barang</Label>
+                  <Label htmlFor="pin">Kode Klaim Khusus</Label>
+                  <Input id="pin" name="pin" required placeholder="Kode di dalam kemasan" className="uppercase" />
+                </div>
+              )}
+              <div>
+                <Label htmlFor="name">Nama Barang</Label>
                   <Input
                     id="name"
                     name="name"
@@ -290,6 +309,74 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
                 </div>
                 <Button type="submit" className="w-full">
                   Aktifkan Sticker Ini
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    // Scan pertama wajib kode klaim khusus (PIN kemasan) bila tag memilikinya
+    if (tag.activationPinHash) {
+      // Sudah milik user ini → langsung info aktif
+      if (tag.ownerId && tag.ownerId === session.user.id) {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <CardTitle>Tag Sudah Aktif</CardTitle>
+                <CardDescription>Tag ini sudah terhubung ke akun Anda.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link href="/dashboard">Buka Dashboard</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+                <Lock className="h-8 w-8 text-slate-600" />
+              </div>
+              <CardTitle>Kode Klaim Khusus</CardTitle>
+              <CardDescription>
+                Scan pertama wajib memasukkan kode khusus yang ada di dalam kemasan untuk menjadi pemilik.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {claimError && (
+                <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+                  {claimError}
+                </div>
+              )}
+              <form action={async (formData) => {
+                'use server';
+                const { redirect } = await import('next/navigation');
+                const pin = String(formData.get('pin') ?? '').trim();
+                try {
+                  await claimTag(tagId, pin || undefined);
+                } catch (e: unknown) {
+                  const digest = (e as { digest?: string } | null)?.digest ?? '';
+                  if (digest.startsWith('NEXT_REDIRECT')) throw e;
+                  redirect(`/claim/${tagId}?error=${encodeURIComponent(e instanceof Error ? e.message : 'Gagal mengklaim tag.')}`);
+                }
+              }} className="space-y-4">
+                <div>
+                  <Label htmlFor="pin">Kode Klaim Khusus</Label>
+                  <Input id="pin" name="pin" required placeholder="Kode di dalam kemasan" className="uppercase" />
+                </div>
+                <Button type="submit" className="w-full">
+                  Verifikasi & Klaim
                 </Button>
               </form>
             </CardContent>
@@ -344,7 +431,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
           {tag.productType === 'acrylic' ? (
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm leading-6 text-amber-900">
               <p className="font-semibold mb-2">🎉 Selamat! Anda adalah pemilik pertama!</p>
-              <p>Gantungan akrilik premium ini belum memiliki pemilik. Setelah login, Anda akan:</p>
+              <p>Gantungan akrilik premium ini belum memiliki pemilik. Siapkan kode klaim khusus di dalam kemasan. Setelah login, Anda akan:</p>
               <ul className="mt-2 space-y-1 break-words list-disc list-inside">
                 <li>Menjadi pemilik permanen dengan akses penuh</li>
                 <li>Bisa mengubah status hilang/normal</li>
@@ -354,7 +441,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
             </div>
           ) : (
             <div className="rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
-              <p>Setelah login, tag ini akan terhubung ke akun Anda dan Anda dapat:</p>
+              <p>Setelah login, tag ini akan terhubung ke akun Anda (siapkan kode klaim khusus di dalam kemasan) dan Anda dapat:</p>
               <ul className="mt-2 space-y-1 break-words list-disc list-inside">
                 <li>Mengubah status barang hilang/normal</li>
                 <li>Melihat riwayat lokasi scan</li>
