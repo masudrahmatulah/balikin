@@ -101,7 +101,7 @@ export default function YTLaunchPage() {
         {/* Final CTA */}
         <section className="py-8 px-4 bg-slate-900 text-white text-center">
           <h2 className="text-lg font-bold mb-2">Link YouTube Kamu Menuju Kesini</h2>
-          <p className="text-sm text-slate-300 mb-4">Pasang di deskripsi & pin comment. Semua lead kecatat sebagai <code>yt-launch</code> di <code>balikin_campaign_leads</code>.</p>
+          <p className="text-sm text-slate-300 mb-4">Pasang di deskripsi & pin comment: <span className="font-mono text-white">balikin.online/yt-launch</span>. Semua lead kecatat sebagai <code>yt-launch</code></p>
           <CampaignForm campaignName="yt-launch" campaignTitle="Balikin YT Launch - QR Dinamis" />
         </section>
 
