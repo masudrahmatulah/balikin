@@ -274,6 +274,9 @@ export const scanLogs = pgTable('scan_logs', {
   latitude: text('latitude'),
   longitude: text('longitude'),
   deviceInfo: text('device_info'),
+  // Sumber lokasi: 'ip' (perkiraan kota via geo-IP, bisa meleset) | 'gps' (presisi browser)
+  locationSource: text('location_source').default('ip').notNull(),
+  accuracyMeters: integer('accuracy_meters'), // radius akurasi GPS dalam meter (null bila IP)
 }, (table) => ({
   tagIdx: index('idx_scan_logs_tag_id').on(table.tagId),
 }));

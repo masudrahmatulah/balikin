@@ -18,6 +18,9 @@ interface ScanAlertWhatsAppOptions {
   tagName: string;
   scannedAt: Date | string | null;
   city?: string | null;
+  locationSource?: string | null;
+  /** Override mentah baris lokasi (mis. alert non-scan) */
+  locationLabel?: string | null;
   deviceInfo?: string | null;
   tagUrl?: string | null;
   channel?: WhatsAppChannel;
@@ -124,16 +127,24 @@ function generateScanAlertWhatsAppMessage({
   tagName,
   scannedAt,
   city,
+  locationSource,
+  locationLabel,
   deviceInfo,
   tagUrl,
 }: Omit<ScanAlertWhatsAppOptions, 'phoneNumber' | 'channel'>): string {
+  const isGps = locationSource === 'gps';
+  const computedLabel = city
+    ? isGps
+      ? `Lokasi presisi (GPS): ${city}`
+      : `Lokasi kasar (perkiraan kota): sekitar ${city}`
+    : 'Lokasi tidak diketahui';
   const lines = [
     'Balikin Scan Alert',
     '',
     `Tag *${tagName}* baru saja di-scan saat mode hilang aktif.`,
     '',
     `Waktu: ${formatScanTime(scannedAt)}`,
-    `Lokasi kasar: ${city || 'Lokasi tidak diketahui'}`,
+    locationLabel ?? computedLabel,
     `Perangkat: ${deviceInfo || 'Perangkat tidak diketahui'}`,
   ];
 

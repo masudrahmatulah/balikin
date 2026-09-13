@@ -263,7 +263,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                 <>
                   <div className="flex justify-center">
                     <WhatsAppButton
-                      phone={tag.contactWhatsapp}
+                      slug={tag.slug}
                       message={
                         tag.customMessage
                           ? `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang. ${tag.customMessage}`
@@ -324,7 +324,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
               {tag.contactWhatsapp && (
                 <div className="flex justify-center pt-4">
                   <WhatsAppButton
-                    phone={tag.contactWhatsapp}
+                    slug={tag.slug}
                     message={tag.customMessage || `Halo, saya ingin bertanya tentang tag "${tag.name}".`}
                     size="lg"
                     className="w-full sm:w-auto"
@@ -345,7 +345,18 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                 {recentScans.map((scan) => (
                   <div key={scan.id} className="rounded bg-gray-50 p-2 text-xs text-gray-600">
                     <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
-                      <span>{scan.city || 'Lokasi tidak diketahui'}</span>
+                      <span>
+                        {scan.city || 'Lokasi tidak diketahui'}{' '}
+                        {scan.locationSource === 'gps' ? (
+                          <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700">
+                            GPS
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                            Perkiraan
+                          </span>
+                        )}
+                      </span>
                       <span>
                         {scan.scannedAt ? new Date(scan.scannedAt).toLocaleString('id-ID', {
                           day: 'numeric',

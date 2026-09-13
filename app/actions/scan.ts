@@ -119,6 +119,12 @@ export async function logScan(tagId: string, clientLocation?: ClientLocation): P
     const city = vercelCity ? `${vercelCity}${vercelCountry ? `, ${vercelCountry}` : ''}` : null;
     const latitude = useClientLocation ? clientLocation.latitude.toString() : (vercelLat || null);
     const longitude = useClientLocation ? clientLocation.longitude.toString() : (vercelLon || null);
+    // Sumber lokasi: GPS browser (presisi) vs geo-IP Vercel (perkiraan kota)
+    const locationSource = useClientLocation ? 'gps' : 'ip';
+    const accuracyMeters =
+      useClientLocation && typeof clientLocation.accuracy === 'number' && !isNaN(clientLocation.accuracy)
+        ? Math.round(clientLocation.accuracy)
+        : null;
 
     const insertedScan = await db
       .insert(scanLogs)
@@ -129,6 +135,8 @@ export async function logScan(tagId: string, clientLocation?: ClientLocation): P
         latitude,
         longitude,
         deviceInfo,
+        locationSource,
+        accuracyMeters,
       })
       .returning({ id: scanLogs.id });
 
@@ -163,6 +171,11 @@ export async function updateScanLocation(scanLogId: string, clientLocation: Clie
       .set({
         latitude: clientLocation.latitude.toString(),
         longitude: clientLocation.longitude.toString(),
+        locationSource: 'gps',
+        accuracyMeters:
+          typeof clientLocation.accuracy === 'number' && !isNaN(clientLocation.accuracy)
+            ? Math.round(clientLocation.accuracy)
+            : null,
       })
       .where(eq(scanLogs.id, scanLogId));
 
@@ -211,6 +224,11 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
       .set({
         latitude: clientLocation.latitude.toString(),
         longitude: clientLocation.longitude.toString(),
+        locationSource: 'gps',
+        accuracyMeters:
+          typeof clientLocation.accuracy === 'number' && !isNaN(clientLocation.accuracy)
+            ? Math.round(clientLocation.accuracy)
+            : null,
       })
       .where(eq(scanLogs.id, latestScanId));
 

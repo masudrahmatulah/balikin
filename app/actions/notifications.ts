@@ -177,7 +177,7 @@ async function sendAggregatedWhatsAppNotification(
       phoneNumber,
       tagName: summary.tagsWithUnread[0].tagName,
       scannedAt: new Date(),
-      city: "Chat Alert",
+      locationLabel: 'Chat Alert',
       deviceInfo: `${totalUnread} unread messages`,
       tagUrl: "https://balikin.online/dashboard",
       channel: "standard",

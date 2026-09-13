@@ -297,6 +297,15 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
                             {scan.city || 'Lokasi tidak diketahui'}
+                            {scan.locationSource === 'gps' ? (
+                              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                                GPS presisi{scan.accuracyMeters ? ` (±${scan.accuracyMeters} m)` : ''}
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                Perkiraan kota
+                              </span>
+                            )}
                             {scan.deviceInfo && (
                               <span className="flex items-center gap-1 break-all text-xs text-gray-500">
                                 <Smartphone className="h-3 w-3" />
@@ -321,6 +330,10 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                         </div>
                       </div>
                     ))}
+                    <p className="text-xs leading-5 text-gray-400">
+                      “Perkiraan kota” = lokasi berbasis IP (bisa meleset, jangan dianggap titik tepat).
+                      “GPS presisi” = penemu mengizinkan lokasi browser.
+                    </p>
                   </div>
                 )}
               </CardContent>

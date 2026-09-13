@@ -228,7 +228,16 @@ export default async function MobileTagDetailPage({ params }: TagDetailPageProps
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">
-                      {scan.city || 'Lokasi tidak diketahui'}
+                      {scan.city || 'Lokasi tidak diketahui'}{' '}
+                      {scan.locationSource === 'gps' ? (
+                        <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-semibold text-green-700">
+                          GPS
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                          Perkiraan
+                        </span>
+                      )}
                     </p>
                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                       <Calendar className="h-3 w-3" />

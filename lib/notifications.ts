@@ -107,6 +107,7 @@ async function sendWhatsAppWithFallback(context: ScanAlertContext, tagUrl: strin
     tagName: context.tag.name,
     scannedAt: context.scanLog.scannedAt,
     city: context.scanLog.city,
+    locationSource: context.scanLog.locationSource,
     deviceInfo: context.scanLog.deviceInfo,
     tagUrl,
   };
@@ -176,6 +177,7 @@ export async function handleScanAlert(tagId: string, scanLogId: string): Promise
           tagName: context.tag.name,
           scannedAt: context.scanLog.scannedAt,
           city: context.scanLog.city,
+          locationSource: context.scanLog.locationSource,
           deviceInfo: context.scanLog.deviceInfo,
           tagUrl,
         });

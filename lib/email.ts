@@ -21,6 +21,7 @@ interface ScanAlertEmailOptions {
   tagName: string;
   scannedAt: Date | string | null;
   city?: string | null;
+  locationSource?: string | null;
   deviceInfo?: string | null;
   tagUrl?: string | null;
 }
@@ -176,11 +177,17 @@ export function generateScanAlertEmail({
   tagName,
   scannedAt,
   city,
+  locationSource,
   deviceInfo,
   tagUrl,
 }: Omit<ScanAlertEmailOptions, 'email'>): { subject: string; html: string } {
   const subject = `Alert scan Balikin: "${tagName}" baru saja di-scan`;
-  const location = city || 'Lokasi tidak diketahui';
+  const isGps = locationSource === 'gps';
+  const location = city
+    ? isGps
+      ? `Lokasi presisi (GPS): ${city}`
+      : `Lokasi kasar (perkiraan kota): sekitar ${city}`
+    : 'Lokasi tidak diketahui';
   const timeLabel = formatScanTime(scannedAt);
   const deviceLabel = deviceInfo || 'Perangkat tidak diketahui';
   const cta = tagUrl

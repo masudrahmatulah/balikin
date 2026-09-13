@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface WhatsAppButtonProps {
-  phone: string;
+  phone?: string;
+  slug?: string;
   message?: string;
   label?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'whatsapp' | 'ghost' | 'link';
@@ -16,6 +17,7 @@ interface WhatsAppButtonProps {
 
 export function WhatsAppButton({
   phone,
+  slug,
   message = 'Halo, saya menemukan barang ini.',
   label = 'Hubungi via WhatsApp',
   variant = 'whatsapp',
@@ -24,7 +26,13 @@ export function WhatsAppButton({
   prominent = false,
 }: WhatsAppButtonProps) {
   const handleContact = () => {
-    // Format phone number - remove any non-digit characters
+    // Level 1 Privacy: if slug provided, use server redirect -> number hidden from page source / JS bundle (free, no Fonnte)
+    if (slug) {
+      const url = `/api/go/${slug}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+      return;
+    }
+    if (!phone) return;
     const cleanPhone = phone.replace(/\D/g, '');
     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');

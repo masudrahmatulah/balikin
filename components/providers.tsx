@@ -7,7 +7,7 @@ import { PWAServiceWorker } from '@/components/pwa-service-worker';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <PWAServiceWorker />
       {children}
     </ThemeProvider>
