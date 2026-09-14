@@ -67,7 +67,7 @@ export default function YTLaunchPage() {
 
         {/* Why vs Spidol */}
         <section className="py-8 px-4 bg-slate-50 dark:bg-slate-900/50">
-          <h2 className="text-lg font-bold text-center mb-6">Kenapa QR Dinamis > Tulis Spidol?</h2>
+          <h2 className="text-lg font-bold text-center mb-6">Kenapa QR Dinamis &gt; Tulis Spidol?</h2>
           <div className="grid gap-4">
             <div className="bg-white dark:bg-slate-800 rounded-xl p-4 flex gap-4">
               <RefreshCw className="w-8 h-8 text-blue-600 flex-shrink-0" />
