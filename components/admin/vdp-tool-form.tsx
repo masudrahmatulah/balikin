@@ -55,6 +55,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
+  const [downloadNote, setDownloadNote] = useState<string | null>(null);
   const [generatedTags, setGeneratedTags] = useState<any[]>([]);
 
   // Bulk generation form
@@ -67,6 +68,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
     stickerProductKey: "stiker-daily" as "stiker-pro" | "stiker-daily" | "stiker-micro" | "stiker-family",
+    outputFormat: "pdf" as "pdf" | "png",
   });
 
   // Individual tag creation form
@@ -233,6 +235,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
       setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
+      setDownloadNote(formData.materialType !== "sticker" && formData.outputFormat === "png" ? "PNG" : null);
       setGeneratedTags(data.tags);
 
       // Reset form
@@ -245,6 +248,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
         stickerShape: "circle",
         stickerSize: "medium",
         stickerProductKey: "stiker-daily",
+        outputFormat: "pdf",
       });
 
       // Refresh tags
@@ -607,6 +611,35 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                     </div>
                   </div>
 
+                  {/* Output Format - Only for acrylic */}
+                  {formData.materialType !== "sticker" && (
+                    <div className="space-y-2">
+                      <Label className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Format File</Label>
+                      <div className="grid grid-cols-2 gap-2 rounded-sm border border-secondary/20 p-1">
+                        {(["pdf", "png"] as const).map((fmt) => (
+                          <button
+                            key={fmt}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, outputFormat: fmt })}
+                            className={`rounded-sm px-3 py-2 text-sm font-body font-medium transition-all ${
+                              formData.outputFormat === fmt
+                                ? "bg-primary text-white shadow-sm"
+                                : "text-secondary hover:text-primary"
+                            }`}
+                            aria-pressed={formData.outputFormat === fmt}
+                          >
+                            {fmt === "pdf" ? "PDF (cetak)" : "PNG (per baris)"}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-secondary/70 leading-tight">
+                        {formData.outputFormat === "png"
+                          ? "Tiap baris jadi file PNG dalam ZIP + kode-klaim.txt"
+                          : "Satu file PDF siap cetak"}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Sticker Configuration - Only for stickers (not Cut & Fold) */}
                   {formData.materialType === "sticker" && (
                     <div className="space-y-4 p-3 bg-neutral/10 rounded-sm border border-secondary/10">
@@ -708,13 +741,14 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download {downloadFormat === "pdf" ? "PDF" : "ZIP"} ({generatedTags.length} tags)
+                        Download {downloadNote ?? (downloadFormat === "pdf" ? "PDF" : "ZIP")} ({generatedTags.length} tags)
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => {
                           setDownloadUrl(null);
+                          setDownloadNote(null);
                           setGeneratedTags([]);
                         }}
                       >

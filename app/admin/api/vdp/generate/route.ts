@@ -41,6 +41,7 @@ interface VDPGenerateRequest {
   adminId: string;
   isCustom: boolean; // Custom photo order flag
   customPhotoData?: string; // Base64 encoded photo data
+  outputFormat?: "pdf" | "png"; // Pilihan file hasil akrilik: PDF (cetak) atau PNG (per-baris, ZIP)
   singleTag?: {
     slug: string;
     name: string;
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag }: VDPGenerateRequest = body;
+    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag, outputFormat }: VDPGenerateRequest = body;
 
     if (!batchName || !quantity || !materialType || !productType || !paperSize) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -554,11 +555,34 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('[API] Total rows generated:', rowBuffers.length);
-      const pdfBuffer = await buildAcrylicRowsPdf(rowBuffers, paperSize as "a3" | "a4" | "a5");
+
+      if (outputFormat === "png") {
+        // PNG: tiap baris sebagai file PNG dalam ZIP + manifest PIN kemasan
+        const zip = new JSZip();
+        rowBuffers.forEach((buf, i) => {
+          zip.file(`${batchName}-baris-${String(i + 1).padStart(2, "0")}.png`, buf);
+        });
+        const pinLines = [
+          `PIN Klaim Khusus - ${batchName}`,
+          `Dibuat: ${new Date().toISOString()}`,
+          '',
+          'Satu kode berlaku untuk 1 tag. Scan pertama wajib memasukkan kode ini.',
+          '',
+          ...allTags.map((t) => `${t.serialNumber || t.slug}\tPIN: ${t.activationPinPlain || '-'}`),
+        ];
+        zip.file('kode-klaim.txt', pinLines.join('\n'));
+        const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+        const zipBase64 = zipBuffer.toString("base64");
+        downloadUrl = `data:application/zip;base64,${zipBase64}`;
+        downloadFormat = "zip";
+        console.log('[API] PNG ZIP base64 length:', zipBase64.length);
+      } else {
+        const pdfBuffer = await buildAcrylicRowsPdf(rowBuffers, paperSize as "a3" | "a4" | "a5");
       const pdfBase64 = pdfBuffer.toString("base64");
       downloadUrl = `data:application/pdf;base64,${pdfBase64}`;
       downloadFormat = "pdf";
       console.log('[API] PDF base64 length:', pdfBase64.length);
+      }
     }
 
     // Calculate items per sheet
