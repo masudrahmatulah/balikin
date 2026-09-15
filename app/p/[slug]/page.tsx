@@ -5,7 +5,6 @@ import { headers } from 'next/headers';
 import { db } from '@/db';
 import { tags, scanLogs, emergencyInformation } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
-import { unstable_cache } from 'next/cache';
 import { logScan } from '@/app/actions/scan';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { PremiumGeolocation } from '@/components/premium-geolocation';
@@ -36,53 +35,42 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
-const getTagBySlug = unstable_cache(
-  async (slug: string) => {
-    return db.query.tags.findFirst({
-      where: eq(tags.slug, slug),
-      with: {
-        owner: {
-          columns: { name: true },
-        },
+async function getTagBySlug(slug: string) {
+  return db.query.tags.findFirst({
+    where: eq(tags.slug, slug),
+    with: {
+      owner: {
+        columns: { name: true },
       },
-    });
-  },
-  ['tag-by-slug'],
-  { revalidate: 300, tags: ['tags'] }
-);
+    },
+  });
+}
 
 function renderTagGreeting(template: string, ownerName: string): string {
   return template.replaceAll('{{ownerName}}', ownerName);
 }
 
-const getEmergencyInfo = unstable_cache(
-  async (tagId: string) => {
-    return db.query.emergencyInformation.findFirst({
-      where: eq(emergencyInformation.tagId, tagId),
-    });
-  },
-  ['emergency-info-by-tag'],
-  { revalidate: 300, tags: ['emergency-info'] }
-);
+async function getEmergencyInfo(tagId: string) {
+  return db.query.emergencyInformation.findFirst({
+    where: eq(emergencyInformation.tagId, tagId),
+  });
+}
 
-const getRecentScans = unstable_cache(
-  async (tagId: string, isStickerTag: boolean, stickerHistoryCutoff: Date) => {
-    if (isStickerTag) {
-      return db.query.scanLogs.findMany({
-        where: and(eq(scanLogs.tagId, tagId), gte(scanLogs.scannedAt, stickerHistoryCutoff)),
-        orderBy: [desc(scanLogs.scannedAt)],
-        limit: 5,
-      });
-    }
+async function getRecentScans(tagId: string, isStickerTag: boolean) {
+  if (isStickerTag) {
+    const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    return db.query.scanLogs.findMany({
+      where: and(eq(scanLogs.tagId, tagId), gte(scanLogs.scannedAt, stickerHistoryCutoff)),
+      orderBy: [desc(scanLogs.scannedAt)],
+      limit: 5,
+    });
+  }
     return db.query.scanLogs.findMany({
       where: eq(scanLogs.tagId, tagId),
       orderBy: [desc(scanLogs.scannedAt)],
       limit: 5,
     });
-  },
-  ['recent-scans-by-tag'],
-  { revalidate: 60, tags: ['scan-logs'] }
-);
+}
 
 export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { slug } = await params;
@@ -102,13 +90,12 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const isStickerTag = isStickerProduct(tag);
   const isAcrylicTag = isAcrylicProduct(tag);
   const productLabel = getTagProductLabel(tag);
-  const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const ownerName = tag.owner?.name || tag.name;
 
   // Batch parallel queries for better performance
   const [emergencyInfo, recentScans, siteSettings] = await Promise.all([
     getEmergencyInfo(tag.id),
-    isLost && !isFreeTag ? getRecentScans(tag.id, isStickerTag, stickerHistoryCutoff) : Promise.resolve([]),
+    isLost && !isFreeTag ? getRecentScans(tag.id, isStickerTag) : Promise.resolve([]),
     getSiteSettings(),
   ]);
   const tagGreeting = renderTagGreeting(siteSettings.tagGreetingTemplate, ownerName);
