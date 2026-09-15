@@ -125,9 +125,10 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     );
   }
 
-  // Sticker QR codes use the public URL for ongoing scans. Before the sheet is
-  // activated, route the first scan into the PIN-protected claim flow.
-  if (isUnclaimed && isStickerTag && !isPreview) {
+  // Sticker & akrilik: scan pertama wajib lewat alur klaim PIN.
+  // QR hanya berisi /p/[slug] tanpa token, jadi tag unclaimed ber-PIN
+  // tidak boleh merender halaman publik sebelum PIN diverifikasi di /claim.
+  if (isUnclaimed && (isStickerTag || isAcrylicTag || tag.activationPinHash) && !isPreview) {
     redirect(`/claim/${tag.id}`);
   }
 

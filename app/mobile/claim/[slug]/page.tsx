@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { db } from '@/db';
 import { tags, scanLogs, emergencyInformation } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
@@ -66,6 +66,12 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
 
   if (!tag) {
     notFound();
+  }
+
+  // Samakan dengan /p/[slug]: scan pertama tag ber-PIN (akrilik/stiker)
+  // wajib lewat /claim agar PIN diverifikasi sebelum konten tampil.
+  if (!tag.ownerId && tag.activationPinHash) {
+    redirect(`/claim/${tag.id}`);
   }
 
   const isLost = tag.status === 'lost';
