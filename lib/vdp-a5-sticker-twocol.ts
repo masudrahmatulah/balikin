@@ -165,11 +165,11 @@ export async function generateA5TwoColStickerSheet(
       }
     }
 
-    // Resize and fit custom photo/logo to right column
+    // Resize and fit custom photo/logo to right column (contain: seluruh gambar nampak)
     const resizedPhoto = await sharp(rightImage)
       .resize(halfWidthPX - 4, itemHeightPX - 4, {
-        fit: 'cover',
-        position: 'center',
+        fit: 'contain',
+        background: { r: 255, g: 255, b: 255 },
       })
       .png()
       .toBuffer();

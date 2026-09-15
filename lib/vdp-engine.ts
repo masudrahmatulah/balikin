@@ -356,7 +356,11 @@ async function getCustomPhotoBuffer(url: string): Promise<Buffer> {
       throw new Error(`Failed to fetch photo: ${response.statusText}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
-    return await sharp(buffer).resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE).png().toBuffer();
+    // Contain (bukan cover): seluruh foto kustom nampak, tidak terpotong tepi
+    return await sharp(buffer).resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    }).png().toBuffer();
   } catch (error) {
     console.error('Error fetching custom photo:', error);
     // Return logo as fallback
@@ -611,10 +615,10 @@ export async function generateOneRowSticker(
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
-    // Kolom 2: Logo Balikin atau Foto Kustom. Sel full-bleed (logo seukuran
-    // canvas, mis. emboss 30x45) memakai file mentah + fit cover, namun
-    // diperkecil merata (FULL_BLEED_INSET_MM) agar ada margin dari garis
-    // potong; sel biasa tetap pakai cache square + contain.
+    // Kolom 2: Logo Balikin atau Foto Kustom. Selalu fit contain agar
+    // seluruh logo/foto nampak (tidak terpotong tepi). Sel full-bleed
+    // (logo seukuran canvas, mis. emboss 30x45) tetap diperkecil merata
+    // (FULL_BLEED_INSET_MM) agar ada margin dari garis potong.
     const isLogoFullBleed =
       (config.logoWidthMm ?? 0) >= config.widthMm &&
       (config.logoHeightMm ?? 0) >= config.heightMm;
@@ -630,12 +634,10 @@ export async function generateOneRowSticker(
         : await getLogoBuffer();
     const contentDataUri = bufferToDataUri(
       await sharp(rawContentBuffer)
-        .resize(logoWidthPx, logoHeightPx, isLogoFullBleed
-          ? { fit: 'cover', position: 'center' }
-          : {
-              fit: 'contain',
-              background: { r: 255, g: 255, b: 255, alpha: 1 },
-            })
+        .resize(logoWidthPx, logoHeightPx, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
         .png()
         .toBuffer()
     );
