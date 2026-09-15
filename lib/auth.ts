@@ -15,17 +15,26 @@ const DEFAULT_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://balikin.online'
   : 'http://localhost:3000';
 
+// Tambahan origin via env (koma, mis. TRUSTED_ORIGINS_EXTRA="http://100.81.50.18:3000")
+// agar IP/devtunnel baru tidak perlu edit kode.
+const EXTRA_ORIGINS = (process.env.TRUSTED_ORIGINS_EXTRA || '')
+  .split(',')
+  .map((s) => s.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
 const TRUSTED_ORIGINS = new Set([
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
+  'http://100.81.50.18:3000',
   'https://balikin.online',
   'https://www.balikin.online',
   'https://balikin-ten.vercel.app',
   'https://*.vercel.app',
   'https://*.euw.devtunnels.ms',
   'https://*.devtunnels.ms',
+  ...EXTRA_ORIGINS,
 ]);
 
 const ALLOWED_REDIRECT_URLS = new Set([
@@ -37,6 +46,8 @@ const ALLOWED_REDIRECT_URLS = new Set([
   'http://127.0.0.1:3000/**',
   'http://127.0.0.1:3001',
   'http://127.0.0.1:3001/**',
+  'http://100.81.50.18:3000',
+  'http://100.81.50.18:3000/**',
   'https://balikin.online',
   'https://balikin.online/**',
   'https://www.balikin.online',
@@ -49,6 +60,8 @@ const ALLOWED_REDIRECT_URLS = new Set([
   'https://*.euw.devtunnels.ms/**',
   'https://*.devtunnels.ms',
   'https://*.devtunnels.ms/**',
+  ...EXTRA_ORIGINS,
+  ...EXTRA_ORIGINS.map((o) => `${o}/**`),
 ]);
 
 const OTP_EXPIRY_SECONDS = 5 * 60;
