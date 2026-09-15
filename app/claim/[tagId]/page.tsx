@@ -460,7 +460,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
                 name="email"
                 type="text"
                 required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-base border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="nama@email.com atau 628123456789@wa.dev"
               />
             </div>

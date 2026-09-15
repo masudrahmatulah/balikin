@@ -113,6 +113,8 @@ export function TabSwitcherHandler({
             )}
           </AuthGate>
         )}
+        {/* Spacer agar ClaimCTA fixed tidak menutupi konten di mobile */}
+        {isUnclaimed && <div className="h-28" aria-hidden="true" />}
       </div>
     </div>
   );

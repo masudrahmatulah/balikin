@@ -209,7 +209,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
                 <AlertDescription>
                   Jika Anda menemukan barang ini, mohon hubungi pemilik segera.
                   {tag.rewardNote && (
-                    <p className="mt-2 font-medium flex items-center gap-1">
+                    <p className="mt-2 font-medium flex flex-wrap items-center gap-1 break-words">
                       <Gift className="h-4 w-4" />
                       Imbalan: {tag.rewardNote}
                     </p>
@@ -219,7 +219,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
               {tag.customMessage && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm text-red-800">{tag.customMessage}</p>
+                  <p className="text-sm text-red-800 break-words">{tag.customMessage}</p>
                 </div>
               )}
 
@@ -281,7 +281,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
               {tag.customMessage && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">{tag.customMessage}</p>
+                  <p className="text-sm text-blue-800 break-words">{tag.customMessage}</p>
                 </div>
               )}
 
@@ -418,6 +418,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
         </div>
 
         {pageContent}
+        {/* Spacer agar ClaimCTA fixed tidak menutupi footer di mobile */}
+        {isUnclaimed && <div className="h-28" aria-hidden="true" />}
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ export function CampaignForm({
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
       <div className="flex flex-col gap-3">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             type="email"
             placeholder="Masukkan email Anda"
@@ -75,7 +75,7 @@ export function CampaignForm({
           <Button
             type="submit"
             disabled={isLoading || !email}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-2 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Proses...' : 'Daftar'}
           </Button>
