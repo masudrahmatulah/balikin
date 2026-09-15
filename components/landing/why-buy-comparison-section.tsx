@@ -133,10 +133,10 @@ export function WhyBuyComparisonSection() {
       <ScrollReveal delay={0.4}>
         <div className="text-center">
           <Link href="#konfigurator">
-            <Button size="lg" className="text-lg px-8 py-6 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all">
-              Amankan Barang Saya Sekarang — Sebelum Terlambat
-              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-            </Button>
+              <Button size="lg" className="h-auto whitespace-normal text-center text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 max-w-full bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all">
+                Amankan Barang Saya Sekarang — Sebelum Terlambat
+                <ArrowRight className="ml-2 h-5 w-5 shrink-0" aria-hidden="true" />
+              </Button>
           </Link>
         </div>
       </ScrollReveal>
