@@ -377,8 +377,8 @@ function renderBottomCaption(
     : gapTopPx + 2;
   const baseline1 = y0 + fontSizePx * 0.85;
   return (
-    renderTextPaths(head, cx, baseline1, fontSizePx, '#111111', true, 0, 'body') +
-    renderTextPaths(tail, cx, baseline1 + lineH, fontSizePx, '#111111', true, 0, 'body')
+    renderTextPaths(head, cx, baseline1, fontSizePx, '#7c3aed', true, 0, 'body') +
+    renderTextPaths(tail, cx, baseline1 + lineH, fontSizePx, '#7c3aed', true, 0, 'body')
   );
 }
 
