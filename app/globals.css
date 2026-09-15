@@ -28,6 +28,16 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    /* Heritage theme tokens (light default; overridden in .dark below) */
+    --hs-primary: #1a1c1e;
+    --hs-primary-fg: #ffffff;
+    --hs-secondary: #6c7278;
+    --hs-secondary-fg: #ffffff;
+    --hs-neutral: #f7f5f2;
+    --hs-neutral-fg: #1a1c1e;
+    --hs-surface: #ffffff;
+    --hs-surface-fg: #1a1c1e;
   }
 
   .dark {
@@ -50,6 +60,16 @@
     --border: 217 32% 18%;
     --input: 217 32% 18%;
     --ring: 0 84% 60%;
+
+    /* Heritage theme tokens — dark adaptations */
+    --hs-primary: #e8e4d8;
+    --hs-primary-fg: #1a1c1e;
+    --hs-secondary: #9aa3ad;
+    --hs-secondary-fg: #ffffff;
+    --hs-neutral: #1e293b;
+    --hs-neutral-fg: #e2e8f0;
+    --hs-surface: #0f172a;
+    --hs-surface-fg: #f1f5f9;
   }
 }
 

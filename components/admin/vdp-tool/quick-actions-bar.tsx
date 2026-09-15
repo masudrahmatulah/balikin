@@ -52,7 +52,7 @@ export function QuickActionsBar({ onCreateSingle }: QuickActionsBarProps) {
             <p className="font-body text-sm text-secondary mb-4">This feature is coming soon.</p>
             <button
               onClick={() => setShowSingleTagModal(false)}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium bg-tertiary text-surface hover:brightness-110"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium bg-tertiary text-white hover:brightness-110"
             >
               Close
             </button>

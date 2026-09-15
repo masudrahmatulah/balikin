@@ -317,7 +317,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                     onChange={handleFileUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <div className="flex items-center justify-center gap-2 w-full h-24 bg-white rounded-sm border-2 border-dashed border-secondary/30 hover:border-tertiary/50 transition-colors">
+                  <div className="flex items-center justify-center gap-2 w-full h-24 bg-surface rounded-sm border-2 border-dashed border-secondary/30 hover:border-tertiary/50 transition-colors">
                     <Upload className="w-5 h-5 text-secondary/40" />
                     <div className="text-center">
                       <p className="font-body text-sm text-secondary/60">Click to upload photo</p>
@@ -462,7 +462,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                     onClick={() => updateFormData({ outputFormat: fmt })}
                     className={`rounded-sm px-3 py-2 text-sm font-body font-medium transition-all ${
                       formData.outputFormat === fmt
-                        ? "bg-primary text-white shadow-sm"
+                              ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-secondary hover:text-primary"
                     }`}
                     aria-pressed={formData.outputFormat === fmt}
@@ -546,7 +546,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               !getQuantityValidation().valid ||
               (formData.isCustom && !formData.customPhotoData)
             }
-            className="w-full bg-tertiary text-surface hover:brightness-110 h-12 font-label text-xs uppercase tracking-[0.2em] font-bold"
+            className="w-full bg-tertiary text-white hover:brightness-110 h-12 font-label text-xs uppercase tracking-[0.2em] font-bold"
           >
             {isGenerating ? (
               <>

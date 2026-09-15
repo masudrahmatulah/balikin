@@ -16,24 +16,24 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#1A1C1E", // Heritage Primary (Ink)
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--hs-primary)", // Heritage Primary (adapts to dark via CSS var)
+          foreground: "var(--hs-primary-fg)",
         },
         secondary: {
-          DEFAULT: "#6C7278", // Heritage Secondary (Slate)
-          foreground: "#FFFFFF",
+          DEFAULT: "var(--hs-secondary)", // Heritage Secondary (adapts to dark via CSS var)
+          foreground: "var(--hs-secondary-fg)",
         },
         tertiary: {
-          DEFAULT: "#B8422E", // Heritage Tertiary (Accent Red)
+          DEFAULT: "#B8422E", // Heritage Tertiary (Accent Red, same both modes)
           foreground: "#FFFFFF",
         },
         neutral: {
-          DEFAULT: "#F7F5F2", // Heritage Neutral (Limestone)
-          foreground: "#1A1C1E",
+          DEFAULT: "var(--hs-neutral)", // Heritage Neutral (adapts to dark via CSS var)
+          foreground: "var(--hs-neutral-fg)",
         },
         surface: {
-          DEFAULT: "#FFFFFF", // Heritage Surface
-          foreground: "#1A1C1E",
+          DEFAULT: "var(--hs-surface)", // Heritage Surface (adapts to dark via CSS var)
+          foreground: "var(--hs-surface-fg)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
