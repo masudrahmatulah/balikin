@@ -40,6 +40,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     isCustom: false,
     customPhotoData: "" as string,
     includeActivation: true,
+    outputFormat: "pdf" as "pdf" | "png",
   });
 
   const updateFormData = (updates: any) => {
@@ -54,6 +55,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
+  const [downloadNote, setDownloadNote] = useState<string | null>(null);
   const [generatedCount, setGeneratedCount] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -122,6 +124,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     setIsGenerating(true);
     setProgress({ current: 0, total: formData.quantity });
     setDownloadUrl(null);
+    setDownloadNote(null);
     setGeneratedCount(0);
 
     try {
@@ -141,6 +144,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
       setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
+      setDownloadNote(formData.materialType !== "sticker" && formData.outputFormat === "png" ? "PNG" : null);
       setGeneratedCount(data.quantity);
 
       if (onGenerate) {
@@ -160,6 +164,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         stickerSize: "medium",
         isCustom: false,
         customPhotoData: "",
+        outputFormat: "pdf",
       });
       setPreviewImage(null);
     } catch (error) {
@@ -437,9 +442,40 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                         </span>
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          )}
+
+          {/* Output Format - Only for acrylic */}
+          {formData.materialType !== "sticker" && (
+            <div className="space-y-2">
+              <Label className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
+                Format File
+              </Label>
+              <div className="grid grid-cols-2 gap-2 rounded-sm border border-secondary/20 p-1">
+                {(["pdf", "png"] as const).map((fmt) => (
+                  <button
+                    key={fmt}
+                    type="button"
+                    onClick={() => updateFormData({ outputFormat: fmt })}
+                    className={`rounded-sm px-3 py-2 text-sm font-body font-medium transition-all ${
+                      formData.outputFormat === fmt
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-secondary hover:text-primary"
+                    }`}
+                    aria-pressed={formData.outputFormat === fmt}
+                  >
+                    {fmt === "pdf" ? "PDF (cetak)" : "PNG (per baris)"}
+                  </button>
+                ))}
               </div>
+              <p className="font-body text-[10px] text-secondary/70 leading-tight">
+                {formData.outputFormat === "png"
+                  ? "Tiap baris jadi file PNG dalam ZIP + kode-klaim.txt"
+                  : "Satu file PDF siap cetak"}
+              </p>
             </div>
           )}
 
@@ -482,13 +518,14 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white h-10"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download {downloadFormat === "pdf" ? "PDF" : "ZIP"}
+                  Download {downloadNote ?? (downloadFormat === "pdf" ? "PDF" : "ZIP")}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
                     setDownloadUrl(null);
+                    setDownloadNote(null);
                     setGeneratedCount(0);
                   }}
                   className="h-10"
