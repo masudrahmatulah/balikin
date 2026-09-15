@@ -6,6 +6,7 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
 import { getStickerProductConfig, type StickerProductKey } from './sticker-template';
+import { fitContainWithFill } from './vdp-engine';
 import { renderText } from './sticker-fonts';
 
 // A5 dimensions at 300 DPI: 1 mm = 11.81 pixels
@@ -165,14 +166,8 @@ export async function generateA5TwoColStickerSheet(
       }
     }
 
-    // Resize and fit custom photo/logo to right column (contain: seluruh gambar nampak)
-    const resizedPhoto = await sharp(rightImage)
-      .resize(halfWidthPX - 4, itemHeightPX - 4, {
-        fit: 'contain',
-        background: { r: 255, g: 255, b: 255 },
-      })
-      .png()
-      .toBuffer();
+    // Kolom kanan: fill penuh dari gambar sendiri (cover-blur) + gambar utuh di tengah
+    const resizedPhoto = await fitContainWithFill(rightImage, halfWidthPX - 4, itemHeightPX - 4);
 
     // Add photo to right column
     compositeOps.push({

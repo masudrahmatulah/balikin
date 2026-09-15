@@ -73,18 +73,55 @@ const LOGO_CACHE_SIZE = 400;
 async function getLogoBuffer(): Promise<Buffer> {
   if (logoBufferCache) return logoBufferCache;
 
-  // Default logo - Balikin's real brand mark, letterboxed onto a white square
-  // so its non-square aspect ratio isn't stretched when composited into the QR box.
+  // Default logo - Balikin's real brand mark, letterboxed onto a transparent
+  // square so its aspect ratio isn't stretched; transparansi dijaga agar
+  // step fill-blur di bawah memakai gambar murni (tanpa bar putih).
   const logoPath = path.join(process.cwd(), 'public', 'balikin_logo.png');
   const rawLogo = await readFile(logoPath);
   logoBufferCache = await sharp(rawLogo)
     .resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE, {
       fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     .png()
     .toBuffer();
   return logoBufferCache;
+}
+
+/**
+ * Totop gambar ke kotak W×H: background = gambar yang sama di-cover + blur
+ * mengisi penuh (tanpa area kosong), foreground = gambar utuh (contain) di
+ * tengah. Logo/foto selalu nampak keseluruhan.
+ */
+export async function fitContainWithFill(
+  rawContent: Buffer,
+  widthPx: number,
+  heightPx: number
+): Promise<Buffer> {
+  const [bg, fg] = await Promise.all([
+    sharp(rawContent)
+      .resize(widthPx, heightPx, { fit: 'cover', position: 'center' })
+      .blur(25)
+      .toBuffer(),
+    sharp(rawContent)
+      .resize(widthPx, heightPx, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer(),
+  ]);
+  return sharp({
+    create: {
+      width: widthPx,
+      height: heightPx,
+      channels: 3,
+      background: { r: 255, g: 255, b: 255 },
+    },
+  })
+    .composite([{ input: bg }, { input: fg }])
+    .png()
+    .toBuffer();
 }
 
 let rawLogoBufferCache: Buffer | null = null;
@@ -356,10 +393,12 @@ async function getCustomPhotoBuffer(url: string): Promise<Buffer> {
       throw new Error(`Failed to fetch photo: ${response.statusText}`);
     }
     const buffer = Buffer.from(await response.arrayBuffer());
-    // Contain (bukan cover): seluruh foto kustom nampak, tidak terpotong tepi
-    return await sharp(buffer).resize(LOGO_CACHE_SIZE, LOGO_CACHE_SIZE, {
-      fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 1 },
+    // Tanpa letterbox: jaga aspek asli (fit inside, tanpa bar) agar langkah
+    // fill-blur di box memakai gambar murni penuh — bar transparan di cache
+    // akan bocor jadi area putih pada background blur.
+    return await sharp(buffer).resize(LOGO_CACHE_SIZE * 2, LOGO_CACHE_SIZE * 2, {
+      fit: 'inside',
+      withoutEnlargement: true,
     }).png().toBuffer();
   } catch (error) {
     console.error('Error fetching custom photo:', error);
@@ -633,13 +672,7 @@ export async function generateOneRowSticker(
         ? await getRawLogoBuffer()
         : await getLogoBuffer();
     const contentDataUri = bufferToDataUri(
-      await sharp(rawContentBuffer)
-        .resize(logoWidthPx, logoHeightPx, {
-          fit: 'contain',
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        })
-        .png()
-        .toBuffer()
+      await fitContainWithFill(rawContentBuffer, logoWidthPx, logoHeightPx)
     );
     const kotak2 = await sharp(buildKotakSvg({
       shapeKey,
