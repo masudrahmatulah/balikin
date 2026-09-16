@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { emailOTP } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
-import { sendOTPEmail } from "@/lib/email";
+import { sendOTPEmail, sendEmail } from "@/lib/email";
 import { sendWhatsAppOTP } from "@/lib/whatsapp";
 import { user, session, account, verification } from "@/db/schema";
 
@@ -152,6 +152,31 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: false,
+    },
+  },
+  // Login/daftar email + password (pelengkap OTP & Google).
+  // Verifikasi email tetap via OTP; reset password via email (butuh Resend aktif di produksi).
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 8,
+    maxPasswordLength: 64,
+    autoSignIn: true,
+    resetPasswordTokenExpiresIn: 3600,
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: 'Reset Password Balikin',
+        html: `
+<!DOCTYPE html>
+<html><body style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px">
+<h2>Reset Password Balikin</h2>
+<p>Klik tombol di bawah untuk membuat password baru (berlaku 1 jam):</p>
+<p><a href="${url}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600">Reset Password</a></p>
+<p>Jika tombol tidak berfungsi, salin link ini: ${url}</p>
+<p>Abaikan email ini bila Anda tidak memintanya.</p>
+</body></html>`.trim(),
+      });
     },
   },
   advanced: {

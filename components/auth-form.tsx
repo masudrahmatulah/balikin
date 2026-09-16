@@ -13,6 +13,7 @@ import { authClient, formatWhatsAppEmail } from "@/lib/auth-client";
 
 type AuthMode = "sign-in" | "sign-up";
 type AuthMethod = "email" | "whatsapp";
+type LoginTab = "otp" | "password";
 
 interface AuthFormProps {
   mode?: AuthMode;
@@ -25,10 +26,14 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authMethod, setAuthMethod] = useState<AuthMethod>("whatsapp");
+  const [loginTab, setLoginTab] = useState<LoginTab>("otp");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [successDest, setSuccessDest] = useState("halaman verifikasi");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -49,6 +54,63 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
       const errorMessage = err instanceof Error ? err.message : "Gagal login dengan Google. Silakan coba lagi.";
       setError(errorMessage);
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.includes("@")) {
+      setError("Masukkan alamat email yang valid.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password minimal 8 karakter.");
+      return;
+    }
+
+    setIsPasswordLoading(true);
+
+    try {
+      const redirectParam = searchParams.get("redirect") || "";
+      const { signIn, signUp } = authClient;
+
+      if (mode === "sign-up") {
+        const res = await signUp.email({
+          email,
+          password,
+          name: name.trim() || email.split("@")[0],
+          fetchOptions: { credentials: "include" },
+        });
+        if (res.error) throw new Error(res.error.message || "Gagal mendaftar.");
+      } else {
+        const res = await signIn.email({
+          email,
+          password,
+          fetchOptions: { credentials: "include" },
+        });
+        if (res.error) throw new Error(res.error.message || "Email atau password salah.");
+      }
+
+      setSuccess(true);
+      setSuccessDest("dashboard");
+      let isAdmin = false;
+      try {
+        const roleRes = await fetch("/api/auth/role", { credentials: "include" });
+        if (roleRes.ok) isAdmin = (await roleRes.json()).isAdmin ?? false;
+      } catch {
+        // abaikan, fallback ke dashboard
+      }
+      const dest = redirectParam || (isAdmin ? "/admin" : "/dashboard");
+      setTimeout(() => {
+        window.location.href = dest;
+      }, AUTO_REDIRECT_MS);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Terjadi kesalahan. Silakan coba lagi.";
+      setError(errorMessage);
+    } finally {
+      setIsPasswordLoading(false);
     }
   };
 
@@ -106,11 +168,11 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
   };
 
   if (success) {
-    return <AuthSuccessState destination="halaman verifikasi" />;
+    return <AuthSuccessState destination={successDest} />;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" aria-label="Formulir autentikasi">
+    <form onSubmit={loginTab === "otp" ? handleSubmit : handlePasswordSubmit} className="space-y-4" aria-label="Formulir autentikasi">
       {error && (
         <div role="alert" aria-live="assertive" className="p-3 rounded-md bg-destructive/15 border border-destructive/20">
           <p className="text-sm text-destructive">{error}</p>
@@ -146,6 +208,35 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1" role="group" aria-label="Pilih cara masuk">
+        <button
+          type="button"
+          onClick={() => setLoginTab("otp")}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            loginTab === "otp"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          aria-pressed={loginTab === "otp"}
+        >
+          Kode OTP
+        </button>
+        <button
+          type="button"
+          onClick={() => setLoginTab("password")}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            loginTab === "password"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+          aria-pressed={loginTab === "password"}
+        >
+          Password
+        </button>
+      </div>
+
+      {loginTab === "otp" && (
+      <>
       <div className="grid grid-cols-1 gap-2 rounded-lg bg-muted p-1 sm:grid-cols-2" role="group" aria-label="Pilih metode autentikasi">
         <button
           type="button"
@@ -220,23 +311,82 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
             placeholder="John Doe"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required={mode === "sign-up"}
-            disabled={isLoading}
+            required={mode === "sign-up" && loginTab === "otp"}
+            disabled={isLoading || isPasswordLoading}
             autoComplete="name"
           />
         </div>
+      )}
+      </>
+      )}
+
+      {loginTab === "password" && (
+      <>
+      <div className="space-y-2">
+        <Label htmlFor="pw-email">Email</Label>
+        <Input
+          id="pw-email"
+          type="email"
+          inputMode="email"
+          placeholder="nama@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={isPasswordLoading}
+          autoComplete="email"
+        />
+      </div>
+      {mode === "sign-up" && (
+        <div className="space-y-2">
+          <Label htmlFor="pw-name">Nama</Label>
+          <Input
+            id="pw-name"
+            type="text"
+            placeholder="John Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            disabled={isPasswordLoading}
+            autoComplete="name"
+          />
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="pw-password">Password</Label>
+        <Input
+          id="pw-password"
+          type="password"
+          placeholder="Minimal 8 karakter"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
+          disabled={isPasswordLoading}
+          autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+        />
+      </div>
+      {mode === "sign-in" && (
+        <div className="text-right">
+          <a href="/forgot-password" className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
+            Lupa password?
+          </a>
+        </div>
+      )}
+      </>
       )}
 
       <Button
         type="submit"
         className="w-full"
-        disabled={isLoading}
+        disabled={isLoading || isPasswordLoading}
       >
-        {isLoading ? (
+        {isLoading || isPasswordLoading ? (
           <span className="flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
             Memproses...
           </span>
+        ) : loginTab === "password" ? (
+          mode === "sign-in" ? "Masuk dengan Password" : "Daftar dengan Password"
         ) : mode === "sign-in" ? (
           authMethod === "whatsapp" ? "Masuk dengan WhatsApp" : "Masuk dengan Email"
         ) : (
