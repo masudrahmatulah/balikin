@@ -204,7 +204,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
           </div>
 
           {/* Quantity & Material - 2 columns */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="quantity" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
                 Quantity <span className="text-red-500">*</span>
@@ -313,15 +313,15 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                   <input
                     id="customPhoto"
                     type="file"
-                    accept="image/png, image/jpeg, image/jpg"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
                     onChange={handleFileUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div className="flex items-center justify-center gap-2 w-full h-24 bg-surface rounded-sm border-2 border-dashed border-secondary/30 hover:border-tertiary/50 transition-colors">
                     <Upload className="w-5 h-5 text-secondary/40" />
                     <div className="text-center">
-                      <p className="font-body text-sm text-secondary/60">Click to upload photo</p>
-                      <p className="font-body text-[10px] text-secondary/40">PNG, JPG up to 5MB</p>
+                      <p className="font-body text-sm text-secondary/60">Ketuk untuk upload foto</p>
+                      <p className="font-body text-[10px] text-secondary/40">PNG, JPG, WebP maks 5MB</p>
                     </div>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
           )}
 
           {/* Product Type & Paper Size - 2 columns */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="productType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">
                 Product Module

@@ -63,7 +63,7 @@ export function RecentTagsSection() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="bg-surface border-secondary/10 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">

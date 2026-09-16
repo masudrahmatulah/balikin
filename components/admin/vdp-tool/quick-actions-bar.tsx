@@ -22,27 +22,29 @@ export function QuickActionsBar({ onCreateSingle }: QuickActionsBarProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 p-4 bg-surface border border-secondary/10 rounded-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-surface border border-secondary/10 rounded-sm">
       <div className="flex-1">
         <p className="font-body text-sm font-medium text-primary">Quick Actions</p>
         <p className="font-body text-xs text-secondary">Manage tags or create individual QR codes</p>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:space-x-0 w-full sm:w-auto">
       <button
         onClick={handleCreateSingle}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-secondary/20 text-sm font-medium hover:bg-neutral/20 transition-colors h-9"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-secondary/20 text-sm font-medium hover:bg-neutral/20 transition-colors h-10 sm:h-9 w-full sm:w-auto"
       >
         <Plus className="w-4 h-4" />
         Single Tag
       </button>
 
-      <Link href="/admin/vdp-tool/manage">
-        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-secondary/20 text-sm font-medium hover:bg-neutral/20 transition-colors h-9">
+      <Link href="/admin/vdp-tool/manage" className="w-full sm:w-auto sm:ml-3">
+        <button className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2 rounded-md border border-secondary/20 text-sm font-medium hover:bg-neutral/20 transition-colors h-10 sm:h-9">
           <List className="w-4 h-4" />
           All Tags
           <ArrowRight className="w-4 h-4" />
         </button>
       </Link>
+      </div>
 
       {/* Single Tag Modal - TODO */}
       {showSingleTagModal && (
