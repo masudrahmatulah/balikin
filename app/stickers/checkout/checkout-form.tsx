@@ -67,6 +67,13 @@ export function CheckoutForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [segment, setSegment] = useState('');
+  // Controlled agar isian tidak hilang saat submit gagal (React me-reset uncontrolled input)
+  const [recipientName, setRecipientName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [addressLine, setAddressLine] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [notes, setNotes] = useState('');
+  const [voucherCode, setVoucherCode] = useState('');
   const [isPending, startTransition] = useTransition();
   const [isUploadingBackside, setIsUploadingBackside] = useState(false);
   const [backsideUploadError, setBacksideUploadError] = useState<string | null>(null);
@@ -107,8 +114,7 @@ export function CheckoutForm({
   }, []);
 
   // Load cities when province changes
-  const handleProvinceChange = async (provinceId: string) => {
-    setSelectedProvince(provinceId);
+  const handleProvinceChange = async (provinceId: string) => {    setSelectedProvince(provinceId);
     setSelectedCity('');
     setCities([]);
     setIsLoadingCities(true);
@@ -205,7 +211,10 @@ export function CheckoutForm({
         body,
         credentials: 'include',
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        throw new Error('Sesi berakhir. Silakan login dulu, lalu upload ulang gambar.');
+      }
       if (!response.ok || !data.url) {
         throw new Error(data.error || 'Gagal mengupload gambar');
       }
@@ -217,7 +226,16 @@ export function CheckoutForm({
     }
   };
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleCropError = (message: string) => {
+    setCropOpen(false);
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+      setCropImageUrl(null);
+    }
+    setBacksideUploadError(message);
+  };
+
+  const handleSubmit = async (_formData: FormData) => {
     setFieldErrors({});
     setFormError(null);
 
@@ -233,13 +251,13 @@ export function CheckoutForm({
     }
 
     const input = {
-      recipientName: String(formData.get('recipientName') ?? ''),
-      phone: String(formData.get('phone') ?? ''),
-      addressLine: String(formData.get('addressLine') ?? ''),
-      postalCode: String(formData.get('postalCode') ?? ''),
-      notes: String(formData.get('notes') ?? ''),
+      recipientName: recipientName.trim(),
+      phone: phone.trim(),
+      addressLine: addressLine.trim(),
+      postalCode: postalCode.trim(),
+      notes: notes.trim(),
       segment,
-      voucherCode: String(formData.get('voucherCode') ?? ''),
+      voucherCode: voucherCode.trim(),
       productKey,
       stickerColorTheme,
       shippingCost,
@@ -292,6 +310,8 @@ export function CheckoutForm({
           placeholder="Contoh: Budi Santoso"
           maxLength={100}
           autoComplete="name"
+          value={recipientName}
+          onChange={(e) => setRecipientName(e.target.value)}
           className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.recipientName}
           aria-describedby={fieldErrors.recipientName ? 'recipientName-error' : undefined}
@@ -312,6 +332,8 @@ export function CheckoutForm({
           maxLength={20}
           inputMode="tel"
           autoComplete="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.phone}
           aria-describedby={fieldErrors.phone ? 'phone-error' : 'phone-hint'}
@@ -357,6 +379,8 @@ export function CheckoutForm({
           rows={4}
           placeholder="Jalan, nomor rumah, RT/RW, kecamatan, patokan"
           maxLength={500}
+          value={addressLine}
+          onChange={(e) => setAddressLine(e.target.value)}
           className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.addressLine}
           aria-describedby={fieldErrors.addressLine ? 'addressLine-error' : undefined}
@@ -483,7 +507,8 @@ export function CheckoutForm({
             id="postalCode"
             name="postalCode"
             required
-            defaultValue={cities.find((c) => c.city_id === selectedCity)?.postal_code || ''}
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value)}
             placeholder="90111"
             maxLength={10}
             inputMode="numeric"
@@ -506,6 +531,8 @@ export function CheckoutForm({
           maxLength={50}
           autoComplete="off"
           autoCorrect="off"
+          value={voucherCode}
+          onChange={(e) => setVoucherCode(e.target.value)}
           spellCheck={false}
           className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.voucherCode}
@@ -524,6 +551,8 @@ export function CheckoutForm({
           rows={3}
           placeholder="Contoh: kirim sore hari, warna helm, atau kebutuhan khusus lainnya"
           maxLength={300}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           className="mt-1 border-slate-200 bg-white/80 focus-visible:border-blue-500 focus-visible:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-950/50"
           aria-invalid={!!fieldErrors.notes}
           aria-describedby={fieldErrors.notes ? 'notes-error' : undefined}
@@ -629,6 +658,7 @@ export function CheckoutForm({
         onOpenChange={setCropOpen}
         imageUrl={cropImageUrl}
         onComplete={handleCropComplete}
+        onError={handleCropError}
       />
     </form>
   );

@@ -32,6 +32,7 @@ interface ImageCropperProps {
   aspects?: CropAspectOption[];
   defaultAspectIndex?: number;
   onComplete: (blob: Blob) => void;
+  onError?: (message: string) => void;
 }
 
 export function ImageCropper({
@@ -41,6 +42,7 @@ export function ImageCropper({
   aspects = VDP_CROP_ASPECTS,
   defaultAspectIndex = 0,
   onComplete,
+  onError,
 }: ImageCropperProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -64,6 +66,9 @@ export function ImageCropper({
     img.onload = () => {
       imgRef.current = img;
       setImgSize({ w: img.naturalWidth, h: img.naturalHeight });
+    };
+    img.onerror = () => {
+      onError?.('Format gambar tidak didukung browser (mis. HEIC iPhone). Simpan dulu sebagai JPG/PNG lalu upload ulang.');
     };
     img.src = imageUrl;
     return () => {
