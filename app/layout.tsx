@@ -29,11 +29,13 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     locale: "id_ID",
     type: "website",
+    images: [{ url: "/balikin_logo.webp", width: 400, height: 400, alt: "Balikin" }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteConfig.name} | Smart Lost & Found QR Tag`,
     description: siteConfig.description,
+    images: ["/balikin_logo.webp"],
   },
   manifest: "/manifest.json",
   appleWebApp: {
