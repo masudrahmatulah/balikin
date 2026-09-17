@@ -436,14 +436,14 @@ export const TagCard = memo(function TagCard({
         {/* Collapsed Header - Always Visible */}
         <CollapsibleTrigger asChild>
           <CardHeader className={`cursor-pointer transition-colors hover:bg-blue-50/50 dark:hover:bg-slate-800/60 ${isOpen ? 'border-b border-blue-100 dark:border-slate-700' : 'pb-4'}`}>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
                 <div className={`rounded-xl p-2 flex-shrink-0 ${isLost ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 dark:from-blue-950/60 dark:to-indigo-950/50 dark:text-blue-300'}`}>
                   {isLost ? <AlertTriangle className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="truncate text-lg font-semibold text-slate-950 dark:text-white">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <CardTitle className="min-w-0 max-w-full text-lg font-semibold text-slate-950 dark:text-white sm:truncate">
                       {name}
                     </CardTitle>
                     <Badge variant={isExpired ? 'outline' : isLost ? 'destructive' : 'success'} className={`flex-shrink-0 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] ${isExpired ? 'border-amber-300 bg-amber-50 text-amber-700' : isLost ? '' : 'bg-blue-600'}`}>
@@ -471,7 +471,7 @@ export const TagCard = memo(function TagCard({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex w-full flex-shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-end">
                 <div className="text-right hidden sm:block">
                   <p className="text-xs text-slate-500">{scanCount} scans</p>
                   {createdLabel && <p className="text-xs text-slate-400" suppressHydrationWarning>{createdLabel}</p>}
