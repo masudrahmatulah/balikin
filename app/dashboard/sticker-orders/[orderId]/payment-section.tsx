@@ -23,12 +23,12 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
     startTransition(async () => {
       try {
         const result = await initiatePayment({ orderId });
-        if (result.paymentUrl) {
-          window.location.href = result.paymentUrl;
-          return;
-        }
         if (result.qrString) {
           setQrString(result.qrString);
+          return;
+        }
+        if (result.paymentUrl) {
+          window.location.href = result.paymentUrl;
           return;
         }
         setError('Gagal mendapatkan halaman pembayaran.');

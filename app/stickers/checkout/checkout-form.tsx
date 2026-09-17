@@ -250,7 +250,7 @@ export function CheckoutForm({
 
     // Validate shipping cost is selected
     if (shippingCost === null) {
-      setFormError('Pilih ongkir terlebih dahulu');
+      setFormError('Pilih provinsi, kota, dan kurir, lalu klik "Cek Ongkir" sebelum melanjutkan pembayaran.');
       return;
     }
 
