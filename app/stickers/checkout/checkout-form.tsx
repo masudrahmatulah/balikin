@@ -185,6 +185,10 @@ export function CheckoutForm({
       setBacksideUploadError('File harus berupa gambar (JPG, PNG, WebP)');
       return;
     }
+    if (file.type === 'image/heic' || file.type === 'image/heif') {
+      setBacksideUploadError('Format HEIC/HEIF belum didukung. Pilih JPG atau PNG.');
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       setBacksideUploadError('Ukuran gambar maksimal 5MB');
       return;
@@ -328,7 +332,7 @@ export function CheckoutForm({
           id="phone"
           name="phone"
           required
-          placeholder="628123456789"
+          placeholder="082255905612 atau +6282255905612"
           maxLength={20}
           inputMode="tel"
           autoComplete="tel"
@@ -339,7 +343,7 @@ export function CheckoutForm({
           aria-describedby={fieldErrors.phone ? 'phone-error' : 'phone-hint'}
         />
         <p id="phone-hint" className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-          Format: 628xxxxxxxxxx (tanpa tanda + atau 0 di depan)
+          Format: 08..., 628..., atau +628... (contoh: 082255905612)
         </p>
         <FieldError id="phone-error" message={fieldErrors.phone} />
       </div>

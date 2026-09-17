@@ -37,8 +37,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!blobToken && process.env.NODE_ENV === 'production') {
+      console.error('[Custom Backside Upload] BLOB_READ_WRITE_TOKEN is not configured');
+      return NextResponse.json(
+        { error: 'Penyimpanan gambar belum dikonfigurasi. Hubungi administrator.' },
+        { status: 503 }
+      );
+    }
+
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const fileEntry = formData.get('file');
+    const file = fileEntry instanceof File ? fileEntry : null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -58,7 +68,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ext = getFileExtension(file.name);
+    // Hasil cropper selalu JPEG, tetapi gunakan MIME sebagai fallback jika
+    // browser tidak mengirimkan nama file pada multipart request.
+    const ext = getFileExtension(file.name) || (file.type === 'image/png' ? '.png' : file.type === 'image/webp' ? '.webp' : '.jpg');
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       return NextResponse.json(
         { error: 'Invalid file extension. Only .jpg, .jpeg, .png, and .webp are allowed.' },
@@ -76,26 +88,25 @@ export async function POST(request: NextRequest) {
 
     const filename = `${session.user.id}/${Date.now()}-${nanoid(8)}${ext}`;
 
-    // Local dev: tanpa BLOB_READ_WRITE_TOKEN, simpan ke public/uploads sebagai fallback.
-    // Production (Vercel) selalu punya token sehingga memakai Vercel Blob.
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // Local development fallback only. Vercel production must use Blob because
+    // its filesystem is ephemeral and cannot persist uploaded images.
+    if (!blobToken) {
       const relativePath = path.join('backside-custom', filename);
       const absDir = path.join(process.cwd(), 'public', 'uploads', 'backside-custom', session.user.id);
       await mkdir(absDir, { recursive: true });
-      const absPath = path.join(absDir, path.basename(filename));
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(absPath, buffer);
+      await writeFile(path.join(absDir, path.basename(filename)), Buffer.from(await file.arrayBuffer()));
       return NextResponse.json({ url: `/uploads/${relativePath}` });
     }
 
     const blob = await put(`backside-custom/${filename}`, file, {
       access: 'public',
       contentType: file.type,
+      token: blobToken,
     });
 
     return NextResponse.json({ url: blob.url });
   } catch (error) {
-    console.error('[Custom Backside Upload] Failed:', error);
+    console.error('[Custom Backside Upload] Failed:', error instanceof Error ? error.message : error);
     return NextResponse.json(
       { error: 'Failed to upload file. Please try again.' },
       { status: 500 }

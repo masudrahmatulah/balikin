@@ -47,10 +47,20 @@ function validateField(value: string, fieldName: string, maxLength: number): str
 function validatePhone(phone: string): string {
   const trimmed = phone.trim();
   if (!trimmed) throw new Error('Nomor WhatsApp tidak boleh kosong');
-  if (!PHONE_REGEX.test(trimmed)) {
-    throw new Error('Format nomor WhatsApp tidak valid. Gunakan format 628...');
+
+  // Terima format lokal Indonesia (08...), internasional (628...), atau +628...
+  // lalu simpan satu format canonical untuk WhatsApp Gateway.
+  const digits = trimmed.replace(/[\s().-]/g, '');
+  const normalized = digits.startsWith('+62')
+    ? digits.slice(1)
+    : digits.startsWith('0')
+      ? `62${digits.slice(1)}`
+      : digits;
+
+  if (!PHONE_REGEX.test(normalized)) {
+    throw new Error('Format nomor WhatsApp tidak valid. Gunakan 08..., 628..., atau +628...');
   }
-  return trimmed;
+  return normalized;
 }
 
 function validateSegment(segment: string): 'pribadi' | 'keluarga' | 'bisnis' {
