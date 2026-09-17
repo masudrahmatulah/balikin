@@ -72,10 +72,10 @@ export function SmartLicenseHeroSection() {
           <Link href="#konfigurator" className="w-full sm:w-auto mx-2 sm:mx-0">
             <Button
               size="lg"
-              className="w-full sm:w-auto text-lg px-8 py-6 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all"
+              className="relative w-full sm:w-auto text-lg px-8 py-6 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all"
             >
               Aktifkan Lisensi Mulai Rp35.000
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="absolute right-4 h-5 w-5" />
             </Button>
           </Link>
           <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all" asChild>
