@@ -54,7 +54,7 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
     return (
       <div className="rounded-2xl border border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/40">
         <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">💳 Pembayaran QRIS</p>
-        <div className="mt-3 flex justify-center rounded-2xl bg-white p-4">
+        <div className="mt-3 flex justify-center rounded-2xl border border-blue-200 bg-white p-4">
           <QRCodeSVG value={qrString} size={180} />
         </div>
         <p className="mt-3 text-xs leading-6 text-blue-950 dark:text-blue-200">

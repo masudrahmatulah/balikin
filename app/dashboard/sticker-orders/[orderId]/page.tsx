@@ -63,24 +63,24 @@ export default async function StickerOrderDetailPage({
                   <Sticker className="h-5 w-5 text-emerald-600" />
                   Order {productName}
                 </CardTitle>
-                <CardDescription className="text-slate-700 dark:text-slate-300">Order ID: {order.id}</CardDescription>
+                <CardDescription className="break-all text-slate-700 dark:text-slate-300">Order ID: {order.id}</CardDescription>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
+                  <Badge variant="outline" className="border-slate-300 bg-white text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">
                   {order.paymentStatus === 'paid' ? 'Pembayaran Terverifikasi' : 'Menunggu Pembayaran'}
                 </Badge>
-                <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
                   {order.status}
                 </Badge>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-              <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
+          <CardContent className="grid min-w-0 gap-6 md:grid-cols-2">
+              <div className="min-w-0 space-y-3 break-words text-sm text-slate-800 dark:text-slate-200">
+              <p><span className="font-medium text-slate-950 dark:text-white">Produk:</span> {productName}</p>
               {order.productType === 'sticker' && order.stickerColorTheme && (
                 <p className="flex items-center gap-2">
-                  <span className="font-medium text-slate-900">Warna Sticker:</span>
+                  <span className="font-medium text-slate-950 dark:text-white">Warna Sticker:</span>
                   <span
                     className="h-4 w-4 rounded-full border border-black/10"
                     style={{ backgroundColor: STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].accent }}
@@ -89,17 +89,17 @@ export default async function StickerOrderDetailPage({
                   {STICKER_COLOR_THEMES[normalizeStickerColorTheme(order.stickerColorTheme)].label}
                 </p>
               )}
-              <p><span className="font-medium text-slate-900">Metode Bayar:</span> {STICKER_PAYMENT_LABEL}</p>
-              <p><span className="font-medium text-slate-900">Total:</span> Rp{order.totalAmount.toLocaleString('id-ID')}</p>
+              <p><span className="font-medium text-slate-950 dark:text-white">Metode Bayar:</span> {STICKER_PAYMENT_LABEL}</p>
+              <p><span className="font-medium text-slate-950 dark:text-white">Total:</span> Rp{order.totalAmount.toLocaleString('id-ID')}</p>
               {order.backsideCustom && (
                 <p>
-                  <span className="font-medium text-slate-900">Sisi Belakang:</span>{' '}
+                  <span className="font-medium text-slate-950 dark:text-white">Sisi Belakang:</span>{' '}
                   {order.backsideCustomImageUrl ? (
                     <a
                       href={order.backsideCustomImageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 underline hover:text-blue-800"
+                      className="text-blue-700 underline decoration-blue-400 underline-offset-2 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
                     >
                       Gambar custom (+Rp10.000)
                     </a>
@@ -108,10 +108,10 @@ export default async function StickerOrderDetailPage({
                   )}
                 </p>
               )}
-              <p><span className="font-medium text-slate-900">Penerima:</span> {order.recipientName}</p>
-              <p><span className="font-medium text-slate-900">WhatsApp:</span> {order.phone}</p>
-              <p><span className="font-medium text-slate-900">Alamat:</span> {order.addressLine}, {order.city}, {order.postalCode}</p>
-              {order.notes && <p><span className="font-medium text-slate-900">Catatan:</span> {order.notes}</p>}
+              <p><span className="font-medium text-slate-950 dark:text-white">Penerima:</span> {order.recipientName}</p>
+              <p><span className="font-medium text-slate-950 dark:text-white">WhatsApp:</span> {order.phone}</p>
+              <p><span className="font-medium text-slate-950 dark:text-white">Alamat:</span> {order.addressLine}, {order.city}, {order.postalCode}</p>
+              {order.notes && <p><span className="font-medium text-slate-950 dark:text-white">Catatan:</span> {order.notes}</p>}
             </div>
 
             <PaymentSection
@@ -138,13 +138,13 @@ export default async function StickerOrderDetailPage({
               <div className="space-y-4">
                 {order.bundles.map((bundle) => (
                   <div key={bundle.id} className="rounded-2xl border border-slate-200 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-800">
-                    <p className="text-sm font-semibold text-slate-950">Bundle {bundle.id}</p>
+                    <p className="text-sm font-semibold text-slate-950 dark:text-white">Bundle {bundle.id}</p>
                     <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Status: {bundle.status}</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       {bundle.tags.map((tag) => (
                         <div key={tag.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
                           <p className="font-medium text-slate-950 dark:text-white">{tag.name}</p>
-                          <p className="break-all font-mono text-xs text-slate-500">/p/{tag.slug}</p>
+                          <p className="break-all font-mono text-xs text-slate-700 dark:text-slate-300">/p/{tag.slug}</p>
                           <p className="mt-1">{tag.ownerId ? 'Sudah aktif' : 'Belum diaktivasi'}</p>
                         </div>
                       ))}
