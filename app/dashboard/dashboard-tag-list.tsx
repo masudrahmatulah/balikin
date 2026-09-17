@@ -20,8 +20,7 @@ export function DashboardTagList({ tags, canCreateMore }: DashboardTagListProps)
         <Link href="/dashboard/new">
           <Button disabled={!canCreateMore} size="sm" className="gap-2 bg-blue-600 shadow-md shadow-blue-600/20 hover:bg-blue-700">
             <Plus className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Tambah Tag</span>
-            <span className="sm:hidden">Tambah</span>
+            <span className="whitespace-nowrap">Tambah Tag</span>
           </Button>
         </Link>
       </div>
