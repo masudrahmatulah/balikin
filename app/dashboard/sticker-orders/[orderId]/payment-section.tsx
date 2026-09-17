@@ -41,9 +41,9 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
 
   if (paymentStatus === 'paid') {
     return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-5">
-        <p className="text-sm font-semibold text-green-950">✓ Pembayaran Berhasil</p>
-        <p className="mt-2 text-sm leading-6 text-green-800">
+      <div className="rounded-2xl border border-green-300 bg-green-50 p-5 dark:border-green-800 dark:bg-green-950/40">
+        <p className="text-sm font-semibold text-green-950 dark:text-green-100">✓ Pembayaran Berhasil</p>
+        <p className="mt-2 text-sm leading-6 text-green-900 dark:text-green-200">
           Pembayaran Anda telah diverifikasi. Admin sedang menyiapkan bundle sticker. Anda akan menerima update melalui WhatsApp.
         </p>
       </div>
@@ -52,12 +52,12 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
 
   if (qrString) {
     return (
-      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
-        <p className="text-sm font-semibold text-blue-950">💳 Pembayaran QRIS</p>
+      <div className="rounded-2xl border border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/40">
+        <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">💳 Pembayaran QRIS</p>
         <div className="mt-3 flex justify-center rounded-2xl bg-white p-4">
           <QRCodeSVG value={qrString} size={180} />
         </div>
-        <p className="mt-3 text-xs leading-6 text-blue-800">
+        <p className="mt-3 text-xs leading-6 text-blue-950 dark:text-blue-200">
           Scan QRIS di atas dengan e-wallet atau m-banking Anda. Status pembayaran diperbarui otomatis setelah konfirmasi dari gateway.
         </p>
       </div>
@@ -65,9 +65,9 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount }: PaymentS
   }
 
   return (
-    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
-      <p className="text-sm font-semibold text-blue-950">💳 Pembayaran dengan QRIS</p>
-      <p className="mt-2 text-sm leading-6 text-blue-800">
+    <div className="rounded-2xl border border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/40">
+      <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">💳 Pembayaran dengan QRIS</p>
+      <p className="mt-2 text-sm leading-6 text-blue-950 dark:text-blue-200">
         Klik tombol di bawah untuk membuka pembayaran QRIS. Scan QR Code dengan e-wallet favorit Anda (GoPay, OVO, LinkAja, dll).
       </p>
 

@@ -42,8 +42,8 @@ export default async function StickerOrderDetailPage({
   const productName = getProductDisplayName(order.productType, order.unitCountPerPack);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="container mx-auto px-4 py-4">
           <Link href="/dashboard">
             <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">
@@ -59,11 +59,11 @@ export default async function StickerOrderDetailPage({
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-slate-950 dark:text-white">
                   <Sticker className="h-5 w-5 text-emerald-600" />
                   Order {productName}
                 </CardTitle>
-                <CardDescription>Order ID: {order.id}</CardDescription>
+                <CardDescription className="text-slate-700 dark:text-slate-300">Order ID: {order.id}</CardDescription>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
@@ -76,7 +76,7 @@ export default async function StickerOrderDetailPage({
             </div>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-3 text-sm text-slate-600">
+              <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
               <p><span className="font-medium text-slate-900">Produk:</span> {productName}</p>
               {order.productType === 'sticker' && order.stickerColorTheme && (
                 <p className="flex items-center gap-2">
@@ -131,19 +131,19 @@ export default async function StickerOrderDetailPage({
           </CardHeader>
           <CardContent>
             {order.bundles.length === 0 ? (
-              <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
                 Bundle sticker belum dibuat. Setelah pembayaran diverifikasi admin, 6 tag unclaimed akan muncul di sini dan siap diaktivasi satu per satu saat sticker dipasang.
               </p>
             ) : (
               <div className="space-y-4">
                 {order.bundles.map((bundle) => (
-                  <div key={bundle.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div key={bundle.id} className="rounded-2xl border border-slate-200 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-800">
                     <p className="text-sm font-semibold text-slate-950">Bundle {bundle.id}</p>
-                    <p className="mt-1 text-sm text-slate-600">Status: {bundle.status}</p>
+                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Status: {bundle.status}</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       {bundle.tags.map((tag) => (
-                        <div key={tag.id} className="rounded-xl border border-white bg-white p-3 text-sm text-slate-600">
-                          <p className="font-medium text-slate-900">{tag.name}</p>
+                        <div key={tag.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                          <p className="font-medium text-slate-950 dark:text-white">{tag.name}</p>
                           <p className="break-all font-mono text-xs text-slate-500">/p/{tag.slug}</p>
                           <p className="mt-1">{tag.ownerId ? 'Sudah aktif' : 'Belum diaktivasi'}</p>
                         </div>
@@ -158,12 +158,12 @@ export default async function StickerOrderDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-slate-950 dark:text-white">
               <ReceiptText className="h-5 w-5 text-slate-700" />
               Status Order MVP
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-slate-600">
+          <CardContent className="text-sm text-slate-700 dark:text-slate-300">
             Status yang dipakai saat ini: `pending_payment`, `paid`, `in_production`, `shipped`, dan `completed`.
           </CardContent>
         </Card>
