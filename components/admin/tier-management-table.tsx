@@ -269,11 +269,10 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
                         <SelectTrigger className="w-[140px]">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">Free</SelectItem>
-                          <SelectItem value="premium">Premium</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
+                          <SelectContent>
+                            <SelectItem value="user">Free</SelectItem>
+                            <SelectItem value="premium">Premium</SelectItem>
+                          </SelectContent>
                       </Select>
                     </TableCell>
                   </TableRow>
