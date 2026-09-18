@@ -73,15 +73,15 @@ export default function AboutPage() {
           </section>
 
           {/* Mission */}
-          <section className="bg-gradient-to-br from-red-50 to-slate-50 border-2 border-red-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-brand-navy mb-6 flex items-center gap-2">
+          <section className="bg-gradient-to-br from-red-50 to-slate-50 border-2 border-red-200 rounded-xl p-8 mb-8 dark:from-red-950/40 dark:to-slate-900 dark:border-red-900/60">
+            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-brand-navy dark:text-white">
               <span className="text-3xl">🚀</span>
               Misi Kami: "Mengembalikan yang Berharga dengan Menjaga Privasi"
             </h2>
-            <p className="text-gray-700 leading-relaxed text-justify mb-4">
+            <p className="text-gray-800 leading-relaxed text-justify mb-4 dark:text-slate-200">
               Balikin.online adalah platform <strong>lost and found (penemuan barang hilang)</strong> modern di Indonesia yang memanfaatkan teknologi <strong>QR Smart Tag</strong>. Kami hadir sebagai jembatan digital yang aman, cepat, dan anonim untuk mempertemukan Anda dengan penemu barang tanpa mengorbankan privasi data pribadi Anda.
             </p>
-            <p className="text-gray-700 leading-relaxed text-justify">
+            <p className="text-gray-800 leading-relaxed text-justify dark:text-slate-200">
               Kami percaya bahwa kejujuran itu ada di mana-mana. Tugas Balikin adalah menyediakan sarana terbaik agar kejujuran tersebut bisa tersalurkan dengan cara yang paling aman dan mudah.
             </p>
           </section>

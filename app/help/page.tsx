@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HelpCircle, MessageCircle, Mail, BookOpen, QrCode, Shield, AlertTriangle, ChevronRight } from "lucide-react";
+import { MarketingShell } from "@/components/marketing-shell";
 
 export const metadata: Metadata = {
   title: "Bantuan & Dukungan | Balikin.online",
@@ -14,14 +15,14 @@ const guides = [
     title: "Cara Kerja QR Smart Tag",
     description: "Pelajari cara mendaftarkan dan menggunakan tag QR Balikin untuk melindungi barang Anda.",
     href: "/how-it-works",
-    color: "from-blue-500 to-indigo-600",
+    color: "from-brand-navy to-brand-red",
   },
   {
     icon: Shield,
     title: "Privasi & Keamanan",
     description: "Bagaimana Balikin melindungi data dan nomor WhatsApp Anda dari publik.",
     href: "/privacy-policy",
-    color: "from-emerald-500 to-teal-600",
+    color: "from-brand-navy-light to-brand-navy",
   },
   {
     icon: AlertTriangle,
@@ -35,7 +36,7 @@ const guides = [
     title: "FAQ Lengkap",
     description: "Kumpulan pertanyaan yang paling sering ditanyakan seputar Balikin dan layanannya.",
     href: "/faq",
-    color: "from-purple-500 to-violet-600",
+    color: "from-brand-red-light to-brand-red-dark",
   },
 ];
 
@@ -50,36 +51,34 @@ const quickTopics = [
 
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      {/* Hero */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-6">
-            <HelpCircle className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Pusat Bantuan</h1>
-          <p className="text-xl text-blue-100">Kami siap membantu Anda 24/7</p>
+    <MarketingShell
+      title="Pusat Bantuan"
+      description="Kami siap membantu Anda menemukan jawaban dan menggunakan Balikin dengan lebih mudah."
+    >
+      <section className="not-prose mx-auto max-w-3xl space-y-10">
+        <div className="flex items-center gap-3 text-sm font-medium text-brand-red">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-red/10">
+            <HelpCircle className="h-5 w-5" />
+          </span>
+          Dukungan Balikin untuk setiap langkah
         </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-4 py-12 space-y-10">
-        <Link href="/helpdesk" className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700">
+        <Link href="/helpdesk" className="inline-flex items-center rounded-xl bg-brand-red px-4 py-3 text-sm font-semibold text-white shadow-md shadow-red-900/15 transition-colors hover:bg-brand-red-dark">
           Buka Helpdesk AI & Konsultasi CS
         </Link>
         {/* Panduan Cepat */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Panduan Utama</h2>
+           <h2 className="text-2xl font-bold text-slate-900 mb-6 dark:text-white">Panduan Utama</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {guides.map((guide) => (
               <Link key={guide.href} href={guide.href}>
-                <div className="bg-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow border border-white/20 group cursor-pointer">
+                 <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-md transition-shadow group cursor-pointer hover:border-brand-red/30 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${guide.color} text-white mb-4 shadow-lg`}>
                     <guide.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                   <h3 className="font-semibold text-slate-900 mb-2 transition-colors group-hover:text-brand-red dark:text-white">
                     {guide.title}
                   </h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{guide.description}</p>
+                   <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{guide.description}</p>
                 </div>
               </Link>
             ))}
@@ -88,17 +87,17 @@ export default function HelpPage() {
 
         {/* Topik Populer */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Pertanyaan Populer</h2>
-          <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+           <h2 className="text-2xl font-bold text-slate-900 mb-6 dark:text-white">Pertanyaan Populer</h2>
+           <div className="overflow-hidden rounded-2xl bg-white shadow-md dark:bg-slate-900">
             {quickTopics.map((topic, index) => (
               <Link key={index} href={topic.href}>
                 <div className={`flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors group ${
                   index < quickTopics.length - 1 ? 'border-b border-gray-100' : ''
                 }`}>
-                  <span className="text-gray-800 text-sm font-medium group-hover:text-blue-600 transition-colors">
+                   <span className="text-sm font-medium text-slate-800 transition-colors group-hover:text-brand-red dark:text-slate-200">
                     {topic.question}
                   </span>
-                  <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors flex-shrink-0" />
+                   <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-brand-red" />
                 </div>
               </Link>
             ))}
@@ -107,7 +106,7 @@ export default function HelpPage() {
 
         {/* Hubungi Support */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Hubungi Kami</h2>
+           <h2 className="text-2xl font-bold text-slate-900 mb-6 dark:text-white">Hubungi Kami</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <a
               href="https://wa.me/6288783956811"
@@ -121,19 +120,16 @@ export default function HelpPage() {
             </a>
             <a
               href="mailto:support@balikin.online"
-              className="block bg-blue-600 hover:bg-blue-700 text-white rounded-2xl p-6 shadow-md transition-colors"
+               className="block rounded-2xl bg-gradient-to-br from-brand-navy to-brand-red p-6 text-white shadow-md transition-colors hover:shadow-lg"
             >
               <Mail className="h-8 w-8 mb-3" />
               <h3 className="font-bold text-lg mb-1">Email Support</h3>
-              <p className="text-blue-100 text-sm">support@balikin.online — balasan dalam 1×24 jam</p>
+               <p className="text-red-100 text-sm">support@balikin.online — balasan dalam 1×24 jam</p>
             </a>
           </div>
         </section>
 
-        <div className="text-center text-gray-400 text-sm py-4">
-          © 2026 Balikin.online · Smart Lost & Found Platform Indonesia
-        </div>
-      </main>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }
