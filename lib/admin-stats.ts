@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { stickerOrders, modulePurchaseOrders, tagUpgradeOrders } from '@/db/schema';
+import { stickerOrders, modulePurchaseOrders, tagUpgradeOrders, helpdeskQuestions } from '@/db/schema';
 import { eq, count, or } from 'drizzle-orm';
 
 /**
@@ -55,4 +55,13 @@ export async function getPendingRequestsCount() {
     .where(eq(moduleRequests.status, 'pending'));
 
   return pendingRequestsResult[0]?.count || 0;
+}
+
+export async function getPendingHelpdeskQuestionsCount() {
+  const result = await db
+    .select({ count: count() })
+    .from(helpdeskQuestions)
+    .where(eq(helpdeskQuestions.status, 'unreviewed'));
+
+  return result[0]?.count || 0;
 }

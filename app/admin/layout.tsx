@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
-import { getPendingOrdersCount } from "@/lib/admin-stats";
+import { getPendingHelpdeskQuestionsCount, getPendingOrdersCount } from "@/lib/admin-stats";
 import { Sidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminErrorBoundary } from "@/components/admin/error-boundary";
@@ -20,7 +20,10 @@ export default async function AdminLayout({
 
   // Get user division from session
   const userDivision = session.user.division;
-  const pendingOrdersCount = await getPendingOrdersCount();
+  const [pendingOrdersCount, pendingHelpdeskQuestionsCount] = await Promise.all([
+    getPendingOrdersCount(),
+    getPendingHelpdeskQuestionsCount(),
+  ]);
 
   return (
     <div
@@ -34,7 +37,7 @@ export default async function AdminLayout({
     >
       <div className="pointer-events-none fixed -right-24 top-16 z-0 h-80 w-80 rounded-full bg-purple-300/15 blur-3xl dark:bg-purple-700/10" aria-hidden="true" />
       <div className="pointer-events-none fixed bottom-0 left-1/3 z-0 h-72 w-72 rounded-full bg-blue-300/15 blur-3xl dark:bg-blue-700/10" aria-hidden="true" />
-      <Sidebar userDivision={userDivision} />
+      <Sidebar userDivision={userDivision} pendingHelpdeskQuestionsCount={pendingHelpdeskQuestionsCount} />
       <div className="relative z-10 lg:ml-sidebar-width">
         <AdminHeader
           session={session}

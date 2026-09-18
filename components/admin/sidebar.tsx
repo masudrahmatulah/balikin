@@ -34,6 +34,7 @@ import {
 
 interface SidebarProps {
   userDivision?: DivisionType | null;
+  pendingHelpdeskQuestionsCount?: number;
 }
 
 // Maps each nav item title to a modern line icon (some divisions reuse the same href for
@@ -74,7 +75,7 @@ const USER_MANAGEMENT_SUBMENU: Array<{ label: string; href: string }> = [
   { label: "Manajemen Tier", href: "/admin/tier-management" },
 ];
 
-export function Sidebar({ userDivision }: SidebarProps) {
+export function Sidebar({ userDivision, pendingHelpdeskQuestionsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -305,6 +306,11 @@ export function Sidebar({ userDivision }: SidebarProps) {
           >
             <ScrollText className="w-[18px] h-[18px]" />
             <span>Helpdesk Questions</span>
+            {pendingHelpdeskQuestionsCount > 0 && (
+              <span className="ml-auto min-w-5 rounded-full bg-red-500 px-1.5 py-0.5 text-center text-[11px] font-bold text-white">
+                {pendingHelpdeskQuestionsCount > 99 ? "99+" : pendingHelpdeskQuestionsCount}
+              </span>
+            )}
           </Link>
         </div>
       </aside>
