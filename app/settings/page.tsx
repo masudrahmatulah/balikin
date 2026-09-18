@@ -17,13 +17,13 @@ export default async function SettingsPage() {
   const userEmail = session.user.email ?? 'Pengguna Balikin';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       <DashboardHeader userEmail={userEmail} />
 
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Pengaturan</h1>
-          <p className="text-gray-600">Kelola akun dan preferensi Anda</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pengaturan</h1>
+          <p className="text-gray-600 dark:text-slate-300">Kelola akun dan preferensi Anda</p>
         </div>
 
         <div className="space-y-4">
@@ -37,10 +37,10 @@ export default async function SettingsPage() {
               <CardDescription>Informasi akun dan profil Anda</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/70">
                 <div>
-                  <p className="font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-gray-600">{userEmail}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">Email</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{userEmail}</p>
                 </div>
               </div>
             </CardContent>
@@ -57,7 +57,7 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href="/notifications">
-                <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
                   Kelola Notifikasi
                 </Button>
               </Link>
@@ -75,12 +75,12 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href="/privacy-policy">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
                   Kebijakan Privasi
                 </Button>
               </Link>
               <Link href="/security">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
                   Informasi Keamanan
                 </Button>
               </Link>
@@ -98,12 +98,12 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href="/faq">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
                   FAQ
                 </Button>
               </Link>
               <Link href="/contact">
-                <Button variant="ghost" className="w-full justify-start">
+                <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
                   Hubungi Kami
                 </Button>
               </Link>
