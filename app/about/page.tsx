@@ -48,12 +48,12 @@ export default function AboutPage() {
         name="Tentang Balikin - Solusi Pintar Amankan Barang Berharga"
         description="Tentang Balikin.online – Platform smart lost & found Indonesia dengan teknologi QR Smart Tag. Solusi aman melindungi barang hilang, kunci, dompet, laptop, hingga hewan peliharaan."
       />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100">
         {/* Hero Section */}
-        <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-4">
+        <header className="bg-gradient-to-r from-brand-navy to-brand-red text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Tentang Balikin.online</h1>
-            <p className="text-xl text-blue-100">Solusi Pintar Amankan Barang Berharga Anda</p>
+            <p className="text-xl text-red-100">Solusi Pintar Amankan Barang Berharga Anda</p>
           </div>
         </header>
 
@@ -67,14 +67,14 @@ export default function AboutPage() {
             <p className="text-gray-700 leading-relaxed text-justify mt-4">
               Setiap hari, ribuan barang berharga hilang di fasilitas umum. Masalahnya bukan karena orang lain tidak mau mengembalikannya, melainkan karena tidak ada cara yang aman dan praktis bagi penemu barang untuk menghubungi pemiliknya. Menuliskan nomor HP atau alamat rumah secara langsung pada barang bawaan juga sangat berbahaya bagi privasi dan keamanan Anda.
             </p>
-            <p className="text-gray-700 leading-relaxed text-justify mt-4 font-semibold text-blue-700">
+            <p className="text-gray-700 leading-relaxed text-justify mt-4 font-semibold text-brand-red-dark">
               Dari kegelisahan itulah, Balikin.online lahir.
             </p>
           </section>
 
           {/* Mission */}
-          <section className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-indigo-900 mb-6 flex items-center gap-2">
+          <section className="bg-gradient-to-br from-red-50 to-slate-50 border-2 border-red-200 rounded-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-brand-navy mb-6 flex items-center gap-2">
               <span className="text-3xl">🚀</span>
               Misi Kami: "Mengembalikan yang Berharga dengan Menjaga Privasi"
             </h2>
@@ -156,8 +156,8 @@ export default function AboutPage() {
           </section>
 
           {/* CTA Section */}
-          <section className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-amber-900 mb-6 flex items-center gap-2">
+          <section className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-red-900 mb-6 flex items-center gap-2">
               <span className="text-3xl">🤝</span>
               Mari Menjadi Bagian dari Ekosistem Balikin
             </h2>

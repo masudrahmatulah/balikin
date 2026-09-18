@@ -88,7 +88,7 @@ async function PricingPage() {
           {pricingPlans.map((plan) => (
             <Card
               key={plan.name}
-              className={`border-2 ${plan.isPremium ? "border-blue-600" : ""}`}
+               className={`border-2 bg-card ${plan.isPremium ? "border-brand-red shadow-lg shadow-red-900/10" : "border-slate-200 dark:border-slate-700"}`}
               role="article"
               aria-labelledby={`plan-${plan.name.toLowerCase()}-title`}
             >
@@ -102,7 +102,7 @@ async function PricingPage() {
                   {plan.price}
                 </p>
                 <ul
-                  className="space-y-3 text-sm text-gray-700"
+                   className="space-y-3 text-sm text-gray-700 dark:text-slate-300"
                   role="list"
                   aria-label={`Fitur ${plan.name}`}
                 >
@@ -111,7 +111,7 @@ async function PricingPage() {
                       <Check
                         className="mt-0.5 h-4 w-4"
                         aria-hidden="true"
-                        style={{ color: plan.isPremium ? "#2563eb" : "#16a34a" }}
+                         style={{ color: plan.isPremium ? "#d90f1d" : "#16a34a" }}
                       />
                       <span>{feature}</span>
                     </li>
@@ -120,7 +120,7 @@ async function PricingPage() {
                 {plan.cta.target ? (
                   <Button
                     asChild
-                    className="w-full bg-green-600 hover:bg-green-700 focus-visible:bg-green-700"
+                     className="w-full bg-brand-red hover:bg-brand-red-dark focus-visible:bg-brand-red-dark"
                   >
                     <a
                       href={plan.cta.href}

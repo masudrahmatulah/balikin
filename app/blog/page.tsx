@@ -20,9 +20,9 @@ export default async function BlogPage() {
     const posts = await getBlogPosts();
 
     return (
-      <div className="min-h-screen bg-background">
+       <div className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
         {/* Header */}
-        <div className="bg-primary text-primary-foreground py-16 md:py-24">
+         <div className="bg-gradient-to-r from-brand-navy to-brand-red text-white py-16 md:py-24">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Blog BALIKIN</h1>
             <p className="text-lg md:text-xl opacity-90 max-w-2xl">
@@ -43,7 +43,7 @@ export default async function BlogPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
-                  className="group flex flex-col overflow-hidden rounded-lg border bg-card transition-all hover:shadow-lg"
+                   className="group flex flex-col overflow-hidden rounded-2xl border border-red-100 bg-card transition-all hover:border-brand-red/40 hover:shadow-lg hover:shadow-red-900/10 dark:border-slate-700"
                 >
                   {post.coverImage && (
                     <div className="aspect-video w-full overflow-hidden relative">
@@ -57,7 +57,7 @@ export default async function BlogPage() {
                     </div>
                   )}
                   <div className="flex flex-1 flex-col p-6">
-                    <h3 className="text-xl font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                     <h3 className="text-xl font-bold mb-2 line-clamp-2 group-hover:text-brand-red transition-colors">
                       {post.title}
                     </h3>
                     <p className="text-muted-foreground mb-4 line-clamp-2 text-sm">

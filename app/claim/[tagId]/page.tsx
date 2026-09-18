@@ -27,7 +27,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
   if (!tag) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Tag Tidak Ditemukan</CardTitle>
@@ -58,7 +58,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
       if (claimContext.scenario === 'ALREADY_OWNED') {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -79,7 +79,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
       if (claimContext.scenario === 'FORBIDDEN' || claimContext.scenario === 'NOT_FOUND') {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
@@ -105,7 +105,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
       if (claimContext.scenario === 'DIRECT_LINK') {
         // Scenario C: sheet already active & owned by this user - bypass PIN
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
@@ -148,7 +148,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
       // Scenario B: sheet still inactive - require Master PIN
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
@@ -202,7 +202,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
     if (tag.productType === 'sticker') {
       if (!stickerOrder) {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader>
                 <CardTitle className="text-red-600">Sticker Pack Belum Siap</CardTitle>
@@ -215,7 +215,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
       if (tag.ownerId && tag.ownerId === session.user.id) {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -236,7 +236,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
 
       if (stickerOrder.userId !== session.user.id) {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader>
                 <CardTitle className="text-red-600">Sticker Pack Terkunci</CardTitle>
@@ -255,7 +255,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
@@ -322,7 +322,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
       // Sudah milik user ini → langsung info aktif
       if (tag.ownerId && tag.ownerId === session.user.id) {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -342,7 +342,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
@@ -390,7 +390,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat mengklaim tag';
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle className="text-red-600">Gagal Mengklaim Tag</CardTitle>
@@ -408,13 +408,13 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-red-950/30 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
-            tag.productType === 'acrylic' ? 'bg-amber-100' : 'bg-blue-100'
+            tag.productType === 'acrylic' ? 'bg-brand-red/10' : 'bg-brand-navy/10'
           }`}>
-            <Tag className={`h-8 w-8 ${tag.productType === 'acrylic' ? 'text-amber-600' : 'text-blue-600'}`} />
+            <Tag className={`h-8 w-8 ${tag.productType === 'acrylic' ? 'text-brand-red' : 'text-brand-navy'}`} />
           </div>
           <CardTitle>
             {tag.productType === 'sticker' ? 'Aktivasi Sticker Vinyl' :
@@ -429,7 +429,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
         </CardHeader>
         <CardContent className="space-y-4">
           {tag.productType === 'acrylic' ? (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm leading-6 text-amber-900">
+            <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm leading-6 text-red-900">
               <p className="font-semibold mb-2">🎉 Selamat! Anda adalah pemilik pertama!</p>
               <p>Gantungan akrilik premium ini belum memiliki pemilik. Siapkan kode klaim khusus di dalam kemasan. Setelah login, Anda akan:</p>
               <ul className="mt-2 space-y-1 break-words list-disc list-inside">
@@ -465,14 +465,14 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
               />
             </div>
             <input type="hidden" name="callbackURL" value={`/claim/${tagId}`} />
-            <Button type="submit" className={`w-full ${tag.productType === 'acrylic' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-[#ff2938] to-[#d90f1d] text-white hover:from-[#e50d1c] hover:to-[#b90d19]">
               {tag.productType === 'acrylic' ? 'Klaim & Aktivasi Premium' : 'Kirim Kode OTP'}
             </Button>
           </form>
 
           <div className="text-center text-sm leading-6 text-gray-500">
             Atau{' '}
-            <Link href="/dashboard" className="text-blue-600 hover:underline">
+            <Link href="/dashboard" className="text-brand-red hover:underline">
               kembali ke dashboard
             </Link>
           </div>

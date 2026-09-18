@@ -38,13 +38,13 @@ export default function PrivacyPolicyPage() {
         name="Kebijakan Privasi - Balikin"
         description="Kebijakan privasi Balikin.online – Perlindungan data pribadi Anda sesuai UU PDP Indonesia"
       />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+      <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100">
         {/* Hero Section */}
-        <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-4">
+        <header className="bg-gradient-to-r from-brand-navy to-brand-red text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Kebijakan Privasi</h1>
-            <p className="text-xl text-blue-100">Balikin.online</p>
-            <p className="mt-4 text-blue-200 text-sm">Pembaruan Terakhir: Juni 2026</p>
+            <p className="text-xl text-red-100">Balikin.online</p>
+            <p className="mt-4 text-red-200 text-sm">Pembaruan Terakhir: Juni 2026</p>
           </div>
         </header>
 
