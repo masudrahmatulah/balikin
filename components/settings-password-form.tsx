@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
+import { setOwnPassword } from '@/app/actions/account-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export function SettingsPasswordForm() {
+export function SettingsPasswordForm({ hasPassword }: { hasPassword: boolean }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -30,11 +31,13 @@ export function SettingsPasswordForm() {
     }
 
     setIsSubmitting(true);
-    const result = await authClient.changePassword({
-      currentPassword,
-      newPassword,
-      revokeOtherSessions: true,
-    });
+    const result = hasPassword
+      ? await authClient.changePassword({
+          currentPassword,
+          newPassword,
+          revokeOtherSessions: true,
+        })
+      : await setOwnPassword(newPassword);
     setIsSubmitting(false);
 
     if (result.error) {
@@ -51,15 +54,19 @@ export function SettingsPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="current-password">Password Saat Ini</Label>
-        <Input
-          id="current-password"
-          type="password"
-          value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
-          autoComplete="current-password"
-          required
-        />
+        {hasPassword && (
+          <>
+            <Label htmlFor="current-password">Password Saat Ini</Label>
+            <Input
+              id="current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
@@ -98,7 +105,7 @@ export function SettingsPasswordForm() {
 
       <Button type="submit" disabled={isSubmitting} className="gap-2">
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
-        {isSubmitting ? 'Menyimpan...' : 'Ganti Password'}
+        {isSubmitting ? 'Menyimpan...' : hasPassword ? 'Ganti Password' : 'Tetapkan Password'}
       </Button>
     </form>
   );

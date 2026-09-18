@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
+import { db } from '@/db';
+import { account } from '@/db/schema';
+import { and, eq } from 'drizzle-orm';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +19,14 @@ export default async function SettingsPage() {
   }
 
   const userEmail = session.user.email ?? 'Pengguna Balikin';
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(
+      eq(account.userId, session.user.id),
+      eq(account.providerId, 'credential'),
+    ),
+    columns: { password: true },
+  });
+  const hasPassword = Boolean(credentialAccount?.password);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
@@ -54,10 +65,14 @@ export default async function SettingsPage() {
                 <Shield className="h-5 w-5" />
                 Ganti Password
               </CardTitle>
-              <CardDescription>Perbarui password akun dan keluarkan sesi aktif di perangkat lain</CardDescription>
+              <CardDescription>
+                {hasPassword
+                  ? 'Perbarui password akun dan keluarkan sesi aktif di perangkat lain'
+                  : 'Akun Google/SSO Anda belum memiliki password. Tetapkan password untuk bisa login dengan email.'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <SettingsPasswordForm />
+              <SettingsPasswordForm hasPassword={hasPassword} />
             </CardContent>
           </Card>
 
