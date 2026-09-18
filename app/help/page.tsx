@@ -63,6 +63,9 @@ export default function HelpPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-12 space-y-10">
+        <Link href="/helpdesk" className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700">
+          Buka Helpdesk AI & Konsultasi CS
+        </Link>
         {/* Panduan Cepat */}
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Panduan Utama</h2>
