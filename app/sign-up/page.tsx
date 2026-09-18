@@ -4,6 +4,7 @@ import { MessageCircle } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
 import { AuthPageWrapper } from "@/components/auth/auth-page-wrapper";
 import { AuthForm } from "@/components/auth-form";
+import { SignupProductCard } from "@/components/auth/signup-product-card";
 
 export const metadata: Metadata = buildMetadata({
   title: "Daftar",
@@ -22,6 +23,7 @@ export default function SignUpPage() {
       title="Daftar Akun Balikin"
       description="Buat akun dengan nomor WhatsApp atau email untuk mulai menggunakan Balikin"
       icon={<MessageCircle className="h-8 w-8 text-brand-red" aria-hidden="true" />}
+      promo={<SignupProductCard />}
     >
       <Suspense fallback={<AuthFormSkeleton />}>
         <SignUpForm />
