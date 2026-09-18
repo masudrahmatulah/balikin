@@ -4,8 +4,8 @@ import { getAdminSession } from "@/lib/admin";
 import { getUserById } from "@/lib/admin";
 import { formatEmailForUser } from "@/lib/admin-privacy";
 import { db } from "@/db";
-import { tags, stickerOrders, scanLogs } from "@/db/schema";
-import { eq, desc, count } from "drizzle-orm";
+import { tags, stickerOrders } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { ClientTagsList } from "@/components/admin/client-tags-list";
 import { ClientQRGenerator } from "@/components/admin/client-qr-generator";
 import { WhatsAppQuickLink } from "@/components/admin/whatsapp-quick-link";
@@ -52,12 +52,16 @@ export default async function ClientDetailPage({
     orderBy: [desc(stickerOrders.createdAt)],
   });
 
-  // Get recent activity
-  const recentScans = await db.query.scanLogs.findMany({
-    where: eq(scanLogs.scannedBy, userId),
-    orderBy: [desc(scanLogs.createdAt)],
-    limit: 10,
-  });
+  // Get recent activity from scans belonging to the user's tags.
+  const recentScans = clientTags
+    .flatMap((tag) =>
+      (tag.scanLogs ?? []).map((scan) => ({
+        ...scan,
+        tagSlug: tag.slug,
+      }))
+    )
+    .sort((a, b) => (b.scannedAt?.getTime() ?? 0) - (a.scannedAt?.getTime() ?? 0))
+    .slice(0, 10);
 
   // Calculate stats
   const totalScans = clientTags.reduce((sum, tag) => sum + (tag.scanLogs?.length || 0), 0);
@@ -256,7 +260,9 @@ export default async function ClientDetailPage({
                         Tag scanned: {scan.tagSlug}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(scan.createdAt).toLocaleString("id-ID")}
+                         {scan.scannedAt
+                           ? new Date(scan.scannedAt).toLocaleString("id-ID")
+                           : "Waktu tidak tersedia"}
                       </p>
                     </div>
                   </div>
