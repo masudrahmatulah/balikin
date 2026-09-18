@@ -1270,8 +1270,24 @@ export const siteSettings = pgTable('site_settings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Helpdesk questions waiting for an admin answer and published AI knowledge.
+export const helpdeskQuestions = pgTable('helpdesk_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  question: text('question').notNull(),
+  conversation: jsonb('conversation'),
+  answer: text('answer'),
+  status: text('status').default('unreviewed').notNull(),
+  reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp('reviewed_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export type SiteSettings = typeof siteSettings.$inferSelect;
 export type NewSiteSettings = typeof siteSettings.$inferInsert;
+export type HelpdeskQuestion = typeof helpdeskQuestions.$inferSelect;
+export type NewHelpdeskQuestion = typeof helpdeskQuestions.$inferInsert;
 
 // ============================================================================
 // TYPE EXPORTS

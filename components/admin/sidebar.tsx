@@ -297,6 +297,15 @@ export function Sidebar({ userDivision }: SidebarProps) {
             <ScrollText className="w-[18px] h-[18px]" />
             <span>Audit Logs</span>
           </Link>
+
+          {/* Helpdesk Questions Link */}
+          <Link
+            href="/admin/helpdesk/questions"
+            className="flex items-center gap-3 px-3 py-2 text-sm text-white/60 hover:bg-white/10 hover:text-white rounded-xl transition-colors"
+          >
+            <ScrollText className="w-[18px] h-[18px]" />
+            <span>Helpdesk Questions</span>
+          </Link>
         </div>
       </aside>
     </>

@@ -2,6 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { HELPDESK_SYSTEM_PROMPT } from "@/lib/helpdesk-knowledge";
 import { retrieveHelpdeskKnowledge } from "@/lib/helpdesk-retrieval";
+import { db } from "@/db";
+import { helpdeskQuestions } from "@/db/schema";
 
 export const runtime = "nodejs";
 
@@ -41,6 +43,13 @@ export async function POST(request: Request) {
       .reverse()
       .find((message) => message.role === "user")?.content || messages;
     const relevantDocuments = await retrieveHelpdeskKnowledge(latestQuestion);
+    if (relevantDocuments.length === 0) {
+      await db.insert(helpdeskQuestions).values({
+        app_id: "balikin_id",
+        question: latestQuestion.slice(0, 2000),
+        status: "unreviewed",
+      });
+    }
     const documentContext = relevantDocuments.length > 0
       ? relevantDocuments.map((document) => `Dokumen: ${document.file}\n${document.content}`).join("\n\n")
       : "Tidak ada dokumen yang cukup relevan. Jangan mengarang jawaban; arahkan ke CS/admin.";
