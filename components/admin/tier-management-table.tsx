@@ -27,7 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface User {
   id: string;
@@ -45,7 +45,7 @@ interface TierManagementTableProps {
 export function TierManagementTable({ users, adminId }: TierManagementTableProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [bulkDialog, setBulkDialog] = useState(false);
-  const [bulkEmails, setBulkEmails] = useState("");
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [filter, setFilter] = useState<"all" | "free" | "premium">("all");
 
   const filteredUsers = users.filter((user) => {
@@ -54,6 +54,23 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
     if (filter === "premium") return user.role === "premium";
     return true;
   });
+
+  const selectedUsers = filteredUsers.filter((user) => selectedUserIds.includes(user.id));
+  const allFilteredSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUserIds.includes(user.id));
+
+  const toggleUser = (userId: string, checked: boolean) => {
+    setSelectedUserIds((current) =>
+      checked ? [...new Set([...current, userId])] : current.filter((id) => id !== userId)
+    );
+  };
+
+  const toggleAllFiltered = (checked: boolean) => {
+    setSelectedUserIds((current) => {
+      if (checked) return [...new Set([...current, ...filteredUsers.map((user) => user.id)])];
+      const filteredIds = new Set(filteredUsers.map((user) => user.id));
+      return current.filter((id) => !filteredIds.has(id));
+    });
+  };
 
   const upgradeTier = async (userId: string, newRole: string) => {
     setUpdating(userId);
@@ -78,17 +95,14 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
   };
 
   const handleBulkUpgrade = async () => {
-    if (!bulkEmails.trim()) {
-      alert("Please enter email addresses");
+    if (selectedUsers.length === 0) {
+      alert("Pilih minimal satu user");
       return;
     }
 
     setUpdating("bulk");
     try {
-      const emails = bulkEmails
-        .split("\n")
-        .map((e) => e.trim())
-        .filter((e) => e);
+      const emails = selectedUsers.map((user) => user.email);
 
       const response = await fetch("/admin/api/tiers/bulk-upgrade", {
         method: "POST",
@@ -109,7 +123,7 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
     } finally {
       setUpdating(null);
       setBulkDialog(false);
-      setBulkEmails("");
+      setSelectedUserIds([]);
     }
   };
 
@@ -135,8 +149,8 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
       </div>
 
       {/* Actions */}
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant={filter === "all" ? "default" : "outline"}
             onClick={() => setFilter("all")}
@@ -159,24 +173,25 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
 
         <Dialog open={bulkDialog} onOpenChange={setBulkDialog}>
           <DialogTrigger asChild>
-            <Button>Bulk Upgrade</Button>
+            <Button disabled={selectedUsers.length === 0}>
+              Bulk Upgrade{selectedUsers.length > 0 ? ` (${selectedUsers.length})` : ""}
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Bulk Upgrade to Premium</DialogTitle>
               <DialogDescription>
-                Upgrade multiple users to Premium tier at once
+                Upgrade user yang dicentang ke Premium tier
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Email Addresses (one per line)</Label>
-                <textarea
-                  className="w-full min-h-[200px] p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                  placeholder="user1@example.com&#10;user2@example.com&#10;user3@example.com"
-                  value={bulkEmails}
-                  onChange={(e) => setBulkEmails(e.target.value)}
-                />
+              <div className="max-h-56 space-y-2 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
+                {selectedUsers.map((user) => (
+                  <div key={user.id} className="flex items-center gap-2 text-sm">
+                    <Checkbox checked={true} disabled />
+                    <span className="truncate">{user.name || "Tanpa nama"} ({user.email})</span>
+                  </div>
+                ))}
               </div>
               <Button onClick={handleBulkUpgrade} disabled={updating === "bulk"} className="w-full">
                 {updating === "bulk" ? "Processing..." : "Upgrade All to Premium"}
@@ -192,6 +207,13 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={allFilteredSelected}
+                    onCheckedChange={(checked) => toggleAllFiltered(checked === true)}
+                    aria-label="Pilih semua user yang tampil"
+                  />
+                </TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Current Tier</TableHead>
@@ -202,13 +224,20 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500 dark:text-gray-400">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedUserIds.includes(user.id)}
+                        onCheckedChange={(checked) => toggleUser(user.id, checked === true)}
+                        aria-label={`Pilih ${user.name || user.email}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">
                       {user.name || <span className="text-gray-400">No name</span>}
                     </TableCell>
