@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       try {
         const ai = new GoogleGenAI({ apiKey: apiKeys[index] });
         const response = await ai.models.generateContent({
-          model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+          model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
           contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
           config: {
             temperature: 0.2,
