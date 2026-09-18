@@ -204,7 +204,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-gray-800 px-2 text-muted-foreground">ATAU</span>
+          <span className="bg-white px-2 text-slate-500 dark:bg-slate-900 dark:text-slate-400">ATAU</span>
         </div>
       </div>
 
@@ -214,8 +214,8 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           onClick={() => setLoginTab("otp")}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             loginTab === "otp"
-              ? "bg-background shadow-sm text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+               ? "bg-brand-red text-white shadow-sm"
+               : "text-slate-600 hover:text-brand-red dark:text-slate-400 dark:hover:text-red-300"
           }`}
           aria-pressed={loginTab === "otp"}
         >
@@ -226,8 +226,8 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           onClick={() => setLoginTab("password")}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             loginTab === "password"
-              ? "bg-background shadow-sm text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+               ? "bg-brand-red text-white shadow-sm"
+               : "text-slate-600 hover:text-brand-red dark:text-slate-400 dark:hover:text-red-300"
           }`}
           aria-pressed={loginTab === "password"}
         >
@@ -237,7 +237,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
 
       {mode === "sign-in" && (
         <div className="text-right">
-          <a href="/forgot-password" className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
+          <a href="/forgot-password" className="text-sm text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
             Lupa password?
           </a>
         </div>
@@ -251,8 +251,8 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           onClick={() => setAuthMethod("whatsapp")}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             authMethod === "whatsapp"
-              ? "bg-background shadow-sm text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+               ? "bg-brand-red text-white shadow-sm"
+               : "text-slate-600 hover:text-brand-red dark:text-slate-400 dark:hover:text-red-300"
           }`}
           aria-pressed={authMethod === "whatsapp"}
         >
@@ -264,8 +264,8 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           onClick={() => setAuthMethod("email")}
           className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             authMethod === "email"
-              ? "bg-background shadow-sm text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+               ? "bg-brand-red text-white shadow-sm"
+               : "text-slate-600 hover:text-brand-red dark:text-slate-400 dark:hover:text-red-300"
           }`}
           aria-pressed={authMethod === "email"}
         >
@@ -378,7 +378,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full border-0 bg-gradient-to-r from-[#ff2938] to-[#d90f1d] text-white shadow-lg shadow-red-600/25 hover:from-[#e50d1c] hover:to-[#b90d19] hover:shadow-xl hover:shadow-red-600/30 focus-visible:ring-brand-red"
         disabled={isLoading || isPasswordLoading}
       >
         {isLoading || isPasswordLoading ? (
@@ -400,14 +400,14 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           {mode === "sign-in" ? (
             <>
               Belum punya akun?{" "}
-              <a href="/sign-up" className="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
+              <a href="/sign-up" className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
                 Daftar sekarang
               </a>
             </>
           ) : (
             <>
               Sudah punya akun?{" "}
-              <a href="/sign-in" className="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
+              <a href="/sign-in" className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
                 Masuk
               </a>
             </>

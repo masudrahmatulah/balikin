@@ -21,7 +21,7 @@ export default function SignUpPage() {
     <AuthPageWrapper
       title="Daftar Akun Balikin"
       description="Buat akun dengan nomor WhatsApp atau email untuk mulai menggunakan Balikin"
-      icon={<MessageCircle className="h-8 w-8 text-primary" aria-hidden="true" />}
+      icon={<MessageCircle className="h-8 w-8 text-brand-red" aria-hidden="true" />}
     >
       <Suspense fallback={<AuthFormSkeleton />}>
         <SignUpForm />
