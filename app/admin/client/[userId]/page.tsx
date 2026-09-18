@@ -12,7 +12,6 @@ import { WhatsAppQuickLink } from "@/components/admin/whatsapp-quick-link";
 import { ClientPasswordForm } from "@/components/admin/client-password-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Activity, ShoppingBag, Scan, Shield, Phone, Mail } from "lucide-react";
 
@@ -120,14 +119,13 @@ export default async function ClientDetailPage({
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <ClientQRGenerator client={client} />
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => window.open(`/admin/sticker-orders?userId=${userId}`, "_blank")}
+              <Link
+                href={`/admin/sticker-orders?userId=${userId}`}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <ShoppingBag className="w-4 h-4" />
                 Orders
-              </Button>
+              </Link>
             </div>
           </div>
 
