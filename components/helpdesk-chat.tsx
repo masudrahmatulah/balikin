@@ -45,13 +45,13 @@ export function HelpdeskChat() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <section className="flex h-[calc(100dvh-230px)] min-h-[400px] max-h-[680px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:min-h-[460px]">
         <div className="flex items-center gap-3 border-b border-slate-200 p-5 dark:border-slate-700">
           <div className="rounded-xl bg-blue-600 p-2 text-white"><Bot className="h-5 w-5" /></div>
           <div><h2 className="font-semibold text-slate-900 dark:text-white">Konsultasi AI Balikin</h2><p className="text-sm text-slate-500 dark:text-slate-400">Jawaban cepat dari panduan resmi Balikin</p></div>
         </div>
-        <div className="flex min-h-[360px] flex-col gap-3 p-5">
-          <div className="flex-1 space-y-3 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 p-5">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-1">
             {messages.map((message, index) => (
               <div key={`${message.role}-${index}`} className={`flex gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                 {message.role === "assistant" && <Bot className="mt-2 h-4 w-4 shrink-0 text-blue-600" />}
