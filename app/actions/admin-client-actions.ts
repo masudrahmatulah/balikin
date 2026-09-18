@@ -178,6 +178,42 @@ export async function updateClient(userId: string, data: UpdateClientInput) {
   }
 }
 
+/** Set a new password for a user from the admin profile page. */
+export async function setClientPassword(userId: string, newPassword: string) {
+  try {
+    const adminSession = await getAdminSession();
+
+    if (!adminSession) {
+      return { error: 'Unauthorized: Admin access required' };
+    }
+
+    if (adminSession.user.id === userId) {
+      return { error: 'Gunakan pengaturan akun sendiri untuk mengganti password admin ini' };
+    }
+
+    if (newPassword.length < 8 || newPassword.length > 64) {
+      return { error: 'Password harus terdiri dari 8 sampai 64 karakter' };
+    }
+
+    const existingUser = await db.query.user.findFirst({
+      where: and(eq(user.id, userId), eq(user.app_id, 'balikin_id')),
+    });
+
+    if (!existingUser) {
+      return { error: 'User tidak ditemukan' };
+    }
+
+    await auth.api.setUserPassword({
+      body: { userId, newPassword },
+      headers: await headers(),
+    });
+
+    return { success: true };
+  } catch {
+    return { error: 'Gagal mengganti password user' };
+  }
+}
+
 /**
  * Delete a client/user with cascade delete of their tags
  */

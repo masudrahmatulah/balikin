@@ -9,6 +9,7 @@ import { eq, desc, count } from "drizzle-orm";
 import { ClientTagsList } from "@/components/admin/client-tags-list";
 import { ClientQRGenerator } from "@/components/admin/client-qr-generator";
 import { WhatsAppQuickLink } from "@/components/admin/whatsapp-quick-link";
+import { ClientPasswordForm } from "@/components/admin/client-password-form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -204,6 +205,22 @@ export default async function ClientDetailPage({
             </CardContent>
           </Card>
         </div>
+
+        {/* Password Management */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Ganti Password User
+            </CardTitle>
+            <CardDescription>
+              Atur password baru untuk akun user ini. Password lama akan langsung tidak berlaku.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ClientPasswordForm userId={userId} />
+          </CardContent>
+        </Card>
 
         {/* Emergency Lost Mode Toggle */}
         {lostTagsCount > 0 && (
