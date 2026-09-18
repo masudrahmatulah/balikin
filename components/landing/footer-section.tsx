@@ -31,6 +31,7 @@ export function FooterSection() {
               <li><Link href="/how-it-works" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Cara Kerja</Link></li>
               <li><Link href="/sign-up" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Daftar Gratis</Link></li>
               <li><Link href="/pricing" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Harga</Link></li>
+              <li><Link href="/helpdesk" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Helpdesk AI</Link></li>
             </ul>
           </div>
           <div>
@@ -38,6 +39,7 @@ export function FooterSection() {
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li><Link href="/blog" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Blog</Link></li>
               <li><Link href="/contact" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Kontak</Link></li>
+              <li><Link href="/help" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Pusat Bantuan</Link></li>
               <li><Link href="/about" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Tentang Kami</Link></li>
               <li><Link href="/privacy-policy" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Kebijakan Privasi</Link></li>
               <li><Link href="/terms-of-service" className="hover:text-brand-red hover:underline focus-visible:text-brand-red focus-visible:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red rounded">Syarat & Ketentuan</Link></li>

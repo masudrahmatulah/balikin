@@ -137,6 +137,11 @@ export default async function SettingsPage() {
                   Hubungi Kami
                 </Button>
               </Link>
+              <Link href="/helpdesk">
+                <Button variant="ghost" className="w-full justify-start dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
+                  Helpdesk AI & Konsultasi CS
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 

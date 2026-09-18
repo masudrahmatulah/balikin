@@ -122,6 +122,15 @@ export default function MobileHelpPage() {
           </div>
 
           {/* Contact */}
+          <div className="rounded-2xl bg-blue-600 p-5 text-white shadow-lg">
+            <h2 className="font-bold">Butuh bantuan lebih cepat?</h2>
+            <p className="mt-1 text-sm text-blue-100">Gunakan Helpdesk AI sebelum menghubungi CS.</p>
+            <Link href="/helpdesk" className="mt-4 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-blue-700">
+              Buka Helpdesk AI
+            </Link>
+          </div>
+
+          {/* Contact */}
           <div>
             <h2 className="text-base font-bold text-gray-900 mb-3">Hubungi Kami</h2>
             <div className="space-y-3">

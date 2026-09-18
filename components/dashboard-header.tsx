@@ -56,6 +56,7 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
             <nav className="mr-2 hidden items-center gap-1 lg:flex" aria-label="Navigasi dashboard">
               <Link href="/how-it-works" className="rounded-full px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-brand-red dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-red-300">Cara Kerja</Link>
               <Link href="/help" className="rounded-full px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-brand-red dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-red-300">Bantuan</Link>
+              <Link href="/helpdesk" className="rounded-full px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-brand-red dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-red-300">Helpdesk AI</Link>
             </nav>
             <ThemeToggle />
             <DropdownMenu>
