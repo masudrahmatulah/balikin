@@ -106,6 +106,7 @@ export const DivisionNavigation = {
     { title: 'VDP Tool', href: '/admin/vdp-tool', icon: '🔧' },
     { title: 'Tags', href: '/admin/tags', icon: '🏷️' },
     { title: 'Payments', href: '/admin/payments', icon: '💳' },
+    { title: 'Manajemen User', href: '/admin/clients', icon: '👥' },
     { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
     { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
     { title: 'Blog', href: '/admin/blog', icon: '📝' },
