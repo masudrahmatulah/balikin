@@ -47,7 +47,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "VDP Tool": Wrench,
   Tags: Tag,
   Payments: CreditCard,
-  "Client Management": Users,
+  "Manajemen User": Users,
   "Sticker Orders": Package,
   "Master PIN Stiker": KeyRound,
   Blog: ScrollText,
@@ -68,6 +68,11 @@ const STRATEGIC_ANALYTICS_SUBMENU: Array<{ label: string; tab: string; icon: Luc
 ];
 
 const STRATEGIC_ANALYTICS_TITLE = "Strategic Analytics";
+const USER_MANAGEMENT_TITLE = "Manajemen User";
+const USER_MANAGEMENT_SUBMENU: Array<{ label: string; href: string }> = [
+  { label: "Daftar User", href: "/admin/clients" },
+  { label: "Manajemen Tier", href: "/admin/tier-management" },
+];
 
 export function Sidebar({ userDivision }: SidebarProps) {
   const pathname = usePathname();
@@ -75,10 +80,16 @@ export function Sidebar({ userDivision }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isOnAnalytics = pathname.startsWith("/admin/analytics");
   const [analyticsOpen, setAnalyticsOpen] = useState(isOnAnalytics);
+  const isOnUserManagement = pathname === "/admin/clients" || pathname.startsWith("/admin/tier-management");
+  const [userManagementOpen, setUserManagementOpen] = useState(isOnUserManagement);
 
   useEffect(() => {
     if (isOnAnalytics) setAnalyticsOpen(true);
   }, [isOnAnalytics]);
+
+  useEffect(() => {
+    if (isOnUserManagement) setUserManagementOpen(true);
+  }, [isOnUserManagement]);
 
   const activeAnalyticsTab = searchParams.get("tab") ?? "conversion";
 
@@ -182,6 +193,55 @@ export function Sidebar({ userDivision }: SidebarProps) {
                             )}
                           >
                             <SubIcon className="w-3.5 h-3.5" strokeWidth={2} aria-hidden="true" />
+                            <span>{sub.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (item.title === USER_MANAGEMENT_TITLE) {
+              return (
+                <div key={`${item.href}-${item.title}`}>
+                  <button
+                    type="button"
+                    onClick={() => setUserManagementOpen((v) => !v)}
+                    aria-expanded={userManagementOpen}
+                    className={cn(
+                      "group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative",
+                      isOnUserManagement
+                        ? "bg-white/15 text-white font-semibold shadow-inner"
+                        : "text-white/60 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    {isOnUserManagement && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                    )}
+                    <ItemIcon className="w-[18px] h-[18px]" strokeWidth={2} />
+                    <span className="text-sm">{item.title}</span>
+                    <ChevronDown
+                      className={cn("ml-auto w-4 h-4 transition-transform", userManagementOpen && "rotate-180")}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {userManagementOpen && (
+                    <div className="mt-0.5 space-y-0.5">
+                      {USER_MANAGEMENT_SUBMENU.map((sub) => {
+                        const subActive = pathname === sub.href || pathname.startsWith(`${sub.href}/`);
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            className={cn(
+                              "flex items-center gap-2.5 rounded-lg py-2 pr-3 pl-9 text-sm transition-all",
+                              subActive
+                                ? "bg-white/10 text-white font-medium"
+                                : "text-white/50 hover:bg-white/5 hover:text-white"
+                            )}
+                          >
                             <span>{sub.label}</span>
                           </Link>
                         );

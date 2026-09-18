@@ -114,7 +114,7 @@ export const DivisionNavigation = {
   [Division.CUSTOMER_SERVICE]: [
     { title: 'Dashboard', href: '/admin/cs', icon: '📊' },
     { title: 'Payments', href: '/admin/payments', icon: '💳' },
-    { title: 'Client Management', href: '/admin/clients', icon: '👥' },
+    { title: 'Manajemen User', href: '/admin/clients', icon: '👥' },
     { title: 'Tags', href: '/admin/tags', icon: '🏷️' },
     { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
     { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
@@ -139,7 +139,7 @@ export const DivisionNavigation = {
       { title: 'Print Queue', href: '/admin/print-queue', icon: '🖨️' },
       { title: 'Stock Status', href: '/admin/production/stock', icon: '📊' },
       { title: 'Payments', href: '/admin/payments', icon: '💳' },
-      { title: 'Client Management', href: '/admin/clients', icon: '👥' },
+      { title: 'Manajemen User', href: '/admin/clients', icon: '👥' },
       { title: 'Tags', href: '/admin/tags', icon: '🏷️' },
       { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
       { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
