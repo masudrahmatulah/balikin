@@ -235,6 +235,14 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
         </button>
       </div>
 
+      {mode === "sign-in" && (
+        <div className="text-right">
+          <a href="/forgot-password" className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
+            Lupa password?
+          </a>
+        </div>
+      )}
+
       {loginTab === "otp" && (
       <>
       <div className="grid grid-cols-1 gap-2 rounded-lg bg-muted p-1 sm:grid-cols-2" role="group" aria-label="Pilih metode autentikasi">
@@ -365,13 +373,6 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
         />
       </div>
-      {mode === "sign-in" && (
-        <div className="text-right">
-          <a href="/forgot-password" className="text-sm text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded">
-            Lupa password?
-          </a>
-        </div>
-      )}
       </>
       )}
 
