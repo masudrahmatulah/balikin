@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { stickerOrders, modulePurchaseOrders, tagUpgradeOrders, helpdeskQuestions } from '@/db/schema';
-import { eq, count, or } from 'drizzle-orm';
+import { and, eq, count, or } from 'drizzle-orm';
 
 /**
  * Get pending orders count for admin header badge
@@ -61,7 +61,12 @@ export async function getPendingHelpdeskQuestionsCount() {
   const result = await db
     .select({ count: count() })
     .from(helpdeskQuestions)
-    .where(eq(helpdeskQuestions.status, 'unreviewed'));
+    .where(
+      and(
+        eq(helpdeskQuestions.app_id, 'balikin_id'),
+        eq(helpdeskQuestions.status, 'unreviewed'),
+      ),
+    );
 
   return result[0]?.count || 0;
 }
