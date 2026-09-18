@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthSuccessState } from "@/components/auth/auth-success-state";
 import { authClient, formatWhatsAppEmail } from "@/lib/auth-client";
+import { requestWhatsAppPasswordReset } from "@/app/actions/account-actions";
 
 type ResetMethod = "email" | "whatsapp";
 
@@ -49,9 +50,7 @@ export function ForgotPasswordForm() {
           throw new Error("Masukkan nomor WhatsApp yang valid.");
         }
 
-        const result = await authClient.emailOtp.requestPasswordResetEmailOTP({
-          email: identifier,
-        });
+        const result = await requestWhatsAppPasswordReset(whatsapp);
 
         if (result.error) throw new Error(result.error.message || "Gagal mengirim OTP WhatsApp.");
         setStep("verify");
