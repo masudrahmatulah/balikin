@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Check, Square, Trash2 } from "lucide-react";
 import type { User } from "@/db/schema";
 import { formatDate } from "@/lib/date";
@@ -19,7 +19,6 @@ interface ClientsTableProps {
 }
 
 export function ClientsTable({ users }: ClientsTableProps) {
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "admin" | "user">("all");
 
@@ -263,8 +262,8 @@ export function ClientsTable({ users }: ClientsTableProps) {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => router.push(`/admin/client/${user.id}`)}
+                    <Link
+                      href={`/admin/client/${user.id}`}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                     >
                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -272,7 +271,7 @@ export function ClientsTable({ users }: ClientsTableProps) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                       Detail
-                    </button>
+                    </Link>
                     <button
                       onClick={() => {
                         setSelectedUser(user);
