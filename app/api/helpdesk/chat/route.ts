@@ -15,6 +15,14 @@ function getGeminiApiKeys() {
   return process.env.GEMINI_API_KEY ? [process.env.GEMINI_API_KEY] : [];
 }
 
+function getGeminiModels() {
+  return [...new Set([
+    process.env.GEMINI_MODEL || "gemini-flash-lite-latest",
+    process.env.GEMINI_FALLBACK_MODEL || "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+  ])];
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { messages?: ChatMessage[] };
@@ -37,25 +45,27 @@ export async function POST(request: Request) {
     }
 
     let lastError: unknown;
-    for (let index = 0; index < apiKeys.length; index += 1) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: apiKeys[index] });
-        const response = await ai.models.generateContent({
-          model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-          contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
-          config: {
-            temperature: 0.2,
-            maxOutputTokens: 500,
-          },
-        });
+    for (const model of getGeminiModels()) {
+      for (let index = 0; index < apiKeys.length; index += 1) {
+        try {
+          const ai = new GoogleGenAI({ apiKey: apiKeys[index] });
+          const response = await ai.models.generateContent({
+            model,
+            contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
+            config: {
+              temperature: 0.2,
+              maxOutputTokens: 500,
+            },
+          });
 
-        return NextResponse.json({ answer: response.text || "Silakan hubungi CS untuk bantuan lebih lanjut." });
-      } catch (error) {
-        lastError = error;
-        const status = typeof error === "object" && error !== null && "status" in error
-          ? (error as { status?: number }).status
-          : undefined;
-        console.warn(`[Helpdesk AI] Gemini key ${index + 1} failed${status ? ` (${status})` : ""}; trying next key.`);
+          return NextResponse.json({ answer: response.text || "Silakan hubungi CS untuk bantuan lebih lanjut." });
+        } catch (error) {
+          lastError = error;
+          const status = typeof error === "object" && error !== null && "status" in error
+            ? (error as { status?: number }).status
+            : undefined;
+          console.warn(`[Helpdesk AI] Model ${model}, key ${index + 1} failed${status ? ` (${status})` : ""}; trying fallback.`);
+        }
       }
     }
 
