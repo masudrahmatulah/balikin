@@ -4,6 +4,7 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SignOutButton } from '@/components/sign-out-button';
+import { SettingsPasswordForm } from '@/components/settings-password-form';
 import { User, Bell, Shield, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -43,6 +44,20 @@ export default async function SettingsPage() {
                   <p className="text-sm text-gray-600 dark:text-slate-300">{userEmail}</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Password Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Ganti Password
+              </CardTitle>
+              <CardDescription>Perbarui password akun dan keluarkan sesi aktif di perangkat lain</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SettingsPasswordForm />
             </CardContent>
           </Card>
 
