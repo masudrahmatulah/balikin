@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { HELPDESK_SYSTEM_PROMPT } from "@/lib/helpdesk-knowledge";
+import { retrieveHelpdeskKnowledge } from "@/lib/helpdesk-retrieval";
 
 export const runtime = "nodejs";
 
@@ -36,6 +37,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pesan tidak boleh kosong." }, { status: 400 });
     }
 
+    const latestQuestion = [...(body.messages ?? [])]
+      .reverse()
+      .find((message) => message.role === "user")?.content || messages;
+    const relevantDocuments = await retrieveHelpdeskKnowledge(latestQuestion);
+    const documentContext = relevantDocuments.length > 0
+      ? relevantDocuments.map((document) => `Dokumen: ${document.file}\n${document.content}`).join("\n\n")
+      : "Tidak ada dokumen yang cukup relevan. Jangan mengarang jawaban; arahkan ke CS/admin.";
+
     const apiKeys = getGeminiApiKeys();
     if (apiKeys.length === 0) {
       return NextResponse.json(
@@ -51,7 +60,7 @@ export async function POST(request: Request) {
           const ai = new GoogleGenAI({ apiKey: apiKeys[index] });
           const response = await ai.models.generateContent({
             model,
-            contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
+            contents: `${HELPDESK_SYSTEM_PROMPT}\n\nDokumen relevan:\n${documentContext}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir berdasarkan dokumen relevan.`,
             config: {
               temperature: 0.2,
               maxOutputTokens: 500,
