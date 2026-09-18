@@ -6,6 +6,15 @@ export const runtime = "nodejs";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
+function getGeminiApiKeys() {
+  const numberedKeys = [1, 2, 3]
+    .map((number) => process.env[`GEMINI_API_KEY_${number}`])
+    .filter((key): key is string => Boolean(key?.trim()));
+
+  if (numberedKeys.length > 0) return numberedKeys;
+  return process.env.GEMINI_API_KEY ? [process.env.GEMINI_API_KEY] : [];
+}
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { messages?: ChatMessage[] };
@@ -19,24 +28,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Pesan tidak boleh kosong." }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKeys = getGeminiApiKeys();
+    if (apiKeys.length === 0) {
       return NextResponse.json(
         { error: "Asisten AI sedang belum dikonfigurasi. Silakan lanjutkan melalui WhatsApp CS." },
         { status: 503 },
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
-      contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
-      config: {
-        temperature: 0.2,
-        maxOutputTokens: 500,
-      },
-    });
+    let lastError: unknown;
+    for (let index = 0; index < apiKeys.length; index += 1) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: apiKeys[index] });
+        const response = await ai.models.generateContent({
+          model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+          contents: `${HELPDESK_SYSTEM_PROMPT}\n\nPercakapan:\n${messages}\n\nJawab pertanyaan customer terakhir.`,
+          config: {
+            temperature: 0.2,
+            maxOutputTokens: 500,
+          },
+        });
 
-    return NextResponse.json({ answer: response.text || "Silakan hubungi CS untuk bantuan lebih lanjut." });
+        return NextResponse.json({ answer: response.text || "Silakan hubungi CS untuk bantuan lebih lanjut." });
+      } catch (error) {
+        lastError = error;
+        const status = typeof error === "object" && error !== null && "status" in error
+          ? (error as { status?: number }).status
+          : undefined;
+        console.warn(`[Helpdesk AI] Gemini key ${index + 1} failed${status ? ` (${status})` : ""}; trying next key.`);
+      }
+    }
+
+    throw lastError || new Error("All Gemini API keys failed");
   } catch (error) {
     console.error("[Helpdesk AI] Request failed:", error);
     return NextResponse.json(
