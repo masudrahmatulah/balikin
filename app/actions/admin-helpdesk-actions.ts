@@ -43,3 +43,15 @@ export async function answerHelpdeskQuestion(questionId: string, answer: string)
   revalidatePath('/admin/helpdesk/questions');
   return { success: true };
 }
+
+export async function ignoreHelpdeskQuestion(questionId: string) {
+  const admin = await getAdmin();
+  if (!admin) return { error: 'Unauthorized' };
+
+  await db.update(helpdeskQuestions)
+    .set({ status: 'ignored', reviewedBy: admin.id, reviewedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(helpdeskQuestions.id, questionId), eq(helpdeskQuestions.app_id, 'balikin_id')));
+
+  revalidatePath('/admin/helpdesk/questions');
+  return { success: true };
+}
