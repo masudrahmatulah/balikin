@@ -135,10 +135,10 @@ export default function AboutPage() {
               Nilai Utama yang Kami Pegang Teguh
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+              <div className="rounded-lg border border-red-200 bg-gradient-to-br from-red-50 to-red-100 p-6 dark:border-red-900/60 dark:from-red-950/40 dark:to-slate-900">
                 <div className="text-3xl mb-3">🔒</div>
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Keamanan Privasi</h3>
-                <p className="text-gray-700 text-sm">Kami tidak pernah menampilkan nomor telepon, email, atau alamat rumah Anda ke halaman publik. Keamanan data Anda adalah prioritas nomor satu kami.</p>
+                <h3 className="mb-2 text-lg font-semibold text-brand-navy dark:text-white">Keamanan Privasi</h3>
+                <p className="text-sm text-gray-800 dark:text-slate-200">Kami tidak pernah menampilkan nomor telepon, email, atau alamat rumah Anda ke halaman publik. Keamanan data Anda adalah prioritas nomor satu kami.</p>
               </div>
 
               <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
@@ -147,10 +147,10 @@ export default function AboutPage() {
                 <p className="text-gray-700 text-sm">Penemu barang tidak perlu mengunduh aplikasi tambahan untuk melaporkan barang yang mereka temukan. Cukup scan dan langsung bisa menghubungi Anda.</p>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+              <div className="rounded-lg border border-red-200 bg-gradient-to-br from-slate-100 to-red-50 p-6 dark:border-red-900/60 dark:from-slate-800 dark:to-red-950/40">
                 <div className="text-3xl mb-3">♾️</div>
-                <h3 className="text-lg font-semibold text-purple-900 mb-2">Premium Lifetime</h3>
-                <p className="text-gray-700 text-sm">Kami tidak menyukai biaya bulanan yang mengikat. Cukup beli tag fisik sekali, dan nikmati fitur premium kami selamanya selama platform beroperasi.</p>
+                <h3 className="mb-2 text-lg font-semibold text-brand-navy dark:text-white">Premium Lifetime</h3>
+                <p className="text-sm text-gray-800 dark:text-slate-200">Kami tidak menyukai biaya bulanan yang mengikat. Cukup beli tag fisik sekali, dan nikmati fitur premium kami selamanya selama platform beroperasi.</p>
               </div>
             </div>
           </section>
