@@ -146,15 +146,20 @@ export async function updateStudentKitNotificationSettings(data: {
 // OTOMOTIF ACTIONS
 // ============================================================================
 
-export async function getOtomotifData() {
+export async function getOtomotifData(tagId: string) {
   const userId = await requireUserId();
 
+  if (!validateTagId(tagId) || !(await verifyTagOwnership(tagId, userId))) {
+    throw new Error('Tag tidak ditemukan atau bukan milik Anda');
+  }
+
   return db.query.otomotifData.findFirst({
-    where: eq(otomotifData.userId, userId),
+    where: and(eq(otomotifData.tagId, tagId), eq(otomotifData.userId, userId)),
   });
 }
 
 export async function updateOtomotifData(data: {
+  tagId: string;
   stnkNumber?: string;
   stnkExpiryDate?: Date;
   oilChangeSchedule?: string;
@@ -164,8 +169,12 @@ export async function updateOtomotifData(data: {
 }) {
   const userId = await requireUserId();
 
+  if (!validateTagId(data.tagId) || !(await verifyTagOwnership(data.tagId, userId))) {
+    throw new Error('Tag tidak ditemukan atau bukan milik Anda');
+  }
+
   const existingData = await db.query.otomotifData.findFirst({
-    where: eq(otomotifData.userId, userId),
+    where: and(eq(otomotifData.tagId, data.tagId), eq(otomotifData.userId, userId)),
     columns: { id: true },
   });
 
@@ -187,6 +196,7 @@ export async function updateOtomotifData(data: {
   } else {
     await db.insert(otomotifData).values({
       userId,
+      tagId: data.tagId,
       stnkNumber: data.stnkNumber || '',
       stnkExpiryDate: data.stnkExpiryDate || null,
       oilChangeSchedule: data.oilChangeSchedule || DEFAULT_EMPTY_ARRAY,
@@ -203,15 +213,20 @@ export async function updateOtomotifData(data: {
 // PERTANIAN ACTIONS
 // ============================================================================
 
-export async function getPertanianData() {
+export async function getPertanianData(tagId: string) {
   const userId = await requireUserId();
 
+  if (!validateTagId(tagId) || !(await verifyTagOwnership(tagId, userId))) {
+    throw new Error('Tag tidak ditemukan atau bukan milik Anda');
+  }
+
   return db.query.pertanianData.findFirst({
-    where: eq(pertanianData.userId, userId),
+    where: and(eq(pertanianData.tagId, tagId), eq(pertanianData.userId, userId)),
   });
 }
 
 export async function updatePertanianData(data: {
+  tagId: string;
   hstCalculator?: string;
   fertilizerSchedule?: string;
   harvestLog?: string;
@@ -219,8 +234,12 @@ export async function updatePertanianData(data: {
 }) {
   const userId = await requireUserId();
 
+  if (!validateTagId(data.tagId) || !(await verifyTagOwnership(data.tagId, userId))) {
+    throw new Error('Tag tidak ditemukan atau bukan milik Anda');
+  }
+
   const existingData = await db.query.pertanianData.findFirst({
-    where: eq(pertanianData.userId, userId),
+    where: and(eq(pertanianData.tagId, data.tagId), eq(pertanianData.userId, userId)),
     columns: { id: true },
   });
 
@@ -242,6 +261,7 @@ export async function updatePertanianData(data: {
   } else {
     await db.insert(pertanianData).values({
       userId,
+      tagId: data.tagId,
       hstCalculator: data.hstCalculator || DEFAULT_EMPTY_JSON,
       fertilizerSchedule: data.fertilizerSchedule || DEFAULT_EMPTY_ARRAY,
       harvestLog: data.harvestLog || DEFAULT_EMPTY_ARRAY,

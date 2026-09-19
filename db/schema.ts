@@ -123,6 +123,25 @@ export const printBatches = pgTable('print_batches', {
   completedAt: timestamp('completed_at'),
   createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
   notes: text('notes'),
+  artifactUrl: text('artifact_url'),
+  artifactFilename: text('artifact_filename'),
+  artifactContentType: text('artifact_content_type'),
+  artifactSize: integer('artifact_size'),
+  artifactExpiresAt: timestamp('artifact_expires_at'),
+  generationConfig: jsonb('generation_config').$type<{
+    batchName: string;
+    quantity: number;
+    materialType: string;
+    productType: string;
+    paperSize: string;
+    stickerShape?: string;
+    stickerSize?: string;
+    stickerProductKey?: string;
+    stickerColorTheme?: string;
+    isCustom?: boolean;
+    outputFormat?: string;
+    generatorVersion: string;
+  }>(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -515,6 +534,7 @@ export const otomotifData = pgTable('otomotif_data', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
   stnkNumber: text('stnk_number'),
   stnkExpiryDate: timestamp('stnk_expiry_date'),
   oilChangeSchedule: text('oil_change_schedule'), // JSON string
@@ -530,6 +550,10 @@ export const otomotifDataRelations = relations(otomotifData, ({ one }) => ({
     fields: [otomotifData.userId],
     references: [user.id],
   }),
+  tag: one(tags, {
+    fields: [otomotifData.tagId],
+    references: [tags.id],
+  }),
 }));
 
 // Pertanian module data
@@ -537,6 +561,7 @@ export const pertanianData = pgTable('pertanian_data', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }),
   hstCalculator: text('hst_calculator'), // JSON string
   fertilizerSchedule: text('fertilizer_schedule'), // JSON string
   harvestLog: text('harvest_log'), // JSON string
@@ -549,6 +574,10 @@ export const pertanianDataRelations = relations(pertanianData, ({ one }) => ({
   user: one(user, {
     fields: [pertanianData.userId],
     references: [user.id],
+  }),
+  tag: one(tags, {
+    fields: [pertanianData.tagId],
+    references: [tags.id],
   }),
 }));
 
@@ -1098,6 +1127,24 @@ export const setupGallerySubmissionsRelations = relations(setupGallerySubmission
     fields: [setupGallerySubmissions.userId],
     references: [user.id],
   }),
+}));
+
+// Coupons - administrator-managed discount codes.
+export const coupons = pgTable('coupons', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  code: text('code').notNull().unique(),
+  discountType: text('discount_type').notNull(), // 'percentage' | 'fixed'
+  discountValue: integer('discount_value').notNull(),
+  maxUses: integer('max_uses').default(1).notNull(),
+  usedCount: integer('used_count').default(0).notNull(),
+  expiresAt: timestamp('expires_at'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: index('idx_coupons_code').on(table.code),
+  activeIdx: index('idx_coupons_active').on(table.isActive),
 }));
 
 // Blog Posts Analytics - track page views and engagement

@@ -27,6 +27,7 @@ import {
   RotateCcw,
   Boxes,
   Target,
+  Ticket,
   KeyRound,
   ChevronDown,
   type LucideIcon,
@@ -55,10 +56,12 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "Strategic Analytics": LineChart,
   Requests: Inbox,
   Modules: Puzzle,
+  "Data Modul": Boxes,
   Analytics: LineChart,
   "Conversion Funnel": Repeat,
   "Module Performance": BarChart3,
   Campaigns: Target,
+  Coupons: Ticket,
 };
 
 // Sub-menus for the Strategic Analytics page (maps to its tabs via ?tab= query param)
