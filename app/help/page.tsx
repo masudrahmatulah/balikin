@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { HelpCircle, MessageCircle, Mail, BookOpen, QrCode, Shield, AlertTriangle, ChevronRight } from "lucide-react";
 import { MarketingShell } from "@/components/marketing-shell";
 
@@ -62,15 +61,15 @@ export default function HelpPage() {
           </span>
           Dukungan Balikin untuk setiap langkah
         </div>
-        <Link href="/helpdesk" className="inline-flex items-center rounded-xl bg-brand-red px-4 py-3 text-sm font-semibold text-white shadow-md shadow-red-900/15 transition-colors hover:bg-brand-red-dark">
+        <a href="/helpdesk" className="inline-flex items-center rounded-xl bg-brand-red px-4 py-3 text-sm font-semibold text-white shadow-md shadow-red-900/15 transition-colors hover:bg-brand-red-dark">
           Buka Helpdesk AI & Konsultasi CS
-        </Link>
+        </a>
         {/* Panduan Cepat */}
         <section>
            <h2 className="text-2xl font-bold text-slate-900 mb-6 dark:text-white">Panduan Utama</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {guides.map((guide) => (
-              <Link key={guide.href} href={guide.href}>
+              <a key={guide.href} href={guide.href}>
                  <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-md transition-shadow group cursor-pointer hover:border-brand-red/30 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
                   <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${guide.color} text-white mb-4 shadow-lg`}>
                     <guide.icon className="h-6 w-6" />
@@ -80,7 +79,7 @@ export default function HelpPage() {
                   </h3>
                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{guide.description}</p>
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         </section>
@@ -90,7 +89,7 @@ export default function HelpPage() {
            <h2 className="text-2xl font-bold text-slate-900 mb-6 dark:text-white">Pertanyaan Populer</h2>
            <div className="overflow-hidden rounded-2xl bg-white shadow-md dark:bg-slate-900">
             {quickTopics.map((topic, index) => (
-              <Link key={index} href={topic.href}>
+              <a key={index} href={topic.href}>
                 <div className={`flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors group ${
                   index < quickTopics.length - 1 ? 'border-b border-gray-100' : ''
                 }`}>
@@ -99,7 +98,7 @@ export default function HelpPage() {
                   </span>
                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-brand-red" />
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         </section>
