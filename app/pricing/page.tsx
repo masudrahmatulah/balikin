@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, MessageCircle } from "lucide-react";
-import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PREMIUM_PRICE, WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
@@ -72,10 +71,15 @@ async function PricingPage() {
   }));
 
   return (
-    <MarketingShell
-      title="Harga Balikin"
-      description="Mulai dari tag digital gratis, lalu upgrade ke gantungan kunci QR code premium saat Anda butuh produk fisik."
-    >
+    <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <header className="bg-gradient-to-r from-brand-navy to-brand-red px-4 py-16 text-white">
+        <div className="mx-auto max-w-4xl text-center">
+          <h1 className="mb-4 text-4xl font-bold md:text-5xl">Harga Balikin</h1>
+          <p className="text-xl text-red-100">Mulai melindungi barang Anda hari ini</p>
+          <p className="mt-4 text-sm text-red-200">Gunakan tag digital gratis atau pilih produk fisik premium sesuai kebutuhan Anda.</p>
+        </div>
+      </header>
+      <main className="mx-auto max-w-4xl px-4 py-12">
       <ProductJsonLd
         name="Balikin QR Tag"
         description="Smart Lost & Found QR Tag untuk barang hilang"
@@ -88,7 +92,7 @@ async function PricingPage() {
           {pricingPlans.map((plan) => (
             <Card
               key={plan.name}
-               className={`border-2 bg-card ${plan.isPremium ? "border-brand-red shadow-lg shadow-red-900/10" : "border-slate-200 dark:border-slate-700"}`}
+                className={`border-2 bg-white shadow-lg dark:bg-slate-900 ${plan.isPremium ? "border-brand-red shadow-red-900/10" : "border-red-100 dark:border-slate-700"}`}
               role="article"
               aria-labelledby={`plan-${plan.name.toLowerCase()}-title`}
             >
@@ -98,7 +102,7 @@ async function PricingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-3xl font-bold" aria-label={`Harga ${plan.price}`}>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white" aria-label={`Harga ${plan.price}`}>
                   {plan.price}
                 </p>
                 <ul
@@ -133,7 +137,7 @@ async function PricingPage() {
                     </a>
                   </Button>
                 ) : (
-                  <Button asChild className="w-full">
+                  <Button asChild className="w-full bg-brand-red hover:bg-brand-red-dark focus-visible:bg-brand-red-dark">
                     <Link
                       href={plan.cta.href || "#"}
                       aria-label={`${plan.cta.label} untuk paket ${plan.name}`}
@@ -147,7 +151,11 @@ async function PricingPage() {
           ))}
         </div>
       </section>
-    </MarketingShell>
+        <div className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
+          © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
+        </div>
+      </main>
+    </div>
   );
 }
 
