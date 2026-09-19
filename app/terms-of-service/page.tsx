@@ -256,26 +256,26 @@ export default function TermsOfServicePage() {
           </section>
 
           {/* Section 8 - Contact */}
-          <section className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl shadow-lg p-8 mb-8">
+          <section className="bg-gradient-to-br from-brand-navy to-brand-red text-white rounded-xl shadow-lg shadow-red-900/20 p-8 mb-8">
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 bg-white text-blue-600 rounded-full flex items-center justify-center text-sm">8</span>
+              <span className="w-8 h-8 bg-white text-brand-red-dark rounded-full flex items-center justify-center text-sm">8</span>
               Hubungi Kami
             </h2>
-            <p className="text-blue-100 leading-relaxed text-justify mb-6">
+            <p className="text-red-100 leading-relaxed text-justify mb-6">
               Jika Anda memiliki pertanyaan seputar dokumen hukum ini, silakan hubungi tim kami yang ramah melalui:
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
                 <span className="text-2xl">📧</span>
                 <div>
-                  <p className="text-sm text-blue-200">Email Resmi</p>
+                  <p className="text-sm text-red-200">Email Resmi</p>
                   <a href="mailto:support@balikin.online" className="text-white font-semibold hover:underline">support@balikin.online</a>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
                 <span className="text-2xl">💬</span>
                 <div>
-                  <p className="text-sm text-blue-200">Layanan WhatsApp</p>
+                  <p className="text-sm text-red-200">Layanan WhatsApp</p>
                   <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">+62 812-3456-7890</a>
                 </div>
               </div>
