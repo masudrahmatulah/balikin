@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { WebPageJsonLd, FAQPageJsonLd, OrganizationJsonLd } from "@/components/json-ld";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "FAQ Balikin.online | Pertanyaan Umum Seputar QR Smart Tag & Lost Found",
@@ -108,6 +109,7 @@ export default function FAQPage() {
       />
       <FAQPageJsonLd questions={faqItems} />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
+        <SiteHeader />
         {/* Hero Section */}
         <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">

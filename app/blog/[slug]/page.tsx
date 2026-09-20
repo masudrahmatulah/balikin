@@ -15,6 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import Image from 'next/image';
+import { SiteHeader } from '@/components/site-header';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -223,6 +224,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
       />
 
       <article className="min-h-screen bg-background">
+        <SiteHeader />
         {/* Header */}
         <div className="bg-primary text-primary-foreground py-12 md:py-20">
           <div className="container mx-auto px-4">

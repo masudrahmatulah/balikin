@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { SiteHeader } from '@/components/site-header';
 
 async function getBlogPosts() {
   const posts = await db.query.blogPosts.findMany({
@@ -21,7 +22,8 @@ export default async function BlogPage() {
 
     return (
        <div className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
-        {/* Header */}
+         <SiteHeader />
+         {/* Header */}
          <div className="bg-gradient-to-r from-brand-navy to-brand-red text-white py-16 md:py-24">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Blog BALIKIN</h1>

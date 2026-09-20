@@ -9,6 +9,13 @@ import { authClient } from '@/lib/auth-client';
 import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/theme-toggle';
 
+const siteNavLinks = [
+  { href: '/how-it-works', label: 'Cara Kerja' },
+  { href: '/pricing', label: 'Harga' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/helpdesk', label: 'Helpdesk' },
+];
+
 export function SiteHeader() {
   const { data: session, isPending } = authClient.useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -80,7 +87,16 @@ export function SiteHeader() {
           </button>
 
           {/* Navigation Links - Desktop */}
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+            {siteNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-red-50 hover:text-brand-red focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-red-300"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Theme Toggle & Auth Buttons - Kondisional */}
@@ -122,7 +138,19 @@ export function SiteHeader() {
           </div>
         </div>
 
-        <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-56 pt-4' : 'max-h-0'} dark:border-slate-700`}>
+        <div className={`overflow-hidden transition-all duration-200 md:hidden ${isMobileMenuOpen ? 'max-h-[32rem] pt-4' : 'max-h-0'} dark:border-slate-700`}>
+          <nav className="mb-3 grid gap-1 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800" aria-label="Navigasi utama mobile">
+            {siteNavLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-red-50 hover:text-brand-red dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
           {isPending ? (
             <div role="status" aria-label="Memuat..." className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-slate-700" />
           ) : isValidSession ? (

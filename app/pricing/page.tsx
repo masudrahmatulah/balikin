@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PREMIUM_PRICE, WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 import { buildMetadata, absoluteUrl } from "@/lib/seo";
 import { ProductJsonLd } from "@/components/json-ld";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = buildMetadata({
   title: "Harga Balikin",
@@ -72,6 +73,7 @@ async function PricingPage() {
 
   return (
     <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <SiteHeader />
       <header className="bg-gradient-to-r from-brand-navy to-brand-red px-4 py-16 text-white">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">Harga Balikin</h1>

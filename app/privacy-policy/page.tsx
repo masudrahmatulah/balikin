@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { WebPageJsonLd, OrganizationJsonLd } from "@/components/json-ld";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Kebijakan Privasi – Balikin.online | Perlindungan Data Pribadi UU PDP",
@@ -39,6 +40,7 @@ export default function PrivacyPolicyPage() {
         description="Kebijakan privasi Balikin.online – Perlindungan data pribadi Anda sesuai UU PDP Indonesia"
       />
       <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100">
+        <SiteHeader />
         {/* Hero Section */}
         <header className="bg-gradient-to-r from-brand-navy to-brand-red text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 import { HelpdeskChat } from "@/components/helpdesk-chat";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Helpdesk Balikin | Bantuan Akun dan QR Tag",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function HelpdeskPage() {
   return (
     <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <SiteHeader />
       <header className="bg-gradient-to-r from-brand-navy to-brand-red px-4 py-16 text-white">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20">

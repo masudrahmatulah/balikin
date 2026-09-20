@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HowToJsonLd } from "@/components/json-ld";
 import { buildMetadata } from "@/lib/seo";
 import { howItWorksSteps } from "@/lib/site-content";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = buildMetadata({
   title: "Cara Kerja Balikin",
@@ -20,6 +21,7 @@ export default function HowItWorksPage() {
         steps={howItWorksSteps.map((s) => ({ name: s.title, text: s.description }))}
       />
       <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+        <SiteHeader />
         <header className="bg-gradient-to-r from-brand-navy to-brand-red px-4 py-16 text-white">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="mb-4 text-4xl font-bold md:text-5xl">Cara Kerja Balikin</h1>
