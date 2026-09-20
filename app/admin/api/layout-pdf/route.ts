@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
 import { getStickerDimensions } from '@/lib/sticker-template';
 import type { StickerShape, StickerSize } from '@/lib/sticker-template';
+import { getAppBaseUrl } from '@/lib/app-url';
 
 const PAPER_DIMENSIONS = {
   a3: { landscape: [420, 297], portrait: [297, 420] },
@@ -66,7 +67,7 @@ async function addSticker(
   const { x, y, rotation, tagSlug, shape, customText } = item;
 
   // Generate QR Code
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
   const qrUrl = `${baseUrl}/p/${tagSlug}`;
   const qrDataUrl = await QRCode.toDataURL(qrUrl, {
     width: 200,

@@ -18,6 +18,7 @@ import {
   getShapeMarkup,
   mmToPx,
 } from './acrylic-shapes';
+import { getAppBaseUrl } from './app-url';
 
 // ============================================================================
 // TYPES
@@ -306,10 +307,10 @@ function measureTextWidth(
   return pen;
 }
 
-const BADGE_GRAD_A = '#B8422E'; // Heritage Red Balikin
-const BADGE_GRAD_B = '#E76F2E'; // Modern amber-orange
-const BADGE_GRAD_C = '#F59E0B'; // Highlight amber
-const BADGE_STROKE = '#8C2F1F';
+const BADGE_GRAD_A = '#991B1B';
+const BADGE_GRAD_B = '#DC2626';
+const BADGE_GRAD_C = '#EF4444';
+const BADGE_STROKE = '#7F1D1D';
 
 /**
  * Judul modern: pill gradient brand (merah → oranye → amber) + highlight atas.
@@ -377,8 +378,8 @@ function renderBottomCaption(
     : gapTopPx + 2;
   const baseline1 = y0 + fontSizePx * 0.85;
   return (
-    renderTextPaths(head, cx, baseline1, fontSizePx, '#7c3aed', true, 0, 'body') +
-    renderTextPaths(tail, cx, baseline1 + lineH, fontSizePx, '#7c3aed', true, 0, 'body')
+    renderTextPaths(head, cx, baseline1, fontSizePx, '#E2E8F0', true, 0, 'body') +
+    renderTextPaths(tail, cx, baseline1 + lineH, fontSizePx, '#FFFFFF', true, 0, 'body')
   );
 }
 
@@ -548,24 +549,32 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
         ? renderTextPaths(bottomLabel, widthPx / 2, Math.min(contentY + displayHeightPx + 16, heightPx - 8), 7, '#4b5563', false)
         : '';
 
-  const serialBaselineY = config.maskType === 'heart' ? heightPx - 24 : heightPx - 4;
-  // Full-bleed menimpa strip bawah dengan gambar: beri pil putih di belakang
-  // serial agar nomor produksi tetap terbaca.
-  const serialPill = isFullBleed && serial
+  const serialFontPx = config.maskType === 'heart' ? 9.5 : 11;
+  const serialBaselineY = config.maskType === 'heart' ? heightPx - 24 : heightPx - 8;
+  // Give the production serial a high-contrast badge so it stays readable on
+  // both the QR wash and full-bleed logo/photo cells.
+  const serialPill = serial
     ? (() => {
-        const w = measureTextWidth(serial, 6.5, false, 0, 'legacy') + 10;
-        return `<rect x="${r2(widthPx / 2 - w / 2)}" y="${r2(serialBaselineY - 8.5)}" width="${r2(w)}" height="11" rx="3" fill="#FFFFFF" opacity="0.85"/>`;
+        const w = measureTextWidth(serial, serialFontPx, true, 0, 'body') + 18;
+        const h = serialFontPx + 9;
+        return `<rect x="${r2(widthPx / 2 - w / 2)}" y="${r2(serialBaselineY - serialFontPx - 4)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(h / 2)}" fill="#FFFFFF" opacity="0.94" stroke="#DC2626" stroke-width="1"/>`;
       })()
     : '';
-  const serialText = renderTextPaths(serial, widthPx / 2, serialBaselineY, 6.5, '#94a3b8', false);
+  const serialText = renderTextPaths(serial, widthPx / 2, serialBaselineY, serialFontPx, '#0F172A', true, 0, 'body');
   const washDef = hasQrLabels
-    ? `<linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF7ED"/><stop offset="0.35" stop-color="#FFFFFF" stop-opacity="1"/><stop offset="1" stop-color="#FEF2F2"/></linearGradient>`
+    ? `<linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#172033"/><stop offset="0.58" stop-color="#080D18"/><stop offset="1" stop-color="#02040A"/></linearGradient>` +
+      `<pattern id="grid${gradId}" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#94A3B8" stroke-width="0.7" opacity="0.13"/></pattern>` +
+      `<radialGradient id="glow${gradId}" cx="0.9" cy="0.15" r="0.8"><stop offset="0" stop-color="#EF4444" stop-opacity="0.28"/><stop offset="1" stop-color="#EF4444" stop-opacity="0"/></radialGradient>`
     : '';
   const washRect = hasQrLabels
-    ? `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="url(#${gradId})"/>`
+    ? `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="url(#${gradId})"/>` +
+      `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="url(#grid${gradId})"/>` +
+      `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="url(#glow${gradId})"/>` +
+      `<path d="M ${-widthPx * 0.15} ${heightPx * 0.78} C ${widthPx * 0.18} ${heightPx * 0.48}, ${widthPx * 0.52} ${heightPx * 0.9}, ${widthPx * 1.12} ${heightPx * 0.32}" fill="none" stroke="#EF4444" stroke-width="${Math.max(5, widthPx * 0.025)}" opacity="0.2"/>` +
+      `<path d="M ${widthPx * 0.38} ${heightPx * 1.08} C ${widthPx * 0.68} ${heightPx * 0.7}, ${widthPx * 0.82} ${heightPx * 0.38}, ${widthPx * 1.08} ${heightPx * 0.12}" fill="none" stroke="#F87171" stroke-width="${Math.max(2, widthPx * 0.012)}" opacity="0.34"/>`
     : `<rect x="0" y="0" width="${widthPx}" height="${heightPx}" fill="#ffffff"/>`;
   const qrFrame = hasQrLabels
-    ? `<rect x="${r2(contentX - 5)}" y="${r2(contentY - 5)}" width="${r2(displayWidthPx + 10)}" height="${r2(displayHeightPx + 10)}" rx="8" fill="none" stroke="#F59E0B" stroke-width="1.5" opacity="0.9"/>`
+    ? `<rect x="${r2(contentX - 9)}" y="${r2(contentY - 9)}" width="${r2(displayWidthPx + 18)}" height="${r2(displayHeightPx + 18)}" rx="12" fill="#FFFFFF" stroke="#EF4444" stroke-width="3" opacity="0.98"/>`
     : '';
 
   const svg = `
@@ -576,8 +585,8 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
       </defs>
       <g clip-path="url(#${clipId})">
         ${washRect}
-        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${displayWidthPx}" height="${displayHeightPx}" preserveAspectRatio="xMidYMid meet"/>
         ${qrFrame}
+        <image href="${contentDataUri}" x="${contentX}" y="${contentY}" width="${displayWidthPx}" height="${displayHeightPx}" preserveAspectRatio="xMidYMid meet"/>
       </g>
       ${shapeTag} fill="none" stroke="#9ca3af" stroke-width="1.5"/>
       ${labelText}
@@ -639,7 +648,7 @@ export async function generateOneRowSticker(
   async function buildPacket(tag: TagVDPData, offsetLeftPx: number) {
     // Kolom 1: QR Utama (scan jika barang ditemukan)
     const qrUtamaDataUri = await QRCode.toDataURL(
-      `https://balikin.id/p/${tag.slug}`,
+      `${getAppBaseUrl()}/p/${tag.slug}`,
       { width: qrSizePx, margin: 1 }
     );
     // Kolom kiri (QR): judul besar SCAN DISINI + caption di bawah QR.
@@ -649,7 +658,7 @@ export async function generateOneRowSticker(
       contentDataUri: qrUtamaDataUri,
       serial: tag.serialNumber || '',
       isAktivasi: false,
-      topLabel: 'SCAN DISINI',
+      topLabel: 'SCAN DI SINI',
       bottomLabel: 'Untuk Hubungi Pemiliknya',
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });

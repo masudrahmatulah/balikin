@@ -1,10 +1,10 @@
 {
   "DATABASE_URL": "REDACTED",
-  "NEXT_PUBLIC_APP_URL": "https://balikin.masudrahmat.my.id",
+  "NEXT_PUBLIC_APP_URL": "https://balikin.online",
   "NODE_ENV": "production",
   "BETTER_AUTH_SECRET": "REDACTED",
-  "BETTER_AUTH_URL": "https://balikin.masudrahmat.my.id",
-  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin.masudrahmat.my.id",
+  "BETTER_AUTH_URL": "https://balikin.online",
+  "NEXT_PUBLIC_BETTER_AUTH_URL": "https://balikin.online",
   "RESEND_API_KEY": "REDACTED",
   "FONNTE_API_TOKEN": "REDACTED",
   "FONNTE_DEVICE_ID": "REDACTED",

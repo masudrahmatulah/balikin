@@ -3,6 +3,7 @@
 import { eq, like, and } from 'drizzle-orm';
 import { toDataURL } from 'qrcode';
 import { isAdmin } from '@/lib/admin';
+import { getAppBaseUrl } from '@/lib/app-url';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
 import { unstable_cache as cache } from 'next/cache';
@@ -85,7 +86,7 @@ export async function generateCutFoldPDF(
   const gridPositions = calculateGridPositions(DEFAULT_SHAPE, DEFAULT_SIZE, paperSize, 'landscape');
   const tagsPerPage = gridPositions.length;
   const totalPages = Math.ceil(tagSlugs.length / tagsPerPage);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
 
   // Generate QR codes for all tags (main + activation)
   const tags = await Promise.all(

@@ -5,6 +5,7 @@ import { toDataURL } from 'qrcode';
 import { jsPDF } from 'jspdf';
 import { isAdmin } from '@/lib/admin';
 import { db } from '@/db';
+import { getAppBaseUrl } from '@/lib/app-url';
 import { tagBundles, tags } from '@/db/schema';
 import {
   PAPER_DIMENSIONS,
@@ -191,7 +192,7 @@ async function addCircleSticker(
 
   addBleedLine(doc, x, y, printableSize, printableSize, 'circle');
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
   const qrUrl = `${baseUrl}/p/${tagSlug}`;
   const qrDataUrl = await generateQRCodeCached(qrUrl);
 
@@ -230,7 +231,7 @@ async function addSquareSticker(
 
   addBleedLine(doc, x, y, printableSize, printableSize, 'square');
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
   const qrUrl = `${baseUrl}/p/${tagSlug}`;
   const qrDataUrl = await generateQRCodeCached(qrUrl);
 
@@ -270,7 +271,7 @@ async function addRectangleSticker(
 
   addBleedLine(doc, x, y, printableWidth, printableHeight, 'rectangle');
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
   const qrUrl = `${baseUrl}/p/${tagSlug}`;
   const qrDataUrl = await generateQRCodeCached(qrUrl);
 

@@ -5,6 +5,7 @@
 
 import sharp from 'sharp';
 import QRCode from 'qrcode';
+import { getAppBaseUrl } from './app-url';
 import { getStickerProductConfig, type StickerProductKey } from './sticker-template';
 import { fitContainWithFill } from './vdp-engine';
 import { renderText } from './sticker-fonts';
@@ -87,7 +88,7 @@ export async function generateA5TwoColStickerSheet(
   // Get product config
   const config = getStickerProductConfig(productKey);
   const compositeOps: sharp.OverlayOptions[] = [];
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
 
   // Calculate position start (centered on page)
   const itemWidthMM = config.itemWidth;

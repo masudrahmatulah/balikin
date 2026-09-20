@@ -10,6 +10,7 @@
 
 import sharp from 'sharp';
 import QRCode from 'qrcode';
+import { getAppBaseUrl } from './app-url';
 import {
   getStickerProductConfig,
   type StickerProductKey,
@@ -52,7 +53,7 @@ async function renderProtectedCard(
   colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
 ): Promise<Buffer> {
   const colors = STICKER_COLOR_THEMES[colorTheme];
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
   const qrUrl = `${baseUrl}/p/${slug}`;
 
   // Nested PAD_MM margins: card edge -> white QR box -> QR code itself

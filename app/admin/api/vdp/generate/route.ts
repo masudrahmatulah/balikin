@@ -17,6 +17,7 @@ import { calculateGridPositions, calculateA5StickerPositions, getStickerProductC
 import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { put } from '@vercel/blob';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
+import { getAppBaseUrl } from '@/lib/app-url';
 
 // Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
 const STICKER_PRODUCT_CODE: Record<string, string> = {
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
 
     const batchId = randomUUID();
     const isAcrylicMaterial = materialType !== "sticker";
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://balikin.id";
+    const baseUrl = getAppBaseUrl();
     const generatedTags: any[] = [];
 
     // Upload custom photo to Vercel Blob if provided

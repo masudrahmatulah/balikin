@@ -117,7 +117,8 @@ export async function GET(
     const itemsPerPage = cols * rows;
     const totalPages = Math.ceil(batchTags.length / itemsPerPage);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://balikin.id";
+    const { getAppBaseUrl } = await import('@/lib/app-url');
+    const baseUrl = getAppBaseUrl();
 
     for (let p = 0; p < totalPages; p++) {
       if (p > 0) doc.addPage();

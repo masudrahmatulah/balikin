@@ -5,6 +5,7 @@
 
 import sharp from 'sharp';
 import QRCode from 'qrcode';
+import { getAppBaseUrl } from './app-url';
 import { calculateA5StickerPositions, getStickerProductConfig, type StickerProductKey } from './sticker-template';
 import { renderText } from './sticker-fonts';
 
@@ -61,7 +62,7 @@ export async function generateA5StickerSheet(
 
   const qrSize = qrSizeMap[productKey];
   const compositeOps: sharp.OverlayOptions[] = [];
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id';
+  const baseUrl = getAppBaseUrl();
 
   // Generate QR codes for each tag
   for (let i = 0; i < Math.min(tags.length, positions.length); i++) {

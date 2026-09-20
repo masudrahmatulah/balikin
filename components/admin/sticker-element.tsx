@@ -28,7 +28,7 @@ export function StickerElement({
   const dimensions = getStickerDimensions(item.shape, item.size);
 
   // Generate QR URL
-  const qrUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.id'}/p/${tagSlug}`;
+  const qrUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.online'}/p/${tagSlug}`;
 
   const scaledWidth = dimensions.width * scale;
   const scaledHeight = dimensions.height * scale;

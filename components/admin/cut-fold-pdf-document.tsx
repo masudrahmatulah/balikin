@@ -345,7 +345,7 @@ interface CutFoldPDFDocumentProps {
 // COMPONENTS
 // ============================================================================
 
-export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.id', paperSize = 'a4', logoDataUrl }: CutFoldPDFDocumentProps) {
+export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://balikin.online', paperSize = 'a4', logoDataUrl }: CutFoldPDFDocumentProps) {
   const config = PAPER_CONFIGS[paperSize];
   const styles = createStyles(paperSize);
   const { rows: ROWS, cols: COLS } = config;
