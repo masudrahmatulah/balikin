@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { blogPosts, giveawayClaims, blogComments, trueStorySubmissions } from '@/db/schema';
 import { desc, eq, and } from 'drizzle-orm';
@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { Plus, MessageSquare, Gift, Video, Eye } from 'lucide-react';
 
 async function getAdminData() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 'admin') {
+  const session = await getAdminSession();
+  if (!session) {
     return null;
   }
 

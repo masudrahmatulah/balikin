@@ -419,6 +419,9 @@ export async function POST(request: NextRequest) {
 
     let downloadUrl: string;
     let downloadFormat: "pdf" | "zip" = "zip";
+    let artifactBuffer!: Buffer;
+    let artifactContentType!: "application/pdf" | "application/zip";
+    let artifactFilename!: string;
 
     console.log('[API] isAcrylicMaterial:', isAcrylicMaterial);
     console.log('[API] materialType:', materialType);
@@ -497,6 +500,9 @@ export async function POST(request: NextRequest) {
       }
 
       const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+      artifactBuffer = zipBuffer;
+      artifactContentType = "application/zip";
+      artifactFilename = `${batchName}.zip`;
       const zipBase64 = zipBuffer.toString("base64");
       downloadUrl = `data:application/zip;base64,${zipBase64}`;
       console.log('[API] ZIP base64 length:', zipBase64.length);
@@ -572,16 +578,22 @@ export async function POST(request: NextRequest) {
         ];
         zip.file('kode-klaim.txt', pinLines.join('\n'));
         const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
+        artifactBuffer = zipBuffer;
+        artifactContentType = "application/zip";
+        artifactFilename = `${batchName}.zip`;
         const zipBase64 = zipBuffer.toString("base64");
         downloadUrl = `data:application/zip;base64,${zipBase64}`;
         downloadFormat = "zip";
         console.log('[API] PNG ZIP base64 length:', zipBase64.length);
       } else {
         const pdfBuffer = await buildAcrylicRowsPdf(rowBuffers, paperSize as "a3" | "a4" | "a5");
-      const pdfBase64 = pdfBuffer.toString("base64");
-      downloadUrl = `data:application/pdf;base64,${pdfBase64}`;
-      downloadFormat = "pdf";
-      console.log('[API] PDF base64 length:', pdfBase64.length);
+        artifactBuffer = pdfBuffer;
+        artifactContentType = "application/pdf";
+        artifactFilename = `${batchName}.pdf`;
+        const pdfBase64 = pdfBuffer.toString("base64");
+        downloadUrl = `data:application/pdf;base64,${pdfBase64}`;
+        downloadFormat = "pdf";
+        console.log('[API] PDF base64 length:', pdfBase64.length);
       }
     }
 
@@ -607,6 +619,48 @@ export async function POST(request: NextRequest) {
     const materialUsed = isA5Sticker
       ? `${estimatedSheets} lembar A5 (A5 Sticker - ${stickerProductKey})`
       : `${estimatedSheets} lembar ${paperSize.toUpperCase()} (4-Column VDP)`;
+
+    const generationConfig = {
+      batchName,
+      quantity,
+      materialType,
+      productType,
+      paperSize,
+      stickerShape,
+      stickerSize,
+      stickerProductKey,
+      stickerColorTheme: stickerColorTheme || undefined,
+      isCustom: isCustom || false,
+      outputFormat: outputFormat || "pdf",
+      generatorVersion: "vdp-2026-09-18-1",
+    };
+
+    let artifactUrl: string | null = null;
+    let artifactExpiresAt: Date | null = null;
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (blobToken) {
+      const artifactKey = `vdp-artifacts/${batchId}/${artifactFilename}`;
+      const blob = await put(artifactKey, artifactBuffer, {
+        access: "public",
+        contentType: artifactContentType,
+        token: blobToken,
+      });
+      artifactUrl = blob.url;
+      artifactExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    } else {
+      console.warn("BLOB_READ_WRITE_TOKEN not set; VDP artifact will not be archived.");
+    }
+
+    await db.update(printBatches)
+      .set({
+        artifactUrl,
+        artifactFilename,
+        artifactContentType,
+        artifactSize: artifactBuffer.length,
+        artifactExpiresAt,
+        generationConfig,
+      })
+      .where(eq(printBatches.id, batchId));
 
     await db.insert(printQueue).values({
       id: randomUUID(),

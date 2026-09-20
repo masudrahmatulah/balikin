@@ -131,7 +131,7 @@ export default async function MobileModulesPage() {
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="text-lg font-bold text-gray-900">
-                              {getModuleDisplayName(config.moduleType)}
+                               {config.displayName || getModuleDisplayName(config.moduleType)}
                             </h3>
                             <p className="text-xs text-gray-500 mt-1">
                               {config.isPaid ? 'Berbayar' : 'Gratis'}

@@ -21,6 +21,10 @@
     {
       "path": "/api/cron/free-tag-expiration",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/vdp-artifact-cleanup",
+      "schedule": "0 4 * * *"
     }
   ],
   "headers": [

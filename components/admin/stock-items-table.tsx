@@ -109,7 +109,7 @@ export function StockItemsTable() {
                 <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
               </TableRow>
             ))
-          ))}
+            )}
         </TableBody>
       </Table>
 

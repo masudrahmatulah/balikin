@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
 import { initializeDefaultModuleConfigs } from "@/app/actions/module-config-actions";
 import { ModuleConfigCard } from "@/components/admin/module-config-card";
+import { AddModuleForm } from "@/components/admin/add-module-form";
 import type { Metadata } from "next";
 import { getModuleListWithStats } from "./data-access";
 import { LayoutGrid, Package, Clock, FileCheck } from 'lucide-react';
@@ -128,6 +129,8 @@ export default async function AdminModulesPage() {
           </a>
         </nav>
 
+        <AddModuleForm />
+
         {/* Module Config Cards */}
         <section aria-label="Module Configurations">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -135,6 +138,7 @@ export default async function AdminModulesPage() {
               <ModuleConfigCard
                 key={module.moduleType}
                 moduleType={module.moduleType}
+                displayName={module.displayName}
                 isEnabled={module.isEnabled}
                 price={module.price}
                 isPaid={module.isPaid}

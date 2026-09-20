@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { BlogModuleBuilder } from "./module-builder";
 import { ImageUploader } from "./image-uploader";
 import { BlogSEOChecklist } from "./seo-checklist";
-import { Save, Eye, Send, Loader2, Calendar } from "lucide-react";
+import { Save, Eye, Send, Loader2, Calendar, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface Editor {
@@ -31,6 +31,9 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationTopic, setGenerationTopic] = useState("");
+  const [generationKeyword, setGenerationKeyword] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -169,12 +172,94 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
     }
   };
 
+  const handleGenerateArticle = async () => {
+    if (generationTopic.trim().length < 5) {
+      toast.error("Masukkan topik artikel minimal 5 karakter.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/admin/blog/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: generationTopic, keyword: generationKeyword }),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        toast.error(result.error || "Artikel gagal dibuat.");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        title: result.title,
+        slug: result.slug,
+        summary: result.summary,
+        content: result.content,
+        metaDescription: result.metaDescription,
+        metaKeywords: result.metaKeywords,
+        focusKeyword: result.focusKeyword,
+      }));
+      toast.success("Draft artikel berhasil dibuat. Periksa dan edit sebelum disimpan.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Artikel gagal dibuat.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const selectedAuthor = editors.find((e) => e.id === formData.authorId);
   const selectedReviewer = editors.find((e) => e.id === formData.reviewedById);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-violet-500" />
+              Generate dengan AI
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="generation-topic">Topik Artikel</Label>
+              <Input
+                id="generation-topic"
+                value={generationTopic}
+                onChange={(e) => setGenerationTopic(e.target.value)}
+                placeholder="Contoh: Cara mengamankan kunci motor dari kehilangan"
+                disabled={isGenerating}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="generation-keyword">Keyword Utama (Opsional)</Label>
+              <Input
+                id="generation-keyword"
+                value={generationKeyword}
+                onChange={(e) => setGenerationKeyword(e.target.value)}
+                placeholder="Contoh: tag kunci motor"
+                disabled={isGenerating}
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleGenerateArticle}
+              disabled={isGenerating || isSaving || isPublishing}
+              className="w-full"
+              variant="secondary"
+            >
+              {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              {isGenerating ? "Membuat artikel..." : "Generate Draft"}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Hasil hanya mengisi editor. Artikel tidak dipublikasikan otomatis.
+            </p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Content</CardTitle>
@@ -307,7 +392,7 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Author</Label>
-              <Select value={formData.authorId} onValueChange={(value) => setFormData((prev) => ({ ...prev, authorId: value }))}>
+              <Select value={formData.authorId} onValueChange={(value) => setFormData((prev) => ({ ...prev, authorId: value || currentUserId }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select author">
                     {selectedAuthor?.name || selectedAuthor?.email}
@@ -336,7 +421,7 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
                   const reviewer = editors.find((e) => e.id === value);
                   setFormData((prev) => ({
                     ...prev,
-                    reviewedById: value,
+                    reviewedById: value || "",
                     reviewedBy: reviewer?.name || "",
                   }));
                 }}

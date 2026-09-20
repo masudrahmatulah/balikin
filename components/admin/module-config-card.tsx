@@ -16,12 +16,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { getModuleDisplayName, getModuleColor, type ModuleType } from '@/lib/admin-modules';
+import { getModuleColor } from '@/lib/admin-modules';
 import { toggleModuleStatus } from '@/app/actions/module-config-actions';
 import { CheckCircle2, XCircle, Edit, Power, PowerOff } from 'lucide-react';
 
 interface ModuleConfigCardProps {
-  moduleType: ModuleType;
+  moduleType: string;
+  displayName: string;
   isEnabled: boolean;
   price: number;
   isPaid: boolean;
@@ -32,6 +33,7 @@ interface ModuleConfigCardProps {
 
 export function ModuleConfigCard({
   moduleType,
+  displayName,
   isEnabled,
   price,
   isPaid,
@@ -116,7 +118,7 @@ export function ModuleConfigCard({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {getModuleDisplayName(moduleType)}
+                   {displayName}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
                   {isEnabled ? (
@@ -201,7 +203,7 @@ export function ModuleConfigCard({
           <DialogHeader>
             <DialogTitle>Edit Konfigurasi Modul</DialogTitle>
             <DialogDescription>
-              Ubah pengaturan untuk {getModuleDisplayName(moduleType)}
+               Ubah pengaturan untuk {displayName}
             </DialogDescription>
           </DialogHeader>
 

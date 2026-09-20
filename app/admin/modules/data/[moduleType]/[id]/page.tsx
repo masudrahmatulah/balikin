@@ -12,12 +12,19 @@ export default async function AdminModuleDataEditPage({ params }: Props) {
   const { moduleType, id } = await params;
   if (moduleType !== 'otomotif' && moduleType !== 'pertanian') notFound();
 
-  const data = moduleType === 'otomotif'
-    ? await db.query.otomotifData.findFirst({ where: eq(otomotifData.id, id) })
-    : await db.query.pertanianData.findFirst({ where: eq(pertanianData.id, id) });
-  if (!data) notFound();
+  if (moduleType === 'otomotif') {
+    const data = await db.query.otomotifData.findFirst({ where: eq(otomotifData.id, id) });
+    if (!data) notFound();
+    return <ModuleDataLayout title="Otomotif" tagId={data.tagId}><OtomotifForm id={id} data={data} /></ModuleDataLayout>;
+  }
 
-  return <div className="mx-auto max-w-3xl space-y-6"><header><h1 className="text-2xl font-bold text-slate-900 dark:text-white">Kelola Data {moduleType === 'otomotif' ? 'Otomotif' : 'Pertanian'}</h1><p className="mt-2 text-sm text-slate-500">ID Tag: {data.tagId || 'Data lama tanpa tag'}</p></header>{moduleType === 'otomotif' ? <OtomotifForm id={id} data={data} /> : <PertanianForm id={id} data={data} />}</div>;
+  const data = await db.query.pertanianData.findFirst({ where: eq(pertanianData.id, id) });
+  if (!data) notFound();
+  return <ModuleDataLayout title="Pertanian" tagId={data.tagId}><PertanianForm id={id} data={data} /></ModuleDataLayout>;
+}
+
+function ModuleDataLayout({ title, tagId, children }: { title: string; tagId: string | null; children: React.ReactNode }) {
+  return <div className="mx-auto max-w-3xl space-y-6"><header><h1 className="text-2xl font-bold text-slate-900 dark:text-white">Kelola Data {title}</h1><p className="mt-2 text-sm text-slate-500">ID Tag: {tagId || 'Data lama tanpa tag'}</p></header>{children}</div>;
 }
 
 function OtomotifForm({ id, data }: { id: string; data: typeof otomotifData.$inferSelect }) {

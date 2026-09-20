@@ -364,9 +364,9 @@ export function BaseTable<T extends Record<string, any>>({
               Last
             </Button>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </BaseTableContext.Provider>
   );
 }
 

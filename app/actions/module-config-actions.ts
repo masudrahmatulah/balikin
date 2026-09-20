@@ -91,7 +91,7 @@ export async function updateModuleConfig({
   features,
   sortOrder,
 }: {
-  moduleType: ModuleType;
+  moduleType: string;
   isEnabled?: boolean;
   price?: number;
   isPaid?: boolean;
@@ -158,6 +158,67 @@ export async function updateModuleConfig({
   return { success: true };
 }
 
+export async function createModuleConfig({
+  moduleType,
+  displayName,
+  description,
+  features,
+  price,
+  isPaid,
+  requiresApproval,
+  isEnabled,
+  sortOrder,
+}: {
+  moduleType: string;
+  displayName: string;
+  description?: string;
+  features?: string[];
+  price?: number;
+  isPaid?: boolean;
+  requiresApproval?: boolean;
+  isEnabled?: boolean;
+  sortOrder?: number;
+}) {
+  const session = await getSession();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const dbUser = await db.query.user.findFirst({
+    where: eq(user.id, session.user.id),
+  });
+  if (!dbUser || dbUser.role !== 'admin') throw new Error('Forbidden: Admin access required');
+
+  const normalizedType = moduleType.trim().toLowerCase();
+  const normalizedName = displayName.trim();
+
+  if (!/^[a-z0-9][a-z0-9_-]{1,49}$/.test(normalizedType)) {
+    throw new Error('Slug modul harus 2-50 karakter dan hanya boleh berisi huruf kecil, angka, - atau _.');
+  }
+  if (normalizedName.length < 2 || normalizedName.length > 100) {
+    throw new Error('Nama modul harus 2-100 karakter.');
+  }
+
+  const existing = await db.query.moduleConfig.findFirst({
+    where: eq(moduleConfig.moduleType, normalizedType),
+  });
+  if (existing) throw new Error('Slug modul sudah digunakan.');
+
+  await db.insert(moduleConfig).values({
+    moduleType: normalizedType,
+    displayName: normalizedName,
+    description: description?.trim() || '',
+    features: JSON.stringify(features || []),
+    price: Math.max(0, Math.floor(price || 0)),
+    isPaid: Boolean(isPaid),
+    requiresApproval: Boolean(requiresApproval),
+    isEnabled: isEnabled ?? true,
+    sortOrder: Math.max(0, Math.floor(sortOrder || 0)),
+  });
+
+  revalidatePath('/admin/modules');
+  revalidatePath('/mobile/modules');
+  return { success: true };
+}
+
 /**
  * Toggle module global status (enable/disable)
  */
@@ -192,7 +253,7 @@ export async function toggleModuleStatus(moduleType: string, isEnabled: boolean)
   } else {
     // Create with default values
     await db.insert(moduleConfig).values({
-      moduleType: moduleType as ModuleType,
+      moduleType,
       isEnabled,
       price: 0,
       isPaid: false,

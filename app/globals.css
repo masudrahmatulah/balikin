@@ -73,6 +73,70 @@
   }
 }
 
+/* Public marketing and legal pages still contain legacy light utility classes. */
+@layer utilities {
+  .dark .public-content-page {
+    color: #e2e8f0;
+    background-color: #07101f;
+    background-image: linear-gradient(135deg, #07101f, #0f1b33 52%, #111827);
+  }
+
+  .dark .public-content-page [class~="bg-white"] {
+    background-color: #0f172a;
+  }
+
+  .dark .public-content-page [class~="bg-slate-50"],
+  .dark .public-content-page [class~="bg-slate-100"] {
+    background-color: #172033;
+  }
+
+  .dark .public-content-page [class~="from-slate-50"],
+  .dark .public-content-page [class~="to-slate-100"] {
+    background-image: none;
+  }
+
+  .dark .public-content-page [class~="from-green-50"],
+  .dark .public-content-page [class~="to-emerald-50"],
+  .dark .public-content-page [class~="from-indigo-50"],
+  .dark .public-content-page [class~="to-purple-50"],
+  .dark .public-content-page [class~="from-amber-50"],
+  .dark .public-content-page [class~="to-orange-50"] {
+    background-image: none;
+    background-color: #172033;
+  }
+
+  .dark .public-content-page [class~="text-gray-900"] {
+    color: #f8fafc;
+  }
+
+  .dark .public-content-page [class~="text-gray-700"],
+  .dark .public-content-page [class~="text-gray-600"] {
+    color: #cbd5e1;
+  }
+
+  .dark .public-content-page [class~="text-gray-500"] {
+    color: #94a3b8;
+  }
+
+  .dark .public-content-page [class~="border-slate-200"],
+  .dark .public-content-page [class~="border-indigo-200"],
+  .dark .public-content-page [class~="border-green-200"],
+  .dark .public-content-page [class~="border-amber-200"] {
+    border-color: #334155;
+  }
+
+  .dark .public-content-page [class~="text-indigo-900"],
+  .dark .public-content-page [class~="text-green-800"],
+  .dark .public-content-page [class~="text-amber-900"] {
+    color: #f8fafc;
+  }
+
+  .dark .public-content-page [class~="text-blue-700"],
+  .dark .public-content-page [class~="text-amber-800"] {
+    color: #93c5fd;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

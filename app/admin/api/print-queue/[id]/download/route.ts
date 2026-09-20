@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
 import { db } from "@/db";
-import { tags, printQueue } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { tags, printQueue, printBatches } from "@/db/schema";
+import { and, eq, sql } from "drizzle-orm";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
 
 export const dynamic = "force-dynamic";
+
+function safeDownloadFilename(filename: string) {
+  return filename.replace(/[^a-zA-Z0-9._-]/g, "-");
+}
 
 const PAPER_DIMENSIONS = {
   a3: { width: 297, height: 420 },
@@ -26,11 +30,39 @@ export async function GET(
     }
 
     const queueItem = await db.query.printQueue.findFirst({
-      where: eq(printQueue.id, id),
+      where: and(eq(printQueue.id, id), eq(printQueue.app_id, "balikin_id")),
     });
 
     if (!queueItem) {
       return new NextResponse("Print queue item not found", { status: 404 });
+    }
+
+    const batch = await db.query.printBatches.findFirst({
+      where: eq(printBatches.id, queueItem.batchId),
+      columns: {
+        artifactUrl: true,
+        artifactFilename: true,
+        artifactContentType: true,
+        artifactExpiresAt: true,
+      },
+    });
+
+    if (batch?.artifactUrl && (!batch.artifactExpiresAt || batch.artifactExpiresAt > new Date())) {
+      const artifactResponse = await fetch(batch.artifactUrl);
+      if (artifactResponse.ok) {
+        const artifactBuffer = Buffer.from(await artifactResponse.arrayBuffer());
+        return new NextResponse(artifactBuffer, {
+          headers: {
+            "Content-Type": batch.artifactContentType || "application/octet-stream",
+            "Content-Disposition": `attachment; filename="${safeDownloadFilename(batch.artifactFilename || `${queueItem.batchName}.zip`)}"`,
+            "Content-Length": artifactBuffer.length.toString(),
+          },
+        });
+      }
+    }
+
+    if (batch?.artifactFilename) {
+      return new NextResponse("VDP artifact sudah kedaluwarsa. Generate ulang batch dari VDP Tool.", { status: 410 });
     }
 
     // Check if this is a Cut & Fold material
@@ -54,7 +86,10 @@ export async function GET(
     }
 
     const batchTags = await db.query.tags.findMany({
-      where: sql`${tags.slug} LIKE ${queueItem.batchId + "-%"}`,
+      where: and(
+        eq(tags.app_id, "balikin_id"),
+        sql`${tags.slug} LIKE ${queueItem.batchId + "-%"}`,
+      ),
       orderBy: (tags, { asc }) => [asc(tags.slug)],
     });
 

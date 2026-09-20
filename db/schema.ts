@@ -683,6 +683,7 @@ export const moduleConfig = pgTable('module_config', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   moduleType: text('module_type').notNull().unique(), // 'student' | 'otomotif' | 'pertanian' | 'diklat'
+  displayName: text('display_name'),
   isEnabled: boolean('is_enabled').default(true).notNull(), // Global toggle - if false, no one can access
   price: integer('price').default(0).notNull(), // Price in rupiah (0 = free)
   isPaid: boolean('is_paid').default(false).notNull(), // Whether this module requires payment

@@ -130,18 +130,19 @@ export async function getModuleListWithStats() {
 
   const configMap = new Map(configs.map(c => [c.moduleType, c]));
 
-  const moduleList = (Object.keys(MODULES) as ModuleType[]).map(moduleType => {
-    const config = configMap.get(moduleType);
-    const moduleInfo = MODULES[moduleType];
+  const moduleList = configs.map(config => {
+    const moduleType = config.moduleType;
+    const moduleInfo = MODULES[moduleType as ModuleType];
 
     return {
       moduleType,
+      displayName: config.displayName || moduleInfo?.name || moduleType,
       isEnabled: config?.isEnabled ?? true,
       price: config?.price ?? 0,
       isPaid: config?.isPaid ?? false,
       requiresApproval: config?.requiresApproval ?? true,
-      description: config?.description ?? moduleInfo.description,
-      features: config?.features ? JSON.parse(config.features) : moduleInfo.benefits,
+      description: config?.description || moduleInfo?.description || '',
+      features: config?.features ? JSON.parse(config.features) : (moduleInfo?.benefits || []),
     };
   });
 

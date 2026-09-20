@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { BlogEditorForm } from '@/components/blog/blog-editor-form';
 
 async function getEditors() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== 'admin') {
+  const session = await getAdminSession();
+  if (!session) {
     return null;
   }
 
