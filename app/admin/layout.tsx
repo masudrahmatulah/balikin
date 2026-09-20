@@ -37,7 +37,7 @@ export default async function AdminLayout({
     >
       <div className="pointer-events-none fixed -right-24 top-16 z-0 h-80 w-80 rounded-full bg-purple-300/15 blur-3xl dark:bg-purple-700/10" aria-hidden="true" />
       <div className="pointer-events-none fixed bottom-0 left-1/3 z-0 h-72 w-72 rounded-full bg-blue-300/15 blur-3xl dark:bg-blue-700/10" aria-hidden="true" />
-      <Sidebar userDivision={userDivision} pendingHelpdeskQuestionsCount={pendingHelpdeskQuestionsCount} />
+      <Sidebar userDivision={userDivision} isAdmin={session.user.role === 'admin'} pendingHelpdeskQuestionsCount={pendingHelpdeskQuestionsCount} />
       <div className="relative z-10 lg:ml-sidebar-width">
         <AdminHeader
           session={session}

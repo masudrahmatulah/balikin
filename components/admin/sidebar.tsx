@@ -35,6 +35,7 @@ import {
 
 interface SidebarProps {
   userDivision?: DivisionType | null;
+  isAdmin?: boolean;
   pendingHelpdeskQuestionsCount?: number;
 }
 
@@ -78,7 +79,7 @@ const USER_MANAGEMENT_SUBMENU: Array<{ label: string; href: string }> = [
   { label: "Manajemen Tier", href: "/admin/tier-management" },
 ];
 
-export function Sidebar({ userDivision, pendingHelpdeskQuestionsCount = 0 }: SidebarProps) {
+export function Sidebar({ userDivision, isAdmin = false, pendingHelpdeskQuestionsCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -105,7 +106,9 @@ export function Sidebar({ userDivision, pendingHelpdeskQuestionsCount = 0 }: Sid
   }, []);
 
   // Get navigation items based on user's division
-  const navItems = userDivision
+  const navItems = isAdmin
+    ? DivisionNavigation.admin
+    : userDivision
     ? DivisionNavigation[userDivision] || DivisionNavigation.production
     : DivisionNavigation.production;
 
