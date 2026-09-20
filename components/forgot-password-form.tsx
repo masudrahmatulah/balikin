@@ -46,8 +46,9 @@ export function ForgotPasswordForm() {
       const identifier = formatWhatsAppEmail(whatsapp);
 
       if (step === "request") {
-        if (whatsapp.replace(/\D/g, "").length < 9) {
-          throw new Error("Masukkan nomor WhatsApp yang valid.");
+        const digits = whatsapp.replace(/\D/g, "").replace(/^0/, "62");
+        if (!/^62\d{9,13}$/.test(digits)) {
+          throw new Error("Masukkan nomor WhatsApp yang valid (08xx / 628xx).");
         }
 
         const result = await requestWhatsAppPasswordReset(whatsapp);

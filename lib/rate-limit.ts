@@ -16,6 +16,9 @@ const MAX_AUTH_REQUESTS = 5;
 const MAX_BLOG_COMMENT_REQUESTS = 5;
 const MAX_BLOG_QUIZ_REQUESTS = 3;
 const MAX_BLOG_STORY_REQUESTS = 2;
+const MAX_HELPDESK_CHAT_REQUESTS = 20;
+const MAX_BLOG_GENERATE_REQUESTS = 20;
+const WINDOW_HOUR_MS = 60 * 60 * 1000; // 1 hour window (expensive AI calls)
 
 const RATE_LIMIT_CONFIGS = {
   scan: { windowMs: WINDOW_MS, maxRequests: MAX_SCAN_REQUESTS },
@@ -26,6 +29,8 @@ const RATE_LIMIT_CONFIGS = {
   blog_comment: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_COMMENT_REQUESTS },
   blog_quiz: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_QUIZ_REQUESTS },
   blog_story: { windowMs: WINDOW_MS, maxRequests: MAX_BLOG_STORY_REQUESTS },
+  helpdesk_chat: { windowMs: WINDOW_HOUR_MS, maxRequests: MAX_HELPDESK_CHAT_REQUESTS },
+  blog_generate: { windowMs: WINDOW_HOUR_MS, maxRequests: MAX_BLOG_GENERATE_REQUESTS },
 } as const;
 
 type RateLimitType = keyof typeof RATE_LIMIT_CONFIGS;
@@ -159,6 +164,24 @@ export async function checkBlogStoryRateLimit(
   identifier: string
 ): Promise<RateLimitResult> {
   return checkRateLimitByType(identifier, 'blog_story');
+}
+
+/**
+ * Check rate limit for helpdesk AI chat (per IP, hourly budget)
+ */
+export async function checkHelpdeskChatRateLimit(
+  identifier: string
+): Promise<RateLimitResult> {
+  return checkRateLimitByType(identifier, 'helpdesk_chat');
+}
+
+/**
+ * Check rate limit for admin blog AI generation (per user, hourly budget)
+ */
+export async function checkBlogGenerateRateLimit(
+  identifier: string
+): Promise<RateLimitResult> {
+  return checkRateLimitByType(identifier, 'blog_generate');
 }
 
 /**

@@ -10,7 +10,7 @@ const CS_WHATSAPP = "6287883956811";
 
 export function HelpdeskChat() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Halo, saya asisten Balikin. Ceritakan kendala Anda, misalnya lupa password atau nomor WhatsApp yang sudah berganti." },
+    { role: "assistant", content: "Halo, saya asisten Balikin. Ceritakan kendala Anda secara umum. Jangan kirim password, kode OTP, atau nomor WhatsApp di sini." },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,9 +64,10 @@ export function HelpdeskChat() {
             {isLoading && <div className="flex items-center gap-2 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" /> Sedang mencari jawaban...</div>}
           </div>
           <form onSubmit={sendMessage} className="flex gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
-             <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tulis kendala Anda..." className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-brand-red dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
+             <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Tulis kendala Anda (tanpa password/OTP)..." maxLength={1200} className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-brand-red dark:border-slate-600 dark:bg-slate-800 dark:text-white" />
              <button type="submit" disabled={isLoading || !input.trim()} aria-label="Kirim pesan" className="rounded-xl bg-brand-red px-4 text-white transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"><Send className="h-4 w-4" /></button>
           </form>
+          <p className="px-1 pt-1 text-[11px] leading-snug text-slate-400 dark:text-slate-500">Demi keamanan, jangan kirim password, kode OTP, atau nomor WhatsApp.</p>
         </div>
       </section>
 

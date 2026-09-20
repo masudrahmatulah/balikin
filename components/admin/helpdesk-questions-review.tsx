@@ -72,6 +72,7 @@ export function HelpdeskQuestionsReview({ questions }: { questions: Question[] }
             <time className="text-xs text-slate-500 dark:text-slate-400">{item.createdAt ? new Date(item.createdAt).toLocaleString('id-ID') : '-'}</time>
           </div>
           <p className="mt-3 font-medium text-slate-900 dark:text-white">{item.question}</p>
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Periksa & hapus data pribadi (no WA/email/OTP) dari jawaban sebelum publish — jawaban jadi acuan AI untuk semua user.</p>
           <textarea
             value={answers[item.id] ?? item.answer ?? ''}
             onChange={(event) => setAnswers((current) => ({ ...current, [item.id]: event.target.value }))}

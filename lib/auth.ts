@@ -22,22 +22,30 @@ const EXTRA_ORIGINS = (process.env.TRUSTED_ORIGINS_EXTRA || '')
   .map((s) => s.trim().replace(/\/$/, ''))
   .filter(Boolean);
 
-const TRUSTED_ORIGINS = new Set([
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+// Origin dev (localhost/IP/devtunnel/wildcard vercel) hanya aktif di non-produksi.
+// Di produksi hanya domain resmi + TRUSTED_ORIGINS_EXTRA agar CSRF surface minimal.
+const DEV_ORIGINS = IS_PRODUCTION ? [] : [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
   'http://100.81.50.18:3000',
-  'https://balikin.online',
-  'https://www.balikin.online',
-  'https://balikin-ten.vercel.app',
   'https://*.vercel.app',
   'https://*.euw.devtunnels.ms',
   'https://*.devtunnels.ms',
+];
+
+const TRUSTED_ORIGINS = new Set([
+  'https://balikin.online',
+  'https://www.balikin.online',
+  'https://balikin-ten.vercel.app',
+  ...DEV_ORIGINS,
   ...EXTRA_ORIGINS,
 ]);
 
-const ALLOWED_REDIRECT_URLS = new Set([
+const DEV_REDIRECTS = IS_PRODUCTION ? [] : [
   'http://localhost:3000',
   'http://localhost:3000/**',
   'http://localhost:3001',
@@ -48,18 +56,22 @@ const ALLOWED_REDIRECT_URLS = new Set([
   'http://127.0.0.1:3001/**',
   'http://100.81.50.18:3000',
   'http://100.81.50.18:3000/**',
-  'https://balikin.online',
-  'https://balikin.online/**',
-  'https://www.balikin.online',
-  'https://www.balikin.online/**',
-  'https://balikin-ten.vercel.app',
-  'https://balikin-ten.vercel.app/**',
   'https://*.vercel.app',
   'https://*.vercel.app/**',
   'https://*.euw.devtunnels.ms',
   'https://*.euw.devtunnels.ms/**',
   'https://*.devtunnels.ms',
   'https://*.devtunnels.ms/**',
+];
+
+const ALLOWED_REDIRECT_URLS = new Set([
+  'https://balikin.online',
+  'https://balikin.online/**',
+  'https://www.balikin.online',
+  'https://www.balikin.online/**',
+  'https://balikin-ten.vercel.app',
+  'https://balikin-ten.vercel.app/**',
+  ...DEV_REDIRECTS,
   ...EXTRA_ORIGINS,
   ...EXTRA_ORIGINS.map((o) => `${o}/**`),
 ]);
@@ -124,6 +136,11 @@ export const auth = betterAuth({
     },
   }),
   appName: "Balikin",
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 20,
+  },
   user: {
     additionalFields: {
       app_id: {

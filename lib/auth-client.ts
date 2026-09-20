@@ -55,21 +55,21 @@ export const {
 // Helper to format phone number with "@wa.dev" suffix for WhatsApp auth
 // Using @wa.dev suffix instead of wa: prefix to pass Zod email validation
 // The .dev TLD ensures it passes as a valid email format
-export function formatWhatsAppEmail(phoneNumber: string): string {
-  // Remove all non-numeric characters
+// Normalisasi tunggal nomor WA Indonesia -> 62xxxxxxxxxx.
+// Dipakai client & server agar tidak drift (dulu ada 3 varian berbeda).
+export function normalizeWhatsAppNumber(phoneNumber: string): string | null {
   let cleaned = phoneNumber.replace(/\D/g, '');
-
-  // If starts with 0, replace with 62
   if (cleaned.startsWith('0')) {
     cleaned = '62' + cleaned.slice(1);
   }
+  if (!/^62\d{9,13}$/.test(cleaned)) return null;
+  return cleaned;
+}
 
-  // If starts with +62, remove the +
-  if (cleaned.startsWith('+62')) {
-    cleaned = cleaned.replace('+', '');
-  }
-
-  // Return with @wa.dev suffix for identification (passes email validation)
+export function formatWhatsAppEmail(phoneNumber: string): string {
+  const normalized = normalizeWhatsAppNumber(phoneNumber);
+  // Fallback lama agar pemanggil lama tidak crash; server selalu validasi ulang.
+  const cleaned = normalized ?? phoneNumber.replace(/\D/g, '');
   return `${cleaned}@wa.dev`;
 }
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { helpdeskQuestions } from "@/db/schema";
 
@@ -31,7 +31,7 @@ export async function retrieveHelpdeskKnowledge(query: string, limit = 3) {
       })),
   );
   const publishedQuestions = await db.query.helpdeskQuestions.findMany({
-    where: eq(helpdeskQuestions.status, "published"),
+    where: and(eq(helpdeskQuestions.app_id, "balikin_id"), eq(helpdeskQuestions.status, "published")),
     columns: { id: true, question: true, answer: true },
     limit: 100,
   });

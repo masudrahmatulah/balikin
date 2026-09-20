@@ -3,6 +3,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
+import { checkBlogGenerateRateLimit, getRateLimitHeaders } from "@/lib/rate-limit";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const runtime = "nodejs";
 
@@ -63,9 +66,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Budget AI per admin: cegah retry-loop bakar kuota Gemini.
+    const session = await auth.api.getSession({ headers: await headers() });
+    const generateLimit = await checkBlogGenerateRateLimit(`bloggen:${session?.user?.id ?? "unknown"}`);
+    if (!generateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Batas generate tercapai. Coba lagi 1 jam lagi.", retryAfter: generateLimit.retryAfter },
+        { status: 429, headers: { ...getRateLimitHeaders(generateLimit), "Content-Type": "application/json" } },
+      );
+    }
+
     const body = await request.json() as { topic?: unknown; keyword?: unknown };
     const topic = typeof body.topic === "string" ? body.topic.trim() : "";
-    const keyword = typeof body.keyword === "string" ? body.keyword.trim() : "";
+    const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 100) : "";
 
     if (topic.length < 5 || topic.length > 200) {
       return NextResponse.json({ error: "Topik harus berisi 5-200 karakter." }, { status: 400 });

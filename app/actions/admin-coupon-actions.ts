@@ -3,7 +3,7 @@
 import { db } from '@/db';
 import { coupons } from '@/db/schema';
 import { getAdminSessionForAction } from '@/lib/admin';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
 
@@ -28,7 +28,7 @@ export async function createCoupons(input: {
   const maxUses = Math.min(Math.max(Math.floor(input.maxUses), 1), 1000000);
   const prefix = input.prefix.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'BALIKIN';
 
-  if (!Number.isFinite(value) || value < 1 || (input.discountType === 'percentage' && value > 100)) {
+  if (!Number.isFinite(value) || value < 1 || (input.discountType === 'percentage' && value > 100) || (input.discountType === 'fixed' && value > 10000000)) {
     return { error: 'Nilai diskon tidak valid.' };
   }
 
@@ -57,7 +57,7 @@ export async function createCoupons(input: {
 export async function toggleCoupon(id: string, isActive: boolean) {
   const admin = await getAdmin();
   if (!admin) return { error: 'Anda tidak memiliki akses admin.' };
-  await db.update(coupons).set({ isActive }).where(eq(coupons.id, id));
+  await db.update(coupons).set({ isActive }).where(and(eq(coupons.id, id), eq(coupons.app_id, 'balikin_id')));
   revalidatePath('/admin/coupons');
   return { success: true };
 }
@@ -65,5 +65,5 @@ export async function toggleCoupon(id: string, isActive: boolean) {
 export async function getCoupons() {
   const admin = await getAdmin();
   if (!admin) return [];
-  return db.select().from(coupons).orderBy(desc(coupons.createdAt));
+  return db.select().from(coupons).where(eq(coupons.app_id, 'balikin_id')).orderBy(desc(coupons.createdAt));
 }

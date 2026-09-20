@@ -13,21 +13,17 @@ const MAGIC_BYTES: Record<string, Uint8Array> = {
   'image/webp': new Uint8Array([0x52, 0x49, 0x46, 0x46]),
 };
 
-function validateMagicBytes(file: File): boolean {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const bytes = new Uint8Array(reader.result as ArrayBuffer);
-      const expectedMagic = MAGIC_BYTES[file.type];
-      if (!expectedMagic) {
-        resolve(false);
-        return;
-      }
-      resolve(bytes.slice(0, expectedMagic.length).every((byte, i) => byte === expectedMagic[i]));
-    };
-    reader.onerror = () => resolve(false);
-    reader.readAsArrayBuffer(file.slice(0, 4));
-  });
+async function validateMagicBytes(file: File): Promise<boolean> {
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const expectedMagic = MAGIC_BYTES[file.type];
+    if (!expectedMagic || buffer.length < expectedMagic.length) {
+      return false;
+    }
+    return Array.from(expectedMagic).every((byte, i) => buffer[i] === byte);
+  } catch {
+    return false;
+  }
 }
 
 function getFileExtension(filename: string): string {
@@ -42,6 +38,11 @@ export async function POST(request: NextRequest) {
 
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error('[Payment Proof Upload] BLOB_READ_WRITE_TOKEN belum dikonfigurasi.');
+    return NextResponse.json({ error: 'Layanan upload belum dikonfigurasi.' }, { status: 503 });
   }
 
   try {

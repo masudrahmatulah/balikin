@@ -24,6 +24,9 @@ const MAX_FIELD_LENGTHS = {
 
 const PHONE_REGEX = /^628[1-9][0-9]{6,10}$/;
 const VOUCHER_REGEX = /^[A-Z0-9_-]{3,50}$/;
+// Samakan dengan validasi server di app/api/shipping/route.ts
+const VALID_COURIERS = ['jne', 'tiki', 'pos'] as const;
+const MAX_SHIPPING_COST = 1000000;
 
 // ─── Sanitasi ──────────────────────────────────────────────────────────────
 
@@ -152,15 +155,18 @@ export async function createStickerOrder(input: CreateOrderInput) {
   const segment = validateSegment(input.segment);
 
   // Validasi shipping cost input
-  if (typeof input.shippingCost !== 'number' || input.shippingCost < 0) {
+  if (typeof input.shippingCost !== 'number' || input.shippingCost < 0 || input.shippingCost > MAX_SHIPPING_COST) {
     throw new Error('Ongkir tidak valid');
   }
-  if (!input.shippingCourier?.trim()) {
+  const courier = input.shippingCourier?.trim().toLowerCase();
+  if (!courier || !(VALID_COURIERS as readonly string[]).includes(courier)) {
     throw new Error('Kurir pengiriman tidak valid');
   }
-  if (!input.destinationCityId?.trim()) {
+  const destinationCityId = input.destinationCityId?.trim();
+  if (!destinationCityId || destinationCityId.length > 20) {
     throw new Error('Kota tujuan tidak dipilih');
   }
+  const destinationCityName = validateField(input.destinationCityName, 'Kota Tujuan', MAX_FIELD_LENGTHS.city);
 
   // Notes: validasi panjang + strip karakter HTML
   const notes = input.notes?.trim()
@@ -182,7 +188,9 @@ export async function createStickerOrder(input: CreateOrderInput) {
   if (catalogEntry.productType === 'acrylic' && input.backsideCustom) {
     backsideCustom = true;
     const imageUrl = input.backsideCustomImageUrl?.trim();
-    if (!imageUrl || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://') && !imageUrl.startsWith('/uploads/'))) {
+    // Hanya URL blob hasil /api/upload/custom-backside (https). Tolak http
+    // dan path lokal /uploads agar tidak bisa hotlink/bypass upload tervalidasi.
+    if (!imageUrl || !imageUrl.startsWith('https://') || !imageUrl.includes('.blob.vercel-storage.com')) {
       throw new Error('Custom image sisi belakang wajib diupload');
     }
     if (imageUrl.length > 2000) {
@@ -198,16 +206,13 @@ export async function createStickerOrder(input: CreateOrderInput) {
     discountAmount = voucher.discountAmount;
   }
 
-  // Re-verify shipping cost di server (anti-manipulation)
-  // Client kirim ongkir, server re-query RajaOngkir untuk konfirmasi
-  let verifiedShippingCost = input.shippingCost;
-  const shippingCostVerification = await verifyShippingCost(
-    input.destinationCityId,
-    input.shippingCourier
-  );
-  if (shippingCostVerification) {
-    verifiedShippingCost = shippingCostVerification;
+  // Re-verify shipping cost di server (anti-manipulation).
+  // Fail-closed: jika verifikasi gagal, tolak transaksi — jangan percaya nominal client.
+  const shippingCostVerification = await verifyShippingCost(destinationCityId, courier);
+  if (shippingCostVerification === null || shippingCostVerification <= 0 || shippingCostVerification > MAX_SHIPPING_COST) {
+    throw new Error('Ongkir tidak dapat diverifikasi saat ini. Silakan coba lagi.');
   }
+  const verifiedShippingCost = shippingCostVerification;
 
   const totalAmount = basePrice - discountAmount + verifiedShippingCost;
 
@@ -219,13 +224,13 @@ export async function createStickerOrder(input: CreateOrderInput) {
       recipientName,
       phone,
       addressLine,
-      city: input.destinationCityName,
+      city: destinationCityName,
       postalCode,
       notes,
       shippingCost: verifiedShippingCost,
-      shippingCourier: input.shippingCourier.toLowerCase(),
-      destinationCityId: input.destinationCityId,
-      destinationCityName: input.destinationCityName,
+      shippingCourier: courier,
+      destinationCityId,
+      destinationCityName,
       paymentMethod: STICKER_PAYMENT_METHOD,
       productType: catalogEntry.productType,
       stickerColorTheme,
@@ -250,10 +255,14 @@ export async function createStickerOrder(input: CreateOrderInput) {
   return order;
 }
 
-// Helper: verify shipping cost from RajaOngkir
+// Helper: verify shipping cost from RajaOngkir via API internal.
+// Pakai base URL absolut dari env agar jalan di produksi (bukan localhost).
 async function verifyShippingCost(destinationCityId: string, courier: string): Promise<number | null> {
   try {
-    const response = await fetch('http://localhost:3000/api/shipping', {
+    const baseUrl = process.env.BETTER_AUTH_URL
+      || process.env.NEXT_PUBLIC_APP_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const response = await fetch(`${baseUrl}/api/shipping`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ destinationCityId, courier }),
@@ -264,6 +273,6 @@ async function verifyShippingCost(destinationCityId: string, courier: string): P
     return data.success && data.data?.cost ? data.data.cost : null;
   } catch (error) {
     console.error('Error verifying shipping cost:', error);
-    return null; // Use client's cost if server verification fails
+    return null;
   }
 }
