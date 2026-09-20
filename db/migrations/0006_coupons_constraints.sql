@@ -7,7 +7,11 @@ BEGIN
   -- percentage 1-100, fixed 1-10jt
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_coupons_discount_value') THEN
     ALTER TABLE balikin_coupons ADD CONSTRAINT chk_coupons_discount_value CHECK (
-      discount_value >= 1 AND discount_value <= 10000000
+      discount_value >= 1
+      AND (
+        (discount_type = 'percentage' AND discount_value <= 100)
+        OR (discount_type = 'fixed' AND discount_value <= 10000000)
+      )
     );
   END IF;
 

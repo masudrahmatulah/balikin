@@ -117,7 +117,10 @@ export async function uploadPaymentProof(orderId: string, paymentProofUrl: strin
 
   // Get the order
   const order = await db.query.modulePurchaseOrders.findFirst({
-    where: eq(modulePurchaseOrders.id, orderId),
+    where: and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, 'balikin_id'),
+    ),
   });
 
   if (!order) {
@@ -132,6 +135,10 @@ export async function uploadPaymentProof(orderId: string, paymentProofUrl: strin
     throw new Error('Order is not in pending_payment status');
   }
 
+  if (!paymentProofUrl.startsWith('https://') || !paymentProofUrl.includes('.blob.vercel-storage.com/')) {
+    throw new Error('URL bukti pembayaran tidak valid');
+  }
+
   // Update order with payment proof
   await db
     .update(modulePurchaseOrders)
@@ -141,7 +148,7 @@ export async function uploadPaymentProof(orderId: string, paymentProofUrl: strin
       paidAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(modulePurchaseOrders.id, orderId));
+    .where(and(eq(modulePurchaseOrders.id, orderId), eq(modulePurchaseOrders.app_id, 'balikin_id')));
 
   revalidatePath('/dashboard/modules/purchases');
   revalidatePath('/admin/module-orders');

@@ -109,7 +109,8 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          scheduledAt: new Date().toISOString(),
+          isPublished: true,
+          scheduledAt: undefined,
           modules,
         }),
       });

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
+import { db } from '@/db';
+import { modulePurchaseOrders } from '@/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 const MAX_FILE_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '5', 10) * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -48,9 +51,26 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const orderId = String(formData.get('orderId') || '').trim();
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Order pembayaran wajib dipilih.' }, { status: 400 });
+    }
+
+    const order = await db.query.modulePurchaseOrders.findFirst({
+      where: and(
+        eq(modulePurchaseOrders.id, orderId),
+        eq(modulePurchaseOrders.userId, session.user.id),
+        eq(modulePurchaseOrders.app_id, 'balikin_id'),
+      ),
+      columns: { id: true, status: true },
+    });
+    if (!order || order.status !== 'pending_payment') {
+      return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -83,7 +103,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = `${session.user.id}/${Date.now()}-${nanoid(8)}${ext}`;
+    const filename = `${session.user.id}/${order.id}/${Date.now()}-${nanoid(8)}${ext}`;
     const blob = await put(`payment-proofs/${filename}`, file, {
       access: 'public',
       contentType: file.type,

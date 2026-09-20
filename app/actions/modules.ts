@@ -7,10 +7,13 @@ import {
   emergencyInformation,
   userModuleSelections,
   tags,
+  moduleConfig,
+  userModulePermissions,
 } from '@/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import {
   getStudentKitData as secureGetStudentKitData,
   updateStudentKit as secureUpdateStudentKit,
@@ -82,11 +85,38 @@ async function verifyTagOwnership(tagId: string, userId: string): Promise<boolea
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
     columns: { ownerId: true },
   });
 
   return tag?.ownerId === userId;
+}
+
+async function requireModuleAccess(moduleType: string, userId: string): Promise<void> {
+  const config = await db.query.moduleConfig.findFirst({
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, 'balikin_id')),
+    columns: { isEnabled: true, isPaid: true },
+  });
+
+  if (!config || !config.isEnabled) {
+    throw new Error('Modul sedang tidak tersedia');
+  }
+
+  if (config?.isPaid) {
+    const permission = await db.query.userModulePermissions.findFirst({
+      where: and(
+        eq(userModulePermissions.userId, userId),
+        eq(userModulePermissions.moduleType, moduleType),
+        eq(userModulePermissions.app_id, 'balikin_id'),
+        eq(userModulePermissions.isEnabled, true),
+      ),
+      columns: { id: true },
+    });
+
+    if (!permission) {
+      throw new Error('Akses modul belum aktif atau belum disetujui');
+    }
+  }
 }
 
 // ============================================================================
@@ -152,9 +182,10 @@ export async function getOtomotifData(tagId: string) {
   if (!validateTagId(tagId) || !(await verifyTagOwnership(tagId, userId))) {
     throw new Error('Tag tidak ditemukan atau bukan milik Anda');
   }
+  await requireModuleAccess('otomotif', userId);
 
   return db.query.otomotifData.findFirst({
-    where: and(eq(otomotifData.tagId, tagId), eq(otomotifData.userId, userId)),
+    where: and(eq(otomotifData.tagId, tagId), eq(otomotifData.userId, userId), eq(otomotifData.app_id, 'balikin_id')),
   });
 }
 
@@ -172,9 +203,10 @@ export async function updateOtomotifData(data: {
   if (!validateTagId(data.tagId) || !(await verifyTagOwnership(data.tagId, userId))) {
     throw new Error('Tag tidak ditemukan atau bukan milik Anda');
   }
+  await requireModuleAccess('otomotif', userId);
 
   const existingData = await db.query.otomotifData.findFirst({
-    where: and(eq(otomotifData.tagId, data.tagId), eq(otomotifData.userId, userId)),
+    where: and(eq(otomotifData.tagId, data.tagId), eq(otomotifData.userId, userId), eq(otomotifData.app_id, 'balikin_id')),
     columns: { id: true },
   });
 
@@ -192,9 +224,10 @@ export async function updateOtomotifData(data: {
     await db
       .update(otomotifData)
       .set(updateValues)
-      .where(eq(otomotifData.id, existingData.id));
+      .where(and(eq(otomotifData.id, existingData.id), eq(otomotifData.app_id, 'balikin_id')));
   } else {
     await db.insert(otomotifData).values({
+      app_id: 'balikin_id',
       userId,
       tagId: data.tagId,
       stnkNumber: data.stnkNumber || '',
@@ -219,9 +252,10 @@ export async function getPertanianData(tagId: string) {
   if (!validateTagId(tagId) || !(await verifyTagOwnership(tagId, userId))) {
     throw new Error('Tag tidak ditemukan atau bukan milik Anda');
   }
+  await requireModuleAccess('pertanian', userId);
 
   return db.query.pertanianData.findFirst({
-    where: and(eq(pertanianData.tagId, tagId), eq(pertanianData.userId, userId)),
+    where: and(eq(pertanianData.tagId, tagId), eq(pertanianData.userId, userId), eq(pertanianData.app_id, 'balikin_id')),
   });
 }
 
@@ -237,9 +271,10 @@ export async function updatePertanianData(data: {
   if (!validateTagId(data.tagId) || !(await verifyTagOwnership(data.tagId, userId))) {
     throw new Error('Tag tidak ditemukan atau bukan milik Anda');
   }
+  await requireModuleAccess('pertanian', userId);
 
   const existingData = await db.query.pertanianData.findFirst({
-    where: and(eq(pertanianData.tagId, data.tagId), eq(pertanianData.userId, userId)),
+    where: and(eq(pertanianData.tagId, data.tagId), eq(pertanianData.userId, userId), eq(pertanianData.app_id, 'balikin_id')),
     columns: { id: true },
   });
 
@@ -257,9 +292,10 @@ export async function updatePertanianData(data: {
     await db
       .update(pertanianData)
       .set(updateValues)
-      .where(eq(pertanianData.id, existingData.id));
+      .where(and(eq(pertanianData.id, existingData.id), eq(pertanianData.app_id, 'balikin_id')));
   } else {
     await db.insert(pertanianData).values({
+      app_id: 'balikin_id',
       userId,
       tagId: data.tagId,
       hstCalculator: data.hstCalculator || DEFAULT_EMPTY_JSON,

@@ -36,8 +36,9 @@ export function UploadPaymentProof({ orderId }: UploadPaymentProofProps) {
     setUploading(true);
     try {
       // Upload to Vercel Blob (implement this)
-      const formData = new FormData();
-      formData.append('file', selectedFile);
+       const formData = new FormData();
+       formData.append('file', selectedFile);
+       formData.append('orderId', orderId);
 
        const uploadResponse = await fetch('/api/upload/payment-proof', {
          method: 'POST',

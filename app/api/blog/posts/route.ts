@@ -162,8 +162,8 @@ export async function POST(req: NextRequest) {
       metaDescription: data.metaDescription || null,
       metaKeywords: data.metaKeywords || null,
       focusKeyword: data.focusKeyword || null,
-      isPublished: false, // Always false initially for scheduled posts
-      publishedAt: null,
+      isPublished: data.isPublished === true && !isScheduled,
+       publishedAt: data.isPublished === true && !isScheduled ? new Date() : null,
       scheduledAt: isScheduled ? scheduledDate : null,
     }).returning();
 
