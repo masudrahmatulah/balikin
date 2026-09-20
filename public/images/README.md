@@ -1,6 +1,6 @@
 # Images Directory
 
-Place your QRIS GoPay image here as `qris-gopay.png`
+Place your QRIS GoPay image here as `qris-gopay.svg`
 
 This image should be:
 - PNG format

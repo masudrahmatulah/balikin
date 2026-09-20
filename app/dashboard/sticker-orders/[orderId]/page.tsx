@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PaymentSection } from './payment-section';
+import { ClaimCodeLookup } from '@/components/dashboard/claim-code-lookup';
 
 export default async function StickerOrderDetailPage({
   params,
@@ -121,6 +122,8 @@ export default async function StickerOrderDetailPage({
             />
           </CardContent>
         </Card>
+
+        <ClaimCodeLookup orderId={order.id} enabled={order.paymentStatus === 'paid'} />
 
         <Card>
           <CardHeader>

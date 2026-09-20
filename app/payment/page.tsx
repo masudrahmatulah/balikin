@@ -19,13 +19,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
     description: 'Selesaikan pembayaran Smart Tag QR Code Balikin Anda via QRIS GoPay. Transaksi aman dan terpercaya.',
-    url: 'https://balikin.id/payment',
+    url: 'https://balikin.online/payment',
     siteName: 'Balikin',
     locale: 'id_ID',
     type: 'website',
     images: [
       {
-        url: 'https://balikin.id/images/qris-gopay.png',
+        url: 'https://balikin.online/images/qris-gopay.svg',
         width: 1200,
         height: 630,
         alt: 'QRIS GoPay Balikin untuk Pembayaran Smart Tag'
@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
     description: 'Selesaikan pembayaran Smart Tag QR Code Balikin Anda via QRIS GoPay. Transaksi aman dan terpercaya.',
-    images: ['https://balikin.id/images/qris-gopay.png']
+    images: ['https://balikin.online/images/qris-gopay.svg']
   },
   alternates: {
-    canonical: 'https://balikin.id/payment'
+    canonical: 'https://balikin.online/payment'
   },
   robots: {
     index: true,

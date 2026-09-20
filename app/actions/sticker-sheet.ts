@@ -25,6 +25,16 @@ export interface StickerSheetClaimContext {
   sheetCode?: string;
 }
 
+export interface ClaimCodeLookupResult {
+  success: boolean;
+  error?: string;
+  sheet?: {
+    sheetCode: string;
+    masterPin: string;
+    tags: Array<{ serialNumber: string; slug: string }>;
+  };
+}
+
 function validateItemName(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) {
@@ -42,6 +52,74 @@ async function requireUserId(): Promise<string> {
     throw new Error('Silakan login terlebih dahulu.');
   }
   return session.user.id;
+}
+
+/** Return a paid user's Master PIN only for a sheet attached to their order. */
+export async function getClaimCodesForOrder(
+  orderId: string,
+  sheetCode: string
+): Promise<ClaimCodeLookupResult> {
+  const userId = await requireUserId();
+  const normalizedOrderId = orderId.trim();
+  const normalizedSheetCode = sheetCode.trim().toUpperCase();
+
+  if (!normalizedOrderId || !normalizedSheetCode || normalizedSheetCode.length > 100) {
+    return { success: false, error: 'Kode sheet tidak valid.' };
+  }
+
+  const rows = await db.execute(sql`
+    SELECT
+      s.sheet_code,
+      s.activation_pin_plain,
+      t.serial_number,
+      t.slug
+    FROM balikin_sticker_sheets s
+    INNER JOIN balikin_tags t
+      ON t.sheet_id = s.id
+      AND t.app_id = 'balikin_id'
+    INNER JOIN balikin_tag_bundles b
+      ON b.id = t.bundle_id
+      AND b.app_id = 'balikin_id'
+    INNER JOIN balikin_sticker_orders o
+      ON o.id = b.order_id
+      AND o.app_id = 'balikin_id'
+    WHERE s.app_id = 'balikin_id'
+      AND s.sheet_code = ${normalizedSheetCode}
+      AND o.id = ${normalizedOrderId}
+      AND o.user_id = ${userId}
+      AND o.payment_status = 'paid'
+    ORDER BY t.serial_number ASC
+  `);
+
+  const resultRows = rows.rows as Array<{
+    sheet_code: string;
+    activation_pin_plain: string | null;
+    serial_number: string | null;
+    slug: string;
+  }>;
+
+  if (resultRows.length === 0) {
+    return {
+      success: false,
+      error: 'Kode sheet tidak ditemukan pada order Anda yang sudah dibayar.',
+    };
+  }
+
+  const masterPin = resultRows[0].activation_pin_plain;
+  if (!masterPin) {
+    return { success: false, error: 'Kode klaim belum tersedia. Hubungi CS Balikin.' };
+  }
+
+  return {
+    success: true,
+    sheet: {
+      sheetCode: resultRows[0].sheet_code,
+      masterPin,
+      tags: resultRows
+        .filter((row) => row.serial_number)
+        .map((row) => ({ serialNumber: row.serial_number as string, slug: row.slug })),
+    },
+  };
 }
 
 /**
