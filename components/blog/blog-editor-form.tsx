@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { BlogModuleBuilder } from "./module-builder";
 import { ImageUploader } from "./image-uploader";
 import { BlogSEOChecklist } from "./seo-checklist";
-import { Save, Eye, Send, Loader2, Calendar, Sparkles } from "lucide-react";
+import { Save, Eye, Send, Loader2, Calendar, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface Editor {
@@ -22,38 +22,66 @@ interface Editor {
   email: string;
 }
 
+interface ArticleRecommendation {
+  title: string;
+  keyword: string;
+  angle: string;
+}
+
 interface BlogEditorFormProps {
   editors: Editor[];
   currentUserId: string;
+  postId?: string;
+  initialPost?: Partial<{
+    title: string;
+    slug: string;
+    summary: string;
+    content: string;
+    coverImage: string;
+    authorName: string;
+    authorId: string;
+    authorAvatar: string;
+    reviewedBy: string;
+    reviewedById: string;
+    reviewedByTitle: string;
+    metaDescription: string;
+    metaKeywords: string;
+    focusKeyword: string;
+    scheduledAt: string;
+    modules: Array<any>;
+    isPublished: boolean;
+  }>;
 }
 
-export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) {
+export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: BlogEditorFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationTopic, setGenerationTopic] = useState("");
   const [generationKeyword, setGenerationKeyword] = useState("");
+  const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   const [formData, setFormData] = useState({
-    title: "",
-    slug: "",
-    summary: "",
-    content: "",
-    coverImage: "",
-    authorName: "",
-    authorId: currentUserId,
-    authorAvatar: "",
-    reviewedBy: "",
-    reviewedById: "",
-    reviewedByTitle: "",
-    metaDescription: "",
-    metaKeywords: "",
-    focusKeyword: "",
-    scheduledAt: "",
+    title: initialPost?.title || "",
+    slug: initialPost?.slug || "",
+    summary: initialPost?.summary || "",
+    content: initialPost?.content || "",
+    coverImage: initialPost?.coverImage || "",
+    authorName: initialPost?.authorName || "",
+    authorId: initialPost?.authorId || currentUserId,
+    authorAvatar: initialPost?.authorAvatar || "",
+    reviewedBy: initialPost?.reviewedBy || "",
+    reviewedById: initialPost?.reviewedById || "",
+    reviewedByTitle: initialPost?.reviewedByTitle || "",
+    metaDescription: initialPost?.metaDescription || "",
+    metaKeywords: initialPost?.metaKeywords || "",
+    focusKeyword: initialPost?.focusKeyword || "",
+    scheduledAt: initialPost?.scheduledAt || "",
   });
 
-  const [modules, setModules] = useState<Array<any>>([]);
+  const [modules, setModules] = useState<Array<any>>(initialPost?.modules || []);
 
   const generateSlug = (title: string) => {
     return title
@@ -76,11 +104,13 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
     setIsSaving(true);
     try {
       const res = await fetch("/api/blog/posts", {
-        method: "POST",
+        method: postId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(postId ? { id: postId } : {}),
           ...formData,
           isPublished: false,
+          scheduledAt: formData.scheduledAt || undefined,
           modules,
         }),
       });
@@ -88,7 +118,8 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
       if (res.ok) {
         const post = await res.json();
         toast.success("Draft saved successfully!");
-        router.push(`/admin/blog/${post.id}/edit`);
+        if (postId) router.refresh();
+        else router.push(`/admin/blog/${post.id}/edit`);
       } else {
         const error = await res.json();
         toast.error(error.error || "Failed to save draft");
@@ -105,12 +136,13 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
     setIsPublishing(true);
     try {
       const res = await fetch("/api/blog/posts", {
-        method: "POST",
+        method: postId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(postId ? { id: postId } : {}),
           ...formData,
           isPublished: true,
-          scheduledAt: undefined,
+          scheduledAt: formData.scheduledAt || undefined,
           modules,
         }),
       });
@@ -118,7 +150,8 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
       if (res.ok) {
         const post = await res.json();
         toast.success("Blog post published successfully!");
-        router.push(`/admin/blog/${post.id}/edit`);
+        if (postId) router.refresh();
+        else router.push(`/admin/blog/${post.id}/edit`);
       } else {
         const error = await res.json();
         toast.error(error.error || "Failed to publish post");
@@ -148,11 +181,12 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
     setIsPublishing(true);
     try {
       const res = await fetch("/api/blog/posts", {
-        method: "POST",
+        method: postId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(postId ? { id: postId } : {}),
           ...formData,
-          scheduledAt: formData.scheduledAt,
+          scheduledAt: new Date(formData.scheduledAt).toISOString(),
           modules,
         }),
       });
@@ -160,7 +194,8 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
       if (res.ok) {
         const post = await res.json();
         toast.success(`Post scheduled for ${scheduledDate.toLocaleString('id-ID')}`);
-        router.push(`/admin/blog/drafts`);
+        if (postId) router.refresh();
+        else router.push(`/admin/blog/drafts`);
       } else {
         const error = await res.json();
         toast.error(error.error || "Failed to schedule post");
@@ -212,6 +247,31 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
     }
   };
 
+  const handleLoadRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    try {
+      const res = await fetch("/api/admin/blog/recommendations", { method: "POST" });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || "Rekomendasi artikel gagal dibuat.");
+        return;
+      }
+      setRecommendations(result.recommendations || []);
+      toast.success("5 rekomendasi artikel hari ini siap dipilih.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Rekomendasi artikel gagal dibuat.");
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  const handleSelectRecommendation = (recommendation: ArticleRecommendation) => {
+    setGenerationTopic(recommendation.title);
+    setGenerationKeyword(recommendation.keyword);
+    toast.success("Topik dipilih. Klik Generate Draft untuk membuat artikelnya.");
+  };
+
   const selectedAuthor = editors.find((e) => e.id === formData.authorId);
   const selectedReviewer = editors.find((e) => e.id === formData.reviewedById);
 
@@ -226,6 +286,40 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="rounded-xl border border-violet-200 bg-violet-50/70 p-4 dark:border-violet-900/60 dark:bg-violet-950/20">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-medium text-violet-950 dark:text-violet-100">Rekomendasi artikel hari ini</p>
+                  <p className="text-xs text-violet-700 dark:text-violet-300">Pilih satu ide untuk mengisi topik dan keyword secara otomatis.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadRecommendations}
+                  disabled={isLoadingRecommendations || isGenerating}
+                  className="shrink-0"
+                >
+                  {isLoadingRecommendations ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                  {isLoadingRecommendations ? "Mencari ide..." : "Tampilkan 5 Ide"}
+                </Button>
+              </div>
+              {recommendations.length > 0 && (
+                <div className="mt-4 grid gap-2">
+                  {recommendations.map((recommendation, index) => (
+                    <button
+                      key={`${recommendation.title}-${index}`}
+                      type="button"
+                      onClick={() => handleSelectRecommendation(recommendation)}
+                      className="rounded-lg border border-violet-200 bg-white p-3 text-left transition-colors hover:border-violet-500 hover:bg-violet-50 dark:border-violet-900/60 dark:bg-slate-900 dark:hover:bg-violet-950/30"
+                    >
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{index + 1}. {recommendation.title}</span>
+                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">Keyword: {recommendation.keyword} · {recommendation.angle}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="generation-topic">Topik Artikel</Label>
               <Input
@@ -278,7 +372,7 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug</Label>
+               <Label htmlFor="slug">Recommended Slug</Label>
               <Input
                 id="slug"
                 value={formData.slug}
@@ -455,7 +549,7 @@ export function BlogEditorForm({ editors, currentUserId }: BlogEditorFormProps) 
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="metaDescription">Meta Description</Label>
+               <Label htmlFor="metaDescription">Recommended Meta Description</Label>
               <Textarea
                 id="metaDescription"
                 value={formData.metaDescription}

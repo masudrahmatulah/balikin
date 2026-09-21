@@ -227,6 +227,7 @@ export const BlogPostCreateSchema = z.object({
   coverImage: z.string().url('URL gambar cover tidak valid').optional().or(z.literal('')),
   modules: z.array(z.any()).optional(),
   authorName: z.string().max(100).optional(),
+  authorAvatar: z.string().url('URL avatar tidak valid').optional().or(z.literal('')),
   reviewedBy: z.string().max(100).optional(),
   reviewedByTitle: z.string().max(100).optional(),
   metaDescription: z.string().max(300).optional(),

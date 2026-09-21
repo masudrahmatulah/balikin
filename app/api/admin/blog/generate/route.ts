@@ -6,6 +6,9 @@ import { isAdmin } from "@/lib/admin";
 import { checkBlogGenerateRateLimit, getRateLimitHeaders } from "@/lib/rate-limit";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { and, eq, isNull } from "drizzle-orm";
+import { db } from "@/db";
+import { blogPosts } from "@/db/schema";
 
 export const runtime = "nodejs";
 
@@ -49,6 +52,47 @@ function getGeminiModels() {
   ])];
 }
 
+function countWords(value: string) {
+  return value
+    .replace(/[`*_#>\[\]()-]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .length;
+}
+
+type InternalLink = {
+  title: string;
+  url: string;
+  summary: string;
+  keywords: string;
+};
+
+function rankInternalLinks(links: InternalLink[], topic: string, keyword: string) {
+  const queryTokens = new Set(
+    `${topic} ${keyword}`
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((token) => token.length > 2),
+  );
+
+  return [...links]
+    .map((link, index) => {
+      const documentTokens = `${link.title} ${link.summary} ${link.keywords}`
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .split(/\s+/);
+      const score = documentTokens.reduce(
+        (total, token) => total + (queryTokens.has(token) ? 1 : 0),
+        0,
+      );
+      return { link, score, index };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ link }) => link);
+}
+
 async function getApprovedProductContext() {
   try {
     return await fs.readFile(
@@ -58,6 +102,28 @@ async function getApprovedProductContext() {
   } catch {
     return "Knowledge base produk tidak tersedia. Jangan membuat klaim harga atau spesifikasi produk.";
   }
+}
+
+async function getInternalLinkContext() {
+  const posts = await db.query.blogPosts.findMany({
+    where: and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)),
+    columns: {
+      title: true,
+      slug: true,
+      summary: true,
+      focusKeyword: true,
+      metaKeywords: true,
+    },
+    orderBy: (table, { desc }) => [desc(table.publishedAt)],
+    limit: 50,
+  });
+
+  return posts.map((post) => ({
+    title: post.title,
+    url: `/blog/${post.slug}`,
+    summary: post.summary,
+    keywords: [post.focusKeyword, post.metaKeywords].filter(Boolean).join(", "),
+  }));
 }
 
 export async function POST(request: Request) {
@@ -90,6 +156,10 @@ export async function POST(request: Request) {
     }
 
     const productContext = await getApprovedProductContext();
+    const internalLinks: InternalLink[] = await getInternalLinkContext();
+    const internalLinkContext = internalLinks.length > 0
+      ? internalLinks.map((link) => `- ${link.title}\n  URL: ${link.url}\n  Ringkasan: ${link.summary}\n  Keyword: ${link.keywords || "-"}`).join("\n")
+      : "Belum ada artikel published lain yang bisa ditautkan.";
     const prompt = `
 Anda adalah editor konten resmi Balikin, platform Smart Lost & Found QR Tag Indonesia.
 Buat satu artikel blog berbahasa Indonesia berdasarkan topik berikut.
@@ -105,13 +175,19 @@ Aturan wajib:
 - Jika topik meminta fakta yang tidak tersedia, tulis artikel edukatif umum dan jangan mengklaim fakta tersebut sebagai fakta Balikin.
 - Jangan menyebut bahwa artikel dibuat oleh AI.
 - Summary harus 50-500 karakter.
-- Content harus minimal 100 karakter.
-- Slug hanya boleh berisi huruf kecil, angka, tanda hubung, atau underscore.
-- Meta description maksimal 300 karakter.
+- Content harus minimal 300 kata, bukan sekadar 300 karakter.
+- Buat recommended slug yang singkat, deskriptif, dan relevan dengan topik serta keyword utama.
+- Meta description harus berupa rekomendasi SEO sepanjang 120-160 karakter dan maksimal 300 karakter.
 - Meta keywords berupa daftar dipisahkan koma.
+- Jika tersedia minimal 2 artikel published di daftar internal link, sisipkan 2-4 internal link yang paling relevan secara alami di dalam content Markdown.
+- Gunakan URL internal link persis seperti yang tersedia, jangan mengubah slug atau domainnya.
+- Jangan menambahkan link ke artikel yang tidak ada di daftar dan jangan membuat link ke draft.
 
 Knowledge base produk:
 ${productContext}
+
+Daftar artikel published untuk internal link:
+${internalLinkContext}
 `.trim();
 
     let lastError: unknown;
@@ -124,7 +200,7 @@ ${productContext}
             contents: prompt,
             config: {
               temperature: 0.5,
-              maxOutputTokens: 3000,
+              maxOutputTokens: 4500,
               responseMimeType: "application/json",
               responseSchema: BLOG_RESPONSE_SCHEMA,
             },
@@ -147,9 +223,9 @@ ${productContext}
             throw new Error("Gemini returned an incomplete article");
           }
 
-          if (String(generated.summary).length < 50 || String(generated.content).length < 100) {
-            throw new Error("Gemini returned content that is too short");
-          }
+           if (String(generated.summary).length < 50 || countWords(String(generated.content)) < 300) {
+             throw new Error("Gemini returned an article with fewer than 300 words");
+           }
 
           const normalizedSlug = String(generated.slug)
             .toLowerCase()
@@ -159,10 +235,34 @@ ${productContext}
             .slice(0, 100);
           if (!normalizedSlug) throw new Error("Gemini returned an invalid slug");
 
-          return NextResponse.json({
+           let content = String(generated.content);
+           if (internalLinks.length >= 2) {
+             const availableUrls = new Set(internalLinks.map((link) => link.url));
+             const markdownLinks = [...content.matchAll(/\[([^\]]+)\]\((\/blog\/[a-z0-9-_]+)\)/g)];
+             const linkedUrls = [...new Set(markdownLinks.map((match) => match[2]))]
+               .filter((url) => availableUrls.has(url));
+
+             // Keep the generated article within the 2-4 link range.
+             if (linkedUrls.length > 4) {
+               const allowedUrls = new Set(linkedUrls.slice(0, 4));
+               content = content.replace(/\[([^\]]+)\]\((\/blog\/[a-z0-9-_]+)\)/g, (match, label, url) => (
+                 availableUrls.has(url) && !allowedUrls.has(url) ? label : match
+               ));
+             }
+
+             if (linkedUrls.length < 2) {
+               const fallbackCount = Math.min(3, Math.max(2, 4 - linkedUrls.length));
+               const fallbackLinks = rankInternalLinks(internalLinks, topic, keyword)
+                 .filter((link) => !linkedUrls.includes(link.url))
+                 .slice(0, fallbackCount);
+               content += `\n\n## Baca Juga\n\n${fallbackLinks.map((link) => `- [${link.title}](${link.url})`).join("\n")}`;
+             }
+           }
+
+           return NextResponse.json({
             title: generated.title,
             summary: generated.summary,
-            content: generated.content,
+             content,
             slug: normalizedSlug,
             metaDescription: generated.metaDescription,
             metaKeywords: generated.metaKeywords,

@@ -7,7 +7,7 @@ import { isAdmin } from '@/lib/admin';
 import { auth } from '@/lib/auth';
 import { eq, desc, and, isNull } from 'drizzle-orm';
 import { logError, ValidationError, NotFoundError, AppError } from '@/lib/error-handler';
-import { BlogPostCreateSchema, type BlogPostCreateInput } from '@/lib/validations';
+import { BlogPostCreateSchema, BlogPostUpdateSchema, type BlogPostCreateInput } from '@/lib/validations';
 import { validateSlug } from '@/lib/blog-validation';
 
 // Cache frequently accessed data for 5 minutes
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     // Zod validation
     const validationResult = BlogPostCreateSchema.safeParse(body);
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.errors.map(e => e.message).join(', ');
+      const errorMessages = validationResult.error.issues.map((issue) => issue.message).join(', ');
       throw new ValidationError(`Validasi gagal: ${errorMessages}`);
     }
 
@@ -180,6 +180,69 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat membuat artikel' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    if (!(await isAdmin())) {
+      throw new AppError('Unauthorized', 'AUTH_ERROR', 401);
+    }
+
+    const body = await req.json();
+    const validationResult = BlogPostUpdateSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map((issue) => issue.message).join(', ');
+      throw new ValidationError(`Validasi gagal: ${errorMessages}`);
+    }
+
+    const { id, ...data } = validationResult.data;
+    const existing = await db.query.blogPosts.findFirst({
+      where: and(eq(blogPosts.id, id), isNull(blogPosts.deletedAt)),
+    });
+    if (!existing) throw new NotFoundError('Artikel blog', id);
+
+    const nextScheduledDate = data.scheduledAt ? new Date(data.scheduledAt) : null;
+    const isScheduled = Boolean(nextScheduledDate && nextScheduledDate > new Date());
+    const isPublished = data.isPublished === true && !isScheduled;
+
+    const [post] = await db.update(blogPosts).set({
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.slug !== undefined && { slug: validateSlug(data.slug) }),
+      ...(data.summary !== undefined && { summary: data.summary }),
+      ...(data.coverImage !== undefined && { coverImage: data.coverImage || null }),
+      ...(data.content !== undefined && { content: data.content }),
+      ...(data.modules !== undefined && { modules: data.modules }),
+      ...(data.authorName !== undefined && { authorName: data.authorName || 'Tim Penulis BALIKIN' }),
+      ...(data.authorAvatar !== undefined && { authorAvatar: data.authorAvatar || null }),
+      ...(data.reviewedBy !== undefined && { reviewedBy: data.reviewedBy || null }),
+      ...(data.reviewedByTitle !== undefined && { reviewedByTitle: data.reviewedByTitle || null }),
+      ...(data.metaDescription !== undefined && { metaDescription: data.metaDescription || null }),
+      ...(data.metaKeywords !== undefined && { metaKeywords: data.metaKeywords || null }),
+      ...(data.focusKeyword !== undefined && { focusKeyword: data.focusKeyword || null }),
+      ...(data.isPublished !== undefined && {
+        isPublished,
+        publishedAt: isPublished ? (existing.publishedAt || new Date()) : null,
+      }),
+      ...(data.scheduledAt !== undefined && { scheduledAt: isScheduled ? nextScheduledDate : null }),
+      updatedAt: new Date(),
+    }).where(eq(blogPosts.id, id)).returning();
+
+    return NextResponse.json(post);
+  } catch (error) {
+    logError(error, 'BlogPostPUT');
+
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.statusCode }
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Terjadi kesalahan saat memperbarui artikel' },
       { status: 500 }
     );
   }

@@ -23,34 +23,32 @@ interface BlogCommentSectionProps {
   initialComments: Comment[];
 }
 
+function buildCommentTree(flatComments: Comment[]): Comment[] {
+  const commentMap = new Map<string, Comment>();
+  const rootComments: Comment[] = [];
+
+  flatComments.forEach(comment => {
+    commentMap.set(comment.id, { ...comment, replies: [] });
+  });
+
+  flatComments.forEach(comment => {
+    const node = commentMap.get(comment.id)!;
+    if (comment.parentId && commentMap.has(comment.parentId)) {
+      commentMap.get(comment.parentId)!.replies!.push(node);
+    } else {
+      rootComments.push(node);
+    }
+  });
+
+  return rootComments;
+}
+
 export function BlogCommentSection({ postId, initialComments }: BlogCommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>(buildCommentTree(initialComments));
   const [form, setForm] = useState({ name: '', whatsapp: '', commentText: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-
-  const buildCommentTree = (flatComments: Comment[]): Comment[] => {
-    const commentMap = new Map<string, Comment>();
-    const rootComments: Comment[] = [];
-
-    // First pass: create map and initialize replies arrays
-    flatComments.forEach(comment => {
-      commentMap.set(comment.id, { ...comment, replies: [] });
-    });
-
-    // Second pass: build tree
-    flatComments.forEach(comment => {
-      const node = commentMap.get(comment.id)!;
-      if (comment.parentId && commentMap.has(comment.parentId)) {
-        commentMap.get(comment.parentId)!.replies!.push(node);
-      } else {
-        rootComments.push(node);
-      }
-    });
-
-    return rootComments;
-  };
 
   const handleSubmit = async (e: React.FormEvent, parentId?: string) => {
     e.preventDefault();

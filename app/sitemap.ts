@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/seo";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/faq",
     "/contact",
     "/privacy-policy",
-    "/terms",
+    "/terms-of-service",
     "/upgrade",
   ].map((path) => ({
     url: absoluteUrl(path),
@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let blogPostsUrls: MetadataRoute.Sitemap = [];
   try {
     const posts = await db.query.blogPosts.findMany({
-      where: eq(blogPosts.isPublished, true),
+      where: and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)),
       columns: {
         slug: true,
         updatedAt: true,

@@ -75,8 +75,8 @@ export default function AboutPage() {
           </section>
 
           {/* Mission */}
-          <section className="bg-gradient-to-br from-red-50 to-slate-50 border-2 border-red-200 rounded-xl p-8 mb-8 dark:from-red-950/40 dark:to-slate-900 dark:border-red-900/60">
-            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-brand-navy dark:text-white">
+          <section className="mb-8 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-8 dark:border-green-900/60 dark:from-green-950/40 dark:to-slate-900">
+            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-green-800 dark:text-green-200">
               <span className="text-3xl">🚀</span>
               Misi Kami: "Mengembalikan yang Berharga dengan Menjaga Privasi"
             </h2>
@@ -98,33 +98,33 @@ export default function AboutPage() {
               Kami menyederhanakan proses pencarian barang hilang dalam tiga langkah mudah:
             </p>
             <div className="space-y-6">
-              <div className="flex items-start gap-4 bg-slate-50 rounded-lg p-6">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold shrink-0">
+              <div className="flex items-start gap-4 rounded-lg bg-slate-50 p-6 dark:bg-slate-800">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white">
                   1
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Tempel Tag Pintar</h3>
-                  <p className="text-gray-700">Anda menempelkan stiker, gantungan kunci akrilik, atau menyematkan QR Smart Tag Balikin pada barang berharga Anda (laptop, dompet, kunci, tas, dll).</p>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Tempel Tag Pintar</h3>
+                  <p className="text-gray-700 dark:text-slate-300">Anda menempelkan stiker, gantungan kunci akrilik, atau menyematkan QR Smart Tag Balikin pada barang berharga Anda (laptop, dompet, kunci, tas, dll).</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 bg-slate-50 rounded-lg p-6">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold shrink-0">
+              <div className="flex items-start gap-4 rounded-lg bg-slate-50 p-6 dark:bg-slate-800">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white">
                   2
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Scan Anonim</h3>
-                  <p className="text-gray-700">Jika barang tersebut tercecer dan ditemukan oleh seseorang, penemu cukup memindai (scan) kode QR tersebut menggunakan kamera ponsel mereka.</p>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Scan Anonim</h3>
+                  <p className="text-gray-700 dark:text-slate-300">Jika barang tersebut tercecer dan ditemukan oleh seseorang, penemu cukup memindai (scan) kode QR tersebut menggunakan kamera ponsel mereka.</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4 bg-slate-50 rounded-lg p-6">
-                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold shrink-0">
+              <div className="flex items-start gap-4 rounded-lg bg-slate-50 p-6 dark:bg-slate-800">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xl font-bold text-white">
                   3
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Terhubung Instan</h3>
-                  <p className="text-gray-700">Penemu dapat langsung mengirimkan pesan kepada Anda (melalui sistem notifikasi kami atau WhatsApp) secara anonim. Nomor WhatsApp dan data pribadi asli Anda akan tetap aman dan terjaga di sistem kami.</p>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Terhubung Instan</h3>
+                  <p className="text-gray-700 dark:text-slate-300">Penemu dapat langsung mengirimkan pesan kepada Anda (melalui sistem notifikasi kami atau WhatsApp) secara anonim. Nomor WhatsApp dan data pribadi asli Anda akan tetap aman dan terjaga di sistem kami.</p>
                 </div>
               </div>
             </div>
@@ -137,19 +137,19 @@ export default function AboutPage() {
               Nilai Utama yang Kami Pegang Teguh
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="rounded-lg border border-red-200 bg-gradient-to-br from-red-50 to-red-100 p-6 dark:border-red-900/60 dark:from-red-950/40 dark:to-slate-900">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
                 <div className="text-3xl mb-3">🔒</div>
                 <h3 className="mb-2 text-lg font-semibold text-brand-navy dark:text-white">Keamanan Privasi</h3>
                 <p className="text-sm text-gray-800 dark:text-slate-200">Kami tidak pernah menampilkan nomor telepon, email, atau alamat rumah Anda ke halaman publik. Keamanan data Anda adalah prioritas nomor satu kami.</p>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
                 <div className="text-3xl mb-3">📱</div>
-                <h3 className="text-lg font-semibold text-green-900 mb-2">Kemudahan Akses</h3>
-                <p className="text-gray-700 text-sm">Penemu barang tidak perlu mengunduh aplikasi tambahan untuk melaporkan barang yang mereka temukan. Cukup scan dan langsung bisa menghubungi Anda.</p>
+                <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Kemudahan Akses</h3>
+                <p className="text-sm text-gray-700 dark:text-slate-300">Penemu barang tidak perlu mengunduh aplikasi tambahan untuk melaporkan barang yang mereka temukan. Cukup scan dan langsung bisa menghubungi Anda.</p>
               </div>
 
-              <div className="rounded-lg border border-red-200 bg-gradient-to-br from-slate-100 to-red-50 p-6 dark:border-red-900/60 dark:from-slate-800 dark:to-red-950/40">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800">
                 <div className="text-3xl mb-3">♾️</div>
                 <h3 className="mb-2 text-lg font-semibold text-brand-navy dark:text-white">Premium Lifetime</h3>
                 <p className="text-sm text-gray-800 dark:text-slate-200">Kami tidak menyukai biaya bulanan yang mengikat. Cukup beli tag fisik sekali, dan nikmati fitur premium kami selamanya selama platform beroperasi.</p>
@@ -158,47 +158,47 @@ export default function AboutPage() {
           </section>
 
           {/* CTA Section */}
-          <section className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl p-8 mb-8">
-            <h2 className="text-2xl font-bold text-red-900 mb-6 flex items-center gap-2">
+          <section className="mb-8 rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-8 dark:border-green-900/60 dark:from-green-950/40 dark:to-slate-900">
+            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-green-800 dark:text-green-200">
               <span className="text-3xl">🤝</span>
               Mari Menjadi Bagian dari Ekosistem Balikin
             </h2>
-            <p className="text-gray-700 leading-relaxed text-justify mb-4">
+            <p className="mb-4 text-justify leading-relaxed text-gray-700 dark:text-slate-300">
               Kehilangan barang sering kali menguras energi, waktu, dan biaya yang tidak sedikit. Bersama Balikin.online, mari kita bangun budaya saling membantu yang lebih aman dan terorganisir dengan bantuan teknologi digital.
             </p>
-            <p className="text-gray-700 leading-relaxed text-justify font-semibold text-amber-800">
+            <p className="font-semibold leading-relaxed text-justify text-green-800 dark:text-green-200">
               Lindungi barang berharga Anda sekarang juga sebelum terlambat. Karena mencegah kehilangan jauh lebih menenangkan daripada mencari yang telah hilang.
             </p>
           </section>
 
           {/* Contact Section */}
-          <section className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <section className="mb-8 rounded-xl bg-gradient-to-br from-brand-navy to-brand-red p-8 text-white shadow-lg shadow-red-900/20">
+            <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold">
               <span className="text-3xl">📞</span>
               Hubungi Tim Balikin
             </h2>
-            <p className="text-blue-100 leading-relaxed text-justify mb-6">
+            <p className="mb-6 text-justify leading-relaxed text-red-100">
               Kami selalu terbuka untuk kolaborasi, saran, atau bantuan teknis. Jangan ragu untuk menyapa kami melalui:
             </p>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
+              <div className="flex items-center gap-3 rounded-lg bg-white/10 p-4">
                 <span className="text-2xl">🌐</span>
                 <div>
-                  <p className="text-sm text-blue-200">Situs Resmi</p>
+                  <p className="text-sm text-red-200">Situs Resmi</p>
                   <a href="https://balikin.online" className="text-white font-semibold hover:underline">balikin.online</a>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
+              <div className="flex items-center gap-3 rounded-lg bg-white/10 p-4">
                 <span className="text-2xl">📧</span>
                 <div>
-                  <p className="text-sm text-blue-200">Kemitraan & Dukungan</p>
+                  <p className="text-sm text-red-200">Kemitraan & Dukungan</p>
                   <a href="mailto:support@balikin.online" className="text-white font-semibold hover:underline">support@balikin.online</a>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-white/10 rounded-lg p-4">
+              <div className="flex items-center gap-3 rounded-lg bg-white/10 p-4">
                 <span className="text-2xl">📸</span>
                 <div>
-                  <p className="text-sm text-blue-200">Instagram</p>
+                  <p className="text-sm text-red-200">Instagram</p>
                   <a href="https://instagram.com/balikin.online" target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">@balikin.online</a>
                 </div>
               </div>
