@@ -57,6 +57,7 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [reprinting, setReprinting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { isRefreshing, nextRefreshIn, refresh } = useAutoRefresh({
@@ -171,6 +172,38 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
   };
 
   const clearSelection = () => setSelectedIds(new Set());
+
+  const handleReprint = async (item: PrintQueueItem) => {
+    setReprinting(item.id);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/vdp/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batchId: item.batchId }),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || 'Gagal reprint dari database');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reprint-${item.batchName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal reprint dari database');
+    } finally {
+      setReprinting(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -419,6 +452,18 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
                         >
                           <Download className="w-3 h-3" aria-hidden="true" />
                           Download
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleReprint(item)}
+                          disabled={reprinting === item.id}
+                          className="gap-1"
+                          title="Cetak ulang dari database (slug/token/PIN sama, untuk artifact yang sudah kedaluwarsa)"
+                          aria-label={`Reprint ${item.batchName} from database`}
+                        >
+                          <RotateCw className={cn('w-3 h-3', reprinting === item.id && 'animate-spin')} aria-hidden="true" />
+                          {reprinting === item.id ? 'Reprint...' : 'Reprint'}
                         </Button>
                         <Select
                           value={item.status}

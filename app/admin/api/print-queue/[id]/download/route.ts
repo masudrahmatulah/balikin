@@ -62,7 +62,7 @@ export async function GET(
     }
 
     if (batch?.artifactFilename) {
-      return new NextResponse("VDP artifact sudah kedaluwarsa. Generate ulang batch dari VDP Tool.", { status: 410 });
+      return new NextResponse("VDP artifact sudah kedaluwarsa. Gunakan tombol Reprint di tabel Print Queue untuk generate ulang dari database.", { status: 410 });
     }
 
     // Check if this is a Cut & Fold material
