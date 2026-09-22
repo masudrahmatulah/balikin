@@ -1,4 +1,4 @@
-export type ProductType = 'free' | 'sticker' | 'acrylic';
+export type ProductType = 'free' | 'sticker' | 'acrylic' | 'printable';
 
 type ProductTagLike = {
   productType?: string | null;
@@ -6,7 +6,7 @@ type ProductTagLike = {
 };
 
 export function getTagProductType(tag: ProductTagLike): ProductType {
-  if (tag.productType === 'sticker' || tag.productType === 'acrylic') {
+  if (tag.productType === 'sticker' || tag.productType === 'acrylic' || tag.productType === 'printable') {
     return tag.productType;
   }
 
@@ -41,6 +41,9 @@ export function getTagProductLabel(tag: ProductTagLike): string {
   }
   if (type === 'acrylic') {
     return 'Acrylic Premium';
+  }
+  if (type === 'printable') {
+    return 'Printable QR Tag';
   }
   return 'Digital Tag Free';
 }

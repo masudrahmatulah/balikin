@@ -1,6 +1,10 @@
 export const FREE_TAG_LIMIT = 1;
 export const FREE_TAG_TRIAL_DAYS = 7;
 export const PREMIUM_UPGRADE_PRICE = 25000; // Upgrade tag free -> premium (digital only, tanpa fisik)
+export const PRINTABLE_SINGLE_PRICE = 35000;
+export const PRINTABLE_FIVE_PRICE = 125000;
+export const PRINTABLE_TEN_PRICE = 200000;
+export const PRINTABLE_PAYMENT_METHOD = 'manual_qris';
 
 // Harga produk sesuai strategi update_produk.md
 export const PREMIUM_PRICE = 54000;       // Premium Acrylic Tag

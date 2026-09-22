@@ -119,6 +119,8 @@ export default async function StickerOrderDetailPage({
               orderId={order.id}
               paymentStatus={order.paymentStatus}
               totalAmount={order.totalAmount}
+              paymentProofUrl={order.paymentProofUrl}
+              isPrintable={order.productType === 'printable'}
             />
           </CardContent>
         </Card>

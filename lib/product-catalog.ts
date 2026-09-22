@@ -23,6 +23,7 @@ const PRODUCT_TYPE_LABELS: Record<string, string> = {
   acrylic: 'Premium Acrylic Tag',
   sticker: 'Sticker Vinyl Pack',
   bundle: 'Balikin Bundle Pack',
+  printable: 'Printable QR Tag',
 };
 
 export function getProductDisplayName(productType: string, packSize: number): string {

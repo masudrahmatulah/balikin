@@ -33,11 +33,11 @@ export function FreePassLeadSection() {
             Balikin Free Pass
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">
-            1 Tag QR Gratis, Cuma Butuh Daftar & Login
+            Mulai Gratis, Upgrade Saat Dibutuhkan
           </h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Tidak perlu beli dulu untuk membuktikan sistemnya bekerja. Buat akun sekarang,
-            dan 1 tag QR digital langsung jadi milik Anda — gratis selamanya.
+            Coba 1 tag QR digital gratis dengan PNG ber-watermark. Saat membutuhkan lebih banyak tag,
+            pilih lisensi printable berbayar dengan file siap cetak dan branding Anda sendiri.
           </p>
         </div>
       </ScrollReveal>

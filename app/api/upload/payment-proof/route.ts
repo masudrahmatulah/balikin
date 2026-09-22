@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
-import { modulePurchaseOrders } from '@/db/schema';
+import { modulePurchaseOrders, stickerOrders } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 const MAX_FILE_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '5', 10) * 1024 * 1024;
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order pembayaran wajib dipilih.' }, { status: 400 });
     }
 
-    const order = await db.query.modulePurchaseOrders.findFirst({
+    const moduleOrder = await db.query.modulePurchaseOrders.findFirst({
       where: and(
         eq(modulePurchaseOrders.id, orderId),
         eq(modulePurchaseOrders.userId, session.user.id),
@@ -69,7 +69,12 @@ export async function POST(request: NextRequest) {
       ),
       columns: { id: true, status: true },
     });
-    if (!order || order.status !== 'pending_payment') {
+    const stickerOrder = await db.query.stickerOrders.findFirst({
+      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.userId, session.user.id), eq(stickerOrders.app_id, 'balikin_id')),
+      columns: { id: true, status: true, productType: true },
+    });
+    const validOrder = moduleOrder || stickerOrder;
+    if (!validOrder || (moduleOrder ? moduleOrder.status !== 'pending_payment' : stickerOrder?.status !== 'pending_payment')) {
       return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
     }
 
@@ -103,12 +108,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = `${session.user.id}/${order.id}/${Date.now()}-${nanoid(8)}${ext}`;
+    const filename = `${session.user.id}/${validOrder.id}/${Date.now()}-${nanoid(8)}${ext}`;
     const blob = await put(`payment-proofs/${filename}`, file, {
       access: 'public',
       contentType: file.type,
     });
 
+    if (stickerOrder) {
+      await db.update(stickerOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(eq(stickerOrders.id, stickerOrder.id));
+    }
     return NextResponse.json({ url: blob.url });
   } catch (error) {
     console.error('[Payment Proof Upload] Failed:', error);

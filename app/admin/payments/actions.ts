@@ -6,6 +6,7 @@ import { getAdminSessionForAction } from '@/lib/admin';
 import { db } from '@/db';
 import { stickerOrders, tagUpgradeOrders, tags } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 
 const APP_ID = 'balikin_id';
 
@@ -121,14 +122,37 @@ export async function verifyStickerOrderPayment(orderId: string) {
     throw new Error('Order sudah berstatus paid');
   }
 
-  await db
-    .update(stickerOrders)
-    .set({
+  if (order.productType === 'printable' && !order.paymentProofUrl) {
+    throw new Error('Bukti pembayaran printable belum diupload');
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.update(stickerOrders).set({
       paymentStatus: 'paid',
-      status: 'pending_fulfillment',
+      status: order.productType === 'printable' ? 'completed' : 'pending_fulfillment',
+      verifiedAt: new Date(),
       updatedAt: new Date(),
-    })
-    .where(eq(stickerOrders.id, orderId));
+    }).where(eq(stickerOrders.id, orderId));
+
+    if (order.productType === 'printable') {
+      let label = 'Printable QR Tag';
+      try { label = JSON.parse(order.notes || '{}').label || label; } catch { /* legacy order note */ }
+      await tx.insert(tags).values(Array.from({ length: order.unitCountPerPack }, (_, index) => ({
+        slug: nanoid(12),
+        ownerId: order.userId,
+        name: `${label} ${index + 1}`,
+        contactWhatsapp: order.phone,
+        customMessage: 'Scan saya jika menemukan barang ini.',
+        status: 'normal',
+        tier: 'premium',
+        productType: 'printable',
+        isVerified: true,
+        emailAlertsEnabled: true,
+        whatsappAlertsEnabled: true,
+        expiresAt: null,
+      })));
+    }
+  });
 
   revalidatePath('/admin/payments');
   revalidatePath('/admin/sticker-orders');

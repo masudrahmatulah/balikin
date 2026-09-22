@@ -122,12 +122,14 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
                     </Link>
                   </Button>
                 )}
-                <Button variant="outline" className="w-full" asChild>
-                  <a href={`/dashboard/tag/${slug}/qr`} download>
-                    <FileText className="mr-2 h-4 w-4" />
-                    {isFreeTag ? 'Download PDF Panduan' : 'Download PDF'}
-                  </a>
-                </Button>
+                 {!isFreeTag && (
+                   <Button variant="outline" className="w-full" asChild>
+                     <a href={`/dashboard/tag/${slug}/qr`} download>
+                       <FileText className="mr-2 h-4 w-4" />
+                       Download PDF
+                     </a>
+                   </Button>
+                 )}
                 <Button variant="outline" className="w-full" asChild>
                   <a href={`/p/${slug}?preview=1`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
@@ -143,7 +145,7 @@ export default async function TagDetailPage({ params }: TagDetailPageProps) {
               </div>
               {isFreeTag && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                  Digital tag free cocok untuk lockscreen HP, tablet, atau cetak mandiri sementara. Upgrade ke Sticker Vinyl atau Acrylic Premium saat Anda butuh hasil fisik yang lebih tahan air dan lebih profesional.
+                   Digital tag free cocok untuk lockscreen HP, tablet, atau cetak mandiri sementara. Download PNG ber-watermark tersedia gratis. Upgrade ke Printable Tag untuk PDF tanpa watermark dan lebih banyak lisensi.
                 </div>
               )}
             </CardContent>

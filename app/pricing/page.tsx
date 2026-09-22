@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PREMIUM_PRICE, WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
+import { PREMIUM_PRICE, PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE, WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 import { buildMetadata, absoluteUrl } from "@/lib/seo";
 import { ProductJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
@@ -43,6 +43,32 @@ const pricingPlans: PricingPlan[] = [
       label: "Mulai Gratis",
       href: "/sign-up",
     },
+  },
+  {
+    name: "Printable Single",
+    price: `Rp${PRINTABLE_SINGLE_PRICE.toLocaleString("id-ID")}`,
+    features: [
+      "1 lisensi tag QR printable",
+      "PNG dan PDF siap cetak",
+      "Tanpa watermark",
+      "QR aktif selamanya",
+    ],
+    isPremium: true,
+    cta: { label: "Buat Order", href: "/dashboard/printable" },
+  },
+  {
+    name: "Printable 5 Tag",
+    price: `Rp${PRINTABLE_FIVE_PRICE.toLocaleString("id-ID")}`,
+    features: ["5 lisensi tag QR", "PNG dan PDF", "Tanpa watermark", "Upload logo sendiri"],
+    isPremium: true,
+    cta: { label: "Buat Order", href: "/dashboard/printable" },
+  },
+  {
+    name: "Printable 10 Tag",
+    price: `Rp${PRINTABLE_TEN_PRICE.toLocaleString("id-ID")}`,
+    features: ["10 lisensi tag QR", "PNG dan PDF", "Tanpa watermark", "Upload logo sendiri"],
+    isPremium: true,
+    cta: { label: "Buat Order", href: "/dashboard/printable" },
   },
   {
     name: "Premium",
