@@ -6,6 +6,90 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .blog-markdown {
+    color: #334155;
+    line-height: 1.8;
+  }
+
+  .blog-markdown-paragraph {
+    margin: 0 0 1.25rem;
+  }
+
+  .blog-markdown-heading {
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .blog-markdown-h1 {
+    margin: 2.5rem 0 1rem;
+    font-size: 2rem;
+  }
+
+  .blog-markdown-h2 {
+    margin: 2.25rem 0 0.85rem;
+    font-size: 1.5rem;
+  }
+
+  .blog-markdown-h3 {
+    margin: 1.75rem 0 0.65rem;
+    font-size: 1.25rem;
+  }
+
+  .blog-markdown-list {
+    margin: 0 0 1.25rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-markdown-list-unordered {
+    list-style: disc;
+  }
+
+  .blog-markdown-list-ordered {
+    list-style: decimal;
+  }
+
+  .blog-markdown-item {
+    margin: 0.35rem 0;
+  }
+
+  .blog-markdown-link {
+    color: #dc2626;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .blog-markdown-quote {
+    margin: 1.5rem 0;
+    border-left: 4px solid #dc2626;
+    padding: 0.75rem 1rem;
+    background: #fef2f2;
+    font-style: italic;
+  }
+
+  .blog-markdown-code {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background: #0f172a;
+    padding: 1rem;
+    color: #f8fafc;
+  }
+
+  .dark .blog-markdown {
+    color: #cbd5e1;
+  }
+
+  .dark .blog-markdown-heading {
+    color: #f8fafc;
+  }
+
+  .dark .blog-markdown-quote {
+    background: #3f1720;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

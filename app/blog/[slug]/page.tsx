@@ -271,10 +271,22 @@ export default async function BlogPage({ params }: BlogPageProps) {
             )}
 
             {/* Markdown Content */}
-            <div className="prose prose-lg max-w-none mb-8">
+            <div className="blog-markdown prose prose-lg max-w-none mb-8">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeSanitize]}
+                components={{
+                  h1: ({ node, ...props }) => <h1 className="blog-markdown-heading blog-markdown-h1" {...props} />,
+                  h2: ({ node, ...props }) => <h2 className="blog-markdown-heading blog-markdown-h2" {...props} />,
+                  h3: ({ node, ...props }) => <h3 className="blog-markdown-heading blog-markdown-h3" {...props} />,
+                  p: ({ node, ...props }) => <p className="blog-markdown-paragraph" {...props} />,
+                  ul: ({ node, ...props }) => <ul className="blog-markdown-list blog-markdown-list-unordered" {...props} />,
+                  ol: ({ node, ...props }) => <ol className="blog-markdown-list blog-markdown-list-ordered" {...props} />,
+                  li: ({ node, ...props }) => <li className="blog-markdown-item" {...props} />,
+                  a: ({ node, ...props }) => <a className="blog-markdown-link" {...props} />,
+                  blockquote: ({ node, ...props }) => <blockquote className="blog-markdown-quote" {...props} />,
+                  pre: ({ node, ...props }) => <pre className="blog-markdown-code" {...props} />,
+                }}
               >
                 {post.content}
               </ReactMarkdown>

@@ -170,6 +170,7 @@ Keyword utama: ${keyword || "tentukan keyword yang paling relevan"}
 Aturan wajib:
 - Hasilkan artikel yang berguna, spesifik, dan mudah dipindai pembaca.
 - Gunakan Markdown untuk content dengan heading, paragraf, list, dan contoh yang relevan.
+- Pisahkan setiap paragraf dengan satu baris kosong (dua karakter newline / \\n\\n); jangan menggabungkan paragraf menjadi satu blok teks.
 - Jangan mengarang harga, fitur, garansi, kebijakan, angka pengguna, atau klaim teknis.
 - Jika membahas produk Balikin, gunakan hanya fakta dari knowledge base di bawah.
 - Jika topik meminta fakta yang tidak tersedia, tulis artikel edukatif umum dan jangan mengklaim fakta tersebut sebagai fakta Balikin.

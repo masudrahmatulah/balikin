@@ -104,7 +104,7 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
 
           {/* Content */}
           {post.content && (
-            <div className="prose prose-sm max-w-none">
+            <div className="blog-markdown prose prose-sm max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeSanitize]}
