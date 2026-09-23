@@ -9,6 +9,7 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
+    "db:migrate-password-vault": "tsx scripts/migrate-password-vault.ts",
     "db:studio": "drizzle-kit studio",
     "test:email": "tsx scripts/test-email.ts",
     "diagnose": "tsx scripts/diagnose-db.js",

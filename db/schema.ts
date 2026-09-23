@@ -66,6 +66,25 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// Password vault stores only client-side encrypted payloads.
+export const passwordVaultItems = pgTable('password_vault_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  ciphertext: text('ciphertext').notNull(),
+  iv: text('iv').notNull(),
+  salt: text('salt').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const passwordVaultItemsRelations = relations(passwordVaultItems, ({ one }) => ({
+  owner: one(user, {
+    fields: [passwordVaultItems.userId],
+    references: [user.id],
+  }),
+}));
+
 export const stickerOrders = pgTable('sticker_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),

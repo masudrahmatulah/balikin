@@ -1,5 +1,5 @@
 import { QuickActionCard } from '@/components/quick-action-card';
-import { Plus, Package, ScanLine, HelpCircle, Printer } from 'lucide-react';
+import { Plus, Package, ScanLine, HelpCircle, Printer, KeyRound } from 'lucide-react';
 
 export function DashboardQuickActions({ canCreateMore }: { canCreateMore: boolean }) {
   return (
@@ -10,12 +10,13 @@ export function DashboardQuickActions({ canCreateMore }: { canCreateMore: boolea
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Mulai dari sini untuk mengelola perlindungan barang Anda.</p>
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <QuickActionCard title="Tambah Tag" description="Buat tag baru untuk barang Anda" icon={Plus} href="/dashboard/new" color="blue" disabled={!canCreateMore} />
         <QuickActionCard title="Lihat Tag" description="Kelola semua tag Anda" icon={Package} href="#tags" color="emerald" />
         <QuickActionCard title="Scan QR" description="Simulasi scan untuk testing" icon={ScanLine} href="/scan" color="purple" />
         <QuickActionCard title="Bantuan" description="Panduan dan FAQ" icon={HelpCircle} href="/help" color="slate" />
         <QuickActionCard title="Printable QR" description="Pesan tag QR siap cetak" icon={Printer} href="/dashboard/printable" color="amber" />
+        <QuickActionCard title="Password Vault" description="Simpan login terenkripsi" icon={KeyRound} href="/dashboard/passwords" color="purple" />
       </div>
     </section>
   );
