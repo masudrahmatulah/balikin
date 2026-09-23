@@ -58,8 +58,10 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
   const [generationTopic, setGenerationTopic] = useState("");
   const [generationKeyword, setGenerationKeyword] = useState("");
+  const [improveInstruction, setImproveInstruction] = useState("");
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
@@ -266,6 +268,44 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
     }
   };
 
+  const handleImproveArticle = async () => {
+    if (improveInstruction.trim().length < 5) {
+      toast.error("Tulis perintah perbaikan minimal 5 karakter.");
+      return;
+    }
+
+    setIsImproving(true);
+    try {
+      const res = await fetch("/api/admin/blog/improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, instruction: improveInstruction }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || "Artikel gagal diperbaiki.");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        title: result.title,
+        slug: result.slug,
+        summary: result.summary,
+        content: result.content,
+        metaDescription: result.metaDescription,
+        metaKeywords: result.metaKeywords,
+        focusKeyword: result.focusKeyword,
+      }));
+      toast.success("Artikel diperbaiki di editor. Periksa sebelum menyimpan.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Artikel gagal diperbaiki.");
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
   const handleSelectRecommendation = (recommendation: ArticleRecommendation) => {
     setGenerationTopic(recommendation.title);
     setGenerationKeyword(recommendation.keyword);
@@ -353,6 +393,28 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
             <p className="text-xs text-muted-foreground">
               Hasil hanya mengisi editor. Artikel tidak dipublikasikan otomatis.
             </p>
+            <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+              <div>
+                <p className="font-medium text-amber-950 dark:text-amber-100">Perbaiki artikel dengan AI</p>
+                <p className="text-xs text-amber-800 dark:text-amber-300">Tulis perubahan yang Anda inginkan. Hasil hanya menggantikan isi editor dan belum disimpan.</p>
+              </div>
+              <Textarea
+                value={improveInstruction}
+                onChange={(event) => setImproveInstruction(event.target.value)}
+                placeholder="Contoh: Buat pembukaan lebih menarik, pendekkan paragraf, dan tambahkan soft-selling Free Pass secara natural."
+                rows={3}
+                disabled={isImproving}
+              />
+              <Button
+                type="button"
+                onClick={handleImproveArticle}
+                disabled={isImproving || isGenerating || isSaving || isPublishing || !formData.content.trim()}
+                className="w-full bg-amber-600 text-white hover:bg-amber-700"
+              >
+                {isImproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {isImproving ? "Memperbaiki artikel..." : "Perbaiki dengan AI"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -455,10 +517,13 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
             </Button>
             <Button
               onClick={() => {
-                const slug = formData.slug || generateSlug(formData.title);
-                window.open(`/blog/${slug}`, "_blank");
+                if (postId) {
+                  window.open(`/admin/blog/${postId}/preview`, "_blank");
+                  return;
+                }
+                toast.info("Simpan draft terlebih dahulu untuk membuka preview.");
               }}
-              disabled={!formData.slug}
+              disabled={!postId}
               variant="ghost"
               className="w-full"
             >

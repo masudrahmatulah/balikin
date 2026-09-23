@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { blogPosts, giveawayClaims, blogComments, trueStorySubmissions } from '@/db/schema';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, isNull } from 'drizzle-orm';
 import Link from 'next/link';
-import { Plus, MessageSquare, Gift, Video, Eye } from 'lucide-react';
+import { Plus, MessageSquare, Gift, Video, Eye, ExternalLink, Pencil } from 'lucide-react';
 
 async function getAdminData() {
   const session = await getAdminSession();
@@ -13,7 +13,9 @@ async function getAdminData() {
   }
 
   // Simplified queries to avoid relational issues
-  const posts = await db.select().from(blogPosts).orderBy(desc(blogPosts.createdAt)).limit(10);
+  const posts = await db.select().from(blogPosts)
+    .where(and(eq(blogPosts.app_id, 'balikin_id'), isNull(blogPosts.deletedAt)))
+    .orderBy(desc(blogPosts.createdAt));
 
   return {
     posts,
@@ -105,12 +107,19 @@ export default async function AdminBlogPage() {
                 ) : (
                   <span className="px-2 py-1 bg-amber-500/10 text-amber-600 text-xs rounded">Draft</span>
                 )}
-                <Link
-                  href={`/admin/blog/${post.id}/edit`}
-                  className="p-2 hover:bg-accent rounded-lg"
-                >
-                  <Eye className="w-4 h-4" />
+                <Link href={`/admin/blog/${post.id}/edit`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm hover:bg-accent" title="Edit artikel">
+                  <Pencil className="w-4 h-4" />
+                  <span className="hidden sm:inline">Edit</span>
                 </Link>
+                <Link href={`/admin/blog/${post.id}/preview`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm hover:bg-accent" title="Preview artikel">
+                  <Eye className="w-4 h-4" />
+                  <span className="hidden sm:inline">Preview</span>
+                </Link>
+                {post.isPublished && (
+                  <Link href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 hover:bg-accent" title="Buka artikel publik">
+                    <ExternalLink className="w-4 h-4" />
+                  </Link>
+                )}
               </div>
             </div>
           ))}
