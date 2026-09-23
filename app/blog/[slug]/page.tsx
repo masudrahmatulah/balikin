@@ -10,7 +10,8 @@ import { BlogCrowdsourcedMap } from '@/components/blog/crowdsourced-map';
 import { BlogSetupGallery } from '@/components/blog/setup-gallery';
 import { BlogSocialSharing } from '@/components/blog/social-sharing';
 import { BlogRelatedPosts } from '@/components/blog/related-posts';
-import { BlogModule, BlogPostingSchema, FAQPageSchema } from '@/types/blog';
+import { BlogModule } from '@/types/blog';
+import { buildBlogSchemas } from '@/lib/blog-jsonld';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -50,53 +51,8 @@ async function getBlogPost(slug: string) {
   return { post, comments };
 }
 
-function generateJSONLD(post: any, modules: BlogModule[]): string {
-  const schemas: any[] = [];
-
-  // Main BlogPosting schema
-  const blogSchema: BlogPostingSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.summary,
-    image: post.coverImage,
-    author: {
-      '@type': 'Person',
-      name: post.authorName,
-    },
-    datePublished: post.publishedAt || post.createdAt,
-    dateModified: post.updatedAt,
-  };
-
-  if (post.reviewedBy) {
-    blogSchema.reviewedBy = {
-      '@type': 'Person',
-      name: post.reviewedBy,
-      jobTitle: post.reviewedByTitle || 'Expert Reviewer',
-    };
-  }
-
-  schemas.push(blogSchema);
-
-  // FAQPage schema if FAQ module exists
-  const faqModule = modules.find(m => m.type === 'faq');
-  if (faqModule && 'data' in faqModule) {
-    const faqSchema: FAQPageSchema = {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faqModule.data.map((faq) => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
-      })),
-    };
-    schemas.push(faqSchema);
-  }
-
-  return JSON.stringify(schemas);
+function generateJSONLD(post: any, modules: BlogModule[], slug: string): string {
+  return JSON.stringify(buildBlogSchemas(post, modules, slug));
 }
 
 function renderModule(module: BlogModule, postId: string) {
@@ -214,7 +170,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const { post, comments } = data;
   const modules = post.modules as BlogModule[];
 
-  const jsonLd = generateJSONLD(post, modules);
+  const jsonLd = generateJSONLD(post, modules, slug);
 
   return (
     <>

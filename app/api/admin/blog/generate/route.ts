@@ -68,6 +68,27 @@ type InternalLink = {
   keywords: string;
 };
 
+const PRODUCT_LINK_ALLOWLIST = [
+  "/pricing",
+  "/stickers",
+  "/stickers/checkout",
+  "/sign-up",
+  "/how-it-works",
+] as const;
+
+function isAllowedProductUrl(url: string): boolean {
+  return PRODUCT_LINK_ALLOWLIST.some(
+    (allowed) => url === allowed || url.startsWith(`${allowed}/`) || url.startsWith(`${allowed}?`),
+  );
+}
+
+function pickFallbackProductUrl(topic: string, keyword: string): string {
+  if (/gratis|free|coba|pemula|mencoba/i.test(`${topic} ${keyword}`)) {
+    return "/sign-up";
+  }
+  return "/stickers";
+}
+
 function rankInternalLinks(links: InternalLink[], topic: string, keyword: string) {
   const queryTokens = new Set(
     `${topic} ${keyword}`
@@ -183,6 +204,12 @@ Aturan wajib:
 - Jika tersedia minimal 2 artikel published di daftar internal link, sisipkan 2-4 internal link yang paling relevan secara alami di dalam content Markdown.
 - Gunakan URL internal link persis seperti yang tersedia, jangan mengubah slug atau domainnya.
 - Jangan menambahkan link ke artikel yang tidak ada di daftar dan jangan membuat link ke draft.
+- Setiap artikel WAJIB mengaitkan solusi produk Balikin secara halus (soft-selling, bukan hard-selling): kaitkan 1 contoh penggunaan yang masuk akal dengan 1-2 produk dari knowledge base.
+- Sisipkan 1-2 link produk Markdown yang ditempatkan natural di body artikel (misalnya saat memberi solusi atau contoh), maksimal 3 link produk.
+- Hanya gunakan URL produk persis dari daftar ini: /pricing, /stickers, /stickers/checkout, /sign-up, /how-it-works. Jangan membuat URL produk baru.
+- Tutup artikel dengan bagian singkat "## Solusi Praktis dengan Balikin" berisi 2-4 kalimat yang mengarahkan ke 1 link produk paling relevan.
+- Jangan menyebut harga pasti; gunakan frasa "harga referensi" dan arahkan pembaca ke halaman produk untuk harga terbaru.
+- Hindari klaim agresif seperti "terbaik sedunia", "dijamin pasti kembali", atau "tidak akan pernah hilang".
 
 Knowledge base produk:
 ${productContext}
@@ -251,12 +278,36 @@ ${internalLinkContext}
                ));
              }
 
-             if (linkedUrls.length < 2) {
-               const fallbackCount = Math.min(3, Math.max(2, 4 - linkedUrls.length));
-               const fallbackLinks = rankInternalLinks(internalLinks, topic, keyword)
-                 .filter((link) => !linkedUrls.includes(link.url))
-                 .slice(0, fallbackCount);
-               content += `\n\n## Baca Juga\n\n${fallbackLinks.map((link) => `- [${link.title}](${link.url})`).join("\n")}`;
+              if (linkedUrls.length < 2) {
+                const fallbackCount = Math.min(3, Math.max(2, 4 - linkedUrls.length));
+                const fallbackLinks = rankInternalLinks(internalLinks, topic, keyword)
+                  .filter((link) => !linkedUrls.includes(link.url))
+                  .slice(0, fallbackCount);
+                content += `\n\n## Baca Juga\n\n${fallbackLinks.map((link) => `- [${link.title}](${link.url})`).join("\n")}`;
+              }
+            }
+
+           // Validasi soft-selling produk: maksimal 3 link produk, minimal 1 link produk.
+           const productLinkMatches = [...content.matchAll(/\[([^\]]+)\]\((\/(?:pricing|stickers|sign-up|how-it-works)[a-z0-9\-_/?=&]*?)\)/g)];
+           const validProductUrls = [...new Set(productLinkMatches.map((match) => match[2]))]
+             .filter((url) => isAllowedProductUrl(url));
+
+           if (validProductUrls.length > 3) {
+             const allowedUrls = new Set(validProductUrls.slice(0, 3));
+             content = content.replace(/\[([^\]]+)\]\((\/(?:pricing|stickers|sign-up|how-it-works)[a-z0-9\-_/?=&]*?)\)/g, (match, label, url) => (
+               isAllowedProductUrl(url) && !allowedUrls.has(url) ? String(label) : match
+             ));
+           }
+
+           if (validProductUrls.length === 0) {
+             const fallbackProductUrl = pickFallbackProductUrl(topic, keyword);
+             const fallbackProductLabel = fallbackProductUrl === "/sign-up"
+               ? "coba Balikin Free Pass gratis"
+               : "lihat pilihan Stiker Balikin";
+             if (!content.includes("## Solusi Praktis dengan Balikin")) {
+               content += `\n\n## Solusi Praktis dengan Balikin\n\nAgar tips di atas lebih mudah diterapkan, tempelkan QR Balikin pada barang yang paling sering dibawa. Anda bisa mulai dengan [${fallbackProductLabel}](${fallbackProductUrl}) dan cek harga referensi terbaru di halaman produk.`;
+             } else {
+               content += `\n\nAnda bisa mulai dengan [${fallbackProductLabel}](${fallbackProductUrl}) dan cek harga referensi terbaru di halaman produk.`;
              }
            }
 

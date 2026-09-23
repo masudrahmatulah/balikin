@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import Image from 'next/image';
 import Link from 'next/link';
+import { buildBlogSchemas } from '@/lib/blog-jsonld';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -45,8 +46,14 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
   }
 
   const { post, comments } = data;
+  const jsonLd = JSON.stringify(buildBlogSchemas(post, (post.modules as any[]) ?? [], slug));
 
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd }}
+      />
     <div className="min-h-screen bg-gradient-to-b from-mobile-background to-mobile-background-to">
       <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20">
         <div className="px-4 py-4">
@@ -175,5 +182,43 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
         <div className="h-8" />
       </main>
     </div>
+    </>
   );
+}
+
+export async function generateMetadata({ params }: BlogPageProps) {
+  const { slug } = await params;
+  const data = await getBlogPost(slug);
+
+  if (!data?.post) {
+    return {};
+  }
+
+  const { post } = data;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.online';
+  const canonicalUrl = `${baseUrl}/blog/${slug}`;
+  const description = post.metaDescription || post.summary;
+
+  return {
+    title: post.title,
+    description,
+    keywords: post.metaKeywords || post.focusKeyword,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: post.title,
+      description,
+      url: canonicalUrl,
+      type: 'article',
+      publishedTime: post.publishedAt || post.createdAt,
+      authors: post.authorName ? [post.authorName] : undefined,
+      siteName: 'BALIKIN',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+    },
+  };
 }

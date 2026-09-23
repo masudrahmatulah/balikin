@@ -104,12 +104,25 @@ export interface FAQPageSchema {
 export interface BlogPostingSchema {
   '@context': string;
   '@type': 'BlogPosting';
+  '@id'?: string;
   headline: string;
   description: string;
-  image: string | null;
+  image: string | string[] | null;
   author: {
     '@type': 'Person';
     name: string;
+  };
+  publisher?: {
+    '@type': 'Organization';
+    name: string;
+    logo: {
+      '@type': 'ImageObject';
+      url: string;
+    };
+  };
+  mainEntityOfPage?: {
+    '@type': 'WebPage';
+    '@id': string;
   };
   reviewedBy?: {
     '@type': 'Person';
@@ -118,4 +131,8 @@ export interface BlogPostingSchema {
   };
   datePublished: string;
   dateModified: string;
+  inLanguage?: string;
+  keywords?: string | string[];
+  articleSection?: string;
+  wordCount?: number;
 }

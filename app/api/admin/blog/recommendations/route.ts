@@ -89,6 +89,7 @@ Aturan wajib:
 - Prioritaskan topik keamanan barang, QR code, lost and found, privasi, traveling, keluarga, usaha kecil, dan edukasi produk Balikin.
 - Jangan mengulang judul atau keyword.
 - Jangan membuat klaim produk, harga, atau fitur yang tidak ada di knowledge base.
+- Sertakan sudut yang memungkinkan kaitan solusi produk Balikin secara halus tanpa hard-selling.
 - title adalah judul artikel yang siap dipilih.
 - keyword adalah satu keyword utama SEO.
 - angle menjelaskan sudut pandang artikel dalam satu kalimat.
