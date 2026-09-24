@@ -25,9 +25,20 @@ async function migrate() {
       updated_at timestamp NOT NULL DEFAULT now()
     )
     `;
-    await sql`
+  await sql`
     CREATE INDEX IF NOT EXISTS idx_password_vault_items_user
     ON balikin_password_vault_items (app_id, user_id, updated_at DESC)
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS balikin_password_vault_settings (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        app_id text NOT NULL DEFAULT 'balikin_id',
+        user_id text NOT NULL UNIQUE REFERENCES balikin_user(id) ON DELETE CASCADE,
+        verifier text NOT NULL,
+        salt text NOT NULL,
+        created_at timestamp NOT NULL DEFAULT now(),
+        updated_at timestamp NOT NULL DEFAULT now()
+      )
     `;
     console.log('Password vault table is ready.');
   } finally {

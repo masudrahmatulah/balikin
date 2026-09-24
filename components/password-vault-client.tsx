@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { createPasswordVaultItem, deletePasswordVaultItem, updatePasswordVaultItem } from '@/app/actions/password-vault';
-import { decryptPasswordVaultEntry, encryptPasswordVaultEntry, type EncryptedPasswordVaultEntry, type PasswordVaultEntry } from '@/lib/password-vault-crypto';
+import { changePasswordVaultSettings, createPasswordVaultItem, createPasswordVaultSettings, deletePasswordVaultItem, updatePasswordVaultItem, verifyPasswordVaultSettings } from '@/app/actions/password-vault';
+import { createVaultSalt, decodeVaultSalt, decryptPasswordVaultEntry, derivePasswordVerifier, encryptPasswordVaultEntry, type EncryptedPasswordVaultEntry, type PasswordVaultEntry } from '@/lib/password-vault-crypto';
 
 type VaultItem = EncryptedPasswordVaultEntry & { id: string };
 type FormState = PasswordVaultEntry;
@@ -23,9 +23,10 @@ function generatePassword() {
   return Array.from(values, (value) => alphabet[value % alphabet.length]).join('');
 }
 
-export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[] }) {
+export function PasswordVaultClient({ initialItems, vaultSalt }: { initialItems: VaultItem[]; vaultSalt: string | null }) {
   const [masterPassword, setMasterPassword] = useState('');
   const [unlockInput, setUnlockInput] = useState('');
+  const [confirmInput, setConfirmInput] = useState('');
   const [entries, setEntries] = useState<Record<string, FormState>>({});
   const [unlocked, setUnlocked] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -36,11 +37,15 @@ export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[
   const [notice, setNotice] = useState('');
   const [isPending, startTransition] = useTransition();
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [newMasterPassword, setNewMasterPassword] = useState('');
+  const [newMasterConfirmation, setNewMasterConfirmation] = useState('');
 
   const lock = () => {
     setUnlocked(false);
     setMasterPassword('');
     setUnlockInput('');
+    setConfirmInput('');
     setEntries({});
     setSelectedId(null);
     setForm(EMPTY_FORM);
@@ -60,8 +65,22 @@ export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[
       setError('Master password minimal 8 karakter.');
       return;
     }
+    if (!vaultSalt) {
+      if (unlockInput !== confirmInput) { setError('Konfirmasi master password tidak sama.'); return; }
+      setError('');
+      try {
+        const salt = createVaultSalt();
+        const verifier = await derivePasswordVerifier(unlockInput, decodeVaultSalt(salt));
+        await createPasswordVaultSettings({ salt, verifier });
+        setMasterPassword(unlockInput); setUnlockInput(''); setConfirmInput(''); setUnlocked(true); setLastActivity(Date.now()); setNotice('Master password berhasil dibuat.');
+      } catch (setupError) { setError(setupError instanceof Error ? setupError.message : 'Gagal membuat master password.'); }
+      return;
+    }
     setError('');
     try {
+      const verifier = await derivePasswordVerifier(unlockInput, decodeVaultSalt(vaultSalt));
+      const verification = await verifyPasswordVaultSettings(verifier);
+      if (!verification.valid) throw new Error('invalid password');
       const decrypted: Record<string, FormState> = {};
       for (const item of initialItems) {
         decrypted[item.id] = await decryptPasswordVaultEntry(item, unlockInput);
@@ -76,6 +95,21 @@ export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[
       setError('Master password salah atau data vault rusak.');
       setEntries({});
     }
+  };
+
+  const changeMasterPassword = () => {
+    if (newMasterPassword.length < 8) { setError('Master password baru minimal 8 karakter.'); return; }
+    if (newMasterPassword !== newMasterConfirmation) { setError('Konfirmasi master password baru tidak sama.'); return; }
+    startTransition(async () => {
+      try {
+        const salt = createVaultSalt();
+        const verifier = await derivePasswordVerifier(newMasterPassword, decodeVaultSalt(salt));
+        const encryptedItems = await Promise.all(Object.entries(entries).map(async ([id, entry]) => ({ id, encrypted: await encryptPasswordVaultEntry(entry, newMasterPassword) })));
+        for (const item of encryptedItems) await updatePasswordVaultItem({ id: item.id, ...item.encrypted });
+        await changePasswordVaultSettings({ salt, verifier });
+        setMasterPassword(newMasterPassword); setNewMasterPassword(''); setNewMasterConfirmation(''); setShowChangePassword(false); setNotice('Master password berhasil diganti.');
+      } catch (changeError) { setError(changeError instanceof Error ? changeError.message : 'Gagal mengganti master password.'); }
+    });
   };
 
   const visibleItems = useMemo(() => initialItems.filter((item) => {
@@ -126,11 +160,12 @@ export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[
       <header className="border-b bg-white dark:border-slate-800 dark:bg-slate-900"><div className="container mx-auto px-4 py-4"><Link href="/dashboard"><Button variant="ghost"><ArrowLeft className="mr-2 h-4 w-4" />Kembali ke Dashboard</Button></Link></div></header>
       <main className="container mx-auto max-w-md px-4 py-12">
         <Card>
-          <CardHeader className="text-center"><div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white"><LockKeyhole className="h-7 w-7" /></div><CardTitle>Password Vault</CardTitle><CardDescription>Master password hanya digunakan di perangkat ini untuk membuka enkripsi. Kami tidak menyimpannya.</CardDescription></CardHeader>
+          <CardHeader className="text-center"><div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white"><LockKeyhole className="h-7 w-7" /></div><CardTitle>{vaultSalt ? 'Buka Password Vault' : 'Buat Master Password'}</CardTitle><CardDescription>{vaultSalt ? 'Masukkan master password untuk membuka data terenkripsi.' : 'Buat master password minimal 8 karakter. Password ini tidak disimpan oleh Balikin.'}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div><Label htmlFor="master-password">Master password</Label><Input id="master-password" type="password" value={unlockInput} onChange={(event) => setUnlockInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && unlock()} placeholder="Minimal 8 karakter" autoComplete="off" /></div>
+            <div><Label htmlFor="master-password">{vaultSalt ? 'Master password' : 'Master password baru'}</Label><Input id="master-password" type="password" value={unlockInput} onChange={(event) => setUnlockInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && unlock()} placeholder="Minimal 8 karakter" autoComplete="new-password" /></div>
+            {!vaultSalt && <div><Label htmlFor="master-password-confirm">Konfirmasi master password</Label><Input id="master-password-confirm" type="password" value={confirmInput} onChange={(event) => setConfirmInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && unlock()} placeholder="Ulangi master password" autoComplete="new-password" /></div>}
             {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-            <Button className="w-full" onClick={unlock}><KeyRound className="mr-2 h-4 w-4" />Buka Vault</Button>
+            <Button className="w-full" onClick={unlock}><KeyRound className="mr-2 h-4 w-4" />{vaultSalt ? 'Buka Vault' : 'Buat Master Password'}</Button>
             <p className="text-xs leading-5 text-muted-foreground">Jika master password lupa, data terenkripsi tidak dapat dipulihkan oleh admin.</p>
           </CardContent>
         </Card>
@@ -142,7 +177,8 @@ export function PasswordVaultClient({ initialItems }: { initialItems: VaultItem[
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950" onPointerDown={touch} onKeyDown={touch}>
       <header className="border-b bg-white dark:border-slate-800 dark:bg-slate-900"><div className="container mx-auto flex items-center justify-between gap-3 px-4 py-4"><Link href="/dashboard"><Button variant="ghost"><ArrowLeft className="mr-2 h-4 w-4" />Dashboard</Button></Link><Button variant="outline" onClick={lock}><LockKeyhole className="mr-2 h-4 w-4" />Kunci Vault</Button></div></header>
       <main className="container mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium text-brand-red">Private Vault</p><h1 className="text-3xl font-bold text-slate-900 dark:text-white">Password Manager</h1><p className="mt-1 text-sm text-muted-foreground">Data terenkripsi di browser dan otomatis dikunci setelah 5 menit tidak aktif.</p></div><Button onClick={startNew}><Plus className="mr-2 h-4 w-4" />Tambah Password</Button></div>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium text-brand-red">Private Vault</p><h1 className="text-3xl font-bold text-slate-900 dark:text-white">Password Manager</h1><p className="mt-1 text-sm text-muted-foreground">Data terenkripsi di browser dan otomatis dikunci setelah 5 menit tidak aktif.</p></div><div className="flex gap-2"><Button variant="outline" onClick={() => setShowChangePassword(!showChangePassword)}><KeyRound className="mr-2 h-4 w-4" />Ganti Master Password</Button><Button onClick={startNew}><Plus className="mr-2 h-4 w-4" />Tambah Password</Button></div></div>
+        {showChangePassword && <Card className="mb-6 border-amber-200"><CardHeader><CardTitle className="text-base">Ganti Master Password</CardTitle><CardDescription>Semua item akan didekripsi dan dienkripsi ulang di browser dengan password baru.</CardDescription></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="new-master">Master password baru</Label><Input id="new-master" type="password" value={newMasterPassword} onChange={(event) => setNewMasterPassword(event.target.value)} autoComplete="new-password" /></div><div><Label htmlFor="new-master-confirm">Konfirmasi password baru</Label><Input id="new-master-confirm" type="password" value={newMasterConfirmation} onChange={(event) => setNewMasterConfirmation(event.target.value)} autoComplete="new-password" /></div><Button onClick={changeMasterPassword} disabled={isPending} className="sm:col-span-2">{isPending ? 'Mengganti...' : 'Simpan Master Password Baru'}</Button></CardContent></Card>}
         {notice && <p className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
         {error && <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">

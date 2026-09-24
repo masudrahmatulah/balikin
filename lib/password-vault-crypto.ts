@@ -41,6 +41,30 @@ async function deriveKey(masterPassword: string, salt: Uint8Array) {
   );
 }
 
+export async function derivePasswordVerifier(masterPassword: string, salt: Uint8Array) {
+  const material = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(masterPassword),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    material,
+    256,
+  );
+  return bytesToBase64(new Uint8Array(bits));
+}
+
+export function createVaultSalt() {
+  return bytesToBase64(crypto.getRandomValues(new Uint8Array(16)));
+}
+
+export function decodeVaultSalt(value: string) {
+  return base64ToBytes(value);
+}
+
 export async function encryptPasswordVaultEntry(entry: PasswordVaultEntry, masterPassword: string): Promise<EncryptedPasswordVaultEntry> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));

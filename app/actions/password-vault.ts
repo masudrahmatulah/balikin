@@ -2,7 +2,7 @@
 
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { passwordVaultItems } from '@/db/schema';
+import { passwordVaultItems, passwordVaultSettings } from '@/db/schema';
 import { requireAuth } from '@/lib/session';
 
 const MAX_CIPHERTEXT_LENGTH = 200_000;
@@ -12,6 +12,52 @@ function validateEncryptedField(value: unknown, name: string) {
     throw new Error(`${name} tidak valid`);
   }
   return value;
+}
+
+export async function getPasswordVaultSettings() {
+  const session = await requireAuth();
+  return db.query.passwordVaultSettings.findFirst({
+    where: and(
+      eq(passwordVaultSettings.userId, session.user.id),
+      eq(passwordVaultSettings.app_id, 'balikin_id'),
+    ),
+    columns: { salt: true },
+  });
+}
+
+export async function createPasswordVaultSettings(input: { verifier: string; salt: string }) {
+  const session = await requireAuth();
+  const verifier = validateEncryptedField(input.verifier, 'Verifier');
+  const salt = validateEncryptedField(input.salt, 'Salt');
+  const existing = await db.query.passwordVaultSettings.findFirst({
+    where: and(eq(passwordVaultSettings.userId, session.user.id), eq(passwordVaultSettings.app_id, 'balikin_id')),
+    columns: { id: true },
+  });
+  if (existing) throw new Error('Master password sudah dibuat');
+  await db.insert(passwordVaultSettings).values({ userId: session.user.id, verifier, salt });
+  return { success: true };
+}
+
+export async function verifyPasswordVaultSettings(verifier: string) {
+  const session = await requireAuth();
+  const settings = await db.query.passwordVaultSettings.findFirst({
+    where: and(eq(passwordVaultSettings.userId, session.user.id), eq(passwordVaultSettings.app_id, 'balikin_id')),
+    columns: { verifier: true },
+  });
+  return { valid: Boolean(settings && settings.verifier === verifier) };
+}
+
+export async function changePasswordVaultSettings(input: { verifier: string; salt: string }) {
+  const session = await requireAuth();
+  await db.update(passwordVaultSettings).set({
+    verifier: validateEncryptedField(input.verifier, 'Verifier'),
+    salt: validateEncryptedField(input.salt, 'Salt'),
+    updatedAt: new Date(),
+  }).where(and(
+    eq(passwordVaultSettings.userId, session.user.id),
+    eq(passwordVaultSettings.app_id, 'balikin_id'),
+  ));
+  return { success: true };
 }
 
 export async function listPasswordVaultItems() {

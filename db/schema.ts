@@ -85,6 +85,23 @@ export const passwordVaultItemsRelations = relations(passwordVaultItems, ({ one 
   }),
 }));
 
+export const passwordVaultSettings = pgTable('password_vault_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
+  verifier: text('verifier').notNull(),
+  salt: text('salt').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const passwordVaultSettingsRelations = relations(passwordVaultSettings, ({ one }) => ({
+  owner: one(user, {
+    fields: [passwordVaultSettings.userId],
+    references: [user.id],
+  }),
+}));
+
 export const stickerOrders = pgTable('sticker_orders', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
