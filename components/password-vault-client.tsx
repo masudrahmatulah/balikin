@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { changePasswordVaultSettings, createPasswordVaultItem, createPasswordVaultSettings, deletePasswordVaultItem, updatePasswordVaultItem, verifyPasswordVaultSettings } from '@/app/actions/password-vault';
+import { createPasswordVaultItem, createPasswordVaultSettings, deletePasswordVaultItem, rotatePasswordVault, updatePasswordVaultItem, verifyPasswordVaultSettings } from '@/app/actions/password-vault';
 import { createVaultSalt, decodeVaultSalt, decryptPasswordVaultEntry, derivePasswordVerifier, encryptPasswordVaultEntry, type EncryptedPasswordVaultEntry, type PasswordVaultEntry } from '@/lib/password-vault-crypto';
 
 type VaultItem = EncryptedPasswordVaultEntry & { id: string };
@@ -109,8 +109,7 @@ export function PasswordVaultClient({ initialItems, vaultSalt }: { initialItems:
         const salt = createVaultSalt();
         const verifier = await derivePasswordVerifier(newMasterPassword, decodeVaultSalt(salt));
         const encryptedItems = await Promise.all(Object.entries(entries).map(async ([id, entry]) => ({ id, encrypted: await encryptPasswordVaultEntry(entry, newMasterPassword) })));
-        for (const item of encryptedItems) await updatePasswordVaultItem({ id: item.id, ...item.encrypted });
-        await changePasswordVaultSettings({ salt, verifier });
+        await rotatePasswordVault({ salt, verifier, items: encryptedItems.map((item) => ({ id: item.id, ...item.encrypted })) });
         setMasterPassword(newMasterPassword); setNewMasterPassword(''); setNewMasterConfirmation(''); setShowChangePassword(false); setNotice('Master password berhasil diganti.');
       } catch (changeError) { setError(changeError instanceof Error ? changeError.message : 'Gagal mengganti master password.'); }
     });

@@ -60,6 +60,36 @@ export async function changePasswordVaultSettings(input: { verifier: string; sal
   return { success: true };
 }
 
+export async function rotatePasswordVault(input: {
+  verifier: string;
+  salt: string;
+  items: Array<{ id: string; ciphertext: string; iv: string; salt: string }>;
+}) {
+  const session = await requireAuth();
+  const verifier = validateEncryptedField(input.verifier, 'Verifier');
+  const salt = validateEncryptedField(input.salt, 'Salt');
+  await db.transaction(async (tx) => {
+    for (const item of input.items) {
+      if (!/^[0-9a-f-]{36}$/i.test(item.id)) throw new Error('Item vault tidak valid');
+      await tx.update(passwordVaultItems).set({
+        ciphertext: validateEncryptedField(item.ciphertext, 'Ciphertext'),
+        iv: validateEncryptedField(item.iv, 'IV'),
+        salt: validateEncryptedField(item.salt, 'Salt'),
+        updatedAt: new Date(),
+      }).where(and(
+        eq(passwordVaultItems.id, item.id),
+        eq(passwordVaultItems.userId, session.user.id),
+        eq(passwordVaultItems.app_id, 'balikin_id'),
+      ));
+    }
+    await tx.update(passwordVaultSettings).set({ verifier, salt, updatedAt: new Date() }).where(and(
+      eq(passwordVaultSettings.userId, session.user.id),
+      eq(passwordVaultSettings.app_id, 'balikin_id'),
+    ));
+  });
+  return { success: true };
+}
+
 export async function listPasswordVaultItems() {
   const session = await requireAuth();
   return db.query.passwordVaultItems.findMany({
