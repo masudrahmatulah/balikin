@@ -9,26 +9,28 @@ import { headers } from "next/headers";
 
 export const runtime = "nodejs";
 
-const RECOMMENDATION_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    recommendations: {
-      type: Type.ARRAY,
-      minItems: 5,
-      maxItems: 5,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          keyword: { type: Type.STRING },
-          angle: { type: Type.STRING },
+function getRecommendationSchema(count: number) {
+  return {
+    type: Type.OBJECT,
+    properties: {
+      recommendations: {
+        type: Type.ARRAY,
+        minItems: count,
+        maxItems: count,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            keyword: { type: Type.STRING },
+            angle: { type: Type.STRING },
+          },
+          required: ["title", "keyword", "angle"],
         },
-        required: ["title", "keyword", "angle"],
       },
     },
-  },
-  required: ["recommendations"],
-} as const;
+    required: ["recommendations"],
+  } as const;
+}
 
 function getGeminiApiKeys() {
   const numberedKeys = [1, 2, 3]
@@ -59,7 +61,7 @@ async function getProductContext() {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     if (!(await isAdmin())) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -74,6 +76,10 @@ export async function POST() {
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+    const count = Number(body?.count);
+    const recommendationCount = Number.isInteger(count) && count >= 1 && count <= 5 ? count : 5;
+
     const apiKeys = getGeminiApiKeys();
     if (apiKeys.length === 0) {
       return NextResponse.json({ error: "Gemini API belum dikonfigurasi." }, { status: 503 });
@@ -82,7 +88,7 @@ export async function POST() {
     const today = new Intl.DateTimeFormat("id-ID", { dateStyle: "full" }).format(new Date());
     const prompt = `
 Anda adalah editor strategi konten resmi Balikin, platform Smart Lost & Found QR Tag Indonesia.
-Buat tepat 5 rekomendasi artikel blog untuk diterbitkan hari ini (${today}).
+Buat tepat ${recommendationCount} rekomendasi artikel blog untuk diterbitkan hari ini (${today}).
 
 Aturan wajib:
 - Setiap ide harus berbeda, praktis, dan relevan dengan pembaca Indonesia.
@@ -110,13 +116,13 @@ ${await getProductContext()}
               temperature: 0.8,
               maxOutputTokens: 1600,
               responseMimeType: "application/json",
-              responseSchema: RECOMMENDATION_SCHEMA,
+              responseSchema: getRecommendationSchema(recommendationCount),
             },
           });
 
           const parsed = JSON.parse(response.text?.trim() || "{}");
           const recommendations = Array.isArray(parsed.recommendations) ? parsed.recommendations : [];
-          if (recommendations.length !== 5 || recommendations.some((item) => (
+          if (recommendations.length !== recommendationCount || recommendations.some((item) => (
             typeof item?.title !== "string" ||
             typeof item?.keyword !== "string" ||
             typeof item?.angle !== "string"

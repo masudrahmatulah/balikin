@@ -64,6 +64,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
   const [improveInstruction, setImproveInstruction] = useState("");
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [recommendationCount, setRecommendationCount] = useState("5");
 
   const [formData, setFormData] = useState({
     title: initialPost?.title || "",
@@ -252,14 +253,18 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
   const handleLoadRecommendations = async () => {
     setIsLoadingRecommendations(true);
     try {
-      const res = await fetch("/api/admin/blog/recommendations", { method: "POST" });
+      const res = await fetch("/api/admin/blog/recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: Number(recommendationCount) }),
+      });
       const result = await res.json();
       if (!res.ok) {
         toast.error(result.error || "Rekomendasi artikel gagal dibuat.");
         return;
       }
       setRecommendations(result.recommendations || []);
-      toast.success("5 rekomendasi artikel hari ini siap dipilih.");
+      toast.success(`${recommendationCount} rekomendasi artikel hari ini siap dipilih.`);
     } catch (error) {
       console.error(error);
       toast.error("Rekomendasi artikel gagal dibuat.");
@@ -332,17 +337,28 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
                   <p className="font-medium text-violet-950 dark:text-violet-100">Rekomendasi artikel hari ini</p>
                   <p className="text-xs text-violet-700 dark:text-violet-300">Pilih satu ide untuk mengisi topik dan keyword secara otomatis.</p>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLoadRecommendations}
-                  disabled={isLoadingRecommendations || isGenerating}
-                  className="shrink-0"
-                >
-                  {isLoadingRecommendations ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                  {isLoadingRecommendations ? "Mencari ide..." : "Tampilkan 5 Ide"}
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Select value={recommendationCount} onValueChange={setRecommendationCount} disabled={isLoadingRecommendations || isGenerating}>
+                    <SelectTrigger className="w-[110px] bg-white dark:bg-slate-900">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5].map((count) => (
+                        <SelectItem key={count} value={String(count)}>{count} Ide</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLoadRecommendations}
+                    disabled={isLoadingRecommendations || isGenerating}
+                  >
+                    {isLoadingRecommendations ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    {isLoadingRecommendations ? "Mencari ide..." : `Tampilkan ${recommendationCount} Ide`}
+                  </Button>
+                </div>
               </div>
               {recommendations.length > 0 && (
                 <div className="mt-4 grid gap-2">
