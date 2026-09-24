@@ -71,8 +71,12 @@ export function PasswordVaultClient({ initialItems, vaultSalt }: { initialItems:
       try {
         const salt = createVaultSalt();
         const verifier = await derivePasswordVerifier(unlockInput, decodeVaultSalt(salt));
+        const decrypted: Record<string, FormState> = {};
+        for (const item of initialItems) {
+          decrypted[item.id] = await decryptPasswordVaultEntry(item, unlockInput);
+        }
         await createPasswordVaultSettings({ salt, verifier });
-        setMasterPassword(unlockInput); setUnlockInput(''); setConfirmInput(''); setUnlocked(true); setLastActivity(Date.now()); setNotice('Master password berhasil dibuat.');
+        setEntries(decrypted); setMasterPassword(unlockInput); setUnlockInput(''); setConfirmInput(''); setUnlocked(true); setLastActivity(Date.now()); setNotice('Master password berhasil dibuat.');
       } catch (setupError) { setError(setupError instanceof Error ? setupError.message : 'Gagal membuat master password.'); }
       return;
     }
