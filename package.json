@@ -18,6 +18,8 @@
     "lighthouse:collect": "lhci collect"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1140.0",
+    "@aws-sdk/s3-request-presigner": "^3.1140.0",
     "@base-ui/react": "^1.4.1",
     "@better-auth/drizzle-adapter": "^1.6.4",
     "@google/genai": "^2.23.0",
@@ -33,7 +35,6 @@
     "@tabler/icons-react": "^3.44.0",
     "@tanstack/react-table": "^8.21.3",
     "@types/qrcode.react": "^1.0.5",
-    "@vercel/blob": "^2.3.3",
     "@vercel/functions": "^3.6.2",
     "better-auth": "^1.6.13",
     "class-variance-authority": "^0.7.1",

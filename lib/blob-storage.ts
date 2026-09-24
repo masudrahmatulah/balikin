@@ -3,7 +3,7 @@
  * With enhanced security and validation
  */
 
-import { put } from '@vercel/blob';
+import { deleteR2Object, uploadR2Object } from '@/lib/r2-storage';
 
 export interface BlobUploadResult {
   url: string;
@@ -107,12 +107,6 @@ export async function uploadBlogImage(
   filename: string,
   contentType: string
 ): Promise<BlobUploadResult> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-
-  if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN environment variable is not set');
-  }
-
   // Validate content type
   if (!isValidImageType(contentType)) {
     throw new Error('Invalid file type. Only JPG, PNG, and WebP are allowed.');
@@ -147,18 +141,14 @@ export async function uploadBlogImage(
   }
 
   try {
-    const blob = await put(filename, buffer, {
-      access: 'public',
-      contentType,
-      token,
-    });
+    const blob = await uploadR2Object({ key: filename, body: buffer, contentType });
 
     return {
       url: blob.url,
-      downloadUrl: blob.downloadUrl,
+      downloadUrl: blob.url,
       size: blob.size,
-      uploadedAt: new Date(blob.uploadedAt),
-      contentType: blob.contentType,
+      uploadedAt: new Date(),
+      contentType,
     };
   } catch (error) {
     console.error('Failed to upload image to blob storage:', error);
@@ -170,19 +160,16 @@ export async function uploadBlogImage(
  * Delete blob from storage
  */
 export async function deleteBlob(url: string): Promise<void> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
-
-  if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN environment variable is not set');
-  }
-
   try {
-    await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    if (url.includes('.blob.vercel-storage.com')) {
+      const token = process.env.BLOB_READ_WRITE_TOKEN;
+      if (!token) throw new Error('Legacy Vercel Blob token is not configured');
+      await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      return;
+    }
+
+    const key = new URL(url).pathname.replace(/^\//, '');
+    await deleteR2Object(key);
   } catch (error) {
     console.error('Failed to delete blob:', error);
     throw new Error('Failed to delete image. Please try again.');

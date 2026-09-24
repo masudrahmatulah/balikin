@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { put } from '@vercel/blob';
+import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
 import { modulePurchaseOrders, stickerOrders } from '@/db/schema';
@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    console.error('[Payment Proof Upload] BLOB_READ_WRITE_TOKEN belum dikonfigurasi.');
+  if (!r2Configured()) {
+    console.error('[Payment Proof Upload] R2 belum dikonfigurasi.');
     return NextResponse.json({ error: 'Layanan upload belum dikonfigurasi.' }, { status: 503 });
   }
 
@@ -109,9 +109,11 @@ export async function POST(request: NextRequest) {
     }
 
     const filename = `${session.user.id}/${validOrder.id}/${Date.now()}-${nanoid(8)}${ext}`;
-    const blob = await put(`payment-proofs/${filename}`, file, {
-      access: 'public',
+    const blob = await uploadR2Object({
+      key: `payment-proofs/${filename}`,
+      body: Buffer.from(await file.arrayBuffer()),
       contentType: file.type,
+      privateObject: true,
     });
 
     if (stickerOrder) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { put } from '@vercel/blob';
+import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { nanoid } from 'nanoid';
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
@@ -37,9 +37,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-    if (!blobToken && process.env.NODE_ENV === 'production') {
-      console.error('[Custom Backside Upload] BLOB_READ_WRITE_TOKEN is not configured');
+    if (!r2Configured() && process.env.NODE_ENV === 'production') {
+      console.error('[Custom Backside Upload] R2 is not configured');
       return NextResponse.json(
         { error: 'Penyimpanan gambar belum dikonfigurasi. Hubungi administrator.' },
         { status: 503 }
@@ -88,9 +87,9 @@ export async function POST(request: NextRequest) {
 
     const filename = `${session.user.id}/${Date.now()}-${nanoid(8)}${ext}`;
 
-    // Local development fallback only. Vercel production must use Blob because
+    // Local development fallback only. Production uses R2 because
     // its filesystem is ephemeral and cannot persist uploaded images.
-    if (!blobToken) {
+    if (!r2Configured()) {
       const relativePath = path.join('backside-custom', filename);
       const absDir = path.join(process.cwd(), 'public', 'uploads', 'backside-custom', session.user.id);
       await mkdir(absDir, { recursive: true });
@@ -98,10 +97,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: `/uploads/${relativePath}` });
     }
 
-    const blob = await put(`backside-custom/${filename}`, file, {
-      access: 'public',
+    const blob = await uploadR2Object({
+      key: `backside-custom/${filename}`,
+      body: Buffer.from(await file.arrayBuffer()),
       contentType: file.type,
-      token: blobToken,
     });
 
     return NextResponse.json({ url: blob.url });

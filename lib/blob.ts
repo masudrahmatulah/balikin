@@ -1,4 +1,4 @@
-import { put, del, head, list } from '@vercel/blob';
+import { deleteR2Object, listR2Objects, uploadR2Object } from '@/lib/r2-storage';
 
 // ============================================================================
 // CONSTANTS
@@ -73,7 +73,7 @@ interface UploadOptions {
 }
 
 /**
- * Upload a document to Vercel Blob storage with validation
+ * Upload a document to Cloudflare R2 with validation
  */
 export async function uploadDocument(
   file: File | Buffer,
@@ -109,10 +109,12 @@ export async function uploadDocument(
   const timestamp = Date.now();
   const blobKey = `${userId}/${documentType}/${timestamp}-${sanitizedFileName}`;
 
-  const blob = await put(blobKey, file, {
-    access,
+  const body = file instanceof File ? Buffer.from(await file.arrayBuffer()) : file;
+  const blob = await uploadR2Object({
+    key: blobKey,
+    body,
     contentType: mimeType,
-    addRandomSuffix: true,
+    privateObject: access === 'private',
   });
 
   return {
@@ -183,13 +185,14 @@ interface DocumentMetadata {
  */
 export async function getDocumentMetadata(url: string): Promise<DocumentMetadata | null> {
   try {
-    const metadata = await head(url);
+    const response = await fetch(url, { method: 'HEAD' });
+    if (!response.ok) return null;
     return {
-      url: metadata.url,
-      size: metadata.size,
-      uploadedAt: new Date(metadata.uploadedAt),
-      contentType: metadata.contentType || 'application/octet-stream',
-      cacheControl: metadata.cacheControl,
+      url,
+      size: Number(response.headers.get('content-length') || 0),
+      uploadedAt: new Date(),
+      contentType: response.headers.get('content-type') || 'application/octet-stream',
+      cacheControl: response.headers.get('cache-control') || undefined,
     };
   } catch {
     return null;
@@ -215,18 +218,25 @@ export async function listUserDocuments(
   prefix: string = ''
 ): Promise<string[]> {
   try {
-    const blobs = await list({ prefix: `${userId}/${prefix}` });
-    return blobs.blobs.map((blob) => blob.url);
+    const keys = await listR2Objects(`${userId}/${prefix}`);
+    return keys.map((key) => `${process.env.R2_PUBLIC_URL?.replace(/\/$/, '')}/${key}`);
   } catch {
     return [];
   }
 }
 
 /**
- * Delete a document from Vercel Blob storage
+ * Delete a document from R2, while retaining cleanup support for legacy Blob URLs
  */
 export async function deleteDocument(url: string): Promise<void> {
-  await del(url);
+  if (url.includes('.blob.vercel-storage.com')) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) throw new Error('Legacy Vercel Blob token is not configured');
+    await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    return;
+  }
+  const key = new URL(url).pathname.replace(/^\//, '');
+  await deleteR2Object(key, true);
 }
 
 /**
@@ -235,7 +245,7 @@ export async function deleteDocument(url: string): Promise<void> {
 export async function deleteDocuments(urls: string[]): Promise<void> {
   if (urls.length === 0) return;
 
-  await del(urls);
+  await Promise.all(urls.map((url) => deleteDocument(url)));
 }
 
 /**

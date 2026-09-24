@@ -15,7 +15,7 @@ import { buildAcrylicRowsPdf } from "@/lib/vdp-acrylic-pdf";
 import JSZip from "jszip";
 import { calculateGridPositions, calculateA5StickerPositions, getStickerProductConfig, type StickerShape, type StickerSize, type StickerProductKey } from "@/lib/sticker-template";
 import { hashValue, generateActivationPin } from "@/lib/crypto";
-import { put } from '@vercel/blob';
+import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { getAppBaseUrl } from '@/lib/app-url';
 
@@ -190,24 +190,22 @@ export async function POST(request: NextRequest) {
     let customPhotoUrl: string | null = null;
     if (isCustom && customPhotoData) {
       try {
-        // Check if BLOB_READ_WRITE_TOKEN is available
-        const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-
-        if (blobToken) {
+        if (r2Configured()) {
           // Convert base64 to buffer
           const base64Data = customPhotoData.replace(/^data:image\/\w+;base64,/, '');
           const buffer = Buffer.from(base64Data, 'base64');
 
-          // Upload to Vercel Blob
-          const blob = await put(`custom-photos/${batchId}.png`, buffer, {
-            access: 'public',
+          const blob = await uploadR2Object({
+            key: `custom-photos/${batchId}.png`,
+            body: buffer,
+            contentType: 'image/png',
           });
           customPhotoUrl = blob.url;
         } else {
           // Fallback: Store base64 data directly (temporary solution)
           // This will be stored in the database as customPhotoUrl
           // WARNING: Not recommended for production, only for development
-          console.warn('BLOB_READ_WRITE_TOKEN not set. Using base64 fallback for custom photo.');
+          console.warn('R2 not set. Using base64 fallback for custom photo.');
           customPhotoUrl = customPhotoData; // Store base64 directly
         }
       } catch (error) {
@@ -638,18 +636,18 @@ export async function POST(request: NextRequest) {
 
     let artifactUrl: string | null = null;
     let artifactExpiresAt: Date | null = null;
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
-    if (blobToken) {
+    if (r2Configured()) {
       const artifactKey = `vdp-artifacts/${batchId}/${artifactFilename}`;
-      const blob = await put(artifactKey, artifactBuffer, {
-        access: "public",
+      const blob = await uploadR2Object({
+        key: artifactKey,
+        body: artifactBuffer,
         contentType: artifactContentType,
-        token: blobToken,
+        privateObject: true,
       });
       artifactUrl = blob.url;
-      artifactExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      artifactExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     } else {
-      console.warn("BLOB_READ_WRITE_TOKEN not set; VDP artifact will not be archived.");
+      console.warn("R2 not set; VDP artifact will not be archived.");
     }
 
     await db.update(printBatches)

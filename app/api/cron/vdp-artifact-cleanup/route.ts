@@ -1,8 +1,8 @@
-import { del } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 import { and, eq, isNotNull, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { printBatches } from "@/db/schema";
+import { deleteR2Object } from '@/lib/r2-storage';
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,18 @@ export async function GET(request: NextRequest) {
   let deleted = 0;
   for (const batch of expiredBatches) {
     if (batch.artifactUrl) {
-      await del(batch.artifactUrl, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      if (batch.artifactUrl.includes('.blob.vercel-storage.com')) {
+        const token = process.env.BLOB_READ_WRITE_TOKEN;
+        if (token) {
+          await fetch(batch.artifactUrl, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } else {
+        const key = new URL(batch.artifactUrl).pathname.replace(/^\//, '');
+        await deleteR2Object(key, true);
+      }
       deleted += 1;
     }
 
