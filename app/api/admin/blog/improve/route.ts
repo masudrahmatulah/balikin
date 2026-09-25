@@ -79,6 +79,8 @@ export async function POST(request: Request) {
     const summary = typeof body.summary === "string" ? body.summary.trim().slice(0, 1000) : "";
     const content = typeof body.content === "string" ? body.content.slice(0, 50000) : "";
     const slug = typeof body.slug === "string" ? body.slug.trim().slice(0, 120) : "";
+    const targetMinWords = typeof body.targetMinWords === "number" && body.targetMinWords >= 300 && body.targetMinWords <= 5000 ? Math.floor(body.targetMinWords) : 300;
+    const targetMaxWords = typeof body.targetMaxWords === "number" && body.targetMaxWords >= targetMinWords && body.targetMaxWords <= 6000 ? Math.floor(body.targetMaxWords) : null;
     if (instruction.length < 5) return NextResponse.json({ error: "Perintah perbaikan minimal 5 karakter." }, { status: 400 });
     if (!title || !content) return NextResponse.json({ error: "Artikel yang akan diperbaiki belum lengkap." }, { status: 400 });
 
@@ -102,7 +104,9 @@ ATURAN:
 - Kembalikan seluruh field artikel dalam JSON sesuai schema, bukan penjelasan tambahan.
 - Terapkan perintah editor dengan cermat, tetapi pertahankan fakta yang sudah benar.
 - Gunakan Markdown dengan satu baris kosong antar paragraf.
-- Content minimal 300 kata, informatif, natural, dan mudah dipindai.
+- Content harus minimal ${targetMinWords} kata, bukan jumlah karakter.${targetMaxWords ? ` Target ideal: ${targetMinWords}-${targetMaxWords} kata.` : ""}
+- Jika perintah meminta memperpanjang, PERTAHANKAN seluruh isi artikel yang sudah ada dan TAMBAHKAN bagian baru. Jangan meringkas, menghapus, atau menimpa paragraf lama dengan versi lebih pendek.
+- Informatif, natural, dan mudah dipindai.
 - Pertahankan atau tambahkan soft-selling Balikin yang relevan, bukan hard-selling.
 - Wajib ada 1 link produk Balikin yang natural. Link yang diperbolehkan: ${PRODUCT_URLS.join(", ")}.
 - Jika artikel belum memiliki bagian itu, tambahkan heading "## Solusi Praktis dengan Balikin".
@@ -126,7 +130,7 @@ ${context.internalLinks}
           const response = await new GoogleGenAI({ apiKey: apiKeys[index] }).models.generateContent({
             model,
             contents: prompt,
-            config: { temperature: 0.4, maxOutputTokens: 5000, responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA },
+            config: { temperature: 0.4, maxOutputTokens: 8000, responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA },
           });
           const generated = JSON.parse(response.text?.trim() || "{}") as Record<string, unknown>;
           const fields = ["title", "summary", "content", "slug", "metaDescription", "metaKeywords", "focusKeyword"];
@@ -137,11 +141,14 @@ ${context.internalLinks}
            if (countKeywordOccurrences(String(generated.content), focusKeyword) < 2) {
              throw new Error("AI returned content with fewer than 2 focus keyword occurrences");
            }
-           return NextResponse.json({
-             ...generated,
-             slug: ensureSlugContainsKeyword(String(generated.slug), focusKeyword),
-             focusKeyword,
-           });
+            return NextResponse.json({
+              ...generated,
+              slug: ensureSlugContainsKeyword(String(generated.slug), focusKeyword),
+              focusKeyword,
+              wordCount: countWords(String(generated.content)),
+              targetMinWords,
+              targetMaxWords,
+            });
         } catch (error) {
           lastError = error;
           console.warn(`[Blog AI Improve] Model ${model}, key ${index + 1} failed; trying fallback.`);

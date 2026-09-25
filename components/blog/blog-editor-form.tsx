@@ -333,7 +333,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
       const res = await fetch("/api/admin/blog/improve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, instruction: improveInstruction }),
+        body: JSON.stringify({ ...formData, instruction: improveInstruction, targetMinWords, targetMaxWords }),
       });
       const result = await res.json();
       if (!res.ok) {
@@ -352,7 +352,12 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
         metaKeywords: result.metaKeywords,
         focusKeyword: result.focusKeyword,
       }));
-      toast.success("Artikel diperbaiki di editor. Periksa sebelum menyimpan.");
+      const improveTargetMessage = typeof result.wordCount === "number" && typeof result.targetMinWords === "number" && result.wordCount < result.targetMinWords
+        ? ` Saat ini ${result.wordCount.toLocaleString("id-ID")} kata; target minimum ${result.targetMinWords.toLocaleString("id-ID")} kata. Jalankan preset +600 kata / Tambah FAQ sekali lagi.`
+        : typeof result.wordCount === "number"
+          ? ` Saat ini ${result.wordCount.toLocaleString("id-ID")} kata.`
+          : "";
+      toast.success(`Artikel diperbaiki di editor. Periksa sebelum menyimpan.${improveTargetMessage}`);
     } catch (error) {
       console.error(error);
       toast.error("Artikel gagal diperbaiki.");

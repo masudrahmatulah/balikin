@@ -230,7 +230,7 @@ ${internalLinkContext}
             contents: prompt,
             config: {
               temperature: 0.5,
-              maxOutputTokens: 6500,
+              maxOutputTokens: 8000,
               responseMimeType: "application/json",
               responseSchema: BLOG_RESPONSE_SCHEMA,
             },
