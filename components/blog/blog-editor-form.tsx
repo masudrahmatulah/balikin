@@ -28,6 +28,29 @@ interface ArticleRecommendation {
   angle: string;
 }
 
+const IMPROVE_PROMPT_PRESETS = [
+  {
+    label: "Pillar → 2.200 kata",
+    prompt:
+      "Perpanjang artikel ini menjadi minimal 2200 kata. Jangan ubah judul, slug, dan fakta yang sudah ada. Tambahkan contoh praktis, langkah detail, FAQ, dan studi kasus. Pertahankan focus keyword minimal 2x natural, 2-4 internal link, dan 1 link produk Balikin.",
+  },
+  {
+    label: "+600 kata subheading",
+    prompt:
+      "Tambahkan 600 kata baru: perdalam 3 subheading yang paling tipis dengan bullet, tabel perbandingan, dan 2 contoh nyata. Jangan mengulang paragraf yang sudah ada.",
+  },
+  {
+    label: "Tambah FAQ",
+    prompt:
+      "Tambahkan bagian FAQ dengan 6-8 pertanyaan jawaban singkat yang relevan dengan topik dan focus keyword. Jangan ubah isi artikel yang sudah ada.",
+  },
+  {
+    label: "Rapikan SEO",
+    prompt:
+      "Rapikan struktur heading, perbaiki keterbacaan, pastikan focus keyword muncul natural minimal 2x, meta description 120-160 karakter, dan tambahkan soft-selling Balikin secara natural tanpa hard-selling.",
+  },
+];
+
 interface BlogEditorFormProps {
   editors: Editor[];
   currentUserId: string;
@@ -440,6 +463,20 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
               <div>
                 <p className="font-medium text-amber-950 dark:text-amber-100">Perbaiki artikel dengan AI</p>
                 <p className="text-xs text-amber-800 dark:text-amber-300">Tulis perubahan yang Anda inginkan. Hasil hanya menggantikan isi editor dan belum disimpan.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {IMPROVE_PROMPT_PRESETS.map((preset) => (
+                  <Button
+                    key={preset.label}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setImproveInstruction(preset.prompt)}
+                    disabled={isImproving}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
               </div>
               <Textarea
                 value={improveInstruction}
