@@ -264,7 +264,10 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
         metaKeywords: result.metaKeywords,
         focusKeyword: result.focusKeyword,
       }));
-      toast.success("Draft artikel berhasil dibuat. Periksa dan edit sebelum disimpan.");
+       const wordTargetMessage = typeof result.wordCount === "number" && typeof result.targetMinWords === "number" && result.wordCount < result.targetMinWords
+         ? ` Saat ini ${result.wordCount.toLocaleString("id-ID")} kata; target minimum ${result.targetMinWords.toLocaleString("id-ID")} kata harus dipenuhi sebelum publish.`
+         : "";
+       toast.success(`Draft artikel berhasil dibuat. Periksa dan edit sebelum disimpan.${wordTargetMessage}`);
     } catch (error) {
       console.error(error);
       toast.error("Artikel gagal dibuat.");

@@ -253,8 +253,8 @@ ${internalLinkContext}
             throw new Error("Gemini returned an incomplete article");
           }
 
-            if (String(generated.summary).length < 50 || countContentWords(String(generated.content)) < wordTarget.min) {
-              throw new Error(`Gemini returned an article with fewer than ${wordTarget.min} words`);
+            if (String(generated.summary).length < 50) {
+              throw new Error("Gemini returned a summary shorter than 50 characters");
            }
 
            const focusKeyword = String(generated.focusKeyword).trim().replace(/\s+/g, " ");
@@ -318,15 +318,19 @@ ${internalLinkContext}
                 .where(eq(blogContentPlans.id, planId));
             }
 
-            return NextResponse.json({
-            title: generated.title,
-            summary: generated.summary,
-             content,
+             const generatedWordCount = countContentWords(content);
+             return NextResponse.json({
+             title: generated.title,
+             summary: generated.summary,
+              content,
             slug: normalizedSlug,
             metaDescription: generated.metaDescription,
-            metaKeywords: generated.metaKeywords,
-             focusKeyword,
-          });
+              metaKeywords: generated.metaKeywords,
+              focusKeyword,
+             wordCount: generatedWordCount,
+             targetMinWords: wordTarget.min,
+             targetMaxWords: wordTarget.max,
+           });
         } catch (error) {
           lastError = error;
           console.warn(`[Blog AI] Model ${model}, key ${index + 1} failed; trying fallback.`);
