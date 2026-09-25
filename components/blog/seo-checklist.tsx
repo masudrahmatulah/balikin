@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X, AlertCircle } from "lucide-react";
 import { countKeywordOccurrences, slugifySeoValue } from "@/lib/blog-seo";
+import { countContentWords } from "@/lib/blog-content-strategy";
 
 interface SEOChecklistProps {
   title: string;
@@ -12,6 +13,8 @@ interface SEOChecklistProps {
   metaDescription: string;
   focusKeyword: string;
   coverImage: string | null;
+  targetMinWords?: number;
+  targetMaxWords?: number;
 }
 
 interface CheckResult {
@@ -29,7 +32,10 @@ export function BlogSEOChecklist({
   metaDescription,
   focusKeyword,
   coverImage,
+  targetMinWords = 300,
+  targetMaxWords,
 }: SEOChecklistProps) {
+  const wordCount = countContentWords(content);
   const checks: CheckResult[] = [
     {
       id: "slug-keyword",
@@ -55,10 +61,20 @@ export function BlogSEOChecklist({
     },
     {
       id: "word-count",
-      label: "Content word count (min 300 words)",
-      passed: content.split(/\s+/).length >= 300,
+      label: targetMaxWords
+        ? `Content word count (${targetMinWords.toLocaleString("id-ID")}-${targetMaxWords.toLocaleString("id-ID")} words)`
+        : `Content word count (min ${targetMinWords.toLocaleString("id-ID")} words)`,
+      passed: wordCount >= targetMinWords,
       isCritical: true,
     },
+    ...(targetMaxWords
+      ? [{
+          id: "word-count-recommended",
+          label: "Content stays within recommended maximum",
+          passed: wordCount <= targetMaxWords,
+          isCritical: false,
+        }]
+      : []),
     {
       id: "has-cover",
       label: "Cover image with alt text",

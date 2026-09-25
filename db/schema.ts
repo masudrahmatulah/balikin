@@ -1015,6 +1015,8 @@ export const blogContentPlans = pgTable('blog_content_plans', {
   secondaryKeywords: text('secondary_keywords'),
   searchIntent: text('search_intent').default('informational').notNull(),
   articleType: text('article_type').default('supporting').notNull(),
+  targetMinWords: integer('target_min_words').default(800).notNull(),
+  targetMaxWords: integer('target_max_words').default(1500).notNull(),
   brief: text('brief'),
   cta: text('cta'),
   priority: text('priority').default('medium').notNull(),

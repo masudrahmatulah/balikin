@@ -3,6 +3,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentClusters, blogContentPlans } from "@/db/schema";
 import { isAdmin } from "@/lib/admin";
+import { getWordTarget } from "@/lib/blog-content-strategy";
 
 const APP_ID = "balikin_id";
 
@@ -46,6 +47,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Cluster, judul, dan focus keyword wajib diisi." }, { status: 400 });
   }
 
+  const articleType = typeof body.articleType === "string" ? body.articleType : "supporting";
+  const defaultTarget = getWordTarget(articleType);
+  const targetMinWords = typeof body.targetMinWords === "number" ? body.targetMinWords : defaultTarget.min;
+  const targetMaxWords = typeof body.targetMaxWords === "number" ? body.targetMaxWords : defaultTarget.max;
+  if (targetMinWords < 100 || targetMaxWords < targetMinWords) {
+    return NextResponse.json({ error: "Target kata tidak valid." }, { status: 400 });
+  }
+
   const [plan] = await db.insert(blogContentPlans).values({
     app_id: APP_ID,
     clusterId,
@@ -54,7 +63,9 @@ export async function POST(request: NextRequest) {
     focusKeyword,
     secondaryKeywords: typeof body.secondaryKeywords === "string" ? body.secondaryKeywords.trim() : null,
     searchIntent: typeof body.searchIntent === "string" ? body.searchIntent : "informational",
-    articleType: typeof body.articleType === "string" ? body.articleType : "supporting",
+    articleType,
+    targetMinWords,
+    targetMaxWords,
     brief: typeof body.brief === "string" ? body.brief.trim() : null,
     cta: typeof body.cta === "string" ? body.cta.trim() : null,
     priority: typeof body.priority === "string" ? body.priority : "medium",

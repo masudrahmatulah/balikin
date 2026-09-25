@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentPlans } from "@/db/schema";
 import { isAdmin } from "@/lib/admin";
+import { getWordTarget } from "@/lib/blog-content-strategy";
 
 const APP_ID = "balikin_id";
 
@@ -18,6 +19,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (typeof body.targetPublishDate === "string") updates.targetPublishDate = body.targetPublishDate ? new Date(body.targetPublishDate) : null;
   if (typeof body.parentPlanId === "string" || body.parentPlanId === null) updates.parentPlanId = body.parentPlanId;
   if (typeof body.clusterId === "string") updates.clusterId = body.clusterId;
+  if (typeof body.targetMinWords === "number") updates.targetMinWords = body.targetMinWords;
+  if (typeof body.targetMaxWords === "number") updates.targetMaxWords = body.targetMaxWords;
+  if (typeof body.articleType === "string" && body.targetMinWords === undefined && body.targetMaxWords === undefined) {
+    const target = getWordTarget(body.articleType);
+    updates.targetMinWords = target.min;
+    updates.targetMaxWords = target.max;
+  }
+
+  if (typeof updates.targetMinWords === "number" && typeof updates.targetMaxWords === "number" && updates.targetMaxWords < updates.targetMinWords) {
+    return NextResponse.json({ error: "Target kata tidak valid." }, { status: 400 });
+  }
 
   const [plan] = await db.update(blogContentPlans)
     .set(updates)

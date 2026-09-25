@@ -2,13 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { unstable_cache } from 'next/cache';
 import { db } from '@/db';
-import { blogPosts } from '@/db/schema';
+import { blogContentPlans, blogPosts } from '@/db/schema';
 import { isAdmin } from '@/lib/admin';
 import { auth } from '@/lib/auth';
 import { eq, desc, and, isNull } from 'drizzle-orm';
 import { logError, ValidationError, NotFoundError, AppError } from '@/lib/error-handler';
 import { BlogPostCreateSchema, BlogPostUpdateSchema, type BlogPostCreateInput } from '@/lib/validations';
 import { validateSlug } from '@/lib/blog-validation';
+import { countContentWords } from '@/lib/blog-content-strategy';
+
+async function validateContentPlanWordTarget(contentPlanId: string | undefined, content: string, shouldPublish: boolean) {
+  if (!shouldPublish || !contentPlanId) return;
+
+  const plan = await db.query.blogContentPlans.findFirst({
+    where: and(eq(blogContentPlans.id, contentPlanId), eq(blogContentPlans.app_id, 'balikin_id')),
+    columns: { title: true, targetMinWords: true, targetMaxWords: true },
+  });
+  if (!plan) throw new ValidationError('Content plan tidak ditemukan.');
+
+  const wordCount = countContentWords(content);
+  if (wordCount < plan.targetMinWords) {
+    throw new ValidationError(`Artikel belum memenuhi target minimum ${plan.targetMinWords.toLocaleString('id-ID')} kata untuk content plan ini (saat ini ${wordCount.toLocaleString('id-ID')} kata).`);
+  }
+}
 
 // Cache frequently accessed data for 5 minutes
 const getCachedPosts = unstable_cache(
@@ -145,6 +161,7 @@ export async function POST(req: NextRequest) {
     // Handle scheduled publishing
     const scheduledDate = data.scheduledAt ? new Date(data.scheduledAt) : null;
     const isScheduled = scheduledDate && scheduledDate > new Date();
+    await validateContentPlanWordTarget(data.contentPlanId, data.content, data.isPublished === true || Boolean(isScheduled));
 
     const post = await db.insert(blogPosts).values({
       title: data.title,
@@ -210,6 +227,7 @@ export async function PUT(req: NextRequest) {
     const nextScheduledDate = data.scheduledAt ? new Date(data.scheduledAt) : null;
     const isScheduled = Boolean(nextScheduledDate && nextScheduledDate > new Date());
     const isPublished = data.isPublished === true && !isScheduled;
+    await validateContentPlanWordTarget(data.contentPlanId, data.content || existing.content, data.isPublished === true || isScheduled);
 
     const [post] = await db.update(blogPosts).set({
       ...(data.title !== undefined && { title: data.title }),

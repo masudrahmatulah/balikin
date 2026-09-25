@@ -10,6 +10,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentPlans, blogPosts } from "@/db/schema";
 import { countKeywordOccurrences, ensureSlugContainsKeyword } from "@/lib/blog-seo";
+import { countContentWords, getWordTarget } from "@/lib/blog-content-strategy";
 
 export const runtime = "nodejs";
 
@@ -51,15 +52,6 @@ function getGeminiModels() {
     process.env.GEMINI_FALLBACK_MODEL || "gemini-3.1-flash-lite",
     "gemini-flash-lite-latest",
   ])];
-}
-
-function countWords(value: string) {
-  return value
-    .replace(/[`*_#>\[\]()-]/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .length;
 }
 
 type InternalLink = {
@@ -168,6 +160,13 @@ export async function POST(request: Request) {
     const topic = typeof body.topic === "string" ? body.topic.trim() : "";
     const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 100) : "";
     const planId = typeof body.planId === "string" ? body.planId : null;
+    const plan = planId
+      ? await db.query.blogContentPlans.findFirst({ where: and(eq(blogContentPlans.id, planId), eq(blogContentPlans.app_id, "balikin_id")) })
+      : null;
+    if (planId && !plan) return NextResponse.json({ error: "Content plan tidak ditemukan." }, { status: 404 });
+    const wordTarget = plan
+      ? { min: plan.targetMinWords, max: plan.targetMaxWords }
+      : { min: 300, max: null };
 
     if (topic.length < 5 || topic.length > 200) {
       return NextResponse.json({ error: "Topik harus berisi 5-200 karakter." }, { status: 400 });
@@ -199,7 +198,7 @@ Aturan wajib:
 - Jika topik meminta fakta yang tidak tersedia, tulis artikel edukatif umum dan jangan mengklaim fakta tersebut sebagai fakta Balikin.
 - Jangan menyebut bahwa artikel dibuat oleh AI.
 - Summary harus 50-500 karakter.
-- Content harus minimal 300 kata, bukan sekadar 300 karakter.
+- Content harus minimal ${wordTarget.min} kata, bukan sekadar jumlah karakter.${wordTarget.max ? ` Target ideal: ${wordTarget.min}-${wordTarget.max} kata.` : ""}
 - Buat recommended slug yang singkat, deskriptif, dan relevan dengan topik serta keyword utama.
 - Focus keyword wajib digunakan persis minimal 2 kali secara natural di dalam content, bukan hanya di judul atau metadata.
 - Meta description harus berupa rekomendasi SEO sepanjang 120-160 karakter dan maksimal 300 karakter.
@@ -231,7 +230,7 @@ ${internalLinkContext}
             contents: prompt,
             config: {
               temperature: 0.5,
-              maxOutputTokens: 4500,
+              maxOutputTokens: 6500,
               responseMimeType: "application/json",
               responseSchema: BLOG_RESPONSE_SCHEMA,
             },
@@ -254,8 +253,8 @@ ${internalLinkContext}
             throw new Error("Gemini returned an incomplete article");
           }
 
-           if (String(generated.summary).length < 50 || countWords(String(generated.content)) < 300) {
-             throw new Error("Gemini returned an article with fewer than 300 words");
+            if (String(generated.summary).length < 50 || countContentWords(String(generated.content)) < wordTarget.min) {
+              throw new Error(`Gemini returned an article with fewer than ${wordTarget.min} words`);
            }
 
            const focusKeyword = String(generated.focusKeyword).trim().replace(/\s+/g, " ");

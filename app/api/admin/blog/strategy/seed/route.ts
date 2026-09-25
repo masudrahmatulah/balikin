@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentClusters, blogContentPlans } from "@/db/schema";
 import { isAdmin } from "@/lib/admin";
+import { getWordTarget } from "@/lib/blog-content-strategy";
 
 const APP_ID = "balikin_id";
 
@@ -94,12 +95,15 @@ export async function POST() {
   for (let index = 0; index < seedArticles.length; index += 1) {
     const cluster = clusters[Math.floor(index / 10)];
     const [title, focusKeyword, articleType] = seedArticles[index];
+    const wordTarget = getWordTarget(articleType);
     plans.push({
       app_id: APP_ID,
       clusterId: cluster.id,
       title,
       focusKeyword,
       articleType,
+      targetMinWords: wordTarget.min,
+      targetMaxWords: wordTarget.max,
       searchIntent: articleType === "commercial" ? "commercial" : "informational",
       priority: articleType === "pillar" ? "high" : "medium",
       status: "planned",

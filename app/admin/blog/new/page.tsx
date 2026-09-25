@@ -49,6 +49,8 @@ export default async function NewBlogPostPage({ searchParams }: { searchParams: 
         contentPlanId={plan?.id}
         initialGenerationTopic={plan?.title || ''}
         initialGenerationKeyword={plan?.focusKeyword || ''}
+        targetMinWords={plan?.targetMinWords}
+        targetMaxWords={plan?.targetMaxWords}
       />
     </div>
   );

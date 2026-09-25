@@ -35,6 +35,8 @@ interface BlogEditorFormProps {
   contentPlanId?: string;
   initialGenerationTopic?: string;
   initialGenerationKeyword?: string;
+  targetMinWords?: number;
+  targetMaxWords?: number;
   initialPost?: Partial<{
     title: string;
     slug: string;
@@ -57,7 +59,7 @@ interface BlogEditorFormProps {
   }>;
 }
 
-export function BlogEditorForm({ editors, currentUserId, postId, initialPost, contentPlanId, initialGenerationTopic = "", initialGenerationKeyword = "" }: BlogEditorFormProps) {
+export function BlogEditorForm({ editors, currentUserId, postId, initialPost, contentPlanId, initialGenerationTopic = "", initialGenerationKeyword = "", targetMinWords, targetMaxWords }: BlogEditorFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -125,8 +127,9 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(postId ? { id: postId } : {}),
-          ...formData,
-          isPublished: false,
+           ...formData,
+           contentPlanId,
+           isPublished: false,
           scheduledAt: formData.scheduledAt || undefined,
           modules,
         }),
@@ -158,8 +161,9 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(postId ? { id: postId } : {}),
-          ...formData,
-          isPublished: true,
+           ...formData,
+           contentPlanId,
+           isPublished: true,
           scheduledAt: formData.scheduledAt || undefined,
           modules,
         }),
@@ -204,8 +208,9 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...(postId ? { id: postId } : {}),
-          ...formData,
-          scheduledAt: new Date(formData.scheduledAt).toISOString(),
+           ...formData,
+           contentPlanId,
+           scheduledAt: new Date(formData.scheduledAt).toISOString(),
           modules,
         }),
       });
@@ -517,6 +522,8 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
           metaDescription={formData.metaDescription}
           focusKeyword={formData.focusKeyword}
           coverImage={formData.coverImage}
+          targetMinWords={targetMinWords}
+          targetMaxWords={targetMaxWords}
         />
 
         <Card>

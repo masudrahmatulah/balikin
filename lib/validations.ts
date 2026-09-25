@@ -234,6 +234,7 @@ export const BlogPostCreateSchema = z.object({
   metaDescription: z.string().max(300).optional(),
   metaKeywords: z.string().max(200).optional(),
   focusKeyword: z.string().max(100).optional(),
+  contentPlanId: z.string().uuid('Content plan ID tidak valid').optional(),
   isPublished: z.boolean().optional(),
   scheduledAt: z.string().datetime('Format tanggal tidak valid').optional(),
 });
