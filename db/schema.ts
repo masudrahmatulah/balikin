@@ -936,6 +936,7 @@ export const blogPosts = pgTable('blog_posts', {
   slug: text('slug').notNull().unique(),
   summary: text('summary').notNull(),
   coverImage: text('cover_image'),
+  coverImageAlt: text('cover_image_alt'),
   content: text('content').notNull(), // Markdown format
   modules: jsonb('modules').default([]).$type<Array<any>>(), // Array of dynamic modules
   // E-E-A-T signals
@@ -985,6 +986,49 @@ export const blogPostsRelations = relations(blogPosts, ({ one, many }) => ({
   pollVotes: many(pollVotes),
   analytics: many(blogPostsAnalytics),
   revisions: many(blogPostRevisions),
+}));
+
+// Content strategy planning tables
+export const blogContentClusters = pgTable('blog_content_clusters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  primaryKeyword: text('primary_keyword'),
+  targetArticles: integer('target_articles').default(12).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  activeIdx: index('idx_blog_content_clusters_active').on(table.isActive),
+}));
+
+export const blogContentPlans = pgTable('blog_content_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  clusterId: uuid('cluster_id').notNull().references(() => blogContentClusters.id, { onDelete: 'cascade' }),
+  parentPlanId: uuid('parent_plan_id'),
+  linkedPostId: uuid('linked_post_id').references(() => blogPosts.id, { onDelete: 'set null' }),
+  title: text('title').notNull(),
+  focusKeyword: text('focus_keyword').notNull(),
+  secondaryKeywords: text('secondary_keywords'),
+  searchIntent: text('search_intent').default('informational').notNull(),
+  articleType: text('article_type').default('supporting').notNull(),
+  brief: text('brief'),
+  cta: text('cta'),
+  priority: text('priority').default('medium').notNull(),
+  status: text('status').default('planned').notNull(),
+  targetPublishDate: timestamp('target_publish_date'),
+  assignedTo: text('assigned_to').references(() => user.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  clusterIdx: index('idx_blog_content_plans_cluster').on(table.clusterId),
+  statusIdx: index('idx_blog_content_plans_status').on(table.status),
+  linkedPostIdx: index('idx_blog_content_plans_linked_post').on(table.linkedPostId),
+  publishDateIdx: index('idx_blog_content_plans_publish_date').on(table.targetPublishDate),
 }));
 
 // Giveaway claims - from quiz completion

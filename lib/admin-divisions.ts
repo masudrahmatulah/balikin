@@ -110,6 +110,7 @@ export const DivisionNavigation = {
     { title: 'Sticker Orders', href: '/admin/sticker-orders', icon: '📦' },
     { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
     { title: 'Blog', href: '/admin/blog', icon: '📝' },
+    { title: 'Content Strategy', href: '/admin/blog/strategy', icon: '🧭' },
     { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.CUSTOMER_SERVICE]: [
@@ -122,7 +123,8 @@ export const DivisionNavigation = {
     { title: 'Requests', href: '/admin/requests', icon: '📨' },
      { title: 'Modules', href: '/admin/modules', icon: '🧩' },
      { title: 'Data Modul', href: '/admin/modules/data', icon: '🗂️' },
-    { title: 'Blog', href: '/admin/blog', icon: '📝' },
+     { title: 'Blog', href: '/admin/blog', icon: '📝' },
+     { title: 'Content Strategy', href: '/admin/blog/strategy', icon: '🧭' },
     { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.MARKETING]: [
@@ -132,6 +134,7 @@ export const DivisionNavigation = {
     { title: 'Module Performance', href: '/admin/marketing/modules', icon: '📊' },
     { title: 'Campaigns', href: '/admin/marketing/campaigns', icon: '🎯' },
     { title: 'Blog', href: '/admin/blog', icon: '📝' },
+    { title: 'Content Strategy', href: '/admin/blog/strategy', icon: '🧭' },
     { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
   ],
   [Division.ADMIN]: [
@@ -147,7 +150,8 @@ export const DivisionNavigation = {
       { title: 'Master PIN Stiker', href: '/admin/sticker-sheets', icon: '🔑' },
       { title: 'Analytics', href: '/admin/marketing/analytics', icon: '📈' },
       { title: 'Strategic Analytics', href: '/admin/analytics', icon: '📊' },
-      { title: 'Blog', href: '/admin/blog', icon: '📝' },
+       { title: 'Blog', href: '/admin/blog', icon: '📝' },
+       { title: 'Content Strategy', href: '/admin/blog/strategy', icon: '🧭' },
       { title: 'Modules', href: '/admin/modules', icon: '🧩' },
       { title: 'Data Modul', href: '/admin/modules/data', icon: '🗂️' },
       { title: 'Material Logs', href: '/admin/material-logs', icon: '📋' },

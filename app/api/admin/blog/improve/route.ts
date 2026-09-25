@@ -9,6 +9,7 @@ import { checkBlogGenerateRateLimit, getRateLimitHeaders } from "@/lib/rate-limi
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
+import { countKeywordOccurrences, ensureSlugContainsKeyword } from "@/lib/blog-seo";
 
 export const runtime = "nodejs";
 
@@ -107,6 +108,7 @@ ATURAN:
 - Jika artikel belum memiliki bagian itu, tambahkan heading "## Solusi Praktis dengan Balikin".
 - Gunakan hanya fakta dari knowledge base produk berikut. Jangan mengarang harga, fitur, stok, garansi, atau klaim teknis.
 - Jika memperbaiki SEO, meta description 120-160 karakter dan meta keywords berupa daftar koma.
+- Focus keyword wajib digunakan persis minimal 2 kali secara natural di dalam content.
 - Jangan menyebut bahwa artikel dibuat atau diperbaiki oleh AI.
 - Link artikel lain hanya boleh memakai URL yang tersedia pada daftar internal link.
 
@@ -128,10 +130,18 @@ ${context.internalLinks}
           });
           const generated = JSON.parse(response.text?.trim() || "{}") as Record<string, unknown>;
           const fields = ["title", "summary", "content", "slug", "metaDescription", "metaKeywords", "focusKeyword"];
-          if (fields.some((field) => typeof generated[field] !== "string" || !generated[field])) throw new Error("AI returned incomplete article");
-          if (countWords(String(generated.content)) < 300) throw new Error("AI returned fewer than 300 words");
-          if (!hasProductLink(String(generated.content))) throw new Error("AI did not include a valid product link");
-          return NextResponse.json(generated);
+           if (fields.some((field) => typeof generated[field] !== "string" || !generated[field])) throw new Error("AI returned incomplete article");
+           if (countWords(String(generated.content)) < 300) throw new Error("AI returned fewer than 300 words");
+           if (!hasProductLink(String(generated.content))) throw new Error("AI did not include a valid product link");
+           const focusKeyword = String(generated.focusKeyword).trim().replace(/\s+/g, " ");
+           if (countKeywordOccurrences(String(generated.content), focusKeyword) < 2) {
+             throw new Error("AI returned content with fewer than 2 focus keyword occurrences");
+           }
+           return NextResponse.json({
+             ...generated,
+             slug: ensureSlugContainsKeyword(String(generated.slug), focusKeyword),
+             focusKeyword,
+           });
         } catch (error) {
           lastError = error;
           console.warn(`[Blog AI Improve] Model ${model}, key ${index + 1} failed; trying fallback.`);

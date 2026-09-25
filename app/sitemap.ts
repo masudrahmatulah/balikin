@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages = [
     "/",
+    "/blog",
     "/about",
     "/how-it-works",
     "/stickers",
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ].map((path) => ({
     url: absoluteUrl(path),
     lastModified: now,
-    changeFrequency: (path === "/" ? "weekly" : "monthly") as const,
+    changeFrequency: path === "/" ? "weekly" : "monthly",
     priority: path === "/" ? 1 : 0.7,
   }));
 
@@ -35,8 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         slug: true,
         updatedAt: true,
         publishedAt: true,
+        coverImage: true,
       },
-      limit: 1000,
     });
 
     blogPostsUrls = posts.map((post) => ({
@@ -44,6 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: post.updatedAt || post.publishedAt || now,
       changeFrequency: "weekly" as const,
       priority: 0.8,
+      images: post.coverImage ? [absoluteUrl(post.coverImage)] : undefined,
     }));
   } catch (error) {
     console.error("Failed to fetch blog posts for sitemap:", error);

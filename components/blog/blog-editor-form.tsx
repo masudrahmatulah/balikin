@@ -32,12 +32,16 @@ interface BlogEditorFormProps {
   editors: Editor[];
   currentUserId: string;
   postId?: string;
+  contentPlanId?: string;
+  initialGenerationTopic?: string;
+  initialGenerationKeyword?: string;
   initialPost?: Partial<{
     title: string;
     slug: string;
     summary: string;
     content: string;
     coverImage: string;
+    coverImageAlt: string;
     authorName: string;
     authorId: string;
     authorAvatar: string;
@@ -53,14 +57,14 @@ interface BlogEditorFormProps {
   }>;
 }
 
-export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: BlogEditorFormProps) {
+export function BlogEditorForm({ editors, currentUserId, postId, initialPost, contentPlanId, initialGenerationTopic = "", initialGenerationKeyword = "" }: BlogEditorFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
-  const [generationTopic, setGenerationTopic] = useState("");
-  const [generationKeyword, setGenerationKeyword] = useState("");
+  const [generationTopic, setGenerationTopic] = useState(initialGenerationTopic);
+  const [generationKeyword, setGenerationKeyword] = useState(initialGenerationKeyword);
   const [improveInstruction, setImproveInstruction] = useState("");
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
@@ -72,6 +76,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
     summary: initialPost?.summary || "",
     content: initialPost?.content || "",
     coverImage: initialPost?.coverImage || "",
+    coverImageAlt: initialPost?.coverImageAlt || initialPost?.focusKeyword || "",
     authorName: initialPost?.authorName || "",
     authorId: initialPost?.authorId || currentUserId,
     authorAvatar: initialPost?.authorAvatar || "",
@@ -85,6 +90,15 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
   });
 
   const [modules, setModules] = useState<Array<any>>(initialPost?.modules || []);
+
+  const syncContentPlan = async (linkedPostId: string, status: string) => {
+    if (!contentPlanId) return;
+    await fetch(`/api/admin/blog/strategy/${contentPlanId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ linkedPostId, status }),
+    });
+  };
 
   const generateSlug = (title: string) => {
     return title
@@ -120,6 +134,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
 
       if (res.ok) {
         const post = await res.json();
+        await syncContentPlan(post.id, "ai_drafted");
         toast.success("Draft saved successfully!");
         if (postId) router.refresh();
         else router.push(`/admin/blog/${post.id}/edit`);
@@ -152,6 +167,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
 
       if (res.ok) {
         const post = await res.json();
+        await syncContentPlan(post.id, "published");
         toast.success("Blog post published successfully!");
         if (postId) router.refresh();
         else router.push(`/admin/blog/${post.id}/edit`);
@@ -196,6 +212,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
 
       if (res.ok) {
         const post = await res.json();
+        await syncContentPlan(post.id, "scheduled");
         toast.success(`Post scheduled for ${scheduledDate.toLocaleString('id-ID')}`);
         if (postId) router.refresh();
         else router.push(`/admin/blog/drafts`);
@@ -222,7 +239,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
       const res = await fetch("/api/admin/blog/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: generationTopic, keyword: generationKeyword }),
+        body: JSON.stringify({ topic: generationTopic, keyword: generationKeyword, planId: contentPlanId }),
       });
       const result = await res.json();
 
@@ -237,6 +254,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
         slug: result.slug,
         summary: result.summary,
         content: result.content,
+        coverImageAlt: prev.coverImageAlt || result.focusKeyword,
         metaDescription: result.metaDescription,
         metaKeywords: result.metaKeywords,
         focusKeyword: result.focusKeyword,
@@ -298,6 +316,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
         slug: result.slug,
         summary: result.summary,
         content: result.content,
+        coverImageAlt: prev.coverImageAlt || result.focusKeyword,
         metaDescription: result.metaDescription,
         metaKeywords: result.metaKeywords,
         focusKeyword: result.focusKeyword,
@@ -338,7 +357,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
                   <p className="text-xs text-violet-700 dark:text-violet-300">Pilih satu ide untuk mengisi topik dan keyword secara otomatis.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Select value={recommendationCount} onValueChange={setRecommendationCount} disabled={isLoadingRecommendations || isGenerating}>
+                  <Select value={recommendationCount} onValueChange={(value) => setRecommendationCount(value || "5")} disabled={isLoadingRecommendations || isGenerating}>
                     <SelectTrigger className="w-[110px] bg-white dark:bg-slate-900">
                       <SelectValue />
                     </SelectTrigger>
@@ -554,10 +573,13 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost }: 
             <CardTitle>Cover Image</CardTitle>
           </CardHeader>
           <CardContent>
-            <ImageUploader
-              value={formData.coverImage}
-              onChange={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
-            />
+              <ImageUploader
+                value={formData.coverImage}
+                onChange={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
+                altText={formData.coverImageAlt}
+                autoAltText={formData.focusKeyword || formData.title}
+                onAltTextChange={(altText) => setFormData((prev) => ({ ...prev, coverImageAlt: altText }))}
+              />
           </CardContent>
         </Card>
 

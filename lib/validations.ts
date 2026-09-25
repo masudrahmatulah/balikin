@@ -225,6 +225,7 @@ export const BlogPostCreateSchema = z.object({
     .min(100, 'Konten artikel minimal 100 karakter')
     .max(50000, 'Konten terlalu panjang'),
   coverImage: z.string().url('URL gambar cover tidak valid').optional().or(z.literal('')),
+  coverImageAlt: z.string().max(200, 'Alt text terlalu panjang').optional(),
   modules: z.array(z.any()).optional(),
   authorName: z.string().max(100).optional(),
   authorAvatar: z.string().url('URL avatar tidak valid').optional().or(z.literal('')),

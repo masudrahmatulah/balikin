@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
-import { user } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { blogContentPlans, user } from '@/db/schema';
+import { and, eq } from 'drizzle-orm';
 import { BlogEditorForm } from '@/components/blog/blog-editor-form';
 
 async function getEditors() {
@@ -23,7 +23,7 @@ async function getEditors() {
   return { editors, session };
 }
 
-export default async function NewBlogPostPage() {
+export default async function NewBlogPostPage({ searchParams }: { searchParams: Promise<{ planId?: string }> }) {
   const data = await getEditors();
 
   if (!data) {
@@ -31,6 +31,10 @@ export default async function NewBlogPostPage() {
   }
 
   const { editors, session } = data;
+  const { planId } = await searchParams;
+  const plan = planId
+    ? await db.query.blogContentPlans.findFirst({ where: and(eq(blogContentPlans.id, planId), eq(blogContentPlans.app_id, 'balikin_id')) })
+    : null;
 
   return (
     <div className="space-y-6">
@@ -39,7 +43,13 @@ export default async function NewBlogPostPage() {
         <p className="text-muted-foreground">Write and publish your article with interactive modules</p>
       </div>
 
-      <BlogEditorForm editors={editors} currentUserId={session.user.id} />
+      <BlogEditorForm
+        editors={editors}
+        currentUserId={session.user.id}
+        contentPlanId={plan?.id}
+        initialGenerationTopic={plan?.title || ''}
+        initialGenerationKeyword={plan?.focusKeyword || ''}
+      />
     </div>
   );
 }

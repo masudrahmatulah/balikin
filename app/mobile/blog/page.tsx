@@ -1,13 +1,22 @@
 import { db } from '@/db';
 import { blogPosts } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
+import type { Metadata } from 'next';
+import { and, isNull } from 'drizzle-orm';
 import Link from 'next/link';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 
+export const metadata: Metadata = {
+  title: 'Blog Balikin',
+  description: 'Tips, cerita, dan panduan keamanan barang dari Balikin.',
+  alternates: { canonical: '/blog' },
+  robots: { index: false, follow: true },
+};
+
 async function getBlogPosts() {
   const posts = await db.select().from(blogPosts)
-    .where(eq(blogPosts.isPublished, true))
+    .where(and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)))
     .orderBy(desc(blogPosts.publishedAt))
     .limit(20);
   return posts;
@@ -65,7 +74,7 @@ export default async function MobileBlogPage() {
                     <div className="aspect-video w-full relative">
                       <Image
                         src={post.coverImage}
-                        alt={post.title}
+                         alt={post.coverImageAlt || post.focusKeyword || post.title}
                         fill
                         className="object-cover"
                         sizes="(max-width: 448px) 100vw"

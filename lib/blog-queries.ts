@@ -75,6 +75,7 @@ export async function getPublishedPostsPaginated(
       slug: true,
       summary: true,
       coverImage: true,
+      coverImageAlt: true,
       authorName: true,
       authorAvatar: true,
       reviewedBy: true,
@@ -138,6 +139,67 @@ export async function getPostBySlug(slug: string) {
     ...post,
     commentCount: Number(count),
   };
+}
+
+/**
+ * Get published, relevant posts for server-rendered internal links.
+ */
+export async function getRelatedPosts(postId: string, limit = 3) {
+  const currentPost = await db.query.blogPosts.findFirst({
+    where: and(
+      eq(blogPosts.id, postId),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt)
+    ),
+  });
+
+  if (!currentPost) return [];
+
+  const candidates = await db.query.blogPosts.findMany({
+    where: and(
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt),
+      sql`${blogPosts.id} != ${postId}`
+    ),
+    orderBy: [desc(blogPosts.publishedAt), desc(blogPosts.createdAt)],
+    limit: Math.max(limit * 3, 9),
+    columns: {
+      id: true,
+      title: true,
+      slug: true,
+      summary: true,
+      coverImage: true,
+      coverImageAlt: true,
+      publishedAt: true,
+      focusKeyword: true,
+      metaKeywords: true,
+    },
+  });
+
+  const currentKeywords = `${currentPost.focusKeyword || ''},${currentPost.metaKeywords || ''}`
+    .toLowerCase()
+    .split(/[,\s]+/)
+    .filter(Boolean);
+  const currentTitleWords = currentPost.title.toLowerCase().split(/\s+/);
+
+  return candidates
+    .map((post) => {
+      const postKeywords = `${post.focusKeyword || ''},${post.metaKeywords || ''}`
+        .toLowerCase()
+        .split(/[,\s]+/)
+        .filter(Boolean);
+      const postTitleWords = post.title.toLowerCase().split(/\s+/);
+      const keywordOverlap = currentKeywords.filter((keyword) => postKeywords.includes(keyword)).length;
+      const titleOverlap = currentTitleWords.filter(
+        (word) => word.length > 3 && postTitleWords.includes(word)
+      ).length;
+
+      return { post, score: keywordOverlap * 2 + titleOverlap };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ post }) => post);
 }
 
 // ============================================================================

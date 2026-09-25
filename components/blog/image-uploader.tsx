@@ -11,9 +11,12 @@ import Image from "next/image";
 interface ImageUploaderProps {
   value: string;
   onChange: (url: string) => void;
+  altText?: string;
+  autoAltText?: string;
+  onAltTextChange?: (altText: string) => void;
 }
 
-export function ImageUploader({ value, onChange }: ImageUploaderProps) {
+export function ImageUploader({ value, onChange, altText = "", autoAltText = "", onAltTextChange }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +52,7 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
       const data = await res.json();
       onChange(data.url);
+      if (!altText.trim() && autoAltText.trim()) onAltTextChange?.(autoAltText.trim());
       toast.success("Image uploaded successfully!");
     } catch (error: any) {
       console.error(error);
@@ -73,9 +77,9 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
     <div className="space-y-4">
       {value ? (
         <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-          <Image
-            src={value}
-            alt="Cover preview"
+             <Image
+               src={value}
+               alt={altText || autoAltText || "Cover preview"}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
@@ -116,6 +120,19 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
           />
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="cover-image-alt">Alt text</Label>
+        <Input
+          id="cover-image-alt"
+          value={altText}
+          onChange={(e) => onAltTextChange?.(e.target.value)}
+          placeholder={autoAltText || "Deskripsi gambar untuk SEO dan aksesibilitas"}
+        />
+        <p className="text-xs text-muted-foreground">
+          Otomatis menggunakan focus keyword saat gambar diunggah. Anda tetap dapat mengeditnya.
+        </p>
+      </div>
 
       <div className="space-y-2">
         <Label>Or enter image URL</Label>

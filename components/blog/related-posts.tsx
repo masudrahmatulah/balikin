@@ -1,9 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import { getRelatedPosts } from "@/lib/blog-queries";
 
 interface RelatedPost {
   id: string;
@@ -11,6 +9,7 @@ interface RelatedPost {
   slug: string;
   summary: string;
   coverImage: string | null;
+  coverImageAlt: string | null;
   publishedAt: string;
 }
 
@@ -19,30 +18,10 @@ interface RelatedPostsProps {
   currentSlug: string;
 }
 
-export function BlogRelatedPosts({ postId, currentSlug }: RelatedPostsProps) {
-  const [posts, setPosts] = useState<RelatedPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export async function BlogRelatedPosts({ postId }: RelatedPostsProps) {
+  const posts = await getRelatedPosts(postId);
 
-  useEffect(() => {
-    const fetchRelatedPosts = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`/api/blog/related?postId=${postId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data.related || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch related posts:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRelatedPosts();
-  }, [postId]);
-
-  if (isLoading || posts.length === 0) {
+  if (posts.length === 0) {
     return null;
   }
 
@@ -60,7 +39,7 @@ export function BlogRelatedPosts({ postId, currentSlug }: RelatedPostsProps) {
               {post.coverImage && (
                 <img
                   src={post.coverImage}
-                  alt={post.title}
+                  alt={post.coverImageAlt || post.title}
                   className="w-20 h-20 object-cover rounded-md flex-shrink-0"
                 />
               )}

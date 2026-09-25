@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { blogPosts, blogComments } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { and, isNull } from 'drizzle-orm';
 import { Calendar, ArrowLeft, Shield } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -16,7 +17,11 @@ interface BlogPageProps {
 
 async function getBlogPost(slug: string) {
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.slug, slug),
+    where: and(
+      eq(blogPosts.slug, slug),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt)
+    ),
   });
 
   if (!post) return null;
@@ -72,7 +77,7 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
           <div className="aspect-video w-full relative rounded-2xl overflow-hidden">
             <Image
               src={post.coverImage}
-              alt={post.title}
+               alt={post.coverImageAlt || post.focusKeyword || post.title}
               fill
               className="object-cover"
               sizes="(max-width: 448px) 100vw"
@@ -220,5 +225,6 @@ export async function generateMetadata({ params }: BlogPageProps) {
       title: post.title,
       description,
     },
+    robots: { index: false, follow: true },
   };
 }

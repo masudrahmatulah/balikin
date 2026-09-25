@@ -151,6 +151,9 @@ export async function POST(req: NextRequest) {
       slug: validatedSlug,
       summary: data.summary,
       coverImage: data.coverImage || null,
+      coverImageAlt: data.coverImage
+        ? data.coverImageAlt || data.focusKeyword || data.title
+        : null,
       content: data.content,
       modules: data.modules || [],
       authorName: data.authorName || 'Tim Penulis BALIKIN',
@@ -213,6 +216,9 @@ export async function PUT(req: NextRequest) {
       ...(data.slug !== undefined && { slug: validateSlug(data.slug) }),
       ...(data.summary !== undefined && { summary: data.summary }),
       ...(data.coverImage !== undefined && { coverImage: data.coverImage || null }),
+      ...(data.coverImageAlt !== undefined && {
+        coverImageAlt: data.coverImageAlt || data.focusKeyword || data.title || existing.coverImageAlt || null,
+      }),
       ...(data.content !== undefined && { content: data.content }),
       ...(data.modules !== undefined && { modules: data.modules }),
       ...(data.authorName !== undefined && { authorName: data.authorName || 'Tim Penulis BALIKIN' }),

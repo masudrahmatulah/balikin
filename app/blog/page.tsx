@@ -1,15 +1,28 @@
 import { db } from '@/db';
 import { blogPosts } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/site-header';
+import { isNull, and } from 'drizzle-orm';
+
+export const metadata: Metadata = {
+  title: 'Blog Balikin: Tips Keamanan Barang dan Lost & Found',
+  description: 'Baca panduan, tips, dan cerita tentang keamanan barang, QR Smart Tag, serta cara meningkatkan peluang barang hilang kembali.',
+  alternates: { canonical: '/blog' },
+  openGraph: {
+    title: 'Blog Balikin: Tips Keamanan Barang dan Lost & Found',
+    description: 'Panduan praktis tentang keamanan barang, QR Smart Tag, dan lost & found di Indonesia.',
+    type: 'website',
+  },
+};
 
 async function getBlogPosts() {
   const posts = await db.query.blogPosts.findMany({
-    where: (table) => eq(table.isPublished, true),
+    where: and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)),
     orderBy: [desc(blogPosts.publishedAt)],
     limit: 20,
   });
@@ -51,7 +64,7 @@ export default async function BlogPage() {
                     <div className="aspect-video w-full overflow-hidden relative">
                       <Image
                         src={post.coverImage}
-                        alt={post.title}
+                         alt={post.coverImageAlt || post.focusKeyword || post.title}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover transition-transform group-hover:scale-105"

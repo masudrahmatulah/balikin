@@ -43,6 +43,7 @@ export interface BlogPostPublic {
   slug: string;
   summary: string;
   coverImage: string | null;
+  coverImageAlt: string | null;
   authorName: string;
   authorAvatar: string | null;
   reviewedBy: string | null;
@@ -76,6 +77,7 @@ export interface BlogPostInput {
   summary: string;
   content: string;
   coverImage?: string | null;
+  coverImageAlt?: string | null;
   modules?: BlogModule[];
   authorName?: string;
   authorAvatar?: string | null;

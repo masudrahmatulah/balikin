@@ -42,6 +42,7 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
           summary: post.summary,
           content: post.content,
           coverImage: post.coverImage || '',
+          coverImageAlt: post.coverImageAlt || '',
           authorName: post.authorName,
           authorId: post.authorId || session.user.id,
           authorAvatar: post.authorAvatar || '',

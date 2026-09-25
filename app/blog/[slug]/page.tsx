@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/db';
 import { blogPosts, blogComments, blogPostsAnalytics } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { and, isNull } from 'drizzle-orm';
 import { Calendar, User, Shield } from 'lucide-react';
 import { BlogQuizModule } from '@/components/blog/quiz-module';
 import { BlogCommentSection } from '@/components/blog/comment-section';
@@ -22,9 +23,13 @@ interface BlogPageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function getBlogPost(slug: string) {
+async function getBlogPost(slug: string, recordView = true) {
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.slug, slug),
+    where: and(
+      eq(blogPosts.slug, slug),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt)
+    ),
   });
 
   if (!post) return null;
@@ -35,7 +40,7 @@ async function getBlogPost(slug: string) {
   });
 
   // Record page view for analytics
-  if (post.isPublished) {
+  if (recordView) {
     try {
       await db.insert(blogPostsAnalytics).values({
         postId: post.id,
@@ -217,7 +222,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
               <div className="relative w-full aspect-video rounded-xl mb-8 overflow-hidden">
                 <Image
                   src={post.coverImage}
-                  alt={post.title}
+                   alt={post.coverImageAlt || post.focusKeyword || post.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
                   priority
@@ -272,7 +277,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
 export async function generateMetadata({ params }: BlogPageProps) {
   const { slug } = await params;
-  const data = await getBlogPost(slug);
+  const data = await getBlogPost(slug, false);
 
   if (!data?.post) {
     return {};
@@ -302,12 +307,13 @@ export async function generateMetadata({ params }: BlogPageProps) {
           url: ogImageUrl.toString(),
           width: 1200,
           height: 630,
-          alt: post.title,
+           alt: post.coverImageAlt || post.focusKeyword || post.title,
         },
         ...(post.coverImage ? [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }] : []),
       ],
       type: 'article',
       publishedTime: post.publishedAt || post.createdAt,
+      modifiedTime: post.updatedAt,
       authors: [post.authorName],
       siteName: 'BALIKIN',
     },

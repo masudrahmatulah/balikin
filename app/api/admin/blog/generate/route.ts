@@ -8,7 +8,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { blogPosts } from "@/db/schema";
+import { blogContentPlans, blogPosts } from "@/db/schema";
+import { countKeywordOccurrences, ensureSlugContainsKeyword } from "@/lib/blog-seo";
 
 export const runtime = "nodejs";
 
@@ -163,9 +164,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json() as { topic?: unknown; keyword?: unknown };
+    const body = await request.json() as { topic?: unknown; keyword?: unknown; planId?: unknown };
     const topic = typeof body.topic === "string" ? body.topic.trim() : "";
     const keyword = typeof body.keyword === "string" ? body.keyword.trim().slice(0, 100) : "";
+    const planId = typeof body.planId === "string" ? body.planId : null;
 
     if (topic.length < 5 || topic.length > 200) {
       return NextResponse.json({ error: "Topik harus berisi 5-200 karakter." }, { status: 400 });
@@ -199,6 +201,7 @@ Aturan wajib:
 - Summary harus 50-500 karakter.
 - Content harus minimal 300 kata, bukan sekadar 300 karakter.
 - Buat recommended slug yang singkat, deskriptif, dan relevan dengan topik serta keyword utama.
+- Focus keyword wajib digunakan persis minimal 2 kali secara natural di dalam content, bukan hanya di judul atau metadata.
 - Meta description harus berupa rekomendasi SEO sepanjang 120-160 karakter dan maksimal 300 karakter.
 - Meta keywords berupa daftar dipisahkan koma.
 - Jika tersedia minimal 2 artikel published di daftar internal link, sisipkan 2-4 internal link yang paling relevan secara alami di dalam content Markdown.
@@ -255,13 +258,12 @@ ${internalLinkContext}
              throw new Error("Gemini returned an article with fewer than 300 words");
            }
 
-          const normalizedSlug = String(generated.slug)
-            .toLowerCase()
-            .replace(/[^a-z0-9-_]+/g, "-")
-            .replace(/-+/g, "-")
-            .replace(/^-|-$/g, "")
-            .slice(0, 100);
-          if (!normalizedSlug) throw new Error("Gemini returned an invalid slug");
+           const focusKeyword = String(generated.focusKeyword).trim().replace(/\s+/g, " ");
+           const normalizedSlug = ensureSlugContainsKeyword(String(generated.slug), focusKeyword);
+           if (!normalizedSlug) throw new Error("Gemini returned an invalid slug");
+           if (countKeywordOccurrences(String(generated.content), focusKeyword) < 2) {
+             throw new Error("Gemini returned content with fewer than 2 focus keyword occurrences");
+           }
 
            let content = String(generated.content);
            if (internalLinks.length >= 2) {
@@ -311,14 +313,20 @@ ${internalLinkContext}
              }
            }
 
-           return NextResponse.json({
+            if (planId) {
+              await db.update(blogContentPlans)
+                .set({ status: "ai_drafted", updatedAt: new Date() })
+                .where(eq(blogContentPlans.id, planId));
+            }
+
+            return NextResponse.json({
             title: generated.title,
             summary: generated.summary,
              content,
             slug: normalizedSlug,
             metaDescription: generated.metaDescription,
             metaKeywords: generated.metaKeywords,
-            focusKeyword: generated.focusKeyword,
+             focusKeyword,
           });
         } catch (error) {
           lastError = error;

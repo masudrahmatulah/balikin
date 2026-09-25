@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X, AlertCircle } from "lucide-react";
+import { countKeywordOccurrences, slugifySeoValue } from "@/lib/blog-seo";
 
 interface SEOChecklistProps {
   title: string;
@@ -33,14 +34,16 @@ export function BlogSEOChecklist({
     {
       id: "slug-keyword",
       label: "Slug contains focus keyword",
-      passed: focusKeyword ? slug.toLowerCase().includes(focusKeyword.toLowerCase().toLowerCase()) : null,
+      passed: focusKeyword
+        ? slugifySeoValue(slug).includes(slugifySeoValue(focusKeyword))
+        : null,
       isCritical: false,
     },
     {
       id: "content-keyword",
       label: `Focus keyword appears in content (min 2x)`,
       passed: focusKeyword
-        ? (content.toLowerCase().match(new RegExp(focusKeyword.toLowerCase(), "gi")) || []).length >= 2
+        ? countKeywordOccurrences(content, focusKeyword) >= 2
         : null,
       isCritical: true,
     },
