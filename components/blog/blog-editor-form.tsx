@@ -94,6 +94,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
   const [recommendations, setRecommendations] = useState<ArticleRecommendation[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [recommendationCount, setRecommendationCount] = useState("5");
+  const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     title: initialPost?.title || "",
@@ -123,6 +124,39 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ linkedPostId, status }),
     });
+  };
+
+  const buildExternalPrompt = () => {
+    const minWords = targetMinWords || 2000;
+    const maxWords = targetMaxWords || null;
+    const existingLinks = [...new Set(
+      [...formData.content.matchAll(/\[([^\]]+)\]\((\/blog\/[a-z0-9-_]+)\)/g)].map((match) => match[2]),
+    )];
+    return `Kamu adalah editor senior SEO Balikin. Kembangkan artikel di bawah menjadi minimal ${minWords.toLocaleString("id-ID")} kata${maxWords ? ` (target ideal ${minWords.toLocaleString("id-ID")}-${maxWords.toLocaleString("id-ID")} kata)` : ""} tanpa mengubah esensinya.\n\nARTIKEL SAAT INI:\nJudul: ${formData.title || "-"}\nFocus keyword: ${formData.focusKeyword || "-"}\nMeta description: ${formData.metaDescription || "-"}\nKonten:\n${formData.content || "-"}\n\nTUGAS:\nTambahkan kata baru hingga total minimal ${minWords.toLocaleString("id-ID")} kata dengan memperdalam 3 subheading paling tipis, tambah contoh praktis, tabel/bullet, dan FAQ 6 pertanyaan.\n\nATURAN WAJIB:\n- Pertahankan judul, slug, fakta, dan sudut pandang yang sudah ada. Jangan meringkas atau menghapus paragraf lama, hanya menambahkan.\n- Focus keyword harus muncul persis minimal 2x secara natural di dalam content.\n- Pertahankan semua internal link /blog/ yang sudah ada${existingLinks.length > 0 ? ` (${existingLinks.join(", ")})` : ""}, tambah 1-2 yang relevan jika perlu. Jangan buat slug baru.\n- Pertahankan 1-3 link produk Balikin yang natural. Hanya gunakan: /pricing, /stickers, /stickers/checkout, /sign-up, /how-it-works. Wajib ada heading penutup "## Solusi Praktis dengan Balikin" 2-4 kalimat dengan 1 link produk.\n- Meta description tetap 120-160 karakter.\n- Bahasa Indonesia, Markdown, satu baris kosong antar paragraf.\n- Jangan mengarang harga, fitur, garansi, klaim teknis, atau menyebut AI.\n- Jangan klaim agresif seperti "terbaik sedunia" atau "dijamin pasti kembali".\n- Kembalikan hanya: judul, content Markdown lengkap, meta description, meta keywords. Tanpa penjelasan tambahan.`;
+  };
+
+  const externalPrompt = buildExternalPrompt();
+
+  const handleCopyExternalPrompt = async () => {
+    if (!formData.content.trim()) {
+      toast.error("Konten masih kosong. Generate atau isi artikel dulu.");
+      return;
+    }
+    setIsCopyingPrompt(true);
+    try {
+      await navigator.clipboard.writeText(externalPrompt);
+      toast.success("Prompt AI eksternal disalin. Paste di AI lain.");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = externalPrompt;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      toast.success("Prompt AI eksternal disalin. Paste di AI lain.");
+    } finally {
+      setIsCopyingPrompt(false);
+    }
   };
 
   const generateSlug = (title: string) => {
@@ -498,6 +532,17 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
               >
                 {isImproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 {isImproving ? "Memperbaiki artikel..." : "Perbaiki dengan AI"}
+              </Button>
+            </div>
+            <div className="space-y-3 rounded-xl border border-sky-200 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
+              <div>
+                <p className="font-medium text-sky-950 dark:text-sky-100">Prompt AI Eksternal</p>
+                <p className="text-xs text-sky-800 dark:text-sky-300">Salin prompt ini lalu paste di AI lain saat token Gemini habis. Hasilnya paste kembali ke kolom Content (Markdown).</p>
+              </div>
+              <Textarea value={externalPrompt} readOnly rows={6} className="font-mono text-xs" />
+              <Button type="button" variant="outline" onClick={handleCopyExternalPrompt} disabled={isCopyingPrompt || !formData.content.trim()} className="w-full">
+                {isCopyingPrompt ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {isCopyingPrompt ? "Menyalin..." : "Salin Prompt AI Eksternal"}
               </Button>
             </div>
           </CardContent>
