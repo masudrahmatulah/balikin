@@ -45,6 +45,11 @@ const nextConfig = {
         hostname: 'raw.githubusercontent.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.balikin.online',
+        pathname: '/**',
+      },
     ],
   },
   experimental: {
