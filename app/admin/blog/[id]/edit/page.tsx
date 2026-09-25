@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
-import { blogPosts, user } from '@/db/schema';
+import { blogContentPlans, blogPosts, user } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { BlogEditorForm } from '@/components/blog/blog-editor-form';
 
@@ -26,6 +26,11 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
 
   if (!post) notFound();
 
+  const contentPlan = await db.query.blogContentPlans.findFirst({
+    where: and(eq(blogContentPlans.linkedPostId, post.id), eq(blogContentPlans.app_id, 'balikin_id')),
+    columns: { id: true, targetMinWords: true, targetMaxWords: true },
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,6 +41,9 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
         editors={editors}
         currentUserId={session.user.id}
         postId={post.id}
+        contentPlanId={contentPlan?.id}
+        targetMinWords={contentPlan?.targetMinWords}
+        targetMaxWords={contentPlan?.targetMaxWords}
         initialPost={{
           title: post.title,
           slug: post.slug,
