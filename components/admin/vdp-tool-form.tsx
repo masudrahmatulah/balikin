@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { ActivationMaterialDownloads } from "@/components/admin/vdp-tool/activation-material-downloads";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +57,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
   const [downloadNote, setDownloadNote] = useState<string | null>(null);
+  const [activationQrDataUrl, setActivationQrDataUrl] = useState<string | null>(null);
+  const [claimCodeManifest, setClaimCodeManifest] = useState<string | null>(null);
   const [generatedTags, setGeneratedTags] = useState<any[]>([]);
 
   // Bulk generation form
@@ -216,6 +219,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     setIsGenerating(true);
     setProgress({ current: 0, total: formData.quantity });
     setDownloadUrl(null);
+    setActivationQrDataUrl(null);
+    setClaimCodeManifest(null);
     setGeneratedTags([]);
 
     try {
@@ -234,6 +239,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
+      setActivationQrDataUrl(data.activationQrDataUrl || null);
+      setClaimCodeManifest(data.claimCodeManifest || null);
       setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
       setDownloadNote(formData.materialType !== "sticker" && formData.outputFormat === "png" ? "PNG" : null);
       setGeneratedTags(data.tags);
@@ -729,6 +736,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
                   {/* Download Button */}
                   {downloadUrl && !isGenerating && (
+                    <div className="space-y-3">
+                    <ActivationMaterialDownloads qrDataUrl={activationQrDataUrl || undefined} manifest={claimCodeManifest || undefined} />
                     <div className="flex gap-3">
                       <Button
                         type="button"
@@ -748,6 +757,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         variant="outline"
                         onClick={() => {
                           setDownloadUrl(null);
+                          setActivationQrDataUrl(null);
+                          setClaimCodeManifest(null);
                           setDownloadNote(null);
                           setGeneratedTags([]);
                         }}
@@ -755,6 +766,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                         <X className="w-4 h-4 mr-2" />
                         Clear
                       </Button>
+                    </div>
                     </div>
                   )}
 

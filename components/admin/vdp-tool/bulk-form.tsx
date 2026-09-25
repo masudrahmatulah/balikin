@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ActivationMaterialDownloads } from "@/components/admin/vdp-tool/activation-material-downloads";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -56,6 +57,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<"pdf" | "zip">("zip");
   const [downloadNote, setDownloadNote] = useState<string | null>(null);
+  const [activationQrDataUrl, setActivationQrDataUrl] = useState<string | null>(null);
+  const [claimCodeManifest, setClaimCodeManifest] = useState<string | null>(null);
   const [generatedCount, setGeneratedCount] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -124,6 +127,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     setIsGenerating(true);
     setProgress({ current: 0, total: formData.quantity });
     setDownloadUrl(null);
+    setActivationQrDataUrl(null);
+    setClaimCodeManifest(null);
     setDownloadNote(null);
     setGeneratedCount(0);
 
@@ -143,6 +148,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
 
       setProgress({ current: data.quantity, total: data.quantity });
       setDownloadUrl(data.downloadUrl);
+      setActivationQrDataUrl(data.activationQrDataUrl || null);
+      setClaimCodeManifest(data.claimCodeManifest || null);
       setDownloadFormat(data.downloadFormat === "pdf" ? "pdf" : "zip");
       setDownloadNote(formData.materialType !== "sticker" && formData.outputFormat === "png" ? "PNG" : null);
       setGeneratedCount(data.quantity);
@@ -498,6 +505,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
           {/* Success State */}
           {downloadUrl && !isGenerating && (
             <div className="space-y-3">
+              <ActivationMaterialDownloads qrDataUrl={activationQrDataUrl || undefined} manifest={claimCodeManifest || undefined} />
               <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-sm border border-green-200 dark:border-green-800">
                 <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <div>
@@ -525,6 +533,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                   variant="outline"
                   onClick={() => {
                     setDownloadUrl(null);
+                    setActivationQrDataUrl(null);
+                    setClaimCodeManifest(null);
                     setDownloadNote(null);
                     setGeneratedCount(0);
                   }}

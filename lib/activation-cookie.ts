@@ -13,6 +13,7 @@ import { cookies } from 'next/headers';
 
 export interface ActivationCookieData {
   slug?: string;
+  batchId?: string;
   token?: string;
   timestamp?: number;
   redirectAfterLogin?: string; // Where to redirect after auth
@@ -57,11 +58,20 @@ export async function setActivationSession(data: ActivationCookieData): Promise<
   const session = await getActivationSession();
 
   session.slug = data.slug;
+  session.batchId = data.batchId;
   session.token = data.token;
   session.timestamp = Date.now();
   session.redirectAfterLogin = data.redirectAfterLogin;
 
   await session.save();
+}
+
+export async function setBatchActivationSession(batchId: string, token: string): Promise<void> {
+  await setActivationSession({
+    batchId,
+    token,
+    redirectAfterLogin: `/activate/batch/${batchId}`,
+  });
 }
 
 /**
@@ -72,6 +82,7 @@ export async function clearActivationSession(): Promise<void> {
   const session = await getActivationSession();
 
   session.slug = undefined;
+  session.batchId = undefined;
   session.token = undefined;
   session.timestamp = undefined;
   session.redirectAfterLogin = undefined;
@@ -86,7 +97,7 @@ export async function clearActivationSession(): Promise<void> {
 export async function isValidActivationSession(): Promise<boolean> {
   const session = await getActivationSession();
 
-  if (!session.slug || !session.timestamp) {
+  if ((!session.slug && !session.batchId) || !session.timestamp) {
     return false;
   }
 
@@ -108,6 +119,10 @@ export async function getActivationRedirect(): Promise<string> {
   // If we have slug/token but no explicit redirect, go to activation page
   if (session.slug && session.token) {
     return `/activate/${session.slug}`;
+  }
+
+  if (session.batchId && session.token) {
+    return `/activate/batch/${session.batchId}`;
   }
 
   return '/dashboard';

@@ -13,6 +13,7 @@ import { generateProtectedCardStream, generateFamilyCardStream } from "@/lib/vdp
 import { buildStickerSheetsPdf } from "@/lib/vdp-pdf-export";
 import { buildAcrylicRowsPdf } from "@/lib/vdp-acrylic-pdf";
 import JSZip from "jszip";
+import QRCode from 'qrcode';
 import { calculateGridPositions, calculateA5StickerPositions, getStickerProductConfig, type StickerShape, type StickerSize, type StickerProductKey } from "@/lib/sticker-template";
 import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
@@ -695,6 +696,43 @@ export async function POST(request: NextRequest) {
       userAgent,
     });
 
+    const activationUrl = `${getAppBaseUrl()}/activate/batch/${batchId}`;
+    const activationQrDataUrl = await QRCode.toDataURL(activationUrl, { width: 640, margin: 2 });
+    const claimManifestLines = [
+      `Balikin - Kode Klaim ${batchName}`,
+      `QR aktivasi: ${activationUrl}`,
+      'Masukkan satu kode untuk mengaktifkan seluruh tag dalam satu paket.',
+      '',
+      materialType === 'sticker'
+        ? 'Kode Paket\tNomor Seri Tag\tKode Klaim'
+        : 'Nomor Seri\tKode Klaim',
+    ];
+
+    if (materialType === 'sticker') {
+      const sheets = await db.query.stickerSheets.findMany({
+        where: eq(stickerSheets.batchId, batchId),
+        orderBy: [asc(stickerSheets.sheetCode)],
+      });
+      const sheetTags = await db.query.tags.findMany({
+        where: eq(tags.batchId, batchId),
+        columns: { sheetId: true, serialNumber: true },
+        orderBy: [asc(tags.serialNumber)],
+      });
+      for (const sheet of sheets) {
+        const serials = sheetTags.filter((tag) => tag.sheetId === sheet.id).map((tag) => tag.serialNumber).filter(Boolean);
+        claimManifestLines.push(`${sheet.sheetCode}\t${serials.join(', ')}\t${sheet.activationPinPlain || '-'}`);
+      }
+    } else {
+      const claimTags = await db.query.tags.findMany({
+        where: eq(tags.batchId, batchId),
+        columns: { serialNumber: true, activationPinPlain: true },
+        orderBy: [asc(tags.serialNumber)],
+      });
+      for (const tag of claimTags) {
+        claimManifestLines.push(`${tag.serialNumber || '-'}\t${tag.activationPinPlain || '-'}`);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       batchId,
@@ -706,6 +744,9 @@ export async function POST(request: NextRequest) {
       vdpMode,
       estimatedSheets,
       itemsPerSheet,
+      activationUrl,
+      activationQrDataUrl,
+      claimCodeManifest: claimManifestLines.join('\n'),
     });
   } catch (error) {
     console.error("Error generating batch:", error);

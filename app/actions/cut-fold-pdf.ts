@@ -71,7 +71,8 @@ async function getLogoDataUrl(): Promise<string> {
 
 export async function generateCutFoldPDF(
   tagSlugs: string[],
-  paperSize: PaperSize = DEFAULT_PAPER_SIZE
+  paperSize: PaperSize = DEFAULT_PAPER_SIZE,
+  activationBatchId?: string,
 ): Promise<Uint8Array> {
   const admin = await isAdmin();
   if (!admin) {
@@ -87,6 +88,9 @@ export async function generateCutFoldPDF(
   const tagsPerPage = gridPositions.length;
   const totalPages = Math.ceil(tagSlugs.length / tagsPerPage);
   const baseUrl = getAppBaseUrl();
+  const batchActivationQr = activationBatchId
+    ? await generateQRCodeCached(`${baseUrl}/activate/batch/${activationBatchId}`)
+    : null;
 
   // Generate QR codes for all tags (main + activation)
   const tags = await Promise.all(
@@ -112,9 +116,9 @@ export async function generateCutFoldPDF(
         },
       });
 
-      if (tagData?.activationTokenHash) {
-        const activationQrDataUrl = await generateQRCodeCached(
-          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData.activationTokenHash}`
+      if (activationBatchId || tagData?.activationTokenHash) {
+        const activationQrDataUrl = batchActivationQr || await generateQRCodeCached(
+          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData?.activationTokenHash}`
         );
         return {
           ...tag,
@@ -188,5 +192,5 @@ export async function generateCutFoldPDFByBatchId(
   }
 
   const tagSlugs = batchTags.map(tag => tag.slug);
-  return generateCutFoldPDF(tagSlugs, paperSize);
+  return generateCutFoldPDF(tagSlugs, paperSize, batchId);
 }

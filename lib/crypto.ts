@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, randomInt } from 'crypto';
 
 /**
  * Hash a value using SHA-256
@@ -30,10 +30,10 @@ export function generateActivationToken(): string {
 export function generateActivationPin(): string {
   const chars = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   const part1 = Array.from({ length: 4 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
+    chars[randomInt(chars.length)]
   ).join('');
   const part2 = Array.from({ length: 4 }, () =>
-    chars[Math.floor(Math.random() * chars.length)]
+    chars[randomInt(chars.length)]
   ).join('');
   return `${part1}-${part2}`;
 }
