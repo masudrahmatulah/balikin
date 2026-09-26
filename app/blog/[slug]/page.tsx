@@ -291,6 +291,8 @@ export async function generateMetadata({ params }: BlogPageProps) {
   ogImageUrl.searchParams.set('title', post.title);
   if (post.summary) ogImageUrl.searchParams.set('summary', post.summary);
   if (post.authorName) ogImageUrl.searchParams.set('author', post.authorName);
+  if (post.coverImage) ogImageUrl.searchParams.set('cover', post.coverImage);
+  const socialImage = post.coverImage || ogImageUrl.toString();
 
   return {
     title: post.title,
@@ -302,15 +304,12 @@ export async function generateMetadata({ params }: BlogPageProps) {
     openGraph: {
       title: post.title,
       description: post.metaDescription || post.summary,
-      images: [
-        {
-          url: ogImageUrl.toString(),
-          width: 1200,
-          height: 630,
-           alt: post.coverImageAlt || post.focusKeyword || post.title,
-        },
-        ...(post.coverImage ? [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }] : []),
-      ],
+      images: [{
+        url: socialImage,
+        width: 1200,
+        height: 630,
+        alt: post.coverImageAlt || post.focusKeyword || post.title,
+      }],
       type: 'article',
       publishedTime: post.publishedAt || post.createdAt,
       modifiedTime: post.updatedAt,
@@ -321,7 +320,7 @@ export async function generateMetadata({ params }: BlogPageProps) {
       card: 'summary_large_image',
       title: post.title,
       description: post.metaDescription || post.summary,
-      images: [ogImageUrl.toString()],
+      images: [socialImage],
     },
   };
 }
