@@ -10,6 +10,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import Image from 'next/image';
 import Link from 'next/link';
 import { buildBlogSchemas } from '@/lib/blog-jsonld';
+import { BlogHouseAd, shouldShowHouseAds, countWords, splitMarkdownBlocks } from '@/components/blog/blog-house-ad';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -51,7 +52,20 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
   }
 
   const { post, comments } = data;
-  const jsonLd = JSON.stringify(buildBlogSchemas(post, (post.modules as any[]) ?? [], slug));
+  const postModules = (post.modules as any[]) ?? [];
+  const jsonLd = JSON.stringify(buildBlogSchemas(post, postModules, slug));
+
+  // M1 parity: house-ad otomatis sama seperti desktop.
+  const showAds = shouldShowHouseAds(postModules);
+  const wordCount = countWords(post.content);
+  const isShort = wordCount < 500;
+  const isLong = wordCount >= 1500;
+  const contentParts: string[] =
+    showAds && !isShort && post.content
+      ? splitMarkdownBlocks(post.content, isLong ? 3 : 2)
+      : [post.content ?? ''];
+  // Modul ad_baris manual tetap dirender di mobile agar parity dengan desktop.
+  const manualAds = postModules.filter((m: any) => m?.type === 'ad_baris' && m?.link && m?.text);
 
   return (
     <>
@@ -114,8 +128,11 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
             </div>
           )}
 
-          {/* Content */}
-          {post.content && (
+          {/* House-ad atas (artikel >=500 kata) */}
+          {showAds && !isShort && <BlogHouseAd variant="top" />}
+
+          {/* Content — disisipi house-ad tengah */}
+          {post.content && contentParts.length === 1 && (
             <div className="blog-markdown prose prose-sm max-w-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -142,10 +159,79 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
                   ),
                 }}
               >
-                {post.content}
+                {contentParts[0]}
               </ReactMarkdown>
             </div>
           )}
+          {post.content && contentParts.length > 1 && (
+            <>
+              <div className="blog-markdown prose prose-sm max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSanitize]}
+                  components={{
+                    h2: ({ node, ...props }: any) => <h2 className="text-lg font-bold text-gray-900 mt-5 mb-2" {...props} />,
+                    h3: ({ node, ...props }: any) => <h3 className="text-base font-bold text-gray-900 mt-4 mb-2" {...props} />,
+                    p: ({ node, ...props }: any) => <p className="text-gray-700 leading-relaxed mb-3" {...props} />,
+                    a: ({ node, ...props }: any) => <a className="text-mobile-primary hover:underline" {...props} />,
+                  }}
+                >
+                  {contentParts[0]}
+                </ReactMarkdown>
+              </div>
+              {showAds && <BlogHouseAd variant="mid" />}
+              <div className="blog-markdown prose prose-sm max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSanitize]}
+                  components={{
+                    h2: ({ node, ...props }: any) => <h2 className="text-lg font-bold text-gray-900 mt-5 mb-2" {...props} />,
+                    h3: ({ node, ...props }: any) => <h3 className="text-base font-bold text-gray-900 mt-4 mb-2" {...props} />,
+                    p: ({ node, ...props }: any) => <p className="text-gray-700 leading-relaxed mb-3" {...props} />,
+                    a: ({ node, ...props }: any) => <a className="text-mobile-primary hover:underline" {...props} />,
+                  }}
+                >
+                  {contentParts[1]}
+                </ReactMarkdown>
+              </div>
+              {contentParts[2] && (
+                <>
+                  {showAds && <BlogHouseAd variant="mid" />}
+                  <div className="blog-markdown prose prose-sm max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeSanitize]}
+                      components={{
+                        p: ({ node, ...props }: any) => <p className="text-gray-700 leading-relaxed mb-3" {...props} />,
+                        a: ({ node, ...props }: any) => <a className="text-mobile-primary hover:underline" {...props} />,
+                      }}
+                    >
+                      {contentParts[2]}
+                    </ReactMarkdown>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ad_baris manual (parity desktop) */}
+          {manualAds.map((ad: any, idx: number) => (
+            <a
+              key={`manual-ad-${idx}`}
+              href={ad.link}
+              target="_blank"
+              rel="sponsored noopener noreferrer"
+              className="block rounded-xl border-2 border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 p-4"
+            >
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                Iklan{ad.badge ? ` • ${ad.badge}` : ''}
+              </span>
+              <span className="mt-1 block text-sm font-medium">{ad.text}</span>
+            </a>
+          ))}
+
+          {/* House-ad akhir + CTA tetap */}
+          {showAds && <BlogHouseAd variant="end" />}
         </article>
 
         {/* Comments Section */}

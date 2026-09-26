@@ -11,6 +11,7 @@ import { BlogCrowdsourcedMap } from '@/components/blog/crowdsourced-map';
 import { BlogSetupGallery } from '@/components/blog/setup-gallery';
 import { BlogSocialSharing } from '@/components/blog/social-sharing';
 import { BlogRelatedPosts } from '@/components/blog/related-posts';
+import { BlogHouseAd, shouldShowHouseAds, countWords, splitMarkdownBlocks } from '@/components/blog/blog-house-ad';
 import { BlogModule } from '@/types/blog';
 import { buildBlogSchemas } from '@/lib/blog-jsonld';
 import ReactMarkdown from 'react-markdown';
@@ -175,6 +176,31 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const { post, comments } = data;
   const modules = post.modules as BlogModule[];
 
+  // House-ad otomatis semua artikel (M1): <500 kata = akhir saja,
+  // 500-1500 = atas+tengah+akhir, >1500 = atas+2 tengah+akhir.
+  // Opt-out per-artikel: tambah modul `{ type: 'no_ads' }`.
+  const showAds = shouldShowHouseAds(modules as Array<{ type?: string }>);
+  const wordCount = countWords(post.content);
+  const isShort = wordCount < 500;
+  const isLong = wordCount >= 1500;
+  const contentParts: string[] =
+    showAds && !isShort
+      ? splitMarkdownBlocks(post.content, isLong ? 3 : 2)
+      : [post.content];
+
+  const markdownComponents = {
+    h1: ({ node, ...props }: any) => <h1 className="blog-markdown-heading blog-markdown-h1" {...props} />,
+    h2: ({ node, ...props }: any) => <h2 className="blog-markdown-heading blog-markdown-h2" {...props} />,
+    h3: ({ node, ...props }: any) => <h3 className="blog-markdown-heading blog-markdown-h3" {...props} />,
+    p: ({ node, ...props }: any) => <p className="blog-markdown-paragraph" {...props} />,
+    ul: ({ node, ...props }: any) => <ul className="blog-markdown-list blog-markdown-list-unordered" {...props} />,
+    ol: ({ node, ...props }: any) => <ol className="blog-markdown-list blog-markdown-list-ordered" {...props} />,
+    li: ({ node, ...props }: any) => <li className="blog-markdown-item" {...props} />,
+    a: ({ node, ...props }: any) => <a className="blog-markdown-link" {...props} />,
+    blockquote: ({ node, ...props }: any) => <blockquote className="blog-markdown-quote" {...props} />,
+    pre: ({ node, ...props }: any) => <pre className="blog-markdown-code" {...props} />,
+  };
+
   const jsonLd = generateJSONLD(post, modules, slug);
 
   return (
@@ -231,30 +257,63 @@ export default async function BlogPage({ params }: BlogPageProps) {
               </div>
             )}
 
-            {/* Markdown Content */}
-            <div className="blog-markdown prose prose-lg max-w-none mb-8">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeSanitize]}
-                components={{
-                  h1: ({ node, ...props }) => <h1 className="blog-markdown-heading blog-markdown-h1" {...props} />,
-                  h2: ({ node, ...props }) => <h2 className="blog-markdown-heading blog-markdown-h2" {...props} />,
-                  h3: ({ node, ...props }) => <h3 className="blog-markdown-heading blog-markdown-h3" {...props} />,
-                  p: ({ node, ...props }) => <p className="blog-markdown-paragraph" {...props} />,
-                  ul: ({ node, ...props }) => <ul className="blog-markdown-list blog-markdown-list-unordered" {...props} />,
-                  ol: ({ node, ...props }) => <ol className="blog-markdown-list blog-markdown-list-ordered" {...props} />,
-                  li: ({ node, ...props }) => <li className="blog-markdown-item" {...props} />,
-                  a: ({ node, ...props }) => <a className="blog-markdown-link" {...props} />,
-                  blockquote: ({ node, ...props }) => <blockquote className="blog-markdown-quote" {...props} />,
-                  pre: ({ node, ...props }) => <pre className="blog-markdown-code" {...props} />,
-                }}
-              >
-                {post.content}
-              </ReactMarkdown>
-            </div>
+            {/* House-ad atas (artikel >=500 kata) */}
+            {showAds && !isShort && <BlogHouseAd variant="top" />}
 
-            {/* Dynamic Modules */}
+            {/* Markdown Content — disisipi house-ad tengah */}
+            {contentParts.length === 1 ? (
+              <div className="blog-markdown prose prose-lg max-w-none mb-8">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSanitize]}
+                  components={markdownComponents}
+                >
+                  {contentParts[0]}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <>
+                <div className="blog-markdown prose prose-lg max-w-none mb-8">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSanitize]}
+                    components={markdownComponents}
+                  >
+                    {contentParts[0]}
+                  </ReactMarkdown>
+                </div>
+                {showAds && <BlogHouseAd variant="mid" />}
+                <div className="blog-markdown prose prose-lg max-w-none mb-8">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSanitize]}
+                    components={markdownComponents}
+                  >
+                    {contentParts[1]}
+                  </ReactMarkdown>
+                </div>
+                {contentParts[2] && (
+                  <>
+                    {showAds && <BlogHouseAd variant="mid" />}
+                    <div className="blog-markdown prose prose-lg max-w-none mb-8">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeSanitize]}
+                        components={markdownComponents}
+                      >
+                        {contentParts[2]}
+                      </ReactMarkdown>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* Dynamic Modules (termasuk ad_baris manual bila ada) */}
             {modules.map((module) => renderModule(module, post.id))}
+
+            {/* House-ad akhir (semua artikel, kecuali opt-out) */}
+            {showAds && <BlogHouseAd variant="end" />}
 
             {/* Social Sharing */}
             <BlogSocialSharing
