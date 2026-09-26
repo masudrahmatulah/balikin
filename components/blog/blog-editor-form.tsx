@@ -95,6 +95,7 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [recommendationCount, setRecommendationCount] = useState("5");
   const [isCopyingPrompt, setIsCopyingPrompt] = useState(false);
+  const [isCopyingImagePrompt, setIsCopyingImagePrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     title: initialPost?.title || "",
@@ -136,6 +137,34 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
   };
 
   const externalPrompt = buildExternalPrompt();
+
+  const buildFeaturedImagePrompt = () => {
+    const articleContext = formData.content.trim()
+      ? formData.content.replace(/[#*_`>\[\](){}|]/g, " ").replace(/\s+/g, " ").slice(0, 1200)
+      : formData.summary;
+
+    return `Create a polished editorial featured image for a Balikin Indonesia blog article.\n\nARTICLE TITLE: ${formData.title || "[Article title]"}\nFOCUS KEYWORD: ${formData.focusKeyword || "[Focus keyword]"}\nSUMMARY: ${formData.summary || "[Article summary]"}\nARTICLE CONTEXT: ${articleContext || "[Briefly describe the article topic]"}\n\nIMAGE DIRECTION:\n- Create one visually clear, realistic editorial photograph that communicates the article's main idea at a glance.\n- Use a natural Indonesian setting and believable subjects/objects relevant to the topic.\n- Composition: wide landscape 1200x630 (1.91:1), with the main subject clearly visible and safe margins for social-media cropping.\n- Use tasteful natural lighting, a clean background, professional photography, and a warm, trustworthy mood.\n- Do not include any text, letters, captions, watermarks, logos, QR codes, or UI mockups in the image.\n- Avoid exaggerated danger, misleading scenes, clutter, and visual clichés.\n- Do not depict Balikin products unless the article context explicitly requires them; do not invent product details.\n\nReturn only the generated image.`;
+  };
+
+  const featuredImagePrompt = buildFeaturedImagePrompt();
+
+  const handleCopyFeaturedImagePrompt = async () => {
+    setIsCopyingImagePrompt(true);
+    try {
+      await navigator.clipboard.writeText(featuredImagePrompt);
+      toast.success("Prompt featured image disalin. Paste di ChatGPT atau AI gambar lain.");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = featuredImagePrompt;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      toast.success("Prompt featured image disalin. Paste di ChatGPT atau AI gambar lain.");
+    } finally {
+      setIsCopyingImagePrompt(false);
+    }
+  };
 
   const handleCopyExternalPrompt = async () => {
     if (!formData.content.trim()) {
@@ -670,6 +699,17 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
             <CardTitle>Cover Image</CardTitle>
           </CardHeader>
           <CardContent>
+              <div className="mb-4 space-y-3 rounded-xl border border-sky-200 bg-sky-50/70 p-4 dark:border-sky-900/60 dark:bg-sky-950/20">
+                <div>
+                  <p className="font-medium text-sky-950 dark:text-sky-100">Prompt Featured Image</p>
+                  <p className="text-xs text-sky-800 dark:text-sky-300">Salin prompt ke ChatGPT atau AI gambar lain, lalu unggah hasilnya di bawah.</p>
+                </div>
+                <Textarea value={featuredImagePrompt} readOnly rows={5} className="font-mono text-xs" />
+                <Button type="button" variant="outline" onClick={handleCopyFeaturedImagePrompt} disabled={isCopyingImagePrompt} className="w-full">
+                  {isCopyingImagePrompt ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  {isCopyingImagePrompt ? "Menyalin..." : "Salin Prompt Gambar"}
+                </Button>
+              </div>
               <ImageUploader
                 value={formData.coverImage}
                 onChange={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
