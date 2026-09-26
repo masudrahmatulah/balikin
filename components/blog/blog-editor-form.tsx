@@ -30,6 +30,11 @@ interface ArticleRecommendation {
 
 const IMPROVE_PROMPT_PRESETS = [
   {
+    label: "Supporting → 850 kata",
+    prompt:
+      "Kembangkan artikel supporting ini hingga minimal 850 kata. Pertahankan judul, slug, esensi, dan semua fakta yang sudah benar. Jangan mengulang atau mengganti isi dengan ringkasan; tambahkan penjelasan yang relevan, langkah praktis, contoh spesifik, serta FAQ singkat bila sesuai. Pertahankan focus keyword minimal 2x secara natural, semua internal link yang sudah ada, dan 1 link produk Balikin yang relevan.",
+  },
+  {
     label: "Pillar → 2.200 kata",
     prompt:
       "Perpanjang artikel ini menjadi minimal 2200 kata. Jangan ubah judul, slug, dan fakta yang sudah ada. Tambahkan contoh praktis, langkah detail, FAQ, dan studi kasus. Pertahankan focus keyword minimal 2x natural, 2-4 internal link, dan 1 link produk Balikin.",
