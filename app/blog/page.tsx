@@ -9,6 +9,8 @@ import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/site-header';
 import { isNull, and } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Blog Balikin: Tips Keamanan Barang dan Lost & Found',
   description: 'Baca panduan, tips, dan cerita tentang keamanan barang, QR Smart Tag, serta cara meningkatkan peluang barang hilang kembali.',
