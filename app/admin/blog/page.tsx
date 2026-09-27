@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
-import { blogPosts, giveawayClaims, blogComments, trueStorySubmissions } from '@/db/schema';
+import { blogPosts } from '@/db/schema';
 import { desc, eq, and, isNull } from 'drizzle-orm';
 import Link from 'next/link';
-import { Plus, MessageSquare, Gift, Video, Eye, ExternalLink, Pencil } from 'lucide-react';
+import { Plus, MessageSquare, Gift, Video, Eye } from 'lucide-react';
+import { BlogPostsManager } from '@/components/blog/blog-posts-manager';
 
 async function getAdminData() {
   const session = await getAdminSession();
@@ -30,7 +31,15 @@ async function getAdminData() {
   };
 }
 
-export default async function AdminBlogPage() {
+export default async function AdminBlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const params = await searchParams;
+  const initialStatus = ['draft', 'scheduled', 'published'].includes(params.status || '')
+    ? params.status as 'draft' | 'scheduled' | 'published'
+    : 'all';
   const data = await getAdminData();
 
   if (!data) {
@@ -89,42 +98,18 @@ export default async function AdminBlogPage() {
         </div>
       </div>
 
-      {/* Recent Posts */}
-      <div className="bg-card rounded-xl border">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-bold">Recent Posts</h2>
-        </div>
-        <div className="divide-y">
-          {posts.map((post) => (
-            <div key={post.id} className="p-4 flex items-center justify-between hover:bg-accent/50">
-              <div className="flex-1">
-                <h3 className="font-medium">{post.title}</h3>
-                <p className="text-sm text-muted-foreground">{post.slug}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {post.isPublished ? (
-                  <span className="px-2 py-1 bg-emerald-500/10 text-emerald-600 text-xs rounded">Published</span>
-                ) : (
-                  <span className="px-2 py-1 bg-amber-500/10 text-amber-600 text-xs rounded">Draft</span>
-                )}
-                <Link href={`/admin/blog/${post.id}/edit`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm hover:bg-accent" title="Edit artikel">
-                  <Pencil className="w-4 h-4" />
-                  <span className="hidden sm:inline">Edit</span>
-                </Link>
-                <Link href={`/admin/blog/${post.id}/preview`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm hover:bg-accent" title="Preview artikel">
-                  <Eye className="w-4 h-4" />
-                  <span className="hidden sm:inline">Preview</span>
-                </Link>
-                {post.isPublished && (
-                  <Link href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 hover:bg-accent" title="Buka artikel publik">
-                    <ExternalLink className="w-4 h-4" />
-                  </Link>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <BlogPostsManager
+        initialStatus={initialStatus}
+        posts={posts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          createdAt: post.createdAt.toISOString(),
+          publishedAt: post.publishedAt?.toISOString() || null,
+          scheduledAt: post.scheduledAt?.toISOString() || null,
+          isPublished: post.isPublished,
+        }))}
+      />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
