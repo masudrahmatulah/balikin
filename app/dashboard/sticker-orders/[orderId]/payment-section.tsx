@@ -12,9 +12,10 @@ interface PaymentSectionProps {
   totalAmount: number;
   paymentProofUrl?: string | null;
   isPrintable?: boolean;
+  activationBatchId?: string | null;
 }
 
-export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentProofUrl, isPrintable }: PaymentSectionProps) {
+export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentProofUrl, isPrintable, activationBatchId }: PaymentSectionProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [qrString, setQrString] = useState<string | null>(null);
@@ -46,6 +47,15 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentPro
     return (
       <div className="rounded-2xl border border-green-300 bg-green-50 p-5 dark:border-green-800 dark:bg-green-950/40">
         <p className="text-sm font-semibold text-green-950 dark:text-green-100">✓ Pembayaran Berhasil</p>
+        {activationBatchId && (
+          <div className="mt-4 rounded-xl border border-green-200 bg-white p-3 text-center dark:border-green-800 dark:bg-slate-900">
+            <p className="text-sm font-semibold text-green-950 dark:text-green-100">QR Aktivasi Paket</p>
+            <div className="mt-3 flex justify-center">
+              <QRCodeSVG value={`/activate/batch/${activationBatchId}`} size={190} includeMargin />
+            </div>
+            <p className="mt-2 text-xs text-green-800 dark:text-green-200">Scan QR ini, lalu masukkan kode klaim dari buku petunjuk untuk mengaktifkan seluruh paket.</p>
+          </div>
+        )}
         <p className="mt-2 text-sm leading-6 text-green-900 dark:text-green-200">
           Pembayaran Anda telah diverifikasi. Admin sedang menyiapkan bundle sticker. Anda akan menerima update melalui WhatsApp.
         </p>

@@ -59,15 +59,16 @@ export async function getClaimCodesForOrder(
   orderId: string,
   sheetCode: string
 ): Promise<ClaimCodeLookupResult> {
-  const userId = await requireUserId();
-  const normalizedOrderId = orderId.trim();
-  const normalizedSheetCode = sheetCode.trim().toUpperCase();
+  try {
+    const userId = await requireUserId();
+    const normalizedOrderId = orderId.trim();
+    const normalizedSheetCode = sheetCode.trim().toUpperCase();
 
-  if (!normalizedOrderId || !normalizedSheetCode || normalizedSheetCode.length > 100) {
-    return { success: false, error: 'Kode sheet tidak valid.' };
-  }
+    if (!normalizedOrderId || !normalizedSheetCode || normalizedSheetCode.length > 100) {
+      return { success: false, error: 'Kode sheet tidak valid.' };
+    }
 
-  const rows = await db.execute(sql`
+    const rows = await db.execute(sql`
     SELECT
       s.sheet_code,
       s.activation_pin_plain,
@@ -89,37 +90,41 @@ export async function getClaimCodesForOrder(
       AND o.user_id = ${userId}
       AND o.payment_status = 'paid'
     ORDER BY t.serial_number ASC
-  `);
+    `);
 
-  const resultRows = rows.rows as Array<{
+    const resultRows = rows.rows as Array<{
     sheet_code: string;
     activation_pin_plain: string | null;
     serial_number: string | null;
     slug: string;
-  }>;
+    }>;
 
-  if (resultRows.length === 0) {
+    if (resultRows.length === 0) {
+      return {
+        success: false,
+        error: 'Kode sheet tidak ditemukan pada order Anda yang sudah dibayar.',
+      };
+    }
+
+    const masterPin = resultRows[0].activation_pin_plain;
+    if (!masterPin) {
+      return { success: false, error: 'Kode klaim belum tersedia. Hubungi CS Balikin.' };
+    }
+
     return {
-      success: false,
-      error: 'Kode sheet tidak ditemukan pada order Anda yang sudah dibayar.',
+      success: true,
+      sheet: {
+        sheetCode: resultRows[0].sheet_code,
+        masterPin,
+        tags: resultRows
+          .filter((row) => row.serial_number)
+          .map((row) => ({ serialNumber: row.serial_number as string, slug: row.slug })),
+      },
     };
+  } catch (error) {
+    console.error('[Claim Code Lookup] Failed:', error);
+    return { success: false, error: 'Sesi login tidak valid. Silakan muat ulang halaman dan login kembali.' };
   }
-
-  const masterPin = resultRows[0].activation_pin_plain;
-  if (!masterPin) {
-    return { success: false, error: 'Kode klaim belum tersedia. Hubungi CS Balikin.' };
-  }
-
-  return {
-    success: true,
-    sheet: {
-      sheetCode: resultRows[0].sheet_code,
-      masterPin,
-      tags: resultRows
-        .filter((row) => row.serial_number)
-        .map((row) => ({ serialNumber: row.serial_number as string, slug: row.slug })),
-    },
-  };
 }
 
 /**

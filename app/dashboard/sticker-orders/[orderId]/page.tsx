@@ -41,6 +41,9 @@ export default async function StickerOrderDetailPage({
   }
 
   const productName = getProductDisplayName(order.productType, order.unitCountPerPack);
+  const activationBatchId = order.productType === 'sticker'
+    ? order.bundles.flatMap((bundle) => bundle.tags).find((tag) => tag.batchId)?.batchId || null
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -121,6 +124,7 @@ export default async function StickerOrderDetailPage({
               totalAmount={order.totalAmount}
               paymentProofUrl={order.paymentProofUrl}
               isPrintable={order.productType === 'printable'}
+              activationBatchId={activationBatchId}
             />
           </CardContent>
         </Card>
