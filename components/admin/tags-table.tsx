@@ -11,6 +11,10 @@ interface TagOwner {
   email: string;
 }
 
+interface TagOwnerOption extends TagOwner {
+  id: string;
+}
+
 interface TagWithOwner {
   id: string;
   name: string;
@@ -26,40 +30,63 @@ interface TagWithOwner {
 
 interface TagsTableProps {
   tags: TagWithOwner[];
+  owners: TagOwnerOption[];
+  currentPage: number;
+  totalPages: number;
+  totalTags: number;
+  search: string;
+  statusFilter: "all" | "normal" | "lost";
+  ownerFilter: string;
+  unclaimedOwnerValue: string;
 }
 
-const UNCLAIMED_OWNER_VALUE = "__unclaimed__";
-
-export function TagsTable({ tags }: TagsTableProps) {
+export function TagsTable({
+  tags,
+  owners,
+  currentPage,
+  totalPages,
+  totalTags,
+  search,
+  statusFilter,
+  ownerFilter,
+  unclaimedOwnerValue,
+}: TagsTableProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "normal" | "lost">("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState(search);
   const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isAllSelected, setIsAllSelected] = useState(false);
 
-  const owners = Array.from(
-    new Map(
-      tags
-        .filter((tag) => tag.ownerId && tag.owner)
-        .map((tag) => [tag.ownerId as string, tag.owner as TagOwner])
-    ).entries()
-  ).sort((a, b) => (a[1].name || a[1].email).localeCompare(b[1].name || b[1].email));
+  const filteredTags = tags;
 
-  const filteredTags = tags.filter((tag) => {
-    const matchesSearch =
-      tag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tag.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tag.owner?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tag.owner?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || tag.status === statusFilter;
-    const matchesOwner =
-      ownerFilter === "all" ||
-      (ownerFilter === UNCLAIMED_OWNER_VALUE ? !tag.ownerId : tag.ownerId === ownerFilter);
-    return matchesSearch && matchesStatus && matchesOwner;
-  });
+  const buildUrl = (page: number) => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", String(page));
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (ownerFilter !== "all") params.set("owner", ownerFilter);
+    const query = params.toString();
+    return query ? `/admin/tags?${query}` : "/admin/tags";
+  };
+
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    router.push(buildUrl(1));
+  };
+
+  const updateFilter = (key: "status" | "owner", value: string) => {
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    if (key === "status" ? value !== "all" : statusFilter !== "all") {
+      params.set("status", key === "status" ? value : statusFilter);
+    }
+    if (key === "owner" ? value !== "all" : ownerFilter !== "all") {
+      params.set("owner", key === "owner" ? value : ownerFilter);
+    }
+    const query = params.toString();
+    router.push(query ? `/admin/tags?${query}` : "/admin/tags");
+  };
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -91,7 +118,7 @@ export function TagsTable({ tags }: TagsTableProps) {
 
   return (
     <div>
-      <div className="p-4 flex flex-col sm:flex-row gap-4 border-b border-gray-200 dark:border-gray-700">
+      <form onSubmit={submitSearch} className="p-4 flex flex-col sm:flex-row gap-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex-1 relative">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -113,7 +140,7 @@ export function TagsTable({ tags }: TagsTableProps) {
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as "all" | "normal" | "lost")}
+           onChange={(e) => updateFilter("status", e.target.value)}
           aria-label="Filter status"
           className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
@@ -123,19 +150,19 @@ export function TagsTable({ tags }: TagsTableProps) {
         </select>
         <select
           value={ownerFilter}
-          onChange={(e) => setOwnerFilter(e.target.value)}
+           onChange={(e) => updateFilter("owner", e.target.value)}
           aria-label="Filter owner"
           className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border-0 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">Semua Owner</option>
-          <option value={UNCLAIMED_OWNER_VALUE}>Unclaimed</option>
-          {owners.map(([ownerId, owner]) => (
-            <option key={ownerId} value={ownerId}>
+           <option value={unclaimedOwnerValue}>Unclaimed</option>
+          {owners.map((owner) => (
+            <option key={owner.id} value={owner.id}>
               {owner.name || owner.email}
             </option>
           ))}
         </select>
-      </div>
+      </form>
 
       {selectedIds.size > 0 && (
         <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 flex items-center justify-between">
@@ -358,6 +385,36 @@ export function TagsTable({ tags }: TagsTableProps) {
             </div>
           ))
         )}
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Menampilkan {filteredTags.length} dari {totalTags} tag · Halaman {currentPage} dari {totalPages}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              clearSelection();
+              router.push(buildUrl(currentPage - 1));
+            }}
+            disabled={currentPage <= 1}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200"
+          >
+            Sebelumnya
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              clearSelection();
+              router.push(buildUrl(currentPage + 1));
+            }}
+            disabled={currentPage >= totalPages}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-200"
+          >
+            Berikutnya
+          </button>
+        </div>
       </div>
 
       <BulkDeleteTagsModal

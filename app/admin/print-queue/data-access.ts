@@ -6,11 +6,11 @@ import { printQueue } from '@/db/schema';
 import { desc, eq, sql, inArray, and } from 'drizzle-orm';
 
 const APP_ID = 'balikin_id';
-const ITEMS_PER_PAGE = 25;
+const PRINT_QUEUE_ITEMS_PER_PAGE = 25;
 
 async function getPrintQueueItemsCore(page: number = 1, status?: string) {
 
-  const offset = (page - 1) * ITEMS_PER_PAGE;
+  const offset = (page - 1) * PRINT_QUEUE_ITEMS_PER_PAGE;
 
   const items = await db.query.printQueue.findMany({
     where: status
@@ -21,7 +21,7 @@ async function getPrintQueueItemsCore(page: number = 1, status?: string) {
       printedByUser: true,
       materialInventory: true,
     },
-    limit: ITEMS_PER_PAGE,
+    limit: PRINT_QUEUE_ITEMS_PER_PAGE,
     offset,
   });
 

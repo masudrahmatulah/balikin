@@ -1,18 +1,31 @@
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
-import { getPrintQueueItems, getPrintQueueStats } from './data-access';
+import { getPrintQueueItems, getPrintQueueItemsCount, getPrintQueueStats } from './data-access';
 import { PrintQueueTable } from '@/components/admin/print-queue-table';
 
-export default async function PrintQueuePage() {
+const PRINT_QUEUE_ITEMS_PER_PAGE = 25;
+
+export default async function PrintQueuePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const session = await getAdminSession();
   if (!session) {
     redirect('/sign-in?redirect=/admin/print-queue');
   }
 
-  const [queueItems, stats] = await Promise.all([
-    getPrintQueueItems(1),
+  const { page: pageParam } = await searchParams;
+  const requestedPage = Number.parseInt(pageParam || '1', 10);
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+
+  const [totalItems, stats] = await Promise.all([
+    getPrintQueueItemsCount(),
     getPrintQueueStats(),
   ]);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PRINT_QUEUE_ITEMS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const queueItems = await getPrintQueueItems(safePage);
 
   return (
     <div className="space-y-6">
@@ -25,7 +38,14 @@ export default async function PrintQueuePage() {
         </p>
       </div>
 
-      <PrintQueueTable items={queueItems} stats={stats} adminId={session.user.id} />
+      <PrintQueueTable
+        items={queueItems}
+        stats={stats}
+        adminId={session.user.id}
+        currentPage={safePage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+      />
     </div>
   );
 }

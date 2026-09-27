@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Download, Filter, Search, Package, RotateCw, Clock, X, CheckSquare2 } from 'lucide-react';
+import { Download, Filter, Search, Package, RotateCw, Clock, X, CheckSquare2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAutoRefresh } from '@/hooks/use-auto-refresh';
 
 interface PrintQueueItem {
@@ -48,9 +48,12 @@ interface PrintQueueTableProps {
   items: PrintQueueItem[];
   stats?: Record<string, number>;
   adminId: string;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
 }
 
-export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableProps) {
+export function PrintQueueTable({ items, stats = {}, adminId, currentPage, totalPages, totalItems }: PrintQueueTableProps) {
   const router = useRouter();
   const [updating, setUpdating] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -172,6 +175,12 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
   };
 
   const clearSelection = () => setSelectedIds(new Set());
+
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    setSelectedIds(new Set());
+    router.push(`/admin/print-queue?page=${page}`);
+  };
 
   const handleReprint = async (item: PrintQueueItem) => {
     setReprinting(item.id);
@@ -364,7 +373,7 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Package className="w-4 h-4" aria-hidden="true" />
             <span>
-              Showing {filteredItems.length} of {items.length} items
+               Showing {filteredItems.length} of {totalItems} items
             </span>
           </div>
         </div>
@@ -488,6 +497,34 @@ export function PrintQueueTable({ items, stats = {}, adminId }: PrintQueueTableP
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-gray-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Page {currentPage} of {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              aria-label="Next page"
+            >
+              Next
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
