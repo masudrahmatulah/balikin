@@ -574,7 +574,7 @@ export async function POST(request: NextRequest) {
           '',
           'Satu kode berlaku untuk 1 tag. Scan pertama wajib memasukkan kode ini.',
           '',
-          ...allTags.map((t) => `${t.serialNumber || t.slug}\tPIN: ${t.activationPinPlain || '-'}`),
+          ...allTags.map((t) => `${t.serialNumber || t.slug}-${t.activationPinPlain || '-'}`),
         ];
         zip.file('kode-klaim.txt', pinLines.join('\n'));
         const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });

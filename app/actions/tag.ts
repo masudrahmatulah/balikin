@@ -357,6 +357,48 @@ export async function claimTag(tagId: string, pin?: string) {
   redirect('/dashboard');
 }
 
+/** Claim a new acrylic tag from the universal VDP QR using SERIAL-PIN. */
+export async function claimTagWithUniversalCode(claimCode: string) {
+  const session = await getClaimSession();
+
+  if (!session?.user?.id) {
+    redirect('/sign-in?redirect=/claim');
+  }
+
+  const normalizedCode = claimCode.trim().toUpperCase();
+  const match = normalizedCode.match(/^(.+)-([A-Z0-9]{4}-[A-Z0-9]{4})$/);
+  if (!match) {
+    throw new Error('Format kode klaim tidak valid. Contoh: B01-047-001-A3K7-M9P2');
+  }
+
+  const [, serialNumber, pin] = match;
+  const tag = await db.query.tags.findFirst({
+    where: eq(tags.serialNumber, serialNumber),
+  });
+
+  if (!tag || tag.productType === 'sticker') {
+    throw new Error('Serial tag tidak ditemukan. Periksa kembali kode klaim.');
+  }
+
+  if (tag.ownerId && tag.ownerId !== session.user.id) {
+    throw new Error('Tag ini sudah diklaim oleh akun lain.');
+  }
+
+  assertClaimPin(tag, pin);
+
+  await db.update(tags)
+    .set({
+      ownerId: session.user.id,
+      claimedAt: new Date(),
+      isVerified: true,
+    })
+    .where(eq(tags.id, tag.id));
+
+  revalidatePath('/dashboard');
+  revalidatePath('/p/[slug]');
+  redirect('/dashboard');
+}
+
 export async function claimStickerTag(tagId: string, name: string, pin?: string) {
   const session = await getClaimSession();
 

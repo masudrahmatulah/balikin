@@ -647,8 +647,11 @@ export async function generateOneRowSticker(
 
   async function buildPacket(tag: TagVDPData, offsetLeftPx: number) {
     // Kolom 1: QR Utama (scan jika barang ditemukan)
+    const qrTarget = shapeKey
+      ? `${getAppBaseUrl()}/claim`
+      : `${getAppBaseUrl()}/p/${tag.slug}`;
     const qrUtamaDataUri = await QRCode.toDataURL(
-      `${getAppBaseUrl()}/p/${tag.slug}`,
+      qrTarget,
       { width: qrSizePx, margin: 1 }
     );
     // Kolom kiri (QR): judul besar SCAN DISINI + caption di bawah QR.
@@ -656,7 +659,7 @@ export async function generateOneRowSticker(
     const kotak1 = await sharp(buildKotakSvg({
       shapeKey,
       contentDataUri: qrUtamaDataUri,
-      serial: tag.serialNumber || '',
+      serial: '',
       isAktivasi: false,
       topLabel: 'SCAN DI SINI',
       bottomLabel: 'Untuk Hubungi Pemiliknya',
@@ -686,7 +689,7 @@ export async function generateOneRowSticker(
     const kotak2 = await sharp(buildKotakSvg({
       shapeKey,
       contentDataUri,
-      serial: tag.serialNumber || '',
+      serial: '',
       isAktivasi: false,
       contentWidthMm: logoWidthMm,
       contentHeightMm: logoHeightMm,
