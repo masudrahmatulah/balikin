@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq, and, isNull, or, desc } from "drizzle-orm";
+import { eq, and, isNull, desc } from "drizzle-orm";
 
 /**
  * GET /api/blog/drafts - List all draft posts (isPublished = false)
  */
 export async function GET(req: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "admin") {
+  if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const drafts = await db.query.blogPosts.findMany({
-      where: eq(blogPosts.isPublished, false),
+      where: and(
+        eq(blogPosts.app_id, "balikin_id"),
+        eq(blogPosts.isPublished, false),
+        isNull(blogPosts.scheduledAt),
+        isNull(blogPosts.deletedAt),
+      ),
       orderBy: [desc(blogPosts.createdAt)],
     });
-
-    // Filter out scheduled posts (those with scheduledAt in future)
-    const now = new Date();
-    const trueDrafts = drafts.filter((post) => !post.scheduledAt || new Date(post.scheduledAt) > now);
-
-    return NextResponse.json({ drafts: trueDrafts });
+    return NextResponse.json({ drafts });
   } catch (error) {
     console.error("Drafts fetch error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
