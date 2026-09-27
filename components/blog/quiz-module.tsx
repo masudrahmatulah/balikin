@@ -11,7 +11,6 @@ import { CheckCircle2, AlertTriangle, Gift, ArrowRight, ClipboardCheck } from "l
 interface QuizQuestion {
   question: string;
   options: string[];
-  correctAnswerIndex: number;
 }
 
 interface QuizModuleProps {
@@ -30,11 +29,12 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
 
   const [formData, setFormData] = useState({ name: '', whatsapp: '', address: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGrading, setIsGrading] = useState(false);
   const [calculatedScore, setCalculatedScore] = useState(0);
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedAnswer === null) return;
 
     const newAnswers = [...answers, selectedAnswer];
@@ -44,18 +44,25 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
     if (currentQuestionIndex + 1 < questions.length) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      let correctCount = 0;
-      newAnswers.forEach((ans, idx) => {
-        if (ans === questions[idx].correctAnswerIndex) correctCount++;
-      });
+      setIsGrading(true);
+      try {
+        const response = await fetch('/api/blog/quiz-grade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId, quizId, answers: newAnswers }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Jawaban kuis tidak dapat diperiksa.');
 
-      const finalScore = Math.round((correctCount / questions.length) * 100);
-      setCalculatedScore(finalScore);
-
-      if (finalScore >= minScoreToWin) {
-        setStep('claim_form');
-      } else {
-        setStep('result_fail');
+        setCalculatedScore(result.score);
+        setStep(result.passed ? 'claim_form' : 'result_fail');
+      } catch (error) {
+        setAnswers(answers);
+        setSelectedAnswer(newAnswers[newAnswers.length - 1] ?? null);
+        console.error(error);
+        alert(error instanceof Error ? error.message : 'Terjadi kesalahan saat memeriksa jawaban. Coba lagi.');
+      } finally {
+        setIsGrading(false);
       }
     }
   };
@@ -78,10 +85,10 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
         body: JSON.stringify({
           postId,
           quizId,
+          answers,
           fullName: formData.name,
           whatsappNumber: formData.whatsapp,
           shippingAddress: formData.address,
-          score: calculatedScore
         })
       });
 
@@ -106,9 +113,9 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
             <Gift className="w-6 h-6 animate-bounce" />
           </div>
-          <h3 className="text-xl md:text-2xl font-bold tracking-tight">Kuis Berhadiah Stiker BALIKIN!</h3>
+          <h3 className="text-xl md:text-2xl font-bold tracking-tight">Kuis Berhadiah BALIKIN!</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Yuk uji pemahamanmu dari materi artikel di atas! Jawab kuis singkat ini dengan benar dan dapatkan <span className="font-semibold text-foreground underline decoration-primary decoration-2">{rewardText}</span> secara gratis dikirim ke rumahmu.
+            Yuk uji pemahamanmu dari materi artikel di atas! Jawab kuis singkat ini untuk berkesempatan mendapatkan <span className="font-semibold text-foreground underline decoration-primary decoration-2">{rewardText}</span>.
           </p>
           <div className="text-xs text-muted-foreground bg-card border py-2 px-4 rounded-full inline-block">
             Target kelulusan: minimal <span className="font-bold text-primary">{minScoreToWin}%</span> jawaban benar
@@ -140,8 +147,8 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
             ))}
           </RadioGroup>
 
-          <Button onClick={handleNext} className="w-full py-6 font-semibold" disabled={selectedAnswer === null}>
-            {currentQuestionIndex + 1 === questions.length ? "Lihat Hasil Kuis" : "Lanjutkan Pertanyaan"}
+          <Button onClick={handleNext} className="w-full py-6 font-semibold" disabled={selectedAnswer === null || isGrading}>
+            {isGrading ? "Memeriksa jawaban..." : currentQuestionIndex + 1 === questions.length ? "Lihat Hasil Kuis" : "Lanjutkan Pertanyaan"}
           </Button>
         </div>
       )}
@@ -153,7 +160,7 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
           </div>
           <h3 className="text-lg font-bold">Skor Kamu Belum Mencapai Target</h3>
           <p className="text-sm text-muted-foreground">
-            Kamu mendapatkan skor <span className="font-bold text-destructive">{calculatedScore}%</span>. Sayang sekali, batas minimal kelulusan untuk klaim hadiah stiker adalah <span className="font-semibold text-foreground">{minScoreToWin}%</span>.
+            Kamu mendapatkan skor <span className="font-bold text-destructive">{calculatedScore}%</span>. Sayang sekali, batas minimal kelulusan untuk klaim hadiah adalah <span className="font-semibold text-foreground">{minScoreToWin}%</span>.
           </p>
           <p className="text-xs text-muted-foreground">Tip: Baca kembali artikel di atas dengan teliti dan coba lagi!</p>
           <Button variant="outline" onClick={handleReset} className="mt-2">Coba Kuis Lagi</Button>
@@ -167,7 +174,7 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
               <ClipboardCheck className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-bold text-emerald-600">Luar Biasa, Kamu Lolos! 🎉</h3>
-            <p className="text-xs text-muted-foreground">Skor kamu: <span className="font-bold">{calculatedScore}%</span>. Isi formulir kurir pengiriman di bawah untuk klaim stiker.</p>
+            <p className="text-xs text-muted-foreground">Skor kamu: <span className="font-bold">{calculatedScore}%</span>. Isi formulir di bawah untuk mengajukan klaim hadiah.</p>
           </div>
 
           <div className="grid gap-4">
@@ -188,7 +195,7 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
           </div>
 
           <Button type="submit" className="w-full py-6 font-semibold mt-4" disabled={isSubmitting}>
-            {isSubmitting ? "Sedang Mengirim..." : "Klaim & Kirim Stiker Saya!"}
+            {isSubmitting ? "Sedang Mengirim..." : "Kirim Klaim Hadiah Saya"}
           </Button>
         </form>
       )}
@@ -200,7 +207,7 @@ export function BlogQuizModule({ quizId, rewardText, minScoreToWin, questions, p
           </div>
           <h3 className="text-2xl font-bold text-emerald-600">Data Pengiriman Tersimpan!</h3>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            Hore! Permintaan stiker gratis Anda sedang diproses oleh admin BALIKIN. Kami akan segera mengirimkan paket stiker dan mengonfirmasi nomor resi via WhatsApp. Terima kasih sudah ikut berpartisipasi!
+            Hore! Klaim hadiah Anda sudah tersimpan dan akan ditinjau oleh admin BALIKIN. Kami akan menghubungi Anda melalui WhatsApp terkait proses klaim. Terima kasih sudah ikut berpartisipasi!
           </p>
         </div>
       )}

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { db } from '@/db';
-import { giveawayClaims } from '@/db/schema';
-import { auth } from '@/lib/auth';
-import { eq, desc, and } from 'drizzle-orm';
+import { blogPosts, giveawayClaims } from '@/db/schema';
+import { isAdmin } from '@/lib/admin';
+import { eq, desc, and, isNull } from 'drizzle-orm';
 import { logError, ValidationError, AppError } from '@/lib/error-handler';
 import { checkBlogQuizRateLimit } from '@/lib/rate-limit';
 import { GiveawayClaimSchema, type GiveawayClaimInput } from '@/lib/validations';
+import { findQuizModule, gradeQuizAnswers } from '@/lib/blog-quiz';
 
 async function getClientIP(request: NextRequest): Promise<string> {
   return (
@@ -44,11 +44,35 @@ export async function POST(req: NextRequest) {
     // Zod validation
     const validationResult = GiveawayClaimSchema.safeParse(body);
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.errors.map(e => e.message).join(', ');
+      const errorMessages = validationResult.error.issues.map((issue) => issue.message).join(', ');
       throw new ValidationError(`Validasi gagal: ${errorMessages}`);
     }
 
     const data: GiveawayClaimInput = validationResult.data;
+
+    const post = await db.query.blogPosts.findFirst({
+      where: and(
+        eq(blogPosts.id, data.postId),
+        eq(blogPosts.app_id, 'balikin_id'),
+        eq(blogPosts.isPublished, true),
+        isNull(blogPosts.deletedAt),
+      ),
+      columns: { modules: true },
+    });
+    if (!post) throw new ValidationError('Artikel giveaway tidak ditemukan.');
+
+    const quiz = findQuizModule(post.modules, data.quizId);
+    if (!quiz) throw new ValidationError('Kuis giveaway tidak ditemukan atau belum valid.');
+
+    const quizResult = gradeQuizAnswers(quiz, data.answers);
+    if (!quizResult) throw new ValidationError('Jawaban tidak sesuai dengan kuis.');
+    if (!quizResult.passed) {
+      return NextResponse.json({
+        error: 'Skor belum mencapai batas minimum untuk mengklaim hadiah.',
+        score: quizResult.score,
+        minScoreToWin: quiz.minScoreToWin,
+      }, { status: 403 });
+    }
 
     // Check if this user has already claimed for this quiz (by phone number)
     const existing = await db.query.giveawayClaims.findFirst({
@@ -72,12 +96,12 @@ export async function POST(req: NextRequest) {
       fullName: data.fullName,
       whatsappNumber: data.whatsappNumber,
       shippingAddress: data.shippingAddress,
-      score: data.score,
+      score: quizResult.score,
       status: 'pending',
     }).returning();
 
     return NextResponse.json(
-      { success: true, claimId: claim[0].id },
+      { success: true, claimId: claim[0].id, score: quizResult.score },
       { status: 201 }
     );
   } catch (error) {
@@ -99,11 +123,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!(await isAdmin())) {
       throw new AppError('Unauthorized', 'AUTH_ERROR', 401);
     }
 

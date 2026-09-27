@@ -634,7 +634,13 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
           </CardContent>
         </Card>
 
-        <BlogModuleBuilder modules={modules} onModulesChange={setModules} />
+        <BlogModuleBuilder
+          modules={modules}
+          onModulesChange={setModules}
+          articleTitle={formData.title}
+          focusKeyword={formData.focusKeyword}
+          articleContent={formData.content}
+        />
       </div>
 
       <div className="space-y-6">

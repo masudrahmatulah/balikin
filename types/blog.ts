@@ -10,6 +10,8 @@ export type QuizQuestion = {
   correctAnswerIndex: number; // 0-3
 };
 
+export type PublicQuizQuestion = Omit<QuizQuestion, 'correctAnswerIndex'>;
+
 export type BlogModule =
   | { type: 'faq'; data: FAQItem[] }
   | { type: 'gallery'; images: string[] }
@@ -23,6 +25,16 @@ export type BlogModule =
       rewardText: string;
       minScoreToWin: number; // 0-100
       questions: QuizQuestion[];
+    };
+
+export type PublicBlogModule =
+  | Exclude<BlogModule, { type: 'quiz_giveaway' }>
+  | {
+      type: 'quiz_giveaway';
+      quizId: string;
+      rewardText: string;
+      minScoreToWin: number;
+      questions: PublicQuizQuestion[];
     };
 
 // Blog Post Types
@@ -39,7 +51,7 @@ export interface PublicBlogPost {
   summary: string;
   coverImage: string | null;
   content: string;
-  modules: BlogModule[];
+  modules: PublicBlogModule[];
   authorName: string;
   authorAvatar: string | null;
   reviewedBy: string | null;
@@ -52,7 +64,7 @@ export interface QuizModuleProps {
   quizId: string;
   rewardText: string;
   minScoreToWin: number;
-  questions: QuizQuestion[];
+  questions: PublicQuizQuestion[];
   postId: string;
 }
 

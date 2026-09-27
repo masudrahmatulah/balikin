@@ -148,6 +148,7 @@ export const BlogCommentSchema = z.object({
 export const GiveawayClaimSchema = z.object({
   postId: z.string().uuid('Post ID tidak valid'),
   quizId: z.string().min(1, 'Quiz ID wajib diisi'),
+  answers: z.array(z.number().int().min(0).max(3)).min(1).max(20),
   fullName: z.string()
     .min(2, 'Nama lengkap minimal 2 karakter')
     .max(100, 'Nama terlalu panjang')
@@ -159,10 +160,6 @@ export const GiveawayClaimSchema = z.object({
     .min(20, 'Alamat lengkap minimal 20 karakter')
     .max(500, 'Alamat terlalu panjang')
     .transform((val) => val.trim()),
-  score: z.number()
-    .int('Skor harus bilangan bulat')
-    .min(0, 'Skor tidak boleh negatif')
-    .max(100, 'Skor maksimal 100'),
 });
 
 export const TrueStorySubmissionSchema = z.object({

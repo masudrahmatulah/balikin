@@ -10,6 +10,7 @@ import { logError, ValidationError, NotFoundError, AppError } from '@/lib/error-
 import { BlogPostCreateSchema, BlogPostUpdateSchema, type BlogPostCreateInput } from '@/lib/validations';
 import { validateSlug } from '@/lib/blog-validation';
 import { countContentWords } from '@/lib/blog-content-strategy';
+import { getGiveawayModuleValidationError, redactQuizAnswerKeys } from '@/lib/blog-quiz';
 
 async function validateContentPlanWordTarget(contentPlanId: string | undefined, content: string, shouldPublish: boolean) {
   if (!shouldPublish || !contentPlanId) return;
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
         throw new NotFoundError('Artikel blog', slug);
       }
 
-      return NextResponse.json(post);
+       return NextResponse.json({ ...post, modules: redactQuizAnswerKeys(post.modules) });
     }
 
     // Get all posts using cache
@@ -92,7 +93,7 @@ export async function GET(req: NextRequest) {
       summary: p.summary,
       coverImage: p.coverImage,
       content: p.content,
-      modules: p.modules,
+       modules: redactQuizAnswerKeys(p.modules),
       authorName: p.authorName,
       authorAvatar: p.authorAvatar,
       reviewedBy: p.reviewedBy,
@@ -161,7 +162,12 @@ export async function POST(req: NextRequest) {
     // Handle scheduled publishing
     const scheduledDate = data.scheduledAt ? new Date(data.scheduledAt) : null;
     const isScheduled = scheduledDate && scheduledDate > new Date();
-    await validateContentPlanWordTarget(data.contentPlanId, data.content, data.isPublished === true || Boolean(isScheduled));
+    const shouldPublish = data.isPublished === true || Boolean(isScheduled);
+    if (shouldPublish) {
+      const quizError = getGiveawayModuleValidationError(data.modules || []);
+      if (quizError) throw new ValidationError(quizError);
+    }
+    await validateContentPlanWordTarget(data.contentPlanId, data.content, shouldPublish);
 
     const post = await db.insert(blogPosts).values({
       title: data.title,
@@ -227,7 +233,12 @@ export async function PUT(req: NextRequest) {
     const nextScheduledDate = data.scheduledAt ? new Date(data.scheduledAt) : null;
     const isScheduled = Boolean(nextScheduledDate && nextScheduledDate > new Date());
     const isPublished = data.isPublished === true && !isScheduled;
-    await validateContentPlanWordTarget(data.contentPlanId, data.content || existing.content, data.isPublished === true || isScheduled);
+    const shouldPublish = data.isPublished === true || isScheduled || (existing.isPublished && data.isPublished !== false);
+    if (shouldPublish) {
+      const quizError = getGiveawayModuleValidationError(data.modules ?? existing.modules ?? []);
+      if (quizError) throw new ValidationError(quizError);
+    }
+    await validateContentPlanWordTarget(data.contentPlanId, data.content || existing.content, shouldPublish);
 
     const [post] = await db.update(blogPosts).set({
       ...(data.title !== undefined && { title: data.title }),

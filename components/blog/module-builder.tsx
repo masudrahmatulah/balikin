@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, GripVertical, HelpCircle, MessageSquare, Image as ImageIcon, MapPin, Gift, Award, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Trash2, GripVertical, HelpCircle, MessageSquare, Image as ImageIcon, MapPin, Gift, Award, ChevronUp, ChevronDown, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface QuizQuestion {
   question: string;
@@ -25,6 +26,9 @@ interface FAQItem {
 interface ModuleBuilderProps {
   modules: Array<any>;
   onModulesChange: (modules: Array<any>) => void;
+  articleTitle?: string;
+  focusKeyword?: string;
+  articleContent?: string;
 }
 
 const MODULE_ICONS: Record<string, any> = {
@@ -37,7 +41,7 @@ const MODULE_ICONS: Record<string, any> = {
   ad_baris: Award,
 };
 
-export function BlogModuleBuilder({ modules, onModulesChange }: ModuleBuilderProps) {
+export function BlogModuleBuilder({ modules, onModulesChange, articleTitle = "", focusKeyword = "", articleContent = "" }: ModuleBuilderProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
@@ -49,7 +53,7 @@ export function BlogModuleBuilder({ modules, onModulesChange }: ModuleBuilderPro
         newModule = {
           type: "quiz_giveaway",
           quizId: `quiz_${Date.now()}`,
-          rewardText: "2 stiker eksklusif BALIKIN",
+          rewardText: "",
           minScoreToWin: 70,
           questions: [
             { question: "", options: ["", "", "", ""], correctAnswerIndex: 0 },
@@ -205,10 +209,13 @@ export function BlogModuleBuilder({ modules, onModulesChange }: ModuleBuilderPro
           </p>
         ) : (
           modules.map((module, index) => (
-            <ModuleEditor
-              key={index}
-              module={module}
-              index={index}
+              <ModuleEditor
+                key={index}
+                module={module}
+                index={index}
+                articleTitle={articleTitle}
+                focusKeyword={focusKeyword}
+                articleContent={articleContent}
               onUpdate={(updated) => handleUpdateModule(index, updated)}
               onRemove={() => handleRemoveModule(index)}
               onMoveUp={index > 0 ? () => handleMoveModule(index, index - 1) : undefined}
@@ -224,13 +231,16 @@ export function BlogModuleBuilder({ modules, onModulesChange }: ModuleBuilderPro
 interface ModuleEditorProps {
   module: any;
   index: number;
+  articleTitle: string;
+  focusKeyword: string;
+  articleContent: string;
   onUpdate: (module: any) => void;
   onRemove: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
 }
 
-function ModuleEditor({ module, index, onUpdate, onRemove, onMoveUp, onMoveDown }: ModuleEditorProps) {
+function ModuleEditor({ module, index, articleTitle, focusKeyword, articleContent, onUpdate, onRemove, onMoveUp, onMoveDown }: ModuleEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const Icon = MODULE_ICONS[module.type] || Award;
 
@@ -291,7 +301,7 @@ function ModuleEditor({ module, index, onUpdate, onRemove, onMoveUp, onMoveDown 
       {isExpanded && (
         <div className="p-4 space-y-4">
           {module.type === "quiz_giveaway" && (
-            <QuizModuleEditor module={module} onUpdate={onUpdate} />
+            <QuizModuleEditor module={module} onUpdate={onUpdate} articleTitle={articleTitle} focusKeyword={focusKeyword} articleContent={articleContent} />
           )}
           {module.type === "faq" && (
             <FAQModuleEditor module={module} onUpdate={onUpdate} />
@@ -317,7 +327,45 @@ function ModuleEditor({ module, index, onUpdate, onRemove, onMoveUp, onMoveDown 
   );
 }
 
-function QuizModuleEditor({ module, onUpdate }: { module: any; onUpdate: (m: any) => void }) {
+function QuizModuleEditor({
+  module,
+  onUpdate,
+  articleTitle,
+  focusKeyword,
+  articleContent,
+}: {
+  module: any;
+  onUpdate: (m: any) => void;
+  articleTitle: string;
+  focusKeyword: string;
+  articleContent: string;
+}) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<QuizQuestion[] | null>(null);
+
+  const handleGenerateQuiz = async () => {
+    if (articleContent.trim().length < 150) {
+      toast.error("Isi artikel minimal 150 karakter agar AI dapat menyusun kuis berdasarkan materi.");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const response = await fetch("/api/admin/blog/quiz/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: articleTitle, focusKeyword, content: articleContent }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Kuis gagal dibuat.");
+      setGeneratedQuestions(result.questions);
+      toast.success("5 pertanyaan kuis siap ditinjau.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Kuis gagal dibuat.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleAddQuestion = () => {
     onUpdate({
       ...module,
@@ -345,11 +393,11 @@ function QuizModuleEditor({ module, onUpdate }: { module: any; onUpdate: (m: any
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Reward Text</Label>
+          <Label>Hadiah yang benar-benar tersedia *</Label>
           <Input
             value={module.rewardText}
             onChange={(e) => onUpdate({ ...module, rewardText: e.target.value })}
-            placeholder="e.g., 2 stiker eksklusif BALIKIN"
+            placeholder="Contoh: 2 stiker Balikin (pastikan hadiah ini tersedia)"
           />
         </div>
         <div className="space-y-2">
@@ -367,11 +415,52 @@ function QuizModuleEditor({ module, onUpdate }: { module: any; onUpdate: (m: any
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label>Questions</Label>
-          <Button size="sm" variant="outline" onClick={handleAddQuestion}>
-            <Plus className="w-4 h-4 mr-1" />
-            Add Question
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="secondary" onClick={handleGenerateQuiz} disabled={isGenerating || articleContent.trim().length < 150}>
+              {isGenerating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1 h-4 w-4" />}
+              {isGenerating ? "Membuat kuis..." : "Generate Quiz dengan AI"}
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={handleAddQuestion} disabled={module.questions.length >= 20}>
+              <Plus className="w-4 h-4 mr-1" />
+              Add Question
+            </Button>
+          </div>
         </div>
+        <p className="text-xs text-muted-foreground">AI hanya menyusun pertanyaan berdasarkan artikel. Hadiah dan nilai minimum kelulusan tetap ditentukan admin.</p>
+
+        {articleContent.trim().length < 150 && <p className="text-xs text-muted-foreground">Isi konten artikel terlebih dahulu untuk mengaktifkan generator kuis AI.</p>}
+
+        {generatedQuestions && (
+          <Card className="space-y-3 border-violet-200 bg-violet-50/50 p-4 dark:border-violet-900 dark:bg-violet-950/20">
+            <div>
+              <p className="font-medium">Pratinjau Kuis AI</p>
+              <p className="text-xs text-muted-foreground">Periksa ketepatan pertanyaan dan kunci jawabannya terhadap artikel sebelum diterapkan.</p>
+            </div>
+            <div className="max-h-72 space-y-3 overflow-y-auto">
+              {generatedQuestions.map((question, questionIndex) => (
+                <div key={`${question.question}-${questionIndex}`} className="rounded-lg border bg-card p-3 text-sm">
+                  <p className="font-medium">{questionIndex + 1}. {question.question}</p>
+                  <ul className="mt-2 space-y-1">
+                    {question.options.map((option, optionIndex) => (
+                      <li key={`${option}-${optionIndex}`} className={optionIndex === question.correctAnswerIndex ? "font-medium text-emerald-700" : "text-muted-foreground"}>
+                        {String.fromCharCode(65 + optionIndex)}. {option}{optionIndex === question.correctAnswerIndex ? " · Jawaban benar" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" onClick={() => { onUpdate({ ...module, questions: generatedQuestions }); setGeneratedQuestions(null); }}>
+                Ganti dengan 5 soal AI
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => { onUpdate({ ...module, questions: [...module.questions, ...generatedQuestions] }); setGeneratedQuestions(null); }} disabled={module.questions.length + generatedQuestions.length > 20}>
+                Tambahkan setelah soal saat ini
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setGeneratedQuestions(null)}>Batal</Button>
+            </div>
+          </Card>
+        )}
 
         {module.questions.map((q: QuizQuestion, qIndex: number) => (
           <Card key={qIndex} className="p-4">

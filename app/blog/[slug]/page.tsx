@@ -70,7 +70,7 @@ function renderModule(module: BlogModule, postId: string) {
           quizId={module.quizId}
           rewardText={module.rewardText}
           minScoreToWin={module.minScoreToWin}
-          questions={module.questions}
+          questions={module.questions.map(({ question, options }) => ({ question, options }))}
           postId={postId}
         />
       );
