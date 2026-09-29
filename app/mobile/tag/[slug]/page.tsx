@@ -55,7 +55,8 @@ export default async function MobileTagDetailPage({ params }: TagDetailPageProps
       where: and(
         eq(userModuleSelections.userId, session.user.id),
         eq(userModuleSelections.moduleType, 'student'),
-        eq(userModuleSelections.isActive, true)
+        eq(userModuleSelections.isActive, true),
+        eq(userModuleSelections.app_id, 'balikin_id')
       ),
     }),
   ]);

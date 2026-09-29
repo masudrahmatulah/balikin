@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { publishScheduledPosts } from "@/lib/blog-publish";
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 /**
  * Cron job handler: Publish scheduled posts every 5 minutes.
  * Protected by Vercel Cron authentication.
  */
 export async function GET(req: NextRequest) {
-  // Verify this is a cron request (Vercel header)
-  const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (cronSecret) {
-    const expectedAuth = `Bearer ${cronSecret}`;
-    if (authHeader !== expectedAuth) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {

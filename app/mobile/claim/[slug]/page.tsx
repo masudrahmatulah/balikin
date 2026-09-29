@@ -25,7 +25,7 @@ export const metadata: Metadata = {
  */
 async function getTagData(slug: string) {
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, slug),
+    where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
   });
 
   return tag;
@@ -37,7 +37,10 @@ async function getTagData(slug: string) {
  */
 async function getEmergencyInfo(tagId: string) {
   const emergencyInfo = await db.query.emergencyInformation.findFirst({
-    where: eq(emergencyInformation.tagId, tagId),
+    where: and(
+      eq(emergencyInformation.tagId, tagId),
+      eq(emergencyInformation.app_id, 'balikin_id')
+    ),
   });
 
   return emergencyInfo;

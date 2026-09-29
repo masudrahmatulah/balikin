@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 function formatPhone(input: string): string {
   let cleaned = input.replace(/\D/g, '');
@@ -22,7 +22,7 @@ export async function GET(
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, slug),
+    where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
     columns: { contactWhatsapp: true, slug: true },
   });
 

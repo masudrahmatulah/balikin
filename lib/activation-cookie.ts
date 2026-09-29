@@ -4,7 +4,7 @@
  * Grill Guard 2.1: Prevents state loss during registration flow
  */
 
-import { IronSession, getIronSession } from 'iron-session';
+import { getIronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 
 // ============================================================================
@@ -24,8 +24,16 @@ export interface ActivationCookieData {
 // ============================================================================
 
 const SESSION_COOKIE_NAME = 'balikin_activation_session';
-const SESSION_PASSWORD = process.env.ACTIVATION_COOKIE_PASSWORD || 'default-dev-secret-change-in-production';
+const SESSION_PASSWORD = process.env.ACTIVATION_COOKIE_PASSWORD;
 const SESSION_MAX_AGE = 30 * 60; // 30 minutes (Grill Guard 2.1)
+
+function getSessionPassword(): string {
+  if (!SESSION_PASSWORD) {
+    throw new Error('ACTIVATION_COOKIE_PASSWORD belum dikonfigurasi');
+  }
+
+  return SESSION_PASSWORD;
+}
 
 // ============================================================================
 // SESSION MANAGEMENT
@@ -38,7 +46,7 @@ export async function getActivationSession(): Promise<ActivationCookieData> {
   const cookieStore = await cookies();
 
   return getIronSession<ActivationCookieData>(cookieStore, SESSION_COOKIE_NAME, {
-    password: SESSION_PASSWORD,
+    password: getSessionPassword(),
     ttl: SESSION_MAX_AGE * 1000, // Convert to milliseconds
     cookieName: SESSION_COOKIE_NAME,
     cookieOptions: {

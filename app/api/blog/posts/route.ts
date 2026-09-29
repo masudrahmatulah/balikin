@@ -31,7 +31,11 @@ async function validateContentPlanWordTarget(contentPlanId: string | undefined, 
 const getCachedPosts = unstable_cache(
   async () => {
     const posts = await db.query.blogPosts.findMany({
-      where: and(isNull(blogPosts.deletedAt)),
+      where: and(
+        eq(blogPosts.app_id, 'balikin_id'),
+        eq(blogPosts.isPublished, true),
+        isNull(blogPosts.deletedAt),
+      ),
       orderBy: [desc(blogPosts.createdAt)],
       limit: 50,
     });
@@ -42,10 +46,13 @@ const getCachedPosts = unstable_cache(
 );
 
 const getCachedPostBySlug = unstable_cache(
-  async (slug: string, publishedOnly = false) => {
-    const where = publishedOnly
-      ? and(eq(blogPosts.slug, slug), eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt))
-      : and(eq(blogPosts.slug, slug), isNull(blogPosts.deletedAt));
+  async (slug: string) => {
+    const where = and(
+      eq(blogPosts.app_id, 'balikin_id'),
+      eq(blogPosts.slug, slug),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt),
+    );
 
     const post = await db.query.blogPosts.findFirst({
       where,
@@ -69,11 +76,9 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const slug = searchParams.get('slug');
-    const published = searchParams.get('published');
-
     if (slug) {
       // Get single post by slug using cache
-      const post = await getCachedPostBySlug(slug, published === 'true');
+      const post = await getCachedPostBySlug(slug);
 
       if (!post) {
         throw new NotFoundError('Artikel blog', slug);

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, Lock, Package, QrCode, Sparkles, Sticker, ZoomIn } from 'lucide-react';
+import { ArrowRight, FileImage, Lock, Package, QrCode, Sparkles, Sticker, ZoomIn } from 'lucide-react';
 import Link from 'next/link';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,15 @@ const colorShowcaseItems = (Object.keys(STICKER_COLOR_THEMES) as StickerColorThe
 }));
 
 const productCards = [
+  {
+    icon: FileImage,
+    title: 'QR Tag Printable Premium',
+    description: 'Download file PNG dan PDF tanpa watermark, upload logo sendiri, lalu cetak dan tempel kapan saja.',
+    price: 'Mulai Rp35.000',
+    href: '/dashboard/printable',
+    label: 'Pilih printable',
+    className: 'border-amber-200 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20',
+  },
   {
     icon: Sticker,
     title: 'Sticker QR',
@@ -76,7 +85,7 @@ export function ProductShowcaseSection() {
       </ScrollReveal>
 
       <ScrollReveal delay={0.05}>
-        <div className="mx-auto mb-12 grid max-w-5xl gap-4 md:grid-cols-3">
+        <div className="mx-auto mb-12 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {productCards.map((product) => {
             const Icon = product.icon;
             return (

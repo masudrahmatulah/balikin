@@ -22,8 +22,8 @@ export default async function PrintableOrderPage() {
       <main className="container mx-auto max-w-3xl px-4 py-8">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><FileImage className="h-5 w-5 text-brand-red" />Printable QR Tag</CardTitle>
-            <CardDescription>Pesan lisensi QR yang dapat dicetak sendiri. Tag dibuat setelah pembayaran diverifikasi admin.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><FileImage className="h-5 w-5 text-brand-red" />QR Tag Printable Premium</CardTitle>
+            <CardDescription>Pesan lisensi QR premium, tambahkan logo sendiri, lalu download file tanpa watermark untuk dicetak sendiri.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mb-6 grid gap-3 sm:grid-cols-3">

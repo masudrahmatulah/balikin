@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cleanupExpiredNotifications } from '@/app/actions/notifications';
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 /**
  * FASE 5: Notification Cleanup Cron Job
@@ -13,10 +14,13 @@ import { cleanupExpiredNotifications } from '@/app/actions/notifications';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isCronAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    // Jalankan cleanup
-    cleanupExpiredNotifications();
+    await cleanupExpiredNotifications();
 
     return NextResponse.json({
       success: true,

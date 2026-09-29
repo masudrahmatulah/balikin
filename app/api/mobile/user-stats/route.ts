@@ -30,14 +30,14 @@ export async function GET() {
     const [tagsResult, lostTagsResult, allUserTags] = await Promise.all([
       // Get total tags
       db.select({ count: count() }).from(tags).where(
-        and(eq(tags.ownerId, userId), eq(tags.appId, 'balikin_id'))
+        and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id'))
       ),
 
       // Get lost tags count
       db.select({ count: count() }).from(tags).where(
         and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id'),
+          eq(tags.app_id, 'balikin_id'),
           eq(tags.status, 'lost')
         )
       ),
@@ -46,7 +46,7 @@ export async function GET() {
       db.query.tags.findMany({
         where: and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id')
+          eq(tags.app_id, 'balikin_id')
         ),
         columns: { id: true, productType: true },
       }),

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { chatRooms, messages } from '@/db/schema';
-import { and, lt, eq } from 'drizzle-orm';
+import { and, lt, eq, inArray } from 'drizzle-orm';
+import { isCronAuthorized } from '@/lib/cron-auth';
 
 /**
  * FASE 6: Chat Cleanup Cron Job (Vercel-based, replacing pg_cron)
@@ -50,18 +51,12 @@ async function cleanupExpiredChats() {
     const deletedMessages = await db
       .delete(messages)
       .where(
-        // @ts-ignore - Drizzle ORM issue with array in where clause
-        messages.roomId === null || messages.roomId
+        and(
+          eq(messages.app_id, 'balikin_id'),
+          inArray(messages.roomId, roomIdArray),
+        )
       )
       .returning();
-
-    // Manual delete with IN clause for room IDs
-    await db
-      .delete(messages)
-      .where(
-        // @ts-ignore
-        messages.roomId === null || messages.roomId
-      );
 
     // 3. Hapus room chat
     const deletedRooms = await db
@@ -86,7 +81,11 @@ async function cleanupExpiredChats() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isCronAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const result = await cleanupExpiredChats();
 

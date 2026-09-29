@@ -28,7 +28,7 @@ export function publishedAndNotDeleted() {
  */
 export function blogPostQuery() {
   return and(
-    eq(blogPosts.appId, 'balikin_id'),
+      eq(blogPosts.app_id, 'balikin_id'),
     isNull(blogPosts.deletedAt)
   );
 }
@@ -38,7 +38,7 @@ export function blogPostQuery() {
  */
 export function publishedBlogPosts() {
   return and(
-    eq(blogPosts.appId, 'balikin_id'),
+      eq(blogPosts.app_id, 'balikin_id'),
     eq(blogPosts.isPublished, true),
     isNull(blogPosts.deletedAt)
   );

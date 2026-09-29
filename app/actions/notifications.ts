@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { messages, chatRooms, tags, notificationLogs } from "@/db/schema";
 import { and, eq, lt, gte, desc, count } from "drizzle-orm";
 import { sendScanAlertWhatsApp } from "@/lib/whatsapp";
+import { requireAuth } from '@/lib/session';
 
 // ============================================================================
 // FASE 5: WhatsApp Debouncer & Agregasi Notifikasi
@@ -284,8 +285,9 @@ export async function sendImmediateChatNotification(tagId: string): Promise<{
   success: boolean;
   message: string;
 }> {
+  const session = await requireAuth();
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.ownerId, session.user.id), eq(tags.app_id, 'balikin_id')),
     columns: { id: true, ownerId: true },
   });
 

@@ -37,7 +37,7 @@ export const metadata: Metadata = buildMetadata({
 
 async function getTagBySlug(slug: string) {
   return db.query.tags.findFirst({
-    where: eq(tags.slug, slug),
+    where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
     with: {
       owner: {
         columns: { name: true },
@@ -52,7 +52,10 @@ function renderTagGreeting(template: string, ownerName: string): string {
 
 async function getEmergencyInfo(tagId: string) {
   return db.query.emergencyInformation.findFirst({
-    where: eq(emergencyInformation.tagId, tagId),
+    where: and(
+      eq(emergencyInformation.tagId, tagId),
+      eq(emergencyInformation.app_id, 'balikin_id')
+    ),
   });
 }
 

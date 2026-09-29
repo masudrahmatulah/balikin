@@ -196,13 +196,13 @@ After deployment:
 To use custom domain:
 
 1. Go to: Settings → Domains
-2. Add your domain: `balikin.id`
+2. Add your domain: `balikin.online`
 3. Update DNS records (Vercel will provide instructions)
 4. Update environment variables:
    ```
-   NEXT_PUBLIC_APP_URL=https://balikin.id
-   BETTER_AUTH_URL=https://balikin.id
-   NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin.id
+   NEXT_PUBLIC_APP_URL=https://balikin.online
+   BETTER_AUTH_URL=https://balikin.online
+   NEXT_PUBLIC_BETTER_AUTH_URL=https://balikin.online
    ```
 
 ---

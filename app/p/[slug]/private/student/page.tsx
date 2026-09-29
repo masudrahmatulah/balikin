@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/db';
 import { tags, studentKitData } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,10 @@ export default async function StudentKitPage({
 
   // Get student kit data
   const studentData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(
+      eq(studentKitData.userId, session.user.id),
+      eq(studentKitData.app_id, 'balikin_id')
+    ),
   });
 
   return (

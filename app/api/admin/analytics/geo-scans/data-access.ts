@@ -32,7 +32,7 @@ const cachedGeoScanData = unstable_cache(
       .from(scanLogs)
       .where(
         and(
-          eq(scanLogs.appId, 'balikin_id'),
+          eq(scanLogs.app_id, 'balikin_id'),
           gte(scanLogs.scannedAt, startDate),
           sql`${scanLogs.city} IS NOT NULL`
         )

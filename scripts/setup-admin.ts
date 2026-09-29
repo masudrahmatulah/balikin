@@ -2,7 +2,7 @@
  * Script untuk membuat admin user pertama kali
  * Run dengan: npx tsx scripts/setup-admin.ts <email>
  *
- * Contoh: npx tsx scripts/setup-admin.ts admin@balikin.id
+ * Contoh: npx tsx scripts/setup-admin.ts admin@balikin.online
  */
 
 import { db } from "../db";
@@ -13,7 +13,7 @@ const email = process.argv[2];
 
 if (!email) {
   console.error("Usage: npx tsx scripts/setup-admin.ts <email>");
-  console.error("Example: npx tsx scripts/setup-admin.ts admin@balikin.id");
+  console.error("Example: npx tsx scripts/setup-admin.ts admin@balikin.online");
   process.exit(1);
 }
 

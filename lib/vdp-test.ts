@@ -70,7 +70,7 @@ export async function generateSinglePacketTest(
 
   // Kolom 1: QR Utama
   const qrUtama = await QRCode.toBuffer(
-    `https://balikin.id/p/${slug}`,
+    `https://balikin.online/p/${slug}`,
     { width: 220, margin: 1 }
   );
   const textSvg = drawTextSvg(activationPinPlain, serialNumber, false);
@@ -91,7 +91,7 @@ export async function generateSinglePacketTest(
 
   // Kolom 3: QR Aktivasi
   const qrAktivasi = await QRCode.toBuffer(
-    `https://balikin.id/activate?slug=${slug}&token=${activationTokenHash}`,
+    `https://balikin.online/activate?slug=${slug}&token=${activationTokenHash}`,
     { width: 220, margin: 1 }
   );
   const textSvgAktivasi = drawTextSvg(activationPinPlain, serialNumber, true);

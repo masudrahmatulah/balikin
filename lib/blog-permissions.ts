@@ -4,6 +4,7 @@ import { user, blogPosts } from '@/db/schema';
 import { eq, or, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { isAdmin } from '@/lib/admin';
 
 export interface BlogPermissions {
   canCreatePosts: boolean;
@@ -193,9 +194,12 @@ export function requireBlogPermission(permission: keyof BlogPermissions) {
  */
 export async function getBlogEditors() {
   return db.query.user.findMany({
-    where: or(
-      eq(user.role, 'admin'),
-      eq(user.role, 'editor')
+    where: and(
+      eq(user.app_id, 'balikin_id'),
+      or(
+        eq(user.role, 'admin'),
+        eq(user.role, 'editor')
+      )
     ),
   });
 }
@@ -207,8 +211,12 @@ export async function updateUserBlogPermissions(
   userId: string,
   permissions: Partial<BlogPermissions>
 ) {
+  if (!(await isAdmin())) {
+    throw new Error('Unauthorized');
+  }
+
   const existingUser = await db.query.user.findFirst({
-    where: eq(user.id, userId),
+    where: and(eq(user.id, userId), eq(user.app_id, 'balikin_id')),
   });
 
   if (!existingUser) {
@@ -219,7 +227,7 @@ export async function updateUserBlogPermissions(
   if (existingUser.role !== 'admin' && existingUser.role !== 'editor') {
     await db.update(user)
       .set({ role: 'editor' })
-      .where(eq(user.id, userId));
+      .where(and(eq(user.id, userId), eq(user.app_id, 'balikin_id')));
   }
 
   // Merge existing permissions with new ones
@@ -228,5 +236,5 @@ export async function updateUserBlogPermissions(
 
   await db.update(user)
     .set({ blogPermissions: updatedPermissions })
-    .where(eq(user.id, userId));
+    .where(and(eq(user.id, userId), eq(user.app_id, 'balikin_id')));
 }

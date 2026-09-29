@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { user, tags, studentKitData } from "@/db/schema";
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -36,15 +36,24 @@ export async function POST(req: NextRequest) {
 
     // Cascade delete all related data
     // 1. Delete student kit data
-    await db.delete(studentKitData).where(inArray(studentKitData.userId, userIds));
+    await db.delete(studentKitData).where(and(
+      inArray(studentKitData.userId, userIds),
+      eq(studentKitData.app_id, "balikin_id")
+    ));
 
     // 2. Delete tags owned by these users.
     // scan_logs and emergency_information reference tags with ON DELETE CASCADE,
     // so they're cleaned up automatically by Postgres.
-    await db.delete(tags).where(inArray(tags.ownerId, userIds));
+    await db.delete(tags).where(and(
+      inArray(tags.ownerId, userIds),
+      eq(tags.app_id, "balikin_id")
+    ));
 
     // 3. Delete users
-    await db.delete(user).where(inArray(user.id, userIds));
+    await db.delete(user).where(and(
+      inArray(user.id, userIds),
+      eq(user.app_id, "balikin_id")
+    ));
 
     return NextResponse.json({
       success: true,

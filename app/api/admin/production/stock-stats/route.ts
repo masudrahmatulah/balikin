@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { tags, stickerOrders } from "@/db/schema";
-import { eq, sql, count, desc } from "drizzle-orm";
+import { eq, sql, count, desc, and } from "drizzle-orm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,30 +22,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total produced tags
-    const totalProduced = await db.select({ count: count() }).from(tags);
+    const totalProduced = await db.select({ count: count() }).from(tags).where(eq(tags.app_id, 'balikin_id'));
 
     // Get total claimed tags (tags with owners)
     const totalClaimed = await db
       .select({ count: count() })
       .from(tags)
-      .where(sql`${tags.ownerId} IS NOT NULL`);
+      .where(and(eq(tags.app_id, 'balikin_id'), sql`${tags.ownerId} IS NOT NULL`));
 
     // Get stats by product type
     const stickerTags = await db
       .select({ count: count(), claimed: count(tags.ownerId) })
       .from(tags)
-      .where(eq(tags.tier, "sticker"));
+      .where(and(eq(tags.app_id, 'balikin_id'), eq(tags.productType, "sticker")));
 
     const acrylicTags = await db
       .select({ count: count(), claimed: count(tags.ownerId) })
       .from(tags)
-      .where(eq(tags.tier, "premium"));
+      .where(and(eq(tags.app_id, 'balikin_id'), eq(tags.productType, "acrylic")));
 
     // Bundle tags (tags that are part of bundles)
     const bundleTags = await db
       .select({ count: count(), claimed: count(tags.ownerId) })
       .from(tags)
-      .where(sql`${tags.bundleId} IS NOT NULL`);
+      .where(and(eq(tags.app_id, 'balikin_id'), sql`${tags.bundleId} IS NOT NULL`));
 
     const stats = {
       totalProduced: totalProduced[0]?.count || 0,

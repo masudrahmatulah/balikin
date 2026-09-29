@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getGeoScanDataCached } from "./data-access";
+import { isAdmin } from '@/lib/admin';
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,10 @@ const daysSchema = z.coerce
 
 export async function GET(request: NextRequest) {
   try {
+    if (!(await isAdmin())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const daysResult = daysSchema.safeParse(searchParams.get("days"));
 

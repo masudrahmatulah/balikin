@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { stickerOrders, tagBundles, tags } from '@/db/schema';
-import { eq, and, count, sql } from 'drizzle-orm';
+import { eq, and, count, sql, isNull } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
@@ -75,7 +75,7 @@ async function requireUserId(): Promise<string> {
 async function requireTagOwnership(tagId: string): Promise<string> {
   const userId = await requireUserId();
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== userId) {
@@ -92,6 +92,7 @@ async function countUserFreeTags(userId: string): Promise<number> {
     .where(
       and(
         eq(tags.ownerId, userId),
+        eq(tags.app_id, 'balikin_id'),
         sql`${tags.tier} = 'free' OR ${tags.tier} IS NULL`
       )
     );
@@ -101,7 +102,7 @@ async function countUserFreeTags(userId: string): Promise<number> {
 
 async function checkFreeTierLimit(userId: string): Promise<void> {
   const [hasPremiumTag] = await db
-    .select({ hasPremium: sql<boolean>`EXISTS(SELECT 1 FROM ${tags} WHERE ${tags.ownerId} = ${userId} AND ${tags.tier} = 'premium' LIMIT 1)` })
+    .select({ hasPremium: sql<boolean>`EXISTS(SELECT 1 FROM ${tags} WHERE ${tags.app_id} = 'balikin_id' AND ${tags.ownerId} = ${userId} AND ${tags.tier} = 'premium' LIMIT 1)` })
     .from(tags);
 
   if (!hasPremiumTag?.hasPremium) {
@@ -162,6 +163,10 @@ export interface CreateTagInput {
 export async function createTag(data: CreateTagInput) {
   const userId = await requireUserId();
 
+  if (data.tier === 'premium' || (data.productType && data.productType !== 'free')) {
+    throw new Error('Tag premium harus dibuat melalui order atau proses upgrade yang tervalidasi.');
+  }
+
   const validatedName = validateTagName(data.name);
   const validatedPhone = validateWhatsAppNumber(data.contactWhatsapp);
   const validatedCustomMessage = validateCustomMessage(data.customMessage);
@@ -176,8 +181,8 @@ export async function createTag(data: CreateTagInput) {
   }
 
   const slug = nanoid(12);
-  const productType = data.productType || 'free';
-  const isPremium = productType !== 'free' || data.tier === 'premium';
+  const productType = 'free';
+  const isPremium = false;
 
   await db.insert(tags).values({
     name: sanitizedName,
@@ -187,13 +192,13 @@ export async function createTag(data: CreateTagInput) {
     customMessage: sanitizedCustomMessage,
     rewardNote: sanitizedRewardNote,
     status: 'normal',
-    tier: data.tier || (isPremium ? 'premium' : 'free'),
+    tier: 'free',
     productType,
-    isVerified: data.isVerified ?? (productType === 'sticker'),
+    isVerified: false,
     emailAlertsEnabled: isPremium ? (data.emailAlertsEnabled ?? false) : true,
     whatsappAlertsEnabled: isPremium ? (data.whatsappAlertsEnabled ?? true) : false,
-    bundleId: data.bundleId || null,
-    claimedAt: data.claimedAt || null,
+    bundleId: null,
+    claimedAt: null,
     expiresAt: isPremium ? null : new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
   });
 
@@ -253,7 +258,7 @@ export async function updateTag(
   const userId = await requireTagOwnership(tagId);
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag) {
@@ -290,7 +295,7 @@ export async function updateTag(
       emailAlertsEnabled: isPremium ? (data.emailAlertsEnabled ?? tag.emailAlertsEnabled ?? false) : true,
       whatsappAlertsEnabled: isPremium ? (data.whatsappAlertsEnabled ?? tag.whatsappAlertsEnabled ?? true) : false,
     })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -301,7 +306,7 @@ export async function updateTag(
 export async function deleteTag(tagId: string) {
   await requireTagOwnership(tagId);
 
-  await db.delete(tags).where(eq(tags.id, tagId));
+  await db.delete(tags).where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -329,7 +334,7 @@ export async function claimTag(tagId: string, pin?: string) {
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag) {
@@ -347,9 +352,14 @@ export async function claimTag(tagId: string, pin?: string) {
     redirect(`/claim/${tagId}?step=name`);
   }
 
-  await db.update(tags)
+  const updatedTags = await db.update(tags)
     .set({ ownerId: session.user.id, claimedAt: new Date() })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), isNull(tags.ownerId)))
+    .returning({ id: tags.id });
+
+  if (updatedTags.length === 0) {
+    throw new Error('Tag sudah diklaim oleh pengguna lain.');
+  }
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -373,7 +383,7 @@ export async function claimTagWithUniversalCode(claimCode: string) {
 
   const [, serialNumber, pin] = match;
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.serialNumber, serialNumber),
+    where: and(eq(tags.serialNumber, serialNumber), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.productType === 'sticker') {
@@ -386,13 +396,18 @@ export async function claimTagWithUniversalCode(claimCode: string) {
 
   assertClaimPin(tag, pin);
 
-  await db.update(tags)
+  const updatedTags = await db.update(tags)
     .set({
       ownerId: session.user.id,
       claimedAt: new Date(),
       isVerified: true,
     })
-    .where(eq(tags.id, tag.id));
+    .where(and(eq(tags.id, tag.id), isNull(tags.ownerId)))
+    .returning({ id: tags.id });
+
+  if (updatedTags.length === 0) {
+    throw new Error('Tag ini sudah diklaim oleh akun lain.');
+  }
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -407,7 +422,7 @@ export async function claimStickerTag(tagId: string, name: string, pin?: string)
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag) {

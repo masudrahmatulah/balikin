@@ -281,7 +281,7 @@ Saya lampirkan bukti transfernya di bawah ini ya.`
               "merchant": {
                 "@type": "Organization",
                 "name": "Balikin",
-                "url": "https://balikin.id",
+                "url": "https://balikin.online",
                 "description": "Layanan Smart Tag QR Code untuk perlindungan barang hilang"
               },
               "acceptedOffer": {
@@ -303,7 +303,7 @@ Saya lampirkan bukti transfernya di bawah ini ya.`
                 "seller": {
                   "@type": "Organization",
                   "name": "Balikin",
-                  "url": "https://balikin.id"
+                  "url": "https://balikin.online"
                 }
               },
               "orderedItem": {

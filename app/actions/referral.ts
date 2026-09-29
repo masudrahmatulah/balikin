@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { referralVouchers, referralUsages } from '@/db/schema';
+import { referralVouchers, referralUsages, stickerOrders } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
@@ -111,6 +111,32 @@ export async function confirmRewardTransfer(voucherId: string) {
 
 // Admin-only: apply a voucher usage when a purchase completes
 export async function applyVoucherUsage(voucherCode: string, buyerUserId: string, orderId?: string) {
+  const session = await getSession();
+  if (!session?.user?.id || session.user.id !== buyerUserId) {
+    return { success: false, error: 'Akses tidak diizinkan.' };
+  }
+
+  if (!orderId) {
+    return { success: false, error: 'Order pembayaran wajib disertakan.' };
+  }
+
+  const [paidOrder] = await db
+    .select({ id: stickerOrders.id })
+    .from(stickerOrders)
+    .where(
+      and(
+        eq(stickerOrders.id, orderId),
+        eq(stickerOrders.userId, buyerUserId),
+        eq(stickerOrders.app_id, 'balikin_id'),
+        eq(stickerOrders.paymentStatus, 'paid'),
+      )
+    )
+    .limit(1);
+
+  if (!paidOrder) {
+    return { success: false, error: 'Order pembayaran tidak valid.' };
+  }
+
   const [voucher] = await db
     .select()
     .from(referralVouchers)

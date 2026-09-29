@@ -49,7 +49,7 @@ async function testEnvironmentVariables() {
   }
 
   if (!EMAIL_FROM) {
-    console.warn('⚠️  EMAIL_FROM not set, will use default: Balikin <noreply@balikin.id>');
+    console.warn('⚠️  EMAIL_FROM not set, will use default: Balikin <noreply@balikin.online>');
   }
 
   console.log('✅ Environment variables configured');

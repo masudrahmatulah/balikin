@@ -67,7 +67,7 @@ async function verifyTagOwnership(tagId: string, userId: string): Promise<void> 
   const { tags } = await import('@/db/schema');
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== userId) {
@@ -115,7 +115,7 @@ export async function getStudentKitData() {
   const session = await getSession();
 
   const data = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
     columns: {
       id: true,
       userId: true,
@@ -150,7 +150,7 @@ export async function updateStudentKit(data: UpdateStudentKitInput) {
 
   // Get existing data
   const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
   });
 
   if (existingData) {
@@ -164,10 +164,11 @@ export async function updateStudentKit(data: UpdateStudentKitInput) {
         ktmKrsPhotos: JSON.stringify(validatedData.ktmKrsPhotos || []),
         updatedAt: new Date(),
       })
-      .where(eq(studentKitData.userId, session.user.id));
+      .where(and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')));
   } else {
     // Create new record
     await db.insert(studentKitData).values({
+      app_id: 'balikin_id',
       userId: session.user.id,
       classSchedule: JSON.stringify(validatedData.classSchedule || []),
       assignmentDeadlines: JSON.stringify(validatedData.assignmentDeadlines || []),
@@ -194,7 +195,7 @@ export async function shareSchedule() {
 
   // Get current student kit data
   const studentData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
     columns: {
       id: true,
       classSchedule: true,
@@ -222,6 +223,7 @@ export async function shareSchedule() {
 
   // Create share record
   await db.insert(studentKitScheduleShares).values({
+    app_id: 'balikin_id',
     userId: session.user.id,
     shareCode,
     classSchedule: studentData.classSchedule,
@@ -236,6 +238,7 @@ export async function shareSchedule() {
     .where(
       and(
         eq(studentKitScheduleShares.userId, session.user.id),
+        eq(studentKitScheduleShares.app_id, 'balikin_id'),
         lt(studentKitScheduleShares.expiresAt, new Date())
       )
     );
@@ -258,7 +261,10 @@ export async function getScheduleByShareCode(shareCode: string) {
   }
 
   const share = await db.query.studentKitScheduleShares.findFirst({
-    where: eq(studentKitScheduleShares.shareCode, shareCode),
+    where: and(
+      eq(studentKitScheduleShares.shareCode, shareCode),
+      eq(studentKitScheduleShares.app_id, 'balikin_id')
+    ),
   });
 
   if (!share) {
@@ -294,7 +300,7 @@ export async function importSchedule(shareCode: string) {
 
   // Get existing student data
   const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
   });
 
   if (existingData) {
@@ -320,10 +326,11 @@ export async function importSchedule(shareCode: string) {
         driveLinks: JSON.stringify(mergedLinks),
         updatedAt: new Date(),
       })
-      .where(eq(studentKitData.userId, session.user.id));
+      .where(and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')));
   } else {
     // Create new record with shared data
     await db.insert(studentKitData).values({
+      app_id: 'balikin_id',
       userId: session.user.id,
       classSchedule: sharedData.classSchedule,
       assignmentDeadlines: sharedData.assignmentDeadlines,
@@ -355,7 +362,7 @@ export async function updateInternshipVCard(data: UpdateInternshipVCardInput) {
 
   // Get existing data
   const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
     columns: {
       vcardData: true,
       vcardShareCode: true,
@@ -381,7 +388,10 @@ export async function updateInternshipVCard(data: UpdateInternshipVCardInput) {
 
     // Check uniqueness
     const existing = await db.query.studentKitData.findFirst({
-      where: eq(studentKitData.vcardShareCode, vcardShareCode),
+      where: and(
+        eq(studentKitData.vcardShareCode, vcardShareCode),
+        eq(studentKitData.app_id, 'balikin_id')
+      ),
       columns: { id: true },
     });
 
@@ -400,10 +410,11 @@ export async function updateInternshipVCard(data: UpdateInternshipVCardInput) {
         vcardShareCode,
         updatedAt: new Date(),
       })
-      .where(eq(studentKitData.userId, session.user.id));
+      .where(and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')));
   } else {
     // Create new record
     await db.insert(studentKitData).values({
+      app_id: 'balikin_id',
       userId: session.user.id,
       classSchedule: '{}',
       assignmentDeadlines: '{}',
@@ -434,7 +445,10 @@ export async function getVCardByShareCode(shareCode: string) {
   }
 
   const vcardData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.vcardShareCode, shareCode),
+    where: and(
+      eq(studentKitData.vcardShareCode, shareCode),
+      eq(studentKitData.app_id, 'balikin_id')
+    ),
     columns: {
       vcardData: true,
     },
@@ -478,7 +492,7 @@ export async function updateStudentKitNotificationSettings(data: {
 
   // Get existing data
   const existingData = await db.query.studentKitData.findFirst({
-    where: eq(studentKitData.userId, session.user.id),
+    where: and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')),
   });
 
   if (existingData) {
@@ -494,10 +508,11 @@ export async function updateStudentKitNotificationSettings(data: {
         }),
         updatedAt: new Date(),
       })
-      .where(eq(studentKitData.userId, session.user.id));
+      .where(and(eq(studentKitData.userId, session.user.id), eq(studentKitData.app_id, 'balikin_id')));
   } else {
     // Create new record with notification settings
     await db.insert(studentKitData).values({
+      app_id: 'balikin_id',
       userId: session.user.id,
       classSchedule: '{}',
       assignmentDeadlines: '{}',

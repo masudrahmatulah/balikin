@@ -42,7 +42,7 @@ export async function getBatchActivationMetricsCached(): Promise<BatchActivation
       .from(tagBundles)
       .where(
         and(
-          eq(tagBundles.appId, 'balikin_id'),
+          eq(tagBundles.app_id, 'balikin_id'),
           sql`${tagBundles.productType} = 'bundle'`
         )
       )
@@ -74,7 +74,7 @@ export async function getBatchActivationMetricsCached(): Promise<BatchActivation
         .from(tags)
         .where(
           and(
-            eq(tags.appId, 'balikin_id'),
+            eq(tags.app_id, 'balikin_id'),
             sql`${tags.bundleId} = ANY(${bundleIds})`
           )
         )
@@ -90,7 +90,7 @@ export async function getBatchActivationMetricsCached(): Promise<BatchActivation
             .from(stickerOrders)
             .where(
               and(
-                eq(stickerOrders.appId, 'balikin_id'),
+                eq(stickerOrders.app_id, 'balikin_id'),
                 sql`${stickerOrders.id} = ANY(${orderIds})`
               )
             )

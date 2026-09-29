@@ -119,7 +119,8 @@ async function activateModuleForUser(userId: string, moduleType: ModuleType) {
   const existingPermission = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, userId),
-      eq(userModulePermissions.moduleType, moduleType)
+      eq(userModulePermissions.moduleType, moduleType),
+      eq(userModulePermissions.app_id, 'balikin_id')
     ),
   });
 
@@ -135,9 +136,13 @@ async function activateModuleForUser(userId: string, moduleType: ModuleType) {
         isEnabled: true,
         grantedAt: new Date(),
       })
-      .where(eq(userModulePermissions.id, existingPermission.id));
+      .where(and(
+        eq(userModulePermissions.id, existingPermission.id),
+        eq(userModulePermissions.app_id, 'balikin_id')
+      ));
   } else {
     await db.insert(userModulePermissions).values({
+      app_id: 'balikin_id',
       userId,
       moduleType,
       isEnabled: true,
@@ -149,12 +154,14 @@ async function activateModuleForUser(userId: string, moduleType: ModuleType) {
   const existingSelection = await db.query.userModuleSelections.findFirst({
     where: and(
       eq(userModuleSelections.userId, userId),
-      eq(userModuleSelections.moduleType, moduleType)
+      eq(userModuleSelections.moduleType, moduleType),
+      eq(userModuleSelections.app_id, 'balikin_id')
     ),
   });
 
   if (!existingSelection) {
     await db.insert(userModuleSelections).values({
+      app_id: 'balikin_id',
       userId,
       moduleType,
       isActive: true,
@@ -163,6 +170,7 @@ async function activateModuleForUser(userId: string, moduleType: ModuleType) {
 
   // Log the activation for analytics
   await db.insert(moduleUsageAnalytics).values({
+    app_id: 'balikin_id',
     userId,
     moduleType,
     actionType: 'activate',

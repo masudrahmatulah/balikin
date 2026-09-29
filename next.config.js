@@ -2,6 +2,7 @@
 const nextConfig = {
   cacheComponents: false,
   allowedDevOrigins: ['100.81.50.18'],
+  // Temporary compatibility flag while the existing TypeScript debt is migrated.
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -55,7 +56,14 @@ const nextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '5mb',
-      allowedOrigins: ['localhost:3000', 'devtunnels.ms', '*.devtunnels.ms'],
+      allowedOrigins: [
+        'balikin.online',
+        'www.balikin.online',
+        'balikin-ten.vercel.app',
+        'localhost:3000',
+        'devtunnels.ms',
+        '*.devtunnels.ms',
+      ],
     },
   },
 };

@@ -31,7 +31,7 @@ function validateQRCode(qrCode: string): boolean {
 
 const getTagBySlug = cache(async (slug: string) => {
   return db.query.tags.findFirst({
-    where: and(eq(tags.slug, slug), eq(tags.appId, 'balikin_id')),
+    where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
   });
 });
 
@@ -69,7 +69,6 @@ export async function reportFoundItem(params: ReportFoundItemParams) {
     return {
       success: true,
       tagName: tag.name,
-      ownerContact: tag.contactWhatsapp,
       message: 'Laporan berhasil dikirim',
     };
   } catch {
@@ -99,7 +98,6 @@ export async function getTagByQR(qrCode: string) {
         name: tag.name,
         slug: tag.slug,
         status: tag.status,
-        contactWhatsapp: tag.contactWhatsapp,
       },
     };
   } catch {

@@ -92,7 +92,7 @@ export function DownloadCenter({ tagName, slug, qrDataUrl, tier }: DownloadCente
 
         ctx.fillStyle = '#64748b';
         ctx.font = '24px sans-serif';
-        ctx.fillText(`balikin.id/p/${slug}`, canvas.width / 2, 955);
+        ctx.fillText(`balikin.online/p/${slug}`, canvas.width / 2, 955);
 
         if (isFree) {
           ctx.fillStyle = '#94a3b8';
@@ -147,7 +147,7 @@ export function DownloadCenter({ tagName, slug, qrDataUrl, tier }: DownloadCente
         ctx.fillStyle = '#64748b';
         ctx.font = '28px sans-serif';
         ctx.fillText('Scan saya jika menemukan HP / barang ini', canvas.width / 2, 1615);
-        ctx.fillText(`balikin.id/p/${slug}`, canvas.width / 2, 1700);
+        ctx.fillText(`balikin.online/p/${slug}`, canvas.width / 2, 1700);
 
         ctx.fillStyle = '#1e293b';
         ctx.font = '30px sans-serif';

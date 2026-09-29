@@ -29,7 +29,7 @@ export async function GET() {
       db.query.tags.findMany({
         where: and(
           eq(tags.ownerId, userId),
-          eq(tags.appId, 'balikin_id')
+          eq(tags.app_id, 'balikin_id')
         ),
         columns: { id: true, name: true, status: true },
       }),

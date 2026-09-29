@@ -166,6 +166,24 @@ export async function updateScanLocation(scanLogId: string, clientLocation: Clie
       return false;
     }
 
+    const headersList = await headers();
+    const requestIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || headersList.get('x-real-ip')?.trim()
+      || 'unknown';
+    const [scanLog] = await db
+      .select({ id: scanLogs.id, ipAddress: scanLogs.ipAddress })
+      .from(scanLogs)
+      .where(and(
+        eq(scanLogs.id, scanLogId),
+        eq(scanLogs.app_id, 'balikin_id'),
+        gt(scanLogs.scannedAt, new Date(Date.now() - 10 * 60 * 1000)),
+      ))
+      .limit(1);
+
+    if (!scanLog || (scanLog.ipAddress && scanLog.ipAddress !== requestIp)) {
+      return false;
+    }
+
     await db
       .update(scanLogs)
       .set({
@@ -177,7 +195,7 @@ export async function updateScanLocation(scanLogId: string, clientLocation: Clie
             ? Math.round(clientLocation.accuracy)
             : null,
       })
-      .where(eq(scanLogs.id, scanLogId));
+      .where(and(eq(scanLogs.id, scanLogId), eq(scanLogs.app_id, 'balikin_id')));
 
     return true;
   } catch {
@@ -209,7 +227,11 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
     const latestScans = await db
       .select({ id: scanLogs.id })
       .from(scanLogs)
-      .where(eq(scanLogs.tagId, tagId))
+      .where(and(
+        eq(scanLogs.tagId, tagId),
+        eq(scanLogs.app_id, 'balikin_id'),
+        gt(scanLogs.scannedAt, new Date(Date.now() - 10 * 60 * 1000)),
+      ))
       .orderBy(desc(scanLogs.scannedAt))
       .limit(1);
 
@@ -230,7 +252,7 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
             ? Math.round(clientLocation.accuracy)
             : null,
       })
-      .where(eq(scanLogs.id, latestScanId));
+      .where(and(eq(scanLogs.id, latestScanId), eq(scanLogs.app_id, 'balikin_id')));
 
     return { success: true, scanId: latestScanId };
   } catch {

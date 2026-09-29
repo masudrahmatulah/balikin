@@ -10,7 +10,7 @@ export async function getUserTags(userId: string) {
   return unstable_cache(
     async () => {
       return db.query.tags.findMany({
-        where: eq(tags.ownerId, userId),
+        where: and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')),
         orderBy: [desc(tags.createdAt)],
       });
     },
@@ -26,7 +26,8 @@ export async function getUserModuleSelection(userId: string, moduleType: string)
         where: and(
           eq(userModuleSelections.userId, userId),
           eq(userModuleSelections.moduleType, moduleType),
-          eq(userModuleSelections.isActive, true)
+          eq(userModuleSelections.isActive, true),
+          eq(userModuleSelections.app_id, 'balikin_id')
         ),
       });
     },
@@ -44,7 +45,10 @@ async function getTagScanCountsUncached(tagIds: string[]): Promise<Map<string, n
       count: sql<number>`count(*)::int`,
     })
     .from(scanLogs)
-    .where(inArray(scanLogs.tagId, tagIds))
+    .where(and(
+      inArray(scanLogs.tagId, tagIds),
+      eq(scanLogs.app_id, 'balikin_id')
+    ))
     .groupBy(scanLogs.tagId);
 
   const counts = new Map<string, number>();

@@ -37,7 +37,7 @@ export async function getLostFoundRateCached(days: number): Promise<LostFoundRat
       .from(tags)
       .where(
         and(
-          eq(tags.appId, 'balikin_id'),
+          eq(tags.app_id, 'balikin_id'),
           gte(tags.createdAt, startDate)
         )
       );
@@ -57,7 +57,7 @@ export async function getLostFoundRateCached(days: number): Promise<LostFoundRat
         .from(scanLogs)
         .where(
           and(
-            eq(scanLogs.appId, 'balikin_id'),
+            eq(scanLogs.app_id, 'balikin_id'),
             sql`${scanLogs.tagId} = ANY(${lostTagIds})`
           )
         );

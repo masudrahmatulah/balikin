@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processDeadlineReminders } from '@/lib/deadline-reminders';
-
-const CRON_SECRET = process.env.CRON_SECRET;
+import { isCronAuthorized } from '@/lib/cron-auth';
 const MAX_EXECUTION_TIME = 280000;
-
-function verifyCronAuthorization(request: NextRequest): boolean {
-  if (!CRON_SECRET) {
-    console.warn('[Cron] CRON_SECRET not set, skipping auth check');
-    return true;
-  }
-
-  const authHeader = request.headers.get('authorization');
-  const xWebhookSignature = request.headers.get('x-vercel-cron-secret');
-
-  return authHeader === `Bearer ${CRON_SECRET}` || xWebhookSignature === CRON_SECRET;
-}
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   let cleanup = false;
 
   try {
-    if (!verifyCronAuthorization(request)) {
+    if (!isCronAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

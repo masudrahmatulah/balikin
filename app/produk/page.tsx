@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Check, Clock3, Package, ShoppingCart, Sticker } from 'lucide-react';
+import { ArrowRight, Check, Clock3, FileImage, Package, ShoppingCart, Sticker } from 'lucide-react';
 import { MarketingShell } from '@/components/marketing-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { getAcrylicStock } from '@/lib/product-stock';
 import { getStickerProductInfo } from '@/lib/sticker-template';
 import { buildMetadata } from '@/lib/seo';
 import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
+import { PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE } from '@/lib/constants';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Marketplace Produk Balikin',
@@ -46,17 +47,51 @@ export default async function ProductMarketplacePage() {
   return (
     <MarketingShell
       title="Pilih Produk Balikin"
-      description="Sticker QR dibuat setelah pesanan dikonfirmasi. Akrilik tersedia sebagai produk ready-stock per bentuk."
+      description="Pilih QR Tag Printable Premium, sticker QR made-to-order, atau akrilik ready-stock sesuai kebutuhan Anda."
     >
       <div className="not-prose space-y-12">
         <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-10 text-white shadow-xl md:px-10">
           <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-indigo-500/30 blur-3xl" aria-hidden="true" />
           <div className="relative max-w-3xl">
-            <Badge className="mb-4 bg-amber-400 text-slate-950 hover:bg-amber-400">2 produk utama · banyak pilihan</Badge>
+            <Badge className="mb-4 bg-amber-400 text-slate-950 hover:bg-amber-400">3 pilihan media · satu sistem QR</Badge>
             <h2 className="text-3xl font-bold tracking-tight md:text-5xl">Pilih bentuknya. Satu QR, tetap terhubung.</h2>
             <p className="mt-4 max-w-2xl text-slate-300">
-              Balikin hadir dalam dua media fisik: sticker QR yang dibuat setelah pesanan dan gantungan kunci akrilik yang dikirim dari stok siap kirim.
+              Gunakan file printable dan cetak sendiri, pesan sticker QR made-to-order, atau pilih gantungan kunci akrilik ready-stock.
             </p>
+          </div>
+        </section>
+
+        <section id="printable" className="overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-sm dark:border-amber-900/50 dark:bg-slate-900">
+          <div className="grid gap-8 border-b border-amber-100 bg-amber-50/70 p-6 dark:border-amber-900/50 dark:bg-amber-950/20 md:grid-cols-[1fr_1.35fr] md:p-8">
+            <div className="flex min-h-52 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-800">
+              <FileImage className="h-24 w-24 text-amber-500" aria-hidden="true" />
+            </div>
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-3 text-amber-600 dark:text-amber-300"><FileImage className="h-6 w-6" aria-hidden="true" /><span className="font-semibold">Produk 1</span></div>
+              <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">QR Tag Printable Premium</h2>
+              <p className="mt-3 text-slate-600 dark:text-slate-300">Tidak ingin menunggu produk fisik? Download file QR premium, tambahkan logo sendiri, lalu cetak dan tempel pada barang Anda.</p>
+              <div className="mt-5 grid gap-2 text-sm text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />PNG + PDF siap cetak</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />Tanpa watermark</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />Upload logo sendiri</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />QR aktif selamanya</span>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8">
+            {[
+              ['Single', PRINTABLE_SINGLE_PRICE, '1 lisensi QR'],
+              ['Paket 5', PRINTABLE_FIVE_PRICE, '5 lisensi QR'],
+              ['Paket 10', PRINTABLE_TEN_PRICE, '10 lisensi QR'],
+            ].map(([label, price, detail]) => (
+              <Card key={label} className="border-amber-100 dark:border-amber-900/50">
+                <CardHeader className="pb-3"><CardTitle className="text-lg dark:text-white">{label}</CardTitle><p className="text-sm text-slate-500 dark:text-slate-400">{detail}</p></CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-xl font-bold text-slate-900 dark:text-white">Rp{Number(price).toLocaleString('id-ID')}</p>
+                  <Button asChild className="w-full bg-amber-500 text-slate-950 hover:bg-amber-400"><Link href="/dashboard/printable"><FileImage className="mr-2 h-4 w-4" />Pilih Paket</Link></Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </section>
 
@@ -66,7 +101,7 @@ export default async function ProductMarketplacePage() {
               <Image src="/sticker2.png" alt="Contoh Sticker QR Balikin" fill className="object-contain p-5" sizes="(min-width: 768px) 35vw, 90vw" />
             </div>
             <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-300"><Sticker className="h-6 w-6" aria-hidden="true" /><span className="font-semibold">Produk 1</span></div>
+              <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-300"><Sticker className="h-6 w-6" aria-hidden="true" /><span className="font-semibold">Produk 2</span></div>
               <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">Sticker QR Balikin</h2>
               <p className="mt-3 text-slate-600 dark:text-slate-300">Sticker vinyl untuk koper, laptop, helm, botol, dan barang harian. QR dicetak setelah order dikonfirmasi.</p>
               <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-300">
@@ -111,7 +146,7 @@ export default async function ProductMarketplacePage() {
               <Image src={acrylicImages.circle} alt="Contoh gantungan kunci akrilik Balikin" fill className="object-contain p-5" sizes="(min-width: 768px) 35vw, 90vw" />
             </div>
             <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-3 text-purple-600 dark:text-purple-300"><Package className="h-6 w-6" aria-hidden="true" /><span className="font-semibold">Produk 2</span></div>
+              <div className="flex items-center gap-3 text-purple-600 dark:text-purple-300"><Package className="h-6 w-6" aria-hidden="true" /><span className="font-semibold">Produk 3</span></div>
               <h2 className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">Gantungan Kunci Akrilik</h2>
               <p className="mt-3 text-slate-600 dark:text-slate-300">Tag akrilik yang lebih kokoh untuk kunci, tas, koper, dan kendaraan. Pilih bentuk yang paling sesuai dengan barang Anda.</p>
               <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-300">

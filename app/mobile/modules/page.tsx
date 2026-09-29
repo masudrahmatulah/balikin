@@ -31,7 +31,8 @@ export default async function MobileModulesPage() {
   const userPermissions = await db.query.userModulePermissions.findMany({
     where: and(
       eq(userModulePermissions.userId, session.user.id),
-      eq(userModulePermissions.isEnabled, true)
+      eq(userModulePermissions.isEnabled, true),
+      eq(userModulePermissions.app_id, 'balikin_id')
     ),
   });
 
@@ -42,7 +43,8 @@ export default async function MobileModulesPage() {
   const pendingOrders = await db.query.modulePurchaseOrders.findMany({
     where: and(
       eq(modulePurchaseOrders.userId, session.user.id),
-      eq(modulePurchaseOrders.status, 'pending_payment')
+      eq(modulePurchaseOrders.status, 'pending_payment'),
+      eq(modulePurchaseOrders.app_id, 'balikin_id')
     ),
   });
 

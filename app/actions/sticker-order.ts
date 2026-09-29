@@ -127,6 +127,11 @@ export async function createStickerOrder(input: CreateStickerOrderInput) {
 }
 
 export async function getUserStickerOrders(userId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id || session.user.id !== userId) {
+    return [];
+  }
+
   if (!userId || userId.length < 10 || userId.length > 50) {
     return [];
   }

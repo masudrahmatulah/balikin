@@ -6,7 +6,7 @@
 import { sendOTPEmail } from '@/lib/email';
 import { sendWhatsAppOTP } from '@/lib/whatsapp';
 
-const TEST_EMAIL = 'test@balikin.id'; // Ganti dengan email Anda untuk test
+const TEST_EMAIL = 'test@balikin.online'; // Ganti dengan email Anda untuk test
 const TEST_PHONE = '087883956811'; // Ganti dengan nomor WhatsApp Anda untuk test
 const TEST_OTP = '123456';
 

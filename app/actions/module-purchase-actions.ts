@@ -14,6 +14,8 @@ import {
   sendModuleRejectedNotificationToUser,
 } from '@/lib/whatsapp';
 
+const APP_ID = 'balikin_id';
+
 /**
  * Helper function to get authenticated session
  */
@@ -37,7 +39,7 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
 
   // Check if module exists and is enabled
   const moduleConfigData = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, APP_ID)),
   });
 
   if (!moduleConfigData) {
@@ -52,7 +54,8 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
   const existingPermission = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, userId),
-      eq(userModulePermissions.moduleType, moduleType)
+      eq(userModulePermissions.moduleType, moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -65,7 +68,8 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
     where: and(
       eq(modulePurchaseOrders.userId, userId),
       eq(modulePurchaseOrders.moduleType, moduleType),
-      eq(modulePurchaseOrders.status, 'pending_payment')
+      eq(modulePurchaseOrders.status, 'pending_payment'),
+      eq(modulePurchaseOrders.app_id, APP_ID)
     ),
   });
 
@@ -76,6 +80,7 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
 
   // Create the order
   const order = await db.insert(modulePurchaseOrders).values({
+    app_id: APP_ID,
     userId,
     moduleType,
     status: 'pending_payment',
@@ -168,17 +173,19 @@ export async function getModulePurchaseOrders(statusFilter?: string) {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
     throw new Error('Forbidden: Admin access required');
   }
 
-  let whereClause = undefined;
-  if (statusFilter && statusFilter !== 'all') {
-    whereClause = eq(modulePurchaseOrders.status, statusFilter);
-  }
+  const whereClause = statusFilter && statusFilter !== 'all'
+    ? and(
+      eq(modulePurchaseOrders.app_id, APP_ID),
+      eq(modulePurchaseOrders.status, statusFilter)
+    ) ?? eq(modulePurchaseOrders.app_id, APP_ID)
+    : eq(modulePurchaseOrders.app_id, APP_ID);
 
   const orders = await db.query.modulePurchaseOrders.findMany({
     where: whereClause,
@@ -204,7 +211,7 @@ export async function getOrderStats() {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -214,22 +221,34 @@ export async function getOrderStats() {
   const pendingPaymentResult = await db
     .select({ count: count() })
     .from(modulePurchaseOrders)
-    .where(eq(modulePurchaseOrders.status, 'pending_payment'));
+    .where(and(
+      eq(modulePurchaseOrders.status, 'pending_payment'),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   const awaitingVerificationResult = await db
     .select({ count: count() })
     .from(modulePurchaseOrders)
-    .where(eq(modulePurchaseOrders.status, 'paid'));
+    .where(and(
+      eq(modulePurchaseOrders.status, 'paid'),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   const approvedResult = await db
     .select({ count: count() })
     .from(modulePurchaseOrders)
-    .where(eq(modulePurchaseOrders.status, 'approved'));
+    .where(and(
+      eq(modulePurchaseOrders.status, 'approved'),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   const rejectedResult = await db
     .select({ count: count() })
     .from(modulePurchaseOrders)
-    .where(eq(modulePurchaseOrders.status, 'rejected'));
+    .where(and(
+      eq(modulePurchaseOrders.status, 'rejected'),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   return {
     pendingPayment: pendingPaymentResult[0]?.count || 0,
@@ -251,7 +270,7 @@ export async function approveModulePurchaseOrder(orderId: string) {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -262,7 +281,10 @@ export async function approveModulePurchaseOrder(orderId: string) {
 
   // Get the order
   const order = await db.query.modulePurchaseOrders.findFirst({
-    where: eq(modulePurchaseOrders.id, orderId),
+    where: and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ),
     with: {
       user: true,
     },
@@ -280,7 +302,8 @@ export async function approveModulePurchaseOrder(orderId: string) {
   const existingPermission = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, order.userId),
-      eq(userModulePermissions.moduleType, order.moduleType)
+      eq(userModulePermissions.moduleType, order.moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -294,10 +317,14 @@ export async function approveModulePurchaseOrder(orderId: string) {
         grantedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(userModulePermissions.id, existingPermission.id));
+      .where(and(
+        eq(userModulePermissions.id, existingPermission.id),
+        eq(userModulePermissions.app_id, APP_ID)
+      ));
   } else {
     // Create new permission
     await db.insert(userModulePermissions).values({
+      app_id: APP_ID,
       userId: order.userId,
       moduleType: order.moduleType as ModuleType,
       isEnabled: true,
@@ -308,6 +335,7 @@ export async function approveModulePurchaseOrder(orderId: string) {
 
   // Log analytics
   await db.insert(moduleUsageAnalytics).values({
+    app_id: APP_ID,
     userId: order.userId,
     moduleType: order.moduleType,
     actionType: 'activate',
@@ -323,7 +351,10 @@ export async function approveModulePurchaseOrder(orderId: string) {
       reviewedBy: adminId,
       updatedAt: new Date(),
     })
-    .where(eq(modulePurchaseOrders.id, orderId));
+    .where(and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   // Send WhatsApp notification to user
   try {
@@ -361,7 +392,7 @@ export async function rejectModulePurchaseOrder({
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -372,7 +403,10 @@ export async function rejectModulePurchaseOrder({
 
   // Get the order
   const order = await db.query.modulePurchaseOrders.findFirst({
-    where: eq(modulePurchaseOrders.id, orderId),
+    where: and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ),
     with: {
       user: true,
     },
@@ -392,7 +426,10 @@ export async function rejectModulePurchaseOrder({
       rejectionReason,
       updatedAt: new Date(),
     })
-    .where(eq(modulePurchaseOrders.id, orderId));
+    .where(and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   // Send WhatsApp notification to user
   try {
@@ -423,7 +460,10 @@ export async function getUserModulePurchaseOrders() {
   }
 
   const orders = await db.query.modulePurchaseOrders.findMany({
-    where: eq(modulePurchaseOrders.userId, session.user.id),
+    where: and(
+      eq(modulePurchaseOrders.userId, session.user.id),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ),
     orderBy: [desc(modulePurchaseOrders.requestedAt)],
     with: {
       moduleConfig: true,
@@ -445,7 +485,7 @@ export async function cancelModulePurchaseOrder(orderId: string) {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -454,7 +494,10 @@ export async function cancelModulePurchaseOrder(orderId: string) {
 
   // Get the order
   const order = await db.query.modulePurchaseOrders.findFirst({
-    where: eq(modulePurchaseOrders.id, orderId),
+    where: and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ),
   });
 
   if (!order) {
@@ -472,7 +515,10 @@ export async function cancelModulePurchaseOrder(orderId: string) {
       status: 'cancelled',
       updatedAt: new Date(),
     })
-    .where(eq(modulePurchaseOrders.id, orderId));
+    .where(and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   revalidatePath('/admin/module-orders');
   revalidatePath('/dashboard/modules/purchases');
@@ -492,7 +538,7 @@ export async function sendPaymentReminder(orderId: string) {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -501,7 +547,10 @@ export async function sendPaymentReminder(orderId: string) {
 
   // Get the order
   const order = await db.query.modulePurchaseOrders.findFirst({
-    where: eq(modulePurchaseOrders.id, orderId),
+    where: and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ),
     with: {
       user: true,
       moduleConfig: true,
@@ -523,7 +572,10 @@ export async function sendPaymentReminder(orderId: string) {
       whatsappNotificationSent: true,
       updatedAt: new Date(),
     })
-    .where(eq(modulePurchaseOrders.id, orderId));
+    .where(and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.app_id, APP_ID)
+    ));
 
   // Send WhatsApp notification (implement in lib/whatsapp.ts)
   // TODO: Implement sendPaymentReminderNotification function

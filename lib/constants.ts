@@ -41,4 +41,4 @@ export const KOMERCE_PAYMENT_PAGE_URL = KOMERCE_ENV === 'production'
   ? 'https://pay.komerce.id'
   : 'https://pay-sandbox.komerce.id';
 export const KOMERCE_PAYMENT_METHOD = 'qris'; // QRIS payment method
-export const KOMERCE_PAYMENT_CALLBACK_SECRET = process.env.KOMERCE_PAYMENT_CALLBACK_SECRET ?? 'balikin-komerce-callback-secret';
+export const KOMERCE_PAYMENT_CALLBACK_SECRET = process.env.KOMERCE_PAYMENT_CALLBACK_SECRET || '';

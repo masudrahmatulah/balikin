@@ -51,7 +51,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<vo
     to,
     subject,
     hasApiKey: !!RESEND_API_KEY,
-    emailFrom: EMAIL_FROM || 'Balikin <noreply@balikin.id>',
+    emailFrom: EMAIL_FROM || 'Balikin <noreply@balikin.online>',
     nodeEnv: NODE_ENV,
     forceSend: !!FORCE_SEND_EMAIL,
     timestamp: new Date().toISOString(),
@@ -73,7 +73,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<vo
     return;
   }
 
-  const from = EMAIL_FROM || 'Balikin <noreply@balikin.id>';
+  const from = EMAIL_FROM || 'Balikin <noreply@balikin.online>';
 
   try {
     console.log('[EMAIL SERVICE] 🚀 Sending via Resend API...');

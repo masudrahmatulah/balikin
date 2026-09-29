@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { cache } from "react";
 import { db } from "@/db";
 import { user, tags } from "@/db/schema";
-import { eq, count } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import { headers } from "next/headers";
 import { AuthenticationError, AuthorizationError, logError } from "@/lib/error-handler";
 import { Division, type DivisionType } from "@/lib/admin-divisions";
@@ -39,7 +39,7 @@ async function getAdminSessionCore() {
     const fetchDbUser = (timeoutMs: number) =>
       Promise.race([
         db.query.user.findFirst({
-          where: eq(user.id, session.user.id),
+          where: and(eq(user.id, session.user.id), eq(user.app_id, 'balikin_id')),
         }),
         new Promise<null>((_, reject) =>
           setTimeout(() => reject(new Error('Database query timeout')), timeoutMs)

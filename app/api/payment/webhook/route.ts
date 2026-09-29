@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { stickerOrders, tagUpgradeOrders, tags } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { verifyKomerceCallback } from '@/lib/komerce-payment';
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       const [upgradeOrder] = await db
         .update(tagUpgradeOrders)
         .set({ paymentStatus, updatedAt: new Date() })
-        .where(eq(tagUpgradeOrders.id, upgradeOrderId))
+        .where(and(eq(tagUpgradeOrders.id, upgradeOrderId), eq(tagUpgradeOrders.app_id, 'balikin_id')))
         .returning();
 
       if (!upgradeOrder) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         await db
           .update(tags)
           .set({ tier: 'premium', productType: 'acrylic', expiresAt: null })
-          .where(eq(tags.id, upgradeOrder.tagId));
+          .where(and(eq(tags.id, upgradeOrder.tagId), eq(tags.app_id, 'balikin_id')));
         revalidatePath('/dashboard');
         revalidatePath('/p/[slug]');
         revalidateTag('tags');
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         status: paymentStatus === 'paid' ? 'pending_fulfillment' : 'pending_payment',
         updatedAt: new Date(),
       })
-      .where(eq(stickerOrders.id, orderId))
+      .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, 'balikin_id')))
       .returning();
 
     if (result.length === 0) {

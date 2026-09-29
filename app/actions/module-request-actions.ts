@@ -13,6 +13,8 @@ import {
   sendModuleRejectedNotificationToUser,
 } from '@/lib/whatsapp';
 
+const APP_ID = 'balikin_id';
+
 /**
  * Helper function to get authenticated session
  */
@@ -44,7 +46,8 @@ export async function requestModule({
   const existingPermission = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, userId),
-      eq(userModulePermissions.moduleType, moduleType)
+      eq(userModulePermissions.moduleType, moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -57,7 +60,8 @@ export async function requestModule({
     where: and(
       eq(moduleRequests.userId, userId),
       eq(moduleRequests.moduleType, moduleType),
-      eq(moduleRequests.status, 'pending')
+      eq(moduleRequests.status, 'pending'),
+      eq(moduleRequests.app_id, APP_ID)
     ),
   });
 
@@ -67,6 +71,7 @@ export async function requestModule({
 
   // Create the request
   await db.insert(moduleRequests).values({
+    app_id: APP_ID,
     userId,
     moduleType,
     status: 'pending',
@@ -103,7 +108,7 @@ export async function getPendingModuleRequests() {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -111,7 +116,10 @@ export async function getPendingModuleRequests() {
   }
 
   const requests = await db.query.moduleRequests.findMany({
-    where: eq(moduleRequests.status, 'pending'),
+    where: and(
+      eq(moduleRequests.status, 'pending'),
+      eq(moduleRequests.app_id, APP_ID)
+    ),
     orderBy: [desc(moduleRequests.requestedAt)],
     with: {
       user: true,
@@ -133,7 +141,7 @@ export async function approveModuleRequest(requestId: string) {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -144,7 +152,13 @@ export async function approveModuleRequest(requestId: string) {
 
   // Get the request
   const request = await db.query.moduleRequests.findFirst({
-    where: eq(moduleRequests.id, requestId),
+    where: and(
+      eq(moduleRequests.id, requestId),
+      eq(moduleRequests.app_id, APP_ID)
+    ),
+    with: {
+      user: true,
+    },
   });
 
   if (!request) {
@@ -159,7 +173,8 @@ export async function approveModuleRequest(requestId: string) {
   const existingPermission = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, request.userId),
-      eq(userModulePermissions.moduleType, request.moduleType)
+      eq(userModulePermissions.moduleType, request.moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -173,10 +188,14 @@ export async function approveModuleRequest(requestId: string) {
         grantedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(userModulePermissions.id, existingPermission.id));
+      .where(and(
+        eq(userModulePermissions.id, existingPermission.id),
+        eq(userModulePermissions.app_id, APP_ID)
+      ));
   } else {
     // Create new permission
     await db.insert(userModulePermissions).values({
+      app_id: APP_ID,
       userId: request.userId,
       moduleType: request.moduleType,
       isEnabled: true,
@@ -187,6 +206,7 @@ export async function approveModuleRequest(requestId: string) {
 
   // Log analytics
   await db.insert(moduleUsageAnalytics).values({
+    app_id: APP_ID,
     userId: request.userId,
     moduleType: request.moduleType,
     actionType: 'activate',
@@ -202,7 +222,10 @@ export async function approveModuleRequest(requestId: string) {
       reviewedBy: adminId,
       updatedAt: new Date(),
     })
-    .where(eq(moduleRequests.id, requestId));
+    .where(and(
+      eq(moduleRequests.id, requestId),
+      eq(moduleRequests.app_id, APP_ID)
+    ));
 
   // Send WhatsApp notification to user
   try {
@@ -241,7 +264,7 @@ export async function rejectModuleRequest({
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -252,7 +275,10 @@ export async function rejectModuleRequest({
 
   // Get the request
   const request = await db.query.moduleRequests.findFirst({
-    where: eq(moduleRequests.id, requestId),
+    where: and(
+      eq(moduleRequests.id, requestId),
+      eq(moduleRequests.app_id, APP_ID)
+    ),
     with: {
       user: true,
     },
@@ -276,7 +302,10 @@ export async function rejectModuleRequest({
       rejectionReason,
       updatedAt: new Date(),
     })
-    .where(eq(moduleRequests.id, requestId));
+    .where(and(
+      eq(moduleRequests.id, requestId),
+      eq(moduleRequests.app_id, APP_ID)
+    ));
 
   // Send WhatsApp notification to user
   try {
@@ -308,7 +337,10 @@ export async function getUserModuleRequests() {
   }
 
   const requests = await db.query.moduleRequests.findMany({
-    where: eq(moduleRequests.userId, session.user.id),
+    where: and(
+      eq(moduleRequests.userId, session.user.id),
+      eq(moduleRequests.app_id, APP_ID)
+    ),
     orderBy: [desc(moduleRequests.requestedAt)],
   });
 
@@ -328,7 +360,8 @@ export async function getUserPendingRequests() {
   const requests = await db.query.moduleRequests.findMany({
     where: and(
       eq(moduleRequests.userId, session.user.id),
-      eq(moduleRequests.status, 'pending')
+      eq(moduleRequests.status, 'pending'),
+      eq(moduleRequests.app_id, APP_ID)
     ),
   });
 

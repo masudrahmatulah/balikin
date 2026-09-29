@@ -77,7 +77,7 @@ async function searchUsers(query: string, limit: number): Promise<SearchResult[]
       .from(user)
       .where(
         and(
-          eq(user.appId, 'balikin_id'),
+          eq(user.app_id, 'balikin_id'),
           or(
             like(user.email, `%${query}%`),
             like(user.name, `%${query}%`)
@@ -116,7 +116,7 @@ async function searchTags(query: string, limit: number, isNanoid: boolean): Prom
       .from(tags)
       .where(
         and(
-          eq(tags.appId, 'balikin_id'),
+          eq(tags.app_id, 'balikin_id'),
           isNanoid ? eq(tags.slug, query) : like(tags.slug, `%${query}%`)
         )
       )
@@ -152,7 +152,7 @@ async function searchOrders(query: string, limit: number): Promise<SearchResult[
       .from(stickerOrders)
       .where(
         and(
-          eq(stickerOrders.appId, 'balikin_id'),
+          eq(stickerOrders.app_id, 'balikin_id'),
           like(stickerOrders.id, `%${query}%`)
         )
       )

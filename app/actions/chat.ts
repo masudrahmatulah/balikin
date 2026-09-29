@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { chatRooms, messages, tags, user } from "@/db/schema";
-import { and, eq, gte, desc } from "drizzle-orm";
+import { and, eq, gte, desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { scheduleChatNotification } from "./notifications";
@@ -56,6 +56,7 @@ async function checkFinderRateLimit(roomId: string): Promise<{ allowed: boolean;
   const recentMessages = await db.query.messages.findMany({
     where: and(
       eq(messages.roomId, roomId),
+      eq(messages.app_id, 'balikin_id'),
       eq(messages.senderType, "finder"),
       gte(messages.createdAt, oneMinuteAgo)
     ),
@@ -82,6 +83,19 @@ async function getFinderFingerprint(): Promise<string> {
     headersList.get("cf-connecting-ip") ||
     "unknown";
   return ip.split(",")[0].trim();
+}
+
+async function canAccessChatRoom(room: {
+  finderFingerprint: string | null;
+  tag?: { ownerId: string | null } | null;
+}): Promise<boolean> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session?.user?.id && room.tag?.ownerId === session.user.id) {
+    return true;
+  }
+
+  const finderFingerprint = await getFinderFingerprint();
+  return Boolean(room.finderFingerprint && room.finderFingerprint === finderFingerprint);
 }
 
 // ============================================================================
@@ -111,7 +125,7 @@ export async function sendMessage(data: {
 
     // 1. Cek status room chat
     const room = await db.query.chatRooms.findFirst({
-      where: eq(chatRooms.id, roomId),
+      where: and(eq(chatRooms.id, roomId), eq(chatRooms.app_id, 'balikin_id')),
       with: {
         tag: {
           columns: {
@@ -129,6 +143,10 @@ export async function sendMessage(data: {
 
     if (!room.isActive) {
       return { success: false, error: "Ruang obrolan sudah ditutup oleh pemilik" };
+    }
+
+    if (senderType === "finder" && room.finderFingerprint !== await getFinderFingerprint()) {
+      return { success: false, error: "Akses ruang obrolan tidak valid" };
     }
 
     // 2. Jika sender adalah owner, verifikasi autentikasi
@@ -171,7 +189,7 @@ export async function sendMessage(data: {
     // Update timestamp room
     await db.update(chatRooms)
       .set({ updatedAt: new Date() })
-      .where(eq(chatRooms.id, roomId));
+      .where(and(eq(chatRooms.id, roomId), eq(chatRooms.app_id, 'balikin_id')));
 
     // FASE 5: Schedule notification jika finder mengirim pesan
     if (senderType === "finder" && room.tag.ownerId) {
@@ -204,7 +222,7 @@ export async function createChatRoom(tagSlug: string): Promise<{ success: boolea
   try {
     // Cari tag berdasarkan slug
     const tag = await db.query.tags.findFirst({
-      where: eq(tags.slug, tagSlug),
+      where: and(eq(tags.slug, tagSlug), eq(tags.app_id, 'balikin_id')),
     });
 
     if (!tag) {
@@ -219,7 +237,8 @@ export async function createChatRoom(tagSlug: string): Promise<{ success: boolea
     const existingRoom = await db.query.chatRooms.findFirst({
       where: and(
         eq(chatRooms.tagId, tag.id),
-        eq(chatRooms.isActive, true)
+        eq(chatRooms.isActive, true),
+        eq(chatRooms.app_id, 'balikin_id'),
       ),
     });
 
@@ -259,7 +278,7 @@ export async function blockChatRoom(roomId: string): Promise<{ success: boolean;
 
     // Verifikasi kepemilikan room
     const room = await db.query.chatRooms.findFirst({
-      where: eq(chatRooms.id, roomId),
+      where: and(eq(chatRooms.id, roomId), eq(chatRooms.app_id, 'balikin_id')),
       with: {
         tag: {
           columns: {
@@ -295,32 +314,44 @@ export async function blockChatRoom(roomId: string): Promise<{ success: boolean;
 export async function getChatMessages(roomId: string, limit: number = 50) {
   try {
     const room = await db.query.chatRooms.findFirst({
-      where: eq(chatRooms.id, roomId),
+      where: and(eq(chatRooms.id, roomId), eq(chatRooms.app_id, 'balikin_id')),
+      with: {
+        tag: { columns: { ownerId: true } },
+      },
     });
 
     if (!room) {
       return { success: false, error: "Ruang obrolan tidak ditemukan" };
     }
 
-    const messages = await db.query.messages.findMany({
-      where: eq(messages.roomId, roomId),
+    if (!await canAccessChatRoom(room)) {
+      return { success: false, error: "Akses ruang obrolan tidak diizinkan" };
+    }
+
+    const safeLimit = Math.min(Math.max(Math.trunc(limit) || 50, 1), 100);
+
+    const chatMessages = await db.query.messages.findMany({
+      where: and(eq(messages.roomId, roomId), eq(messages.app_id, 'balikin_id')),
       orderBy: [desc(messages.createdAt)],
-      limit,
+      limit: safeLimit,
     });
 
-    // Tandai pesan sebagai sudah dibaca oleh owner
-    await db.update(messages)
-      .set({ isReadByOwner: true })
-      .where(
-        and(
-          eq(messages.roomId, roomId),
-          eq(messages.senderType, "finder")
-        )
-      );
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session?.user?.id === room.tag?.ownerId) {
+      await db.update(messages)
+        .set({ isReadByOwner: true })
+        .where(
+          and(
+            eq(messages.roomId, roomId),
+            eq(messages.app_id, 'balikin_id'),
+            eq(messages.senderType, "finder")
+          )
+        );
+    }
 
     return {
       success: true,
-      messages: messages.reverse(), // Balik agar kronologis
+        messages: chatMessages.reverse(), // Balik agar kronologis
       roomActive: room.isActive,
     };
   } catch (error) {
@@ -335,7 +366,7 @@ export async function getChatMessages(roomId: string, limit: number = 50) {
 export async function getChatRoom(roomId: string) {
   try {
     const room = await db.query.chatRooms.findFirst({
-      where: eq(chatRooms.id, roomId),
+      where: and(eq(chatRooms.id, roomId), eq(chatRooms.app_id, 'balikin_id')),
       with: {
         tag: {
           columns: {
@@ -352,6 +383,10 @@ export async function getChatRoom(roomId: string) {
       return { success: false, error: "Ruang obrolan tidak ditemukan" };
     }
 
+    if (!await canAccessChatRoom(room)) {
+      return { success: false, error: "Akses ruang obrolan tidak diizinkan" };
+    }
+
     return {
       success: true,
       room: {
@@ -359,7 +394,9 @@ export async function getChatRoom(roomId: string) {
         isActive: room.isActive,
         createdAt: room.createdAt,
         updatedAt: room.updatedAt,
-        tag: room.tag,
+        tag: room.tag
+          ? { id: room.tag.id, name: room.tag.name, slug: room.tag.slug }
+          : null,
       },
     };
   } catch (error) {
@@ -373,9 +410,14 @@ export async function getChatRoom(roomId: string) {
  */
 export async function getUnreadCount(ownerId: string): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user?.id || session.user.id !== ownerId) {
+      return { success: false, error: "Akses tidak diizinkan" };
+    }
+
     // Cari semua room aktif dari tag milik owner
     const ownerTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, ownerId),
+      where: and(eq(tags.ownerId, ownerId), eq(tags.app_id, 'balikin_id')),
       columns: { id: true },
     });
 
@@ -388,6 +430,8 @@ export async function getUnreadCount(ownerId: string): Promise<{ success: boolea
     const activeRooms = await db.query.chatRooms.findMany({
       where: and(
         eq(chatRooms.isActive, true),
+        eq(chatRooms.app_id, 'balikin_id'),
+        inArray(chatRooms.tagId, tagIds),
       ),
       columns: { id: true },
     });
@@ -401,15 +445,13 @@ export async function getUnreadCount(ownerId: string): Promise<{ success: boolea
     const unreadMessages = await db.query.messages.findMany({
       where: and(
         eq(messages.senderType, "finder"),
-        eq(messages.isReadByOwner, false)
+        eq(messages.isReadByOwner, false),
+        eq(messages.app_id, 'balikin_id'),
+        inArray(messages.roomId, roomIds),
       ),
     });
 
-    const filteredMessages = unreadMessages.filter((msg) =>
-      roomIds.includes(msg.roomId)
-    );
-
-    return { success: true, count: filteredMessages.length };
+    return { success: true, count: unreadMessages.length };
   } catch (error) {
     console.error("[Chat] Error getting unread count:", error);
     return { success: false, error: "Terjadi kesalahan" };

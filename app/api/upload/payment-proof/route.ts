@@ -117,7 +117,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (stickerOrder) {
-      await db.update(stickerOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(eq(stickerOrders.id, stickerOrder.id));
+      await db.update(stickerOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
+        and(
+          eq(stickerOrders.id, stickerOrder.id),
+          eq(stickerOrders.userId, session.user.id),
+          eq(stickerOrders.app_id, 'balikin_id'),
+        )
+      );
+    } else if (moduleOrder) {
+      await db.update(modulePurchaseOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
+        and(
+          eq(modulePurchaseOrders.id, moduleOrder.id),
+          eq(modulePurchaseOrders.userId, session.user.id),
+          eq(modulePurchaseOrders.app_id, 'balikin_id'),
+        )
+      );
     }
     return NextResponse.json({ url: blob.url });
   } catch (error) {

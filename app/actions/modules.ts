@@ -318,7 +318,10 @@ export async function getEmergencyInformation(tagId: string) {
   }
 
   return db.query.emergencyInformation.findFirst({
-    where: eq(emergencyInformation.tagId, tagId),
+    where: and(
+      eq(emergencyInformation.tagId, tagId),
+      eq(emergencyInformation.app_id, 'balikin_id')
+    ),
   });
 }
 
@@ -341,7 +344,10 @@ export async function updateEmergencyInformation(tagId: string, data: {
   }
 
   const existingData = await db.query.emergencyInformation.findFirst({
-    where: eq(emergencyInformation.tagId, tagId),
+    where: and(
+      eq(emergencyInformation.tagId, tagId),
+      eq(emergencyInformation.app_id, 'balikin_id')
+    ),
     columns: { id: true },
   });
 
@@ -359,9 +365,13 @@ export async function updateEmergencyInformation(tagId: string, data: {
     await db
       .update(emergencyInformation)
       .set(updateValues)
-      .where(eq(emergencyInformation.id, existingData.id));
+      .where(and(
+        eq(emergencyInformation.id, existingData.id),
+        eq(emergencyInformation.app_id, 'balikin_id')
+      ));
   } else {
     await db.insert(emergencyInformation).values({
+      app_id: 'balikin_id',
       tagId,
       bloodType: data.bloodType || '',
       allergies: data.allergies || '',
@@ -386,7 +396,8 @@ export async function getUserModuleSelections() {
   return db.query.userModuleSelections.findMany({
     where: and(
       eq(userModuleSelections.userId, userId),
-      eq(userModuleSelections.isActive, true)
+      eq(userModuleSelections.isActive, true),
+      eq(userModuleSelections.app_id, 'balikin_id')
     ),
   });
 }
@@ -402,7 +413,10 @@ export async function setUserModuleSelections(moduleTypes: string[]) {
     await tx
       .update(userModuleSelections)
       .set({ isActive: false, updatedAt: new Date() })
-      .where(eq(userModuleSelections.userId, userId));
+      .where(and(
+        eq(userModuleSelections.userId, userId),
+        eq(userModuleSelections.app_id, 'balikin_id')
+      ));
 
     if (moduleTypes.length === 0) {
       return;
@@ -411,7 +425,8 @@ export async function setUserModuleSelections(moduleTypes: string[]) {
     const existingSelections = await tx.query.userModuleSelections.findMany({
       where: and(
         eq(userModuleSelections.userId, userId),
-        inArray(userModuleSelections.moduleType, moduleTypes)
+        inArray(userModuleSelections.moduleType, moduleTypes),
+        eq(userModuleSelections.app_id, 'balikin_id')
       ),
       columns: { id: true, moduleType: true },
     });
@@ -442,6 +457,7 @@ export async function setUserModuleSelections(moduleTypes: string[]) {
     if (modulesToCreate.length > 0) {
       await tx.insert(userModuleSelections).values(
         modulesToCreate.map(moduleType => ({
+          app_id: 'balikin_id',
           userId,
           moduleType,
           isActive: true,
@@ -468,7 +484,7 @@ export async function enableTabTwo(tagId: string) {
   await db
     .update(tags)
     .set({ hasTabTwoEnabled: true })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   revalidatePath(`/p/[slug]`);
 

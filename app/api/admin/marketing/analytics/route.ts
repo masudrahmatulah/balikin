@@ -41,15 +41,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Conversion Funnel Data
-    const totalUsers = await db.select({ count: count() }).from(user);
+    const totalUsers = await db
+      .select({ count: count() })
+      .from(user)
+      .where(eq(user.app_id, 'balikin_id'));
     const usersWithTags = await db
       .select({ count: count() })
       .from(user)
-      .innerJoin(tags, eq(user.id, tags.ownerId));
+      .innerJoin(tags, and(eq(user.id, tags.ownerId), eq(tags.app_id, 'balikin_id')))
+      .where(eq(user.app_id, 'balikin_id'));
     const payingUsers = await db
       .select({ count: count() })
       .from(user)
-      .innerJoin(stickerOrders, eq(user.id, stickerOrders.userId));
+      .innerJoin(stickerOrders, and(eq(user.id, stickerOrders.userId), eq(stickerOrders.app_id, 'balikin_id')))
+      .where(eq(user.app_id, 'balikin_id'));
 
     const conversionFunnel = [
       {
@@ -81,6 +86,7 @@ export async function GET(request: NextRequest) {
         users: count(sql`DISTINCT ${userModuleSelections.userId}`),
       })
       .from(userModuleSelections)
+      .where(eq(userModuleSelections.app_id, 'balikin_id'))
       .groupBy(userModuleSelections.moduleType);
 
     const modulePerformance = moduleStats.map((stat) => ({
@@ -92,7 +98,7 @@ export async function GET(request: NextRequest) {
 
     // Finder to Buyer Data
     const recentScans = await db.query.scanLogs.findMany({
-      where: gte(scanLogs.scannedAt, startDate),
+      where: and(eq(scanLogs.app_id, 'balikin_id'), gte(scanLogs.scannedAt, startDate)),
       orderBy: [desc(scanLogs.scannedAt)],
     });
 
@@ -100,7 +106,7 @@ export async function GET(request: NextRequest) {
     const newUsersFromScans = await db
       .select({ count: count() })
       .from(user)
-      .where(gte(user.createdAt, startDate));
+      .where(and(eq(user.app_id, 'balikin_id'), gte(user.createdAt, startDate)));
 
     const finderToBuyer = [
       {

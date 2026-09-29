@@ -399,7 +399,7 @@ ${reason ? `Alasan: ${reason}` : ''}
 ⏰ Waktu: ${timestamp}
 
 ➡️ Action: Login ke admin dashboard untuk approve
-https://balikin.id/admin/requests
+https://balikin.online/admin/requests
 
 — Balikin Module Requests`;
 
@@ -440,7 +440,7 @@ Halo *${userName}*! 👋
 Selamat! Modul *${moduleDisplayName}* telah diaktifkan untuk akun Anda.
 
 🚀 *Akses sekarang:*
-https://balikin.id/dashboard
+https://balikin.online/dashboard
 
 Nikmati fitur-fiturnya:
 ${benefits}
@@ -557,7 +557,7 @@ Nominal: *${formatRupiah(amount)}*
 ⏰ Waktu: ${timestamp}
 
 ➡️ Action: Login ke admin dashboard untuk verifikasi
-https://balikin.id/admin/module-orders
+https://balikin.online/admin/module-orders
 
 — Balikin Module Orders`;
 
@@ -624,7 +624,7 @@ HP: ${phone}
 ⏰ Waktu: ${timestamp}
 
 ➡️ Action: Login ke admin dashboard untuk verifikasi
-https://balikin.id/admin/sticker-orders
+https://balikin.online/admin/sticker-orders
 
 — Balikin Sticker Orders`;
 
@@ -709,7 +709,7 @@ Nomor Rekening: 1234567890
 Atas Nama: Balikin Indonesia
 
 Setelah transfer, upload bukti pembayaran di:
-https://balikin.id/dashboard/modules/purchases
+https://balikin.online/dashboard/modules/purchases
 
 Order ID: ${orderId}
 

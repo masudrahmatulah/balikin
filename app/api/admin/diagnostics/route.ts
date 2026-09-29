@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { user, tags, scanLogs } from '@/db/schema';
 import { count } from 'drizzle-orm';
+import { isAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 10; // 10 second timeout
@@ -18,6 +19,10 @@ async function withTimeout<T>(
 }
 
 export async function GET() {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const results = {
     tests: [] as Array<{
       name: string;
