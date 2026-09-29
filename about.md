@@ -41,14 +41,15 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 **Physical Tier (Rp 54.000)**
 - Target: Individual users, kunci motor/mobil
-- Format: Gantungan kunci akrilik 3mm premium
+- Format: Gantungan kunci akrilik 3mm premium ready-stock
+- Varian: Lingkaran, Oval, Persegi Delapan, Hati, Persegi, Persegi Panjang, Motif, dan Timbul
 - Features: Tahan benturan & UV extreme, desain elegan
 
 **Sticker Tiers (Rp 59.000 each, 4 varian)**
-1. **Pro**: 6-8 QR besar (3,5×3,5 cm) → Professional assets
-2. **Daily**: 12-15 QR sedang (2,5×2,5 cm) → Daily gadgets
-3. **Micro**: 20-24 QR kecil (1,8×1,8 cm) → Mini items (TWS, charger)
-4. **Family**: 12 QR campuran (BEST SELLER) → Multi-purpose combo
+1. **Pro**: 4 QR besar (125×43 mm) → Professional assets
+2. **Daily**: 5 QR sedang (95×33 mm) → Daily gadgets
+3. **Micro**: 8 QR kecil (65×23 mm) → Mini items (TWS, charger)
+4. **Family**: 6 QR campuran (1 Pro + 2 Daily + 3 Micro, BEST SELLER) → Multi-purpose combo
 
 **Bundle Tiers (Value Play)**
 1. **Ultimate Pack** (Rp 89k): 1 Akrilik + 1 Family Stiker → Hemat Rp 24k
@@ -61,14 +62,16 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ### Alur Aplikasi (Operational)
 
-1. **Pemesanan:** User memilih produk di landing page dan mengisi form checkout (Nama, WhatsApp, alamat, segmentasi CRM).
+1. **Pemesanan:** User memilih produk di marketplace dan mengisi form checkout (Nama, WhatsApp, alamat, segmentasi CRM). Sticker menyimpan varian Pro/Family/Daily/Micro; akrilik menyimpan bentuk fisik yang dipilih customer.
 2. **Kalkulasi Ongkir:** Sistem memanggil RajaOngkir/Biteship via cascading dropdown (Provinsi → Kota → Kecamatan), dengan fallback tarif flat jika API timeout.
 3. **Pembayaran:** User membayar via QRIS Midtrans (GoPay/ShopeePay). Di mobile, muncul tombol deep-link langsung ke aplikasi e-wallet.
-4. **Webhook Settlement:** Midtrans mengirim notifikasi → status order berubah ke `settlement` → PIN aktivasi di-generate → order diantrekan ke VDP Tool admin gudang.
-5. **Generasi Tag:** Sistem membuat short_code unik (nanoid) dan mencatat hubungan Sheet_ID ↔ array tag_id di tabel `sticker_sheets`.
-6. **Produksi & QC:** Admin mencetak stiker/akrilik via VDP Tool. Tim gudang scan barcode Sheet_ID untuk validasi integritas sebelum pengiriman.
-7. **Aktivasi:** User menerima barang, scan QR, login, input 6-digit PIN Aktivasi → tag berpindah status `unclaimed` → `claimed`. Sistem auto-set `premium_until = NOW() + 1 year`.
-8. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
+4. **Verifikasi Pembayaran:** Setelah pembayaran dikonfirmasi, sticker order masuk antrean VDP. Untuk akrilik, sistem mengunci stok varian secara atomic.
+5. **Fulfillment Sticker:** Sistem membuat batch VDP, sticker sheet, master PIN, dan relasi Sheet_ID ↔ tag_id. Admin mencetak setelah order masuk.
+6. **Fulfillment Akrilik:** Akrilik tidak dibuat setelah order. Produk diambil dari stok jadi berdasarkan bentuk yang dipilih customer dan menggunakan PIN per tag.
+7. **Stok Akrilik Habis:** Jika stok habis saat verifikasi pembayaran, order menjadi `stock_unavailable` dan tidak boleh diproses kirim. Admin menindaklanjuti refund atau penggantian varian.
+8. **Produksi & QC:** Admin mencetak sticker via VDP Tool. Akrilik ready-stock melewati pengecekan stok dan QC sebelum pengiriman.
+9. **Aktivasi:** User menerima barang, scan QR, login, input kode aktivasi. Sticker memakai master PIN sheet untuk mengaktifkan seluruh paket; akrilik memakai PIN per tag.
+10. **Module Assignment:** Admin dapat menambahkan modul khusus (Student Kit, Otomotif, dll) ke tag tertentu.
 
 ### Alur User (Digital Journey)
 
@@ -166,9 +169,15 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 
 ### Sticker Orders Management
 * **Order Verification:** Verifikasi bukti pembayaran.
-* **Status Updates:** Update status (in_production, shipped, completed).
-* **Sticker Types:** Circle/Rectangle, Small/Medium/Large.
-* **Bundle Generation:** Generate bundle QR untuk pesanan sticker.
+* **Status Updates:** Update status (pending_fulfillment, in_production, ready_to_ship, shipped, completed, stock_unavailable).
+* **Sticker Fulfillment:** Generate batch dan bundle melalui VDP setelah pembayaran.
+* **Acrylic Fulfillment:** Cek stok varian dan proses ready-stock tanpa generate produksi baru.
+
+### Product Inventory
+* **Acrylic Stock:** Stok barang jadi dicatat per bentuk akrilik.
+* **Marketplace Display:** Customer melihat jumlah stok tersedia pada katalog.
+* **Atomic Deduction:** Stok hanya dikurangi saat pembayaran diverifikasi.
+* **Stock Failure:** Order yang kehabisan stok menjadi `stock_unavailable` untuk refund atau penggantian varian.
 
 ### Layout Editor (Coming Soon)
 * **Custom Design:** Editor untuk desain sticker kustom.
@@ -254,10 +263,10 @@ Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi **pri
 |:--:|:--|:--|--:|:--|:--|
 | 01 | **Digital** | Balikin Free Pass | Rp 0 | Penetrasi pasar, database builder | Hook: Akses gratis selamanya |
 | 02 | **Physical** | Balikin Armor Tag | Rp 54.000 | Pemilik premium individual | The Anchor: Pricing reference |
-| 03 | **Sticker** | Stiker Balikin Pro | Rp 59.000 | Professional (laptop, helm, koper) | 6-8 QR ukuran besar 3,5×3,5 cm |
-| 04 | **Sticker** | Stiker Balikin Daily | Rp 59.000 | Personal gadgets (botol, agenda, tablet) | 12-15 QR ukuran sedang 2,5×2,5 cm |
-| 05 | **Sticker** | Stiker Balikin Micro | Rp 59.000 | Mini items (TWS, powerbank, charger) | 20-24 QR ukuran saku 1,8×1,8 cm |
-| 06 | **Sticker** | Stiker Balikin Family ⭐ | Rp 59.000 | Keluarga (combo multi-ukuran) | BEST SELLER: 3 Besar + 4 Sedang + 5 Kecil |
+| 03 | **Sticker** | Stiker Balikin Pro | Rp 59.000 | Professional (laptop, helm, koper) | 4 QR ukuran besar 125×43 mm |
+| 04 | **Sticker** | Stiker Balikin Daily | Rp 59.000 | Personal gadgets (botol, agenda, tablet) | 5 QR ukuran sedang 95×33 mm |
+| 05 | **Sticker** | Stiker Balikin Micro | Rp 59.000 | Mini items (TWS, powerbank, charger) | 8 QR ukuran saku 65×23 mm |
+| 06 | **Sticker** | Stiker Balikin Family ⭐ | Rp 59.000 | Keluarga (combo multi-ukuran) | BEST SELLER: 1 Besar + 2 Sedang + 3 Kecil |
 | 07 | **Bundle** | Balikin Ultimate Pack ⭐ | Rp 89.000 | Nilai terbaik | BEST VALUE: 1 Akrilik + 1 Family Stiker (Hemat Rp 24k) |
 | 08 | **Bundle** | Paket Keluarga | Rp 299.000 | 1 rumah (4 orang) | High Margin: 4× Ultimate Pack (Hemat Rp 57k) |
 | 09 | **Bundle** | Paket Traveller (B2B) | Rp 699.000 | Bisnis/Reseller | B2B Engine: 10× Ultimate Pack (Hemat Rp 191k) |
@@ -430,8 +439,9 @@ balikin_scan_logs - Scan history (IP, city, latitude, longitude, device)
 
 // Physical Product Tracking
 balikin_sticker_sheets - VDP tracking (Sheet_ID, package_type, batch_id)
-balikin_sticker_orders - Order tracking (order_id, status: pending/in_production/shipped/completed)
+balikin_sticker_orders - Order tracking (order_id, product_variant, status: pending_fulfillment/in_production/ready_to_ship/shipped/completed/stock_unavailable)
 balikin_order_bundles - Bundle-to-order mapping
+balikin_product_inventory - Finished acrylic stock per product variant
 
 // Module Data
 balikin_student_modules - Student kit data
@@ -501,7 +511,11 @@ balikin_campaign_leads - Campaign lead tracking (email, campaign_name, source, s
      WHERE code = $1 AND used_count < quota AND expires_at > NOW();
      -- 0 rows affected → tolak diskon
      ```
-   * **Server-side Pricing:** Grand Total wajib dihitung di Next.js backend, tidak boleh dari browser.
+    * **Server-side Pricing:** Grand Total wajib dihitung di Next.js backend, tidak boleh dari browser.
+    * **Product Variant:** Variant sticker dan bentuk akrilik divalidasi server-side dan disimpan pada order.
+    * **Ready Stock:** Stok akrilik tidak di-reserve saat checkout; stok dikurangi hanya setelah pembayaran diverifikasi.
+    * **Stock Race Protection:** Pengurangan stok memakai transaksi dan row lock agar stok tidak pernah minus.
+    * **Stock Unavailable:** Jika stok habis saat verifikasi, order diberi status `stock_unavailable` untuk proses refund atau penggantian varian.
    * **Anti-Enumeration:** `order_id` menggunakan nanoid (acak), bukan ID sequential.
    * **RLS pada Orders:** `auth.uid() == user_id` — pembeli hanya bisa akses pesanannya sendiri.
    * **Shipping Fallback:** Jika RajaOngkir/Biteship timeout (>4 detik), gunakan tarif flat cadangan.

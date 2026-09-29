@@ -21,29 +21,29 @@ Dokumen ini diringkas dari `md for development/1.free.md`, `2.stikervinyl.md`, `
 ## Stiker Balikin Pro
 
 - Harga referensi pada katalog: Rp59.000 per sheet A5.
-- Isi referensi: 6-8 QR berukuran besar.
-- Ukuran referensi: sekitar 3,5 x 3,5 cm atau 4 x 4 cm.
+- Isi referensi: 4 QR berukuran besar.
+- Ukuran referensi: 125 x 43 mm.
 - Cocok untuk: laptop, helm, koper, hardcase kamera, dan permukaan yang luas.
 - Material: vinyl waterproof dengan laminasi untuk membantu melindungi dari air, sinar matahari, dan goresan.
 
 ## Stiker Balikin Daily
 
 - Harga referensi pada katalog: Rp59.000 per sheet A5.
-- Isi referensi: 12-15 QR berukuran sedang.
-- Ukuran referensi: sekitar 2,5 x 2,5 cm.
+- Isi referensi: 5 QR berukuran sedang.
+- Ukuran referensi: 95 x 33 mm.
 - Cocok untuk: botol minum, tumbler, agenda, paspor, tablet, dan kamera.
 
 ## Stiker Balikin Micro
 
 - Harga referensi pada katalog: Rp59.000 per sheet A5.
-- Isi referensi: 20-24 QR berukuran kecil.
-- Ukuran referensi: sekitar 1,8 x 1,8 cm.
+- Isi referensi: 8 QR berukuran kecil.
+- Ukuran referensi: 65 x 23 mm.
 - Cocok untuk: casing TWS, remote, powerbank, charger, flashdisk, dan ID card.
 
 ## Stiker Balikin Family
 
 - Harga referensi pada katalog: Rp59.000 per sheet A5.
-- Isi referensi: 12 QR campuran: 3 besar, 4 sedang, dan 5 kecil.
+- Isi referensi: 6 QR campuran: 1 besar, 2 sedang, dan 3 kecil.
 - Cocok untuk: keluarga atau customer yang ingin mengamankan berbagai ukuran barang sekaligus.
 - Posisi katalog: rekomendasi utama kategori stiker karena ukurannya paling fleksibel.
 

@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PrintBundleButton } from '@/components/admin/print-bundle-button';
+import { GenerateVdpOrderButton } from '@/components/admin/generate-vdp-order-button';
 import { getShapeLabel, getSizeLabel } from '@/lib/sticker-template';
 import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
+import { getOrderProductDisplayName } from '@/lib/product-catalog';
 
 export default async function AdminStickerOrderDetailPage({
   params,
@@ -52,6 +54,13 @@ export default async function AdminStickerOrderDetailPage({
     }))),
   })));
 
+  const productTypeLabel = getOrderProductDisplayName(order.productType, order.productVariant, order.unitCountPerPack);
+  const activationBatchId = order.bundles.flatMap((bundle) => bundle.tags).find((tag) => tag.batchId)?.batchId ?? null;
+  const activationUrl = activationBatchId ? `${baseUrl}/activate/batch/${activationBatchId}` : null;
+  const activationQrDataUrl = activationUrl
+    ? await QRCode.toDataURL(activationUrl, { width: 480, margin: 2 })
+    : null;
+
   return (
     <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex items-center justify-between gap-3">
@@ -68,9 +77,12 @@ export default async function AdminStickerOrderDetailPage({
           <CardHeader>
             <CardTitle>Ringkasan Order</CardTitle>
             <CardDescription>{order.recipientName} • {order.phone} • {order.user?.email}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Badge variant="outline">{order.paymentStatus}</Badge>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              <Badge variant="outline">
+                {productTypeLabel} · {order.packQuantity} pack × {order.unitCountPerPack} unit
+              </Badge>
+              <Badge variant="outline">{order.paymentStatus}</Badge>
             <Badge variant="outline">{order.status}</Badge>
             <Badge variant="outline">{order.city}</Badge>
             {order.productType === 'acrylic' && (
@@ -107,12 +119,47 @@ export default async function AdminStickerOrderDetailPage({
               </a>
             </CardContent>
           )}
+          {activationQrDataUrl && activationUrl && (
+            <CardContent className="border-t border-slate-200 dark:border-slate-700">
+              <div className="flex flex-wrap items-center gap-4">
+                <img src={activationQrDataUrl} alt="QR aktivasi batch VDP" className="h-32 w-32 rounded-lg border border-slate-200 p-2 dark:border-slate-700" />
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white">QR Aktivasi VDP</p>
+                  <p className="mt-1 max-w-xl text-sm text-slate-700 dark:text-slate-300">
+                    {order.productType === 'sticker'
+                      ? 'Gunakan QR ini bersama kode master PIN pada sheet untuk mengaktifkan seluruh tag dalam paket.'
+                      : 'Gunakan QR ini bersama PIN per tag dari manifest VDP untuk mengaktifkan tag akrilik.'}
+                  </p>
+                  <a href={activationUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-blue-700 hover:underline dark:text-blue-300">
+                    Buka halaman aktivasi
+                  </a>
+                </div>
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {order.bundles.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-sm text-gray-600">
-              Bundle belum dibuat untuk order ini.
+            <CardContent className="py-10 text-center text-sm text-slate-600 dark:text-slate-300">
+              {order.paymentStatus !== 'paid' ? (
+                <>
+                  <p>Pembayaran order ini belum diverifikasi.</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Generate Batch VDP tersedia setelah status pembayaran menjadi paid.</p>
+                </>
+              ) : (
+                <>
+                  <p>Batch VDP belum dibuat untuk order ini.</p>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                    {(order.productType === 'sticker' || order.productType === 'acrylic') && (
+                      <GenerateVdpOrderButton orderId={order.id} />
+                    )}
+                    <Link href="/admin/vdp-tool">
+                      <Button variant="outline">Buka VDP Tool Manual</Button>
+                    </Link>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -137,19 +184,19 @@ export default async function AdminStickerOrderDetailPage({
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {bundle.tags.map((tag) => (
-                    <div key={tag.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                      <div key={tag.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                       <div className="flex justify-center rounded-xl border bg-white p-4">
                         <img src={tag.qrDataUrl} alt={`QR ${tag.slug}`} className="h-48 w-48" />
                       </div>
-                      <p className="mt-3 font-medium text-gray-900">{tag.name}</p>
-                      <p className="mt-1 break-all font-mono text-xs text-gray-500">/p/{tag.slug}</p>
-                      <p className="mt-2 text-sm text-gray-600">{tag.ownerId ? 'Sudah diaktivasi' : 'Belum diaktivasi'}</p>
+                      <p className="mt-3 font-medium text-slate-900 dark:text-white">{tag.name}</p>
+                      <p className="mt-1 break-all font-mono text-xs text-slate-500 dark:text-slate-400">/p/{tag.slug}</p>
+                      <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">{tag.ownerId ? 'Sudah diaktivasi' : 'Belum diaktivasi'}</p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <a
                           href={`/p/${tag.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
+                          className="text-sm text-blue-700 hover:underline dark:text-blue-300"
                         >
                           Buka Halaman Publik
                         </a>

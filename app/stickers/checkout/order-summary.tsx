@@ -113,7 +113,7 @@ export function OrderSummary({ product, stickerColorTheme, shippingCost, backsid
           <p>✓ WhatsApp Gateway gratis 1 tahun</p>
           <p>✓ GPS Tracking presisi</p>
           <p>✓ Lost Mode emergency display</p>
-          <p>✓ Anonymous contact (nomor WA tersembunyi)</p>
+          <p>✓ Nomor WhatsApp tidak dicetak permanen di sticker</p>
           <p>✓ Verified Owner Badge</p>
         </CardContent>
       </Card>

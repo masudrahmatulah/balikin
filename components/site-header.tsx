@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const siteNavLinks = [
+  { href: '/produk', label: 'Produk' },
   { href: '/how-it-works', label: 'Cara Kerja' },
   { href: '/pricing', label: 'Harga' },
   { href: '/blog', label: 'Blog' },

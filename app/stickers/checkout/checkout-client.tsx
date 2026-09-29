@@ -8,13 +8,17 @@ import { type ProductKey, PRODUCT_CATALOG } from '@/lib/product-catalog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClipboardPenLine } from 'lucide-react';
 import { type StickerColorTheme } from '@/lib/sticker-color-themes';
+import { ACRYLIC_SHAPES, type AcrylicShapeKey } from '@/lib/acrylic-shapes';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StickerColorPicker } from '@/components/sticker-color-picker';
 
 interface CheckoutClientProps {
   productKey: ProductKey;
   stickerColorTheme: StickerColorTheme;
+  initialAcrylicVariant?: AcrylicShapeKey;
 }
 
-export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClientProps) {
+export function CheckoutClient({ productKey, stickerColorTheme, initialAcrylicVariant = 'circle' }: CheckoutClientProps) {
   const router = useRouter();
   const product = PRODUCT_CATALOG[productKey];
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -23,6 +27,8 @@ export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClient
   const [destinationCityName, setDestinationCityName] = useState<string>('');
   const [backsideCustom, setBacksideCustom] = useState(false);
   const [backsideCustomImageUrl, setBacksideCustomImageUrl] = useState('');
+  const [acrylicVariant, setAcrylicVariant] = useState<AcrylicShapeKey>(initialAcrylicVariant);
+  const [selectedStickerColor, setSelectedStickerColor] = useState<StickerColorTheme>(stickerColorTheme);
 
   const handleBacksideChange = (custom: boolean, imageUrl: string) => {
     setBacksideCustom(custom);
@@ -60,9 +66,35 @@ export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClient
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
+          {productKey === 'armor-tag' && (
+            <div className="mb-6 space-y-2">
+              <label htmlFor="acrylic-variant" className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                Bentuk Akrilik
+              </label>
+              <Select value={acrylicVariant} onValueChange={(value) => value && setAcrylicVariant(value as AcrylicShapeKey)}>
+                <SelectTrigger id="acrylic-variant">
+                  <SelectValue placeholder="Pilih bentuk akrilik" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(ACRYLIC_SHAPES).map((shape) => (
+                    <SelectItem key={shape.key} value={shape.key}>{shape.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Bentuk ini akan digunakan untuk produksi VDP dan dicatat pada detail order.
+              </p>
+            </div>
+          )}
+          {productKey !== 'armor-tag' && (
+            <div className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+              <StickerColorPicker value={selectedStickerColor} onChange={setSelectedStickerColor} />
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Warna ini akan dicatat pada pesanan dan digunakan untuk produksi sticker.</p>
+            </div>
+          )}
           <CheckoutForm
             productKey={productKey}
-            stickerColorTheme={stickerColorTheme}
+            stickerColorTheme={selectedStickerColor}
             onShippingCostChange={handleShippingCostChange}
             shippingCost={shippingCost}
             shippingCourier={shippingCourier}
@@ -72,13 +104,14 @@ export function CheckoutClient({ productKey, stickerColorTheme }: CheckoutClient
             backsideCustomImageUrl={backsideCustomImageUrl}
             onBacksideChange={handleBacksideChange}
             onSuccess={handleSuccess}
+            acrylicVariant={productKey === 'armor-tag' ? acrylicVariant : undefined}
           />
         </CardContent>
       </Card>
       <div className="order-1 lg:order-2 lg:sticky lg:top-24">
         <OrderSummary
           product={product}
-          stickerColorTheme={stickerColorTheme}
+          stickerColorTheme={selectedStickerColor}
           shippingCost={shippingCost}
           backsideCustom={backsideCustom}
         />

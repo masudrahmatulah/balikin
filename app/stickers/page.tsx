@@ -1,25 +1,20 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import Image from 'next/image';
-import { BadgeCheck, Droplets, Sticker, SunMedium, MessageCircle, Layers, Sparkles, Check } from 'lucide-react';
+import { BadgeCheck, Droplets, SunMedium, Sparkles, MessageCircle } from 'lucide-react';
 import { MarketingShell } from '@/components/marketing-shell';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
-import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 import { PRODUCT_CATALOG, type ProductKey } from '@/lib/product-catalog';
 import { getStickerProductInfo, FAMILY_ROW_PRODUCTS, type StickerProductKey } from '@/lib/sticker-template';
 import { buildMetadata } from '@/lib/seo';
+import { StickerPurchaseCard } from '@/components/sticker-purchase-card';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Sticker Vinyl Pack',
-  description: 'Sticker Vinyl Balikin isi 8-24 pcs untuk helm, laptop, koper, dan barang sehari-hari. Waterproof, anti-UV, dan terhubung ke WhatsApp alert.',
+  description: 'Sticker Vinyl Balikin isi 4-8 pcs untuk helm, laptop, koper, dan barang sehari-hari. Pilih paket dan warna sticker sesuai kebutuhan.',
   path: '/stickers',
   keywords: ['sticker vinyl qr', 'stiker barang hilang', 'sticker helm qr', 'sticker koper qr'],
 });
-
-const WHATSAPP_MESSAGE = 'Halo, saya tertarik pesan Sticker Vinyl Pack Balikin.';
 
 const features = [
   {
@@ -79,9 +74,7 @@ function getPackComposition(productKey: (typeof stickerProductKeys)[number]) {
   };
 }
 
-export default function StickersPage() {
-  const whatsappHref = `https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
-
+export default async function StickersPage() {
   return (
     <MarketingShell
       title="Jangan Biarkan Barang Kesayanganmu Hilang Tanpa Jejak."
@@ -103,7 +96,7 @@ export default function StickersPage() {
                   Pilih Paket <span className="bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">Sticker Vinyl</span> Sesuai Kebutuhan
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Setiap sticker terhubung ke Lisensi Akun/ID QR Balikin, proteksi privasi nomor HP, dan alert WhatsApp saat barang Anda ditemukan.
+                  Setiap sticker terhubung ke Lisensi Akun/ID QR Balikin. Nomor WhatsApp tidak dicetak permanen di sticker, dan Anda mendapat alert saat QR dipindai.
                 </p>
               </div>
               <div className="relative mx-auto h-40 w-40 sm:h-48 sm:w-48 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 shadow-lg shadow-indigo-100/50 dark:from-white/5 dark:to-white/5 dark:border-white/10">
@@ -141,84 +134,19 @@ export default function StickersPage() {
               const isPopular = key === 'stiker-family';
 
               return (
-                <Card
-                  key={key}
-                  className={`relative bg-white dark:bg-white/5 transition-all ${
-                    isPopular
-                      ? 'border-2 border-indigo-600 shadow-lg shadow-indigo-100 dark:shadow-indigo-950/40'
-                      : 'border-2 border-gray-200 dark:border-white/10'
-                  }`}
-                >
-                  {isPopular && (
-                    <span className="absolute -top-3 left-4 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                      Paling Populer
-                    </span>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl dark:text-white">
-                      <Sticker className="h-5 w-5 text-indigo-600 flex-shrink-0" aria-hidden="true" />
-                      {product.name} Isi {product.packSize}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{PRODUCT_USE_CASE[key]}</p>
-
-                    <div className="rounded-xl border border-indigo-100 dark:border-white/10 bg-indigo-50/50 dark:bg-white/5 p-3">
-                      <div className="flex items-start gap-2">
-                        <Layers className="mt-0.5 h-4 w-4 text-indigo-500 flex-shrink-0" aria-hidden="true" />
-                        <div className="text-sm text-gray-700 dark:text-gray-300">
-                          <p className="font-medium">{composition.summary}</p>
-                          {composition.breakdown && (
-                            <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                              {composition.breakdown.map((item) => (
-                                <li key={item.label} className="flex justify-between gap-2">
-                                  <span className="flex items-center gap-1">
-                                    <Check className="h-3 w-3 text-indigo-500" aria-hidden="true" />
-                                    {item.count}x {item.label}
-                                  </span>
-                                  <span className="font-mono">{item.size}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-end justify-between">
-                      <p className="text-3xl font-bold text-gray-900 dark:text-white">Rp{product.price.toLocaleString('id-ID')}</p>
-                      <Button
-                        asChild
-                        className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-900/20 border-0 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                      >
-                        <Link href={`/stickers/checkout?product=${key}`}>Pilih Paket Ini</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <StickerPurchaseCard
+                      key={key}
+                      product={product}
+                      productKey={key}
+                      useCase={PRODUCT_USE_CASE[key]}
+                      composition={composition}
+                      isPopular={isPopular}
+                    />
               );
             })}
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={0.2}>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-center mt-10 max-w-4xl mx-auto shadow-xl shadow-indigo-300/40">
-            <p className="text-sm text-indigo-50">
-              Ingin campur beberapa paket sekaligus (misal 1 Pro + 2 Daily)? Chat admin kami, pesanan campuran diproses manual.
-            </p>
-            <Button
-              asChild
-              variant="outline"
-              className="mt-4 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-indigo-600"
-            >
-              <a href={whatsappHref} target="_blank" rel="noopener noreferrer external">
-                <MessageCircle className="mr-2 h-4 w-4" aria-hidden="true" />
-                Tanya / Pesan Campuran via WhatsApp
-              </a>
-            </Button>
-            <p className="mt-4 text-xs text-indigo-200">Pembayaran awal memakai QRIS manual dan diverifikasi admin Balikin.</p>
-          </div>
-        </ScrollReveal>
       </div>
     </MarketingShell>
   );

@@ -1,6 +1,8 @@
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and, isNull, lt } from "drizzle-orm";
+
+const APP_ID = "balikin_id";
 
 /**
  * Publish scheduled posts whose scheduledAt time has passed.
@@ -16,6 +18,8 @@ export async function publishScheduledPosts() {
   const scheduledPosts = await db.query.blogPosts.findMany({
     where: and(
       eq(blogPosts.isPublished, false),
+      eq(blogPosts.app_id, APP_ID),
+      isNull(blogPosts.deletedAt),
       lt(blogPosts.scheduledAt, now)
     ),
   });

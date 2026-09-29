@@ -39,6 +39,7 @@ export default async function AdminStickerOrdersPage({
     status: order.status,
     bundleCount: order.bundles.length,
     productType: order.productType,
+    productVariant: order.productVariant,
     stickerColorTheme: order.stickerColorTheme,
     backsideCustom: order.backsideCustom,
     backsideCustomImageUrl: order.backsideCustomImageUrl,
@@ -74,7 +75,7 @@ export default async function AdminStickerOrdersPage({
                 </Button>
               </Link>
             )}
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-slate-700 dark:text-slate-300">
               Halaman {page} dari {totalPages}
             </span>
             {page < totalPages && (

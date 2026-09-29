@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { ZoomIn, Sparkles, QrCode, Lock } from 'lucide-react';
+import { ArrowRight, Lock, Package, QrCode, Sparkles, Sticker, ZoomIn } from 'lucide-react';
+import Link from 'next/link';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { ImageLightbox, type LightboxImage } from '@/components/landing/image-lightbox';
 import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
 
@@ -24,6 +27,36 @@ const colorShowcaseItems = (Object.keys(STICKER_COLOR_THEMES) as StickerColorThe
   ...STICKER_COLOR_THEMES[id],
 }));
 
+const productCards = [
+  {
+    icon: Sticker,
+    title: 'Sticker QR',
+    description: 'Sticker vinyl tahan air untuk laptop, helm, koper, botol, dan barang harian.',
+    price: 'Mulai Rp59.000',
+    href: '/stickers',
+    label: 'Lihat pilihan sticker',
+    className: 'border-indigo-200 bg-indigo-50/60 dark:border-indigo-900/50 dark:bg-indigo-950/20',
+  },
+  {
+    icon: Package,
+    title: 'Gantungan Kunci Akrilik',
+    description: 'Tag akrilik ready-stock dengan beberapa bentuk untuk kunci, tas, koper, dan kendaraan.',
+    price: 'Mulai Rp54.000',
+    href: '/produk#akrilik',
+    label: 'Lihat pilihan akrilik',
+    className: 'border-purple-200 bg-purple-50/60 dark:border-purple-900/50 dark:bg-purple-950/20',
+  },
+  {
+    icon: QrCode,
+    title: 'Mulai Gratis',
+    description: 'Buat identitas QR digital terlebih dahulu, lalu tambahkan media fisik saat siap.',
+    price: 'Rp0',
+    href: '/sign-up',
+    label: 'Mulai gratis',
+    className: 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/20',
+  },
+];
+
 export function ProductShowcaseSection() {
   const [lightboxImage, setLightboxImage] = useState<LightboxImage | null>(null);
 
@@ -31,14 +64,44 @@ export function ProductShowcaseSection() {
     <section className="container mx-auto px-4 py-16">
       <ScrollReveal>
         <div className="max-w-2xl mx-auto text-center mb-10">
-          <Badge className="mb-4 bg-brand-red text-white hover:bg-brand-red-dark">
+            <Badge className="mb-4 bg-brand-red text-white hover:bg-brand-red-dark">
             <Sparkles className="h-3 w-3 mr-1" aria-hidden="true" />
-            Galeri Produk
+            Produk Balikin
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">Lihat Detail Setiap Produk</h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Klik gambar untuk melihat tampilan produk secara close-up sebelum Anda memilih di konfigurator.
-          </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 dark:text-white">Pilih Media untuk Barang Anda</h2>
+            <p className="text-gray-600 dark:text-gray-300">
+             Semua media menggunakan sistem QR Balikin yang sama. Pilih produk yang paling sesuai, lalu lihat detail dan ketersediaannya.
+            </p>
+        </div>
+      </ScrollReveal>
+
+      <ScrollReveal delay={0.05}>
+        <div className="mx-auto mb-12 grid max-w-5xl gap-4 md:grid-cols-3">
+          {productCards.map((product) => {
+            const Icon = product.icon;
+            return (
+              <Card key={product.title} className={`h-full border ${product.className}`}>
+                <CardContent className="flex h-full flex-col p-5">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm dark:bg-white/10">
+                      <Icon className="h-5 w-5 text-brand-red" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{product.title}</h3>
+                      <p className="text-sm font-semibold text-brand-red-dark dark:text-red-300">{product.price}</p>
+                    </div>
+                  </div>
+                  <p className="flex-1 text-sm leading-6 text-gray-600 dark:text-gray-300">{product.description}</p>
+                  <Button asChild className="mt-5 w-full bg-brand-red hover:bg-brand-red-dark">
+                    <Link href={product.href}>
+                      {product.label}
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </ScrollReveal>
 

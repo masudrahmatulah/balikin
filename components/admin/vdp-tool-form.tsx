@@ -472,10 +472,10 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const getEstimatedSheets = () => {
     if (formData.paperSize === "a5" && formData.materialType === "sticker") {
       const itemsPerSheetMap = {
-        'stiker-pro': 6,
-        'stiker-daily': 12,
-        'stiker-micro': 20,
-        'stiker-family': 12,
+        'stiker-pro': 4,
+        'stiker-daily': 5,
+        'stiker-micro': 8,
+        'stiker-family': 6,
       };
       const itemsPerSheet = itemsPerSheetMap[formData.stickerProductKey];
       return Math.ceil(formData.quantity / itemsPerSheet);
@@ -664,10 +664,10 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="font-body text-sm">
-                              <SelectItem value="stiker-pro">Stiker Balikin Pro (35×35mm, 6 per sheet)</SelectItem>
-                              <SelectItem value="stiker-daily">Stiker Balikin Daily (25×25mm, 12 per sheet)</SelectItem>
-                              <SelectItem value="stiker-micro">Stiker Balikin Micro (18×18mm, 20 per sheet)</SelectItem>
-                              <SelectItem value="stiker-family">Stiker Balikin Family (Mixed sizes, 12 per sheet)</SelectItem>
+                               <SelectItem value="stiker-pro">Stiker Balikin Pro (125×43mm, 4 per sheet)</SelectItem>
+                               <SelectItem value="stiker-daily">Stiker Balikin Daily (95×33mm, 5 per sheet)</SelectItem>
+                               <SelectItem value="stiker-micro">Stiker Balikin Micro (65×23mm, 8 per sheet)</SelectItem>
+                               <SelectItem value="stiker-family">Stiker Balikin Family (1 Pro + 2 Daily + 3 Micro, 6 per sheet)</SelectItem>
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-secondary/70 mt-2">

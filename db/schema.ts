@@ -110,6 +110,7 @@ export const stickerOrders = pgTable('sticker_orders', {
   paymentStatus: text('payment_status').default('pending').notNull(),
   paymentMethod: text('payment_method').default('manual_qris').notNull(),
   productType: text('product_type').default('sticker').notNull(),
+  productVariant: text('product_variant'),
   stickerColorTheme: text('sticker_color_theme').default('navy-premium'),
   recipientName: text('recipient_name').notNull(),
   phone: text('phone').notNull(),
@@ -801,6 +802,18 @@ export const materialInventoryRelations = relations(materialInventory, ({ many }
   printQueueItems: many(printQueue),
 }));
 
+// Finished acrylic products available for ready-stock checkout.
+export const productInventory = pgTable('product_inventory', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  app_id: text('app_id').default('balikin_id').notNull(),
+  productKey: text('product_key').notNull(),
+  productVariant: text('product_variant').notNull(),
+  quantityOnHand: integer('quantity_on_hand').default(0).notNull(),
+  lowStockThreshold: integer('low_stock_threshold').default(3).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Print queue - manage batch printing jobs
 export const printQueue = pgTable('print_queue', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -1428,6 +1441,8 @@ export type NewCampaignLead = typeof campaignLeads.$inferInsert;
 
 export type MaterialInventory = typeof materialInventory.$inferSelect;
 export type NewMaterialInventory = typeof materialInventory.$inferInsert;
+export type ProductInventory = typeof productInventory.$inferSelect;
+export type NewProductInventory = typeof productInventory.$inferInsert;
 export type PrintQueue = typeof printQueue.$inferSelect;
 export type NewPrintQueue = typeof printQueue.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;

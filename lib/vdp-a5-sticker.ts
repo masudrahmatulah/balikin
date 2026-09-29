@@ -54,10 +54,10 @@ export async function generateA5StickerSheet(
 
   // QR code size based on sticker size (in pixels at 300 DPI)
   const qrSizeMap = {
-    'stiker-pro': 220,      // 35mm sticker
-    'stiker-daily': 160,    // 25mm sticker
-    'stiker-micro': 120,    // 18mm sticker
-    'stiker-family': 220,   // Mixed, use max size
+    'stiker-pro': 220,      // Large Pro sticker QR
+    'stiker-daily': 160,    // Medium Daily sticker QR
+    'stiker-micro': 120,    // Small Micro sticker QR
+    'stiker-family': 220,   // Mixed, use the largest QR size
   };
 
   const qrSize = qrSizeMap[productKey];

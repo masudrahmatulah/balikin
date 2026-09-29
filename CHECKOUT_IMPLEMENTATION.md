@@ -15,10 +15,10 @@ Digital (Rp 0)
 Physical (Rp 54.000)
 ├─ Balikin Armor Tag (Gantungan kunci)
 Sticker (Rp 59.000 each)
-├─ Stiker Balikin Pro (6-8 QR besar)
-├─ Stiker Balikin Daily (12-15 QR sedang)
-├─ Stiker Balikin Micro (20-24 QR kecil)
-└─ Stiker Balikin Family (12 QR campuran) ⭐ BEST SELLER
+├─ Stiker Balikin Pro (4 QR besar)
+├─ Stiker Balikin Daily (5 QR sedang)
+├─ Stiker Balikin Micro (8 QR kecil)
+└─ Stiker Balikin Family (6 QR campuran: 1 Pro + 2 Daily + 3 Micro) ⭐ BEST SELLER
 Bundle (Rp 89.000 - Rp 699.000)
 ├─ Ultimate Pack (1 Akrilik + 1 Family) ⭐ BEST VALUE
 ├─ Family Pack (4× Ultimate)
@@ -332,4 +332,3 @@ balikin_tags
 8. Add RLS policies
 9. Test end-to-end flow
 10. Monitor VDP integration
-

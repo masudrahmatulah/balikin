@@ -26,6 +26,7 @@ interface CheckoutFormProps {
   backsideCustom: boolean;
   backsideCustomImageUrl: string;
   onBacksideChange: (custom: boolean, imageUrl: string) => void;
+  acrylicVariant?: string;
 }
 
 type FieldErrors = Record<string, string>;
@@ -63,6 +64,7 @@ export function CheckoutForm({
   backsideCustom,
   backsideCustomImageUrl,
   onBacksideChange,
+  acrylicVariant,
 }: CheckoutFormProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -263,6 +265,7 @@ export function CheckoutForm({
       segment,
       voucherCode: voucherCode.trim(),
       productKey,
+      productVariant: isAcrylic ? `acrylic-${acrylicVariant}` : productKey,
       stickerColorTheme,
       shippingCost,
       shippingCourier,

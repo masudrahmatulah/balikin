@@ -28,16 +28,17 @@ Ada 4 pilihan produk yang tersedia:
 ```
 ┌─────────────────────────────────┐
 │ ⭐ Stiker Balikin Pro           │  ← Untuk branding premium
-│    35×35 mm, 6 per sheet        │
+│    125×43 mm, 4 per sheet       │
 │                                 │
 │ 📌 Stiker Balikin Daily         │  ← Standard daily use
-│    25×25 mm, 12 per sheet       │
+│    95×33 mm, 5 per sheet        │
 │                                 │
 │ 🔗 Stiker Balikin Micro         │  ← Compact mini sticker
-│    18×18 mm, 20 per sheet       │
+│    65×23 mm, 8 per sheet        │
 │                                 │
 │ 🎁 Stiker Balikin Family        │  ← Bundle mix
-│    Mixed sizes, 12 per sheet    │
+│    1 Pro + 2 Daily + 3 Micro    │
+│    6 per sheet                  │
 └─────────────────────────────────┘
 ```
 
@@ -129,8 +130,8 @@ Examples:
 Form akan menampilkan estimasi sheet yang dibutuhkan:
 ```
 Quantity: 100
-Product: Daily (12 per sheet)
-Sheets: 9 sheets (100 ÷ 12 = 8.33 → rounded up to 9)
+Product: Daily (5 per sheet)
+Sheets: 20 sheets (100 ÷ 5 = 20)
 ```
 
 ## 📋 Print Checklist

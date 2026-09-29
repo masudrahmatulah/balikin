@@ -2,7 +2,6 @@
 
 import { SiteHeader } from '@/components/site-header';
 import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero-section';
-import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
 import { ProductShowcaseSection } from '@/components/landing/product-showcase-section';
 import { QrScanSimulatorSection } from '@/components/landing/qr-scan-simulator-section';
 import { WhyBuyComparisonSection } from '@/components/landing/why-buy-comparison-section';
@@ -35,9 +34,6 @@ export function HomePage() {
 
       {/* Free Pass lead capture */}
       <FreePassLeadSection />
-
-      {/* Interactive configurator: material/shape/design add-ons with live price */}
-      <LicenseConfiguratorSection />
 
       {/* QR scan simulator: anonymous WhatsApp flow education */}
       <QrScanSimulatorSection />

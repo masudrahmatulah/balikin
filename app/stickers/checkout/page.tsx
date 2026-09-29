@@ -10,6 +10,7 @@ import { PRODUCT_CATALOG, resolveProductKey, type ProductKey } from '@/lib/produ
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { SiteHeader } from '@/components/site-header';
 import { FooterSection } from '@/components/landing/footer-section';
+import { ACRYLIC_SHAPES, type AcrylicShapeKey } from '@/lib/acrylic-shapes';
 
 function CheckoutPageInner() {
   const searchParams = useSearchParams();
@@ -17,6 +18,10 @@ function CheckoutPageInner() {
   const productKey: ProductKey = resolveProductKey(searchParams.get('product'));
   const product = PRODUCT_CATALOG[productKey];
   const stickerColorTheme = normalizeStickerColorTheme(searchParams.get('color'));
+  const requestedVariant = searchParams.get('variant')?.replace(/^acrylic-/, '') as AcrylicShapeKey | undefined;
+  const acrylicVariant = productKey === 'armor-tag' && requestedVariant && requestedVariant in ACRYLIC_SHAPES
+    ? requestedVariant
+    : 'circle';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
@@ -57,7 +62,7 @@ function CheckoutPageInner() {
       </section>
 
       <main className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
-        <CheckoutClient productKey={productKey} stickerColorTheme={stickerColorTheme} />
+         <CheckoutClient productKey={productKey} stickerColorTheme={stickerColorTheme} initialAcrylicVariant={acrylicVariant} />
       </main>
 
       <FooterSection />

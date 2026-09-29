@@ -70,7 +70,7 @@ export function SmartLicenseHeroSection() {
           className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
         >
           <div className="max-w-md mx-auto text-center">
-            <Link href="#konfigurator">
+            <Link href="/produk">
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 w-full sm:w-auto bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all"

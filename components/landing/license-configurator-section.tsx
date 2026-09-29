@@ -81,6 +81,17 @@ export function LicenseConfiguratorSection() {
   const activeShape = shapes.find((s) => s.id === (previewShape ?? shape))!;
 
   const checkoutProductKey = material === 'vinyl' ? stickerPack : 'armor-tag';
+  const acrylicCheckoutVariant = material === 'acrylic'
+    ? ({
+        bulat: 'acrylic-circle',
+        oval: 'acrylic-oval',
+        'persegi-panjang': 'acrylic-rectangle',
+        'persegi-panjang-motif': 'acrylic-rectangle-motif',
+        'persegi-panjang-timbul': 'acrylic-rectangle-emboss',
+        'segi-delapan': 'acrylic-octagon',
+        heart: 'acrylic-heart',
+      } as const)[shape]
+    : null;
   const checkoutProduct = PRODUCT_CATALOG[checkoutProductKey];
   const packSize = checkoutProduct.packSize;
 
@@ -470,14 +481,14 @@ export function LicenseConfiguratorSection() {
                     {formatRupiah(Math.round(checkoutProduct.price / packSize))} / pcs dalam pack
                   </p>
                 </div>
-                <Link href={`/stickers/checkout?product=${checkoutProductKey}&color=${stickerColorTheme}`} className="block">
+                 <Link href={`/stickers/checkout?product=${checkoutProductKey}&color=${stickerColorTheme}${acrylicCheckoutVariant ? `&variant=${acrylicCheckoutVariant}` : ''}`} className="block">
                   <Button className="w-full bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] text-white shadow-lg shadow-red-900/30 border-0" size="lg">
                     <ShoppingCart className="mr-2 h-4 w-4" aria-hidden="true" />
                     Aktifkan Lisensi Ini
                   </Button>
                 </Link>
                 <p className="text-xs text-red-200 mt-3 text-center">
-                  Satu kali bayar, berlaku seumur hidup. Cetak fisik diproses print-on-demand sesuai pilihan Anda.
+                   Satu kali bayar, berlaku seumur hidup. Sticker diproses print-on-demand; akrilik dikirim dari ready stock.
                 </p>
               </CardContent>
             </Card>

@@ -10,7 +10,7 @@ export const PRINTABLE_PAYMENT_METHOD = 'manual_qris';
 export const PREMIUM_PRICE = 54000;       // Premium Acrylic Tag
 export const BACKSIDE_CUSTOM_PRICE = 10000; // Custom image sisi belakang acrylic (+Rp10.000/order)
 export const STICKER_PACK_PRICE = 59000;  // Semua varian stiker (Pro/Daily/Micro/Family)
-export const STICKER_PACK_SIZE = 12;      // Default: Family (12 QR campuran)
+export const STICKER_PACK_SIZE = 6;       // Default: Family (6 QR campuran)
 
 export const STICKER_PAYMENT_METHOD = 'manual_qris';
 export const STICKER_PAYMENT_LABEL = 'QRIS Manual';

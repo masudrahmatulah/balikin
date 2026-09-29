@@ -27,7 +27,7 @@ Terdapat 4 produk sticker yang dapat di-generate:
 - **Use Case**: Compact mini sticker
 
 ### 4. Stiker Balikin Family
-- **Ukuran**: Mixed (3 Besar + 4 Sedang + 5 Kecil)
+- **Ukuran**: Mixed (1 Besar + 2 Sedang + 3 Kecil)
 - **Per Sheet**: 12 sticker
 - **Layout**: Mixed sizes across rows
 - **Use Case**: Bundle pack dengan variasi ukuran

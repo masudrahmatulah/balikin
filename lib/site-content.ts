@@ -102,7 +102,7 @@ export const faqItems = [
 export const marketingNavLinks = [
   { href: "/about", label: "Tentang" },
   { href: "/how-it-works", label: "Cara Kerja" },
-  { href: "/stickers", label: "Sticker" },
+  { href: "/produk", label: "Marketplace" },
   { href: "/pricing", label: "Harga" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Kontak" },

@@ -33,7 +33,8 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
-import { GenerateBundleButton } from '@/components/admin/generate-bundle-button';
+import { GenerateVdpOrderButton } from '@/components/admin/generate-vdp-order-button';
+import { getOrderProductDisplayName } from '@/lib/product-catalog';
 import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import {
   bulkDeleteStickerOrders,
@@ -62,6 +63,7 @@ export interface StickerOrderRow {
   status: string;
   bundleCount: number;
   productType: string;
+  productVariant: string | null;
   stickerColorTheme: string | null;
   backsideCustom: boolean;
   backsideCustomImageUrl: string | null;
@@ -73,6 +75,8 @@ const ORDER_STATUS_OPTIONS = [
   { value: 'in_production', label: 'In Production' },
   { value: 'shipped', label: 'Shipped' },
   { value: 'completed', label: 'Completed' },
+  { value: 'ready_to_ship', label: 'Ready to Ship' },
+  { value: 'stock_unavailable', label: 'Stock Unavailable' },
 ];
 
 const PRODUCT_TYPE_OPTIONS = [
@@ -83,6 +87,12 @@ const PRODUCT_TYPE_OPTIONS = [
 
 function formatRupiah(value: number) {
   return `Rp${value.toLocaleString('id-ID')}`;
+}
+
+function getProductTypeLabel(productType: string) {
+  if (productType === 'acrylic') return 'Premium Acrylic Tag';
+  if (productType === 'bundle') return 'Bundle';
+  return 'Stiker QR';
 }
 
 export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) {
@@ -193,7 +203,7 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
       <div className="grid gap-4">
         {orders.length === 0 ? (
           <Card>
-            <CardContent className="py-10 text-center text-sm text-gray-600">
+            <CardContent className="py-10 text-center text-sm text-slate-600 dark:text-slate-300">
               Belum ada order sticker.
             </CardContent>
           </Card>
@@ -212,7 +222,7 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                     <div>
                       <CardTitle className="text-lg">
                         Order {order.id.slice(0, 8)}…
-                        <span className="ml-2 text-xs font-normal text-gray-500">{order.createdAtLabel}</span>
+                        <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">{order.createdAtLabel}</span>
                       </CardTitle>
                       <CardDescription>
                         {order.recipientName} • {order.city} • {order.email}
@@ -220,6 +230,9 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {getOrderProductDisplayName(order.productType, order.productVariant, order.unitCountPerPack)} · {order.packQuantity} pack × {order.unitCountPerPack} unit
+                    </Badge>
                     <Badge variant="outline">{order.paymentStatus}</Badge>
                     <Badge variant="outline">{order.status}</Badge>
                     <Badge variant="outline">bundle {order.bundleCount}</Badge>
@@ -247,21 +260,26 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-3 text-sm text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-3 text-sm text-slate-700 dark:text-slate-300 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    WhatsApp: <span className="font-medium text-gray-900">{order.phone}</span>
+                    WhatsApp: <span className="font-medium text-slate-900 dark:text-white">{order.phone}</span>
                   </div>
                   <div>
-                    Total: <span className="font-medium text-gray-900">{formatRupiah(order.totalAmount)}</span>
+                    Total: <span className="font-medium text-slate-900 dark:text-white">{formatRupiah(order.totalAmount)}</span>
                   </div>
                   <div>
                     Pack:{' '}
-                    <span className="font-medium text-gray-900">
+                    <span className="font-medium text-slate-900 dark:text-white">
                       {order.packQuantity} x {order.unitCountPerPack}
                     </span>
                   </div>
                   <div>
-                    Alamat: <span className="font-medium text-gray-900">{order.city}</span>
+                    Alamat: <span className="font-medium text-slate-900 dark:text-white">{order.city}</span>
+                  </div>
+                  <div>
+                    Produk: <span className="font-medium text-slate-900 dark:text-white">
+                      {getOrderProductDisplayName(order.productType, order.productVariant, order.unitCountPerPack)} ({order.packQuantity} pack, {order.unitCountPerPack} unit/pack)
+                    </span>
                   </div>
                 </div>
 
@@ -297,11 +315,11 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
                     </Button>
                   )}
 
-                  {order.paymentStatus === 'paid' && order.bundleCount === 0 && (
-                    <GenerateBundleButton orderId={order.id} />
+                  {order.paymentStatus === 'paid' && order.bundleCount === 0 && (order.productType === 'sticker' || order.productType === 'acrylic') && (
+                    <GenerateVdpOrderButton orderId={order.id} />
                   )}
 
-                  {order.status === 'in_production' && (
+                  {(order.status === 'in_production' || order.status === 'ready_to_ship') && (
                     <Button size="sm" variant="outline" disabled={isPending} onClick={() => handleStatus(order.id, 'shipped')}>
                       Tandai Shipped
                     </Button>
@@ -331,7 +349,7 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
 
                   <Link href={`/admin/sticker-orders/${order.id}`}>
                     <Button size="sm" variant="ghost">
-                      Lihat Detail Bundle
+                       Lihat Detail VDP
                     </Button>
                   </Link>
                 </div>
@@ -529,10 +547,10 @@ function CreateOrderDialog({
           </div>
 
           <div className="rounded-lg bg-blue-50 px-3 py-2 text-sm dark:bg-blue-950/40">
-            Estimasi total: <span className="font-semibold">{formatRupiah(estimatedTotal)}</span>
+            <span className="text-blue-900 dark:text-blue-100">Estimasi total: <span className="font-semibold">{formatRupiah(estimatedTotal)}</span></span>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Batal</Button>
@@ -687,7 +705,7 @@ function EditOrderDialog({
                 <Textarea id="ed-notes" rows={2} value={form.notes} onChange={set('notes')} />
               </div>
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={onClose}>Batal</Button>

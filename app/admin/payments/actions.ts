@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { stickerOrders, tagUpgradeOrders, tags } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { consumeAcrylicStock } from '@/lib/product-stock';
 
 const APP_ID = 'balikin_id';
 
@@ -127,9 +128,17 @@ export async function verifyStickerOrderPayment(orderId: string) {
   }
 
   await db.transaction(async (tx) => {
+    const stockAvailable = order.productType !== 'acrylic'
+      ? true
+      : await consumeAcrylicStock(tx, order.productVariant, order.packQuantity * order.unitCountPerPack);
+
     await tx.update(stickerOrders).set({
       paymentStatus: 'paid',
-      status: order.productType === 'printable' ? 'completed' : 'pending_fulfillment',
+      status: order.productType === 'printable'
+        ? 'completed'
+        : order.productType === 'acrylic'
+          ? stockAvailable ? 'ready_to_ship' : 'stock_unavailable'
+          : 'pending_fulfillment',
       verifiedAt: new Date(),
       updatedAt: new Date(),
     }).where(eq(stickerOrders.id, orderId));

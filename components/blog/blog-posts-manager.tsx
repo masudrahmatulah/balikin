@@ -34,10 +34,16 @@ function getPostStatus(post: BlogPostItem): Exclude<PostStatus, "all"> {
   return "draft";
 }
 
-function defaultStartDateTime() {
-  const start = new Date();
+function defaultStartDateTime(posts: BlogPostItem[]) {
+  const latestScheduledAt = posts.reduce<Date | null>((latest, post) => {
+    if (!post.scheduledAt) return latest;
+    const scheduledAt = new Date(post.scheduledAt);
+    return !latest || scheduledAt > latest ? scheduledAt : latest;
+  }, null);
+
+  const start = latestScheduledAt ? new Date(latestScheduledAt) : new Date();
   start.setDate(start.getDate() + 1);
-  start.setHours(9, 0, 0, 0);
+  if (!latestScheduledAt) start.setHours(9, 0, 0, 0);
   const local = new Date(start.getTime() - start.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 16);
 }
@@ -48,7 +54,7 @@ export function BlogPostsManager({ posts, initialStatus = "all" }: { posts: Blog
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [startAt, setStartAt] = useState(defaultStartDateTime);
+  const [startAt, setStartAt] = useState(() => defaultStartDateTime(posts));
   const [intervalDays, setIntervalDays] = useState("1");
   const [isScheduling, setIsScheduling] = useState(false);
 

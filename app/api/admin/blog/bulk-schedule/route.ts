@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, max } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { blogContentPlans, blogPosts } from "@/db/schema";
@@ -39,6 +39,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Jarak antarartikel harus 1 sampai 365 hari." }, { status: 400 });
   }
 
+  const [{ latestScheduledAt }] = await db
+    .select({ latestScheduledAt: max(blogPosts.scheduledAt) })
+    .from(blogPosts)
+    .where(and(
+      eq(blogPosts.app_id, APP_ID),
+      isNull(blogPosts.deletedAt),
+    ));
+
+  const minimumStartAt = latestScheduledAt
+    ? new Date(latestScheduledAt.getTime() + intervalDays * 24 * 60 * 60 * 1000)
+    : null;
+  const effectiveStartAt = minimumStartAt && startAt < minimumStartAt
+    ? minimumStartAt
+    : startAt;
+
   const eligiblePosts = await db.query.blogPosts.findMany({
     where: and(
       eq(blogPosts.app_id, APP_ID),
@@ -58,7 +73,7 @@ export async function POST(request: NextRequest) {
   const [linkedPlans, scheduledPosts] = await db.transaction(async (tx) => {
     const scheduled = [];
     for (const [index, postId] of postIds.entries()) {
-      const scheduledAt = new Date(startAt.getTime() + index * intervalDays * 24 * 60 * 60 * 1000);
+      const scheduledAt = new Date(effectiveStartAt.getTime() + index * intervalDays * 24 * 60 * 60 * 1000);
       const [post] = await tx.update(blogPosts)
         .set({ scheduledAt, updatedAt: new Date() })
         .where(and(
@@ -87,6 +102,8 @@ export async function POST(request: NextRequest) {
   const planLinkedPostIds = new Set(linkedPlans.map((plan) => plan.linkedPostId).filter(Boolean));
   return NextResponse.json({
     scheduled: scheduledPosts.length,
+    startAt: effectiveStartAt.toISOString(),
+    continuedFrom: latestScheduledAt?.toISOString() || null,
     posts: scheduledPosts.map((post) => ({
       id: post.id,
       scheduledAt: post.scheduledAt?.toISOString(),

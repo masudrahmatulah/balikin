@@ -135,7 +135,7 @@ export function GallerySection() {
                 alt={galleryImages[selectedIndex].alt}
                 fill
                 className="object-contain"
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, 1200px"
                 priority
               />
             </div>

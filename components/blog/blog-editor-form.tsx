@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { BlogModuleBuilder } from "./module-builder";
 import { ImageUploader } from "./image-uploader";
 import { BlogSEOChecklist } from "./seo-checklist";
+import { countContentWords } from "@/lib/blog-content-strategy";
 import { Save, Eye, Send, Loader2, Calendar, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -630,6 +631,9 @@ export function BlogEditorForm({ editors, currentUserId, postId, initialPost, co
                 rows={20}
                 className="font-mono text-sm"
               />
+              <p className="text-xs text-muted-foreground">
+                Jumlah kata: {countContentWords(formData.content).toLocaleString("id-ID")} kata
+              </p>
             </div>
           </CardContent>
         </Card>

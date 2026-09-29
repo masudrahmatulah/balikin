@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
 import { db } from "@/db";
-import { tags, printQueue, printBatches, stickerSheets } from "@/db/schema";
+import { tags, printQueue, printBatches, stickerSheets, stickerOrders, tagBundles } from "@/db/schema";
 import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { generateVDPStream, generateBatchActivationData, type TagVDPData } from "@/lib/vdp-engine";
 import { deriveAcrylicShapeKey, getAcrylicPairsPerRow } from "@/lib/acrylic-shapes";
 import { generateA5StickerStream } from "@/lib/vdp-a5-sticker";
@@ -31,6 +31,7 @@ const STICKER_PRODUCT_CODE: Record<string, string> = {
 export const dynamic = "force-dynamic";
 
 interface VDPGenerateRequest {
+  orderId?: string;
   batchName: string;
   quantity: number;
   materialType: "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss";
@@ -167,7 +168,59 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag, outputFormat }: VDPGenerateRequest = body;
+    const { orderId } = body as VDPGenerateRequest;
+    let { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag, outputFormat } = body as VDPGenerateRequest;
+
+    const order = orderId
+      ? await db.query.stickerOrders.findFirst({
+          where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, "balikin_id")),
+          with: { bundles: { columns: { id: true } } },
+        })
+      : null;
+
+    if (orderId && !order) {
+      return NextResponse.json({ error: "Order tidak ditemukan" }, { status: 404 });
+    }
+
+    if (orderId && order) {
+      if (order.paymentStatus !== "paid") {
+        return NextResponse.json({ error: "Order belum diverifikasi pembayarannya" }, { status: 400 });
+      }
+      if (order.bundles.length > 0) {
+        return NextResponse.json({ error: "Bundle VDP sudah dibuat untuk order ini" }, { status: 409 });
+      }
+
+      batchName = batchName || `Order-${order.id.slice(0, 8)}`;
+      quantity = order.packQuantity * order.unitCountPerPack;
+      productType = "standard";
+      isCustom = false;
+      customPhotoData = undefined;
+      adminId = session.user.id;
+      outputFormat = "pdf";
+
+      if (order.productType === "sticker") {
+        const fallbackProductKey = order.unitCountPerPack === 4
+          ? "stiker-pro"
+          : order.unitCountPerPack === 5
+            ? "stiker-daily"
+            : order.unitCountPerPack === 8
+              ? "stiker-micro"
+              : "stiker-family";
+        materialType = "sticker";
+        paperSize = "a5";
+        stickerShape = stickerShape || "circle";
+        stickerSize = stickerSize || "medium";
+        stickerProductKey = stickerProductKey || order.productVariant || fallbackProductKey;
+        stickerColorTheme = order.stickerColorTheme || stickerColorTheme;
+      } else if (order.productType === "acrylic") {
+        const acrylicVariant = order.productVariant?.replace(/^acrylic-/, '') || "rectangle-emboss";
+        materialType = `acrylic-${acrylicVariant}` as VDPGenerateRequest["materialType"];
+        paperSize = "a3";
+        stickerProductKey = undefined;
+      } else {
+        return NextResponse.json({ error: "Tipe produk order ini belum didukung oleh VDP" }, { status: 400 });
+      }
+    }
 
     if (!batchName || !quantity || !materialType || !productType || !paperSize) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -415,6 +468,23 @@ export async function POST(request: NextRequest) {
           });
         }
       }
+    }
+
+    let linkedBundleId: string | null = null;
+    if (order) {
+      const [bundle] = await db.insert(tagBundles).values({
+        orderId: order.id,
+        productType: order?.productType || materialType,
+        itemCount: quantity,
+        status: "ready_for_fulfillment",
+        stickerShape: stickerShape || "circle",
+        stickerSize: stickerSize || "medium",
+      }).returning({ id: tagBundles.id });
+
+      linkedBundleId = bundle.id;
+      await db.update(tags)
+        .set({ bundleId: bundle.id })
+        .where(eq(tags.batchId, batchId));
     }
 
     let downloadUrl: string;
@@ -674,6 +744,12 @@ export async function POST(request: NextRequest) {
       printedBy: adminId,
     });
 
+    if (order) {
+      await db.update(stickerOrders)
+        .set({ status: "in_production", updatedAt: new Date() })
+        .where(eq(stickerOrders.id, order.id));
+    }
+
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
       adminId,
@@ -736,6 +812,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       batchId,
+      orderId: order?.id || null,
+      bundleId: linkedBundleId,
       batchName,
       quantity,
       tags: generatedTags,

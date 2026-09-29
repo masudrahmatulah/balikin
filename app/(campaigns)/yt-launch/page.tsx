@@ -20,7 +20,7 @@ export default function YTLaunchPage() {
             alt="Balikin QR Dinamis"
             fill
             priority
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1200px"
             className="object-cover object-center z-0"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/90 to-white dark:from-slate-950/95 dark:via-slate-950/90 dark:to-slate-950 z-0" />

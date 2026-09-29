@@ -6,6 +6,7 @@ import { db } from '@/db';
 import { stickerOrders, user } from '@/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { revalidateStickerOrdersCache } from './data-access';
+import { consumeAcrylicStock } from '@/lib/product-stock';
 
 const APP_ID = 'balikin_id';
 const MAX_BULK_IDS = 200;
@@ -16,7 +17,7 @@ const BASE_PRICE_BY_PRODUCT_TYPE: Record<string, number> = {
   acrylic: 54000,
   bundle: 89000,
 };
-const ALLOWED_ORDER_STATUSES = ['pending_payment', 'in_production', 'shipped', 'completed'] as const;
+const ALLOWED_ORDER_STATUSES = ['pending_payment', 'pending_fulfillment', 'ready_to_ship', 'stock_unavailable', 'in_production', 'shipped', 'completed'] as const;
 const ALLOWED_PAYMENT_STATUSES = ['pending', 'paid'] as const;
 
 type OrderStatus = (typeof ALLOWED_ORDER_STATUSES)[number];
@@ -118,10 +119,22 @@ export async function verifyStickerOrder(orderId: string) {
     throw new Error('Order sudah diverifikasi');
   }
 
-  await db
-    .update(stickerOrders)
-    .set({ paymentStatus: 'paid', verifiedAt: new Date(), updatedAt: new Date() })
-    .where(eq(stickerOrders.id, orderId));
+  await db.transaction(async (tx) => {
+    const stockAvailable = order.productType !== 'acrylic'
+      ? true
+      : await consumeAcrylicStock(tx, order.productVariant, order.packQuantity * order.unitCountPerPack);
+
+    await tx.update(stickerOrders)
+      .set({
+        paymentStatus: 'paid',
+        status: order.productType === 'acrylic'
+          ? stockAvailable ? 'ready_to_ship' : 'stock_unavailable'
+          : 'pending_fulfillment',
+        verifiedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(stickerOrders.id, orderId));
+  });
 
   await revalidateStickerOrdersCache();
 }

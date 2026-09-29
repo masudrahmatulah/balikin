@@ -55,7 +55,7 @@ export default function FirstLaunchPage() {
             alt="Balikin Smart Tag Preview"
             fill
             priority
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1200px"
             className="object-cover object-center z-0"
           />
           {/* Gradient Overlay */}

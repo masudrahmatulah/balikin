@@ -10,10 +10,10 @@
   - Material Type = "Stiker (Vinyl)"
   - Paper Size = "A5"
 - Four sticker product options:
-  - Stiker Balikin Pro (35×35mm, 6 per sheet)
-  - Stiker Balikin Daily (25×25mm, 12 per sheet)
-  - Stiker Balikin Micro (18×18mm, 20 per sheet)
-  - Stiker Balikin Family (Mixed, 12 per sheet)
+  - Stiker Balikin Pro (125×43mm, 4 per sheet)
+  - Stiker Balikin Daily (95×33mm, 5 per sheet)
+  - Stiker Balikin Micro (65×23mm, 8 per sheet)
+  - Stiker Balikin Family (1 Pro + 2 Daily + 3 Micro, 6 per sheet)
 - Dynamic sheet estimation for A5 stickers
 - Help text: "Desain 2 kolom: QR code di kiri, custom photo atau logo Balikin di kanan"
 
@@ -140,10 +140,10 @@ Each A5 sheet contains multiple stickers in a grid layout. Each sticker is divid
 
 | Product | Size | Grid | Total | Layout |
 |---------|------|------|-------|--------|
-| Pro | 35×35mm | 2×3 | 6 | 2 cols, 3 rows |
-| Daily | 25×25mm | 4×3 | 12 | 4 cols, 3 rows |
-| Micro | 18×18mm | 5×4 | 20 | 5 cols, 4 rows |
-| Family | Mixed | 3×4 | 12 | 3 cols, 4 rows (mixed) |
+| Pro | 125×43mm | 1×4 | 4 | 1 col, 4 rows |
+| Daily | 95×33mm | 1×5 | 5 | 1 col, 5 rows |
+| Micro | 65×23mm | 1×8 | 8 | 1 col, 8 rows |
+| Family | Mixed | 1×6 | 6 | 1 col, 6 rows (1 Pro + 2 Daily + 3 Micro) |
 
 ### Print Specifications
 

@@ -9,6 +9,7 @@ import { eq, and, lt, gt, sql } from 'drizzle-orm';
 import { STICKER_PAYMENT_METHOD, BACKSIDE_CUSTOM_PRICE } from '@/lib/constants';
 import { PRODUCT_CATALOG, resolveProductKey } from '@/lib/product-catalog';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
+import { ACRYLIC_SHAPES, type AcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { sendStickerOrderNotificationToAdmin } from '@/lib/whatsapp';
 
 // ─── Batas panjang field ───────────────────────────────────────────────────
@@ -74,6 +75,14 @@ function validateSegment(segment: string): 'pribadi' | 'keluarga' | 'bisnis' {
   return segment as 'pribadi' | 'keluarga' | 'bisnis';
 }
 
+function validateAcrylicVariant(value: string | undefined): string {
+  const shapeKey = value?.replace(/^acrylic-/, '') as AcrylicShapeKey | undefined;
+  if (!shapeKey || !(shapeKey in ACRYLIC_SHAPES)) {
+    throw new Error('Pilih bentuk akrilik terlebih dahulu');
+  }
+  return `acrylic-${shapeKey}`;
+}
+
 // ─── Auth guard ────────────────────────────────────────────────────────────
 
 async function requireAuth() {
@@ -133,6 +142,7 @@ export interface CreateOrderInput {
   segment: string;
   voucherCode?: string;
   productKey?: string;
+  productVariant?: string;
   stickerColorTheme?: string;
   shippingCost: number;
   shippingCourier: string;
@@ -176,6 +186,9 @@ export async function createStickerOrder(input: CreateOrderInput) {
   // Harga & productType SELALU ditentukan server dari katalog — tidak pernah dari client
   const catalogKey = resolveProductKey(input.productKey);
   const catalogEntry = PRODUCT_CATALOG[catalogKey];
+  const productVariant = catalogEntry.productType === 'acrylic'
+    ? validateAcrylicVariant(input.productVariant)
+    : catalogKey;
   const stickerColorTheme = catalogEntry.productType === 'sticker'
     ? normalizeStickerColorTheme(input.stickerColorTheme)
     : null;
@@ -233,6 +246,7 @@ export async function createStickerOrder(input: CreateOrderInput) {
       destinationCityName,
       paymentMethod: STICKER_PAYMENT_METHOD,
       productType: catalogEntry.productType,
+      productVariant,
       stickerColorTheme,
       packQuantity: 1,
       unitCountPerPack: catalogEntry.packSize,

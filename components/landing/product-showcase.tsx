@@ -217,8 +217,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           originalPrice: 'Rp 127.000',
           icon: Sticker,
           features: [
-            '📦 1 Sheet A5 (Isi 12 QR Campuran)',
-            '📏 3 Besar + 4 Sedang + 5 Kecil',
+            '📦 1 Sheet A5 (Isi 6 QR Campuran)',
+            '📏 1 Besar + 2 Sedang + 3 Kecil',
             '💎 Vinyl Premium multi-ukuran',
             '🎁 Amankan semua jenis barang sekali',
             'Hemat hingga Rp 68.000',
