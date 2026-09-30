@@ -1,5 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 interface DashboardStatusBannerProps {
   totalTags: number;
@@ -55,6 +57,11 @@ export function DashboardStatusBanner({ totalTags, lostTags }: DashboardStatusBa
                 <p className="text-xs text-slate-500 dark:text-slate-400 md:text-sm">Hilang</p>
               </div>
             </div>
+          </div>
+          <div className="mt-5 border-t border-slate-200/70 pt-4 dark:border-slate-700/70">
+            <Button asChild variant={hasLostTags ? 'destructive' : 'outline'} className="min-h-11 w-full sm:w-auto">
+              <Link href="/lost-mode">{hasLostTags ? 'Kelola Barang Hilang' : 'Buka Mode Hilang'}</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

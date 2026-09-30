@@ -44,6 +44,7 @@ export default function LostModePage() {
   const [tags, setTags] = useState<TagData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -62,6 +63,7 @@ export default function LostModePage() {
   const handleToggleStatus = async (tag: TagData) => {
     const newStatus = tag.status === 'lost' ? 'normal' : 'lost';
     setUpdating(tag.id);
+    setError(null);
 
     const success = await updateTagStatus(tag.id, newStatus);
 
@@ -69,6 +71,8 @@ export default function LostModePage() {
       setTags(tags.map(t =>
         t.id === tag.id ? { ...t, status: newStatus } : t
       ));
+    } else {
+      setError('Status tag gagal diperbarui. Periksa koneksi lalu coba lagi.');
     }
 
     setUpdating(null);
@@ -117,6 +121,7 @@ export default function LostModePage() {
           </div>
         ) : (
           <>
+            {error && <div role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
             {lostTags.length > 0 && (
               <Card className="mb-6 border-red-200 bg-red-50">
                 <CardHeader>
@@ -144,7 +149,7 @@ export default function LostModePage() {
                           variant="outline"
                           className="border-red-200 text-red-600 hover:bg-red-50"
                         >
-                          {updating === tag.id ? 'Memproses...' : 'Nonaktifkan'}
+                          {updating === tag.id ? 'Memproses...' : 'Barang Sudah Kembali'}
                         </Button>
                       </div>
                     ))}
