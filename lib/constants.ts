@@ -7,7 +7,8 @@ export const PRINTABLE_TEN_PRICE = 200000;
 export const PRINTABLE_PAYMENT_METHOD = 'manual_qris';
 
 // Harga produk sesuai strategi update_produk.md
-export const PREMIUM_PRICE = 54000;       // Premium Acrylic Tag
+export const PREVIOUS_PREMIUM_PRICE = 54000;
+export const PREMIUM_PRICE = 45000;       // Premium Acrylic Tag
 export const BACKSIDE_CUSTOM_PRICE = 10000; // Custom image sisi belakang acrylic (+Rp10.000/order)
 export const STICKER_PACK_PRICE = 59000;  // Semua varian stiker (Pro/Daily/Micro/Family)
 export const STICKER_PACK_SIZE = 6;       // Default: Family (6 QR campuran)

@@ -21,7 +21,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 | Fitur | Gratis (Free Pass) | Physical Products | Sticker Sheets | Bundles |
 |:--|:--|:--|:--|:--|
 | **Output** | QR digital | Akrilik premium | Vinyl sheet A5 | Combo (Akrilik + Stiker) |
-| **Harga** | Rp 0 | Rp 54.000 | Rp 59.000 | Rp 89.000 - Rp 699.000 |
+| **Harga** | Rp 0 | Rp 45.000 | Rp 59.000 | Rp 89.000 - Rp 699.000 |
 | **Dashboard Access** | Ya (terbatas) | Ya (unlimited) | Ya (unlimited) | Ya (unlimited) |
 | **Durabilitas** | Rendah (cetak user) | Tinggi (3mm akrilik) | Tinggi (Vinyl UV-protected) | Premium (all materials) |
 | **Notifikasi Scan** | Email | WhatsApp real-time | WhatsApp real-time | WhatsApp real-time |
@@ -39,7 +39,7 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 - Format: QR digital untuk dicetak sendiri
 - Use case: Testing, low-budget users
 
-**Physical Tier (Rp 54.000)**
+**Physical Tier (Rp 45.000)**
 - Target: Individual users, kunci motor/mobil
 - Format: Gantungan kunci akrilik 3mm premium ready-stock
 - Varian: Lingkaran, Oval, Persegi Delapan, Hati, Persegi, Persegi Panjang, Motif, dan Timbul
@@ -255,14 +255,14 @@ Badge ini ditampilkan pada halaman publik yang di-scan oleh penemu (Finder):
 
 ## 11. Monetisasi & Strategi Produk (9 SKU Comprehensive)
 
-### 11.1 Produk & Harga (Pricing Anchor Strategy)
+### 11.1 Produk & Harga (Affordable Premium Strategy)
 
-Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi **pricing anchor** (Balikin Armor Tag @ Rp 54.000):
+Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi harga **affordable premium** (Balikin Armor Tag @ Rp 45.000):
 
 | # | Kategori | Produk | Harga | Target Market | Keunggulan Strategis |
 |:--:|:--|:--|--:|:--|:--|
 | 01 | **Digital** | Balikin Free Pass | Rp 0 | Penetrasi pasar, database builder | Hook: Akses gratis selamanya |
-| 02 | **Physical** | Balikin Armor Tag | Rp 54.000 | Pemilik premium individual | The Anchor: Pricing reference |
+| 02 | **Physical** | Balikin Armor Tag | Rp 45.000 | Pemilik premium individual | Produk fisik premium yang terjangkau |
 | 03 | **Sticker** | Stiker Balikin Pro | Rp 59.000 | Professional (laptop, helm, koper) | 4 QR ukuran besar 125×43 mm |
 | 04 | **Sticker** | Stiker Balikin Daily | Rp 59.000 | Personal gadgets (botol, agenda, tablet) | 5 QR ukuran sedang 95×33 mm |
 | 05 | **Sticker** | Stiker Balikin Micro | Rp 59.000 | Mini items (TWS, powerbank, charger) | 8 QR ukuran saku 65×23 mm |
@@ -274,7 +274,7 @@ Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi **pri
 ### 11.2 Revenue Streams
 
 1. **Direct Sales (Retail):** Penjualan unit individual & bundle ke end-consumer
-   - Single products: Rp 54.000 - Rp 59.000
+   - Single products: Rp 45.000 - Rp 59.000
    - Bundled packages: Rp 89.000 - Rp 699.000
    - Margin target: 40-50% setelah COGS & logistik
 

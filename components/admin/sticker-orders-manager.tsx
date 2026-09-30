@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PREMIUM_PRICE } from '@/lib/constants';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -81,7 +82,7 @@ const ORDER_STATUS_OPTIONS = [
 
 const PRODUCT_TYPE_OPTIONS = [
   { value: 'sticker', label: 'Stiker (Rp59.000/pack)', basePrice: 59000 },
-  { value: 'acrylic', label: 'Premium Acrylic Tag (Rp54.000/pcs)', basePrice: 54000 },
+  { value: 'acrylic', label: 'Premium Acrylic Tag (Rp45.000/pcs)', basePrice: PREMIUM_PRICE },
   { value: 'bundle', label: 'Bundle (Rp89.000/pack)', basePrice: 89000 },
 ];
 

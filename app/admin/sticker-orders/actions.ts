@@ -7,6 +7,7 @@ import { stickerOrders, user } from '@/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { revalidateStickerOrdersCache } from './data-access';
 import { consumeAcrylicStock } from '@/lib/product-stock';
+import { PREMIUM_PRICE } from '@/lib/constants';
 
 const APP_ID = 'balikin_id';
 const MAX_BULK_IDS = 200;
@@ -14,7 +15,7 @@ const MAX_BULK_IDS = 200;
 const ALLOWED_PRODUCT_TYPES = ['sticker', 'acrylic', 'bundle'] as const;
 const BASE_PRICE_BY_PRODUCT_TYPE: Record<string, number> = {
   sticker: 59000,
-  acrylic: 54000,
+  acrylic: PREMIUM_PRICE,
   bundle: 89000,
 };
 const ALLOWED_ORDER_STATUSES = ['pending_payment', 'pending_fulfillment', 'ready_to_ship', 'stock_unavailable', 'in_production', 'shipped', 'completed'] as const;

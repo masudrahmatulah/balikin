@@ -12,7 +12,7 @@ import { getAcrylicStock } from '@/lib/product-stock';
 import { getStickerProductInfo } from '@/lib/sticker-template';
 import { buildMetadata } from '@/lib/seo';
 import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
-import { PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE } from '@/lib/constants';
+import { PREVIOUS_PREMIUM_PRICE, PREMIUM_PRICE, PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE } from '@/lib/constants';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Marketplace Produk Balikin',
@@ -174,6 +174,7 @@ export default async function ProductMarketplacePage() {
                   <CardHeader className="pb-3"><CardTitle className="text-lg dark:text-white">{shape.label.replace('Akrilik ', '')}</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-slate-600 dark:text-slate-300">{shape.widthMm} × {shape.heightMm} mm · PIN per tag</p>
+                    <p className="text-sm"><span className="text-slate-500 line-through">Rp{PREVIOUS_PREMIUM_PRICE.toLocaleString('id-ID')}</span> <span className="font-semibold text-slate-900 dark:text-white">Rp{PREMIUM_PRICE.toLocaleString('id-ID')}</span></p>
                     <p className={`font-semibold ${stock > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>
                       {stock > 0 ? `Stok tersedia: ${stock} pcs` : 'Stok habis'}
                     </p>

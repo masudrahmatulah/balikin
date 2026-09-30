@@ -12,7 +12,7 @@ Dokumen ini diringkas dari `md for development/1.free.md`, `2.stikervinyl.md`, `
 
 ## Balikin Armor Tag / Akrilik Premium
 
-- Harga referensi pada katalog: Rp54.000 per gantungan akrilik.
+- Harga referensi pada katalog: Rp45.000 per gantungan akrilik.
 - Bentuk: gantungan kunci akrilik premium untuk kunci motor/mobil, tas, sekolah, dan koper.
 - Fitur: QR unik, profil premium, badge verifikasi, riwayat scan, notifikasi WhatsApp prioritas, dan dukungan lokasi GPS jika penemu memberi izin.
 - Custom photo: sisi akrilik dapat memakai foto custom sesuai pilihan produk yang tersedia.

@@ -31,12 +31,12 @@ const productGroups = [
   {
     id: 'acrylic-keychain',
     title: 'Gantungan Akrilik QR Code Tag',
-    price: 'Rp 54.000+',
+     price: 'Rp 45.000',
     subtitle: 'satu kali bayar',
     badge: 'GANTUNGAN',
     features: [
       'Semua fitur Gratis + Hardware Fisik',
-      '🔑 Premium Acrylic Tag - Premium Acrylic (Rp 54k)',
+       '🔑 Premium Acrylic Tag - Premium Acrylic (Rp 45k)',
       '⭐ Durable & Weather-resistant',
       '🎨 Desain premium eksklusif',
       '📱 QR Code terintegrasi sempurna',

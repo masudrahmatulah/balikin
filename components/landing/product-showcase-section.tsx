@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ImageLightbox, type LightboxImage } from '@/components/landing/image-lightbox';
 import { STICKER_COLOR_THEMES, type StickerColorTheme } from '@/lib/sticker-color-themes';
+import { PREMIUM_PRICE, PREVIOUS_PREMIUM_PRICE } from '@/lib/constants';
 
 const showcaseItems: LightboxImage[] = [
   { src: '/desains/sticker1.webp', alt: 'Premium Vinyl Sticker' },
@@ -50,7 +51,8 @@ const productCards = [
     icon: Package,
     title: 'Gantungan Kunci Akrilik',
     description: 'Tag akrilik ready-stock dengan beberapa bentuk untuk kunci, tas, koper, dan kendaraan.',
-    price: 'Mulai Rp54.000',
+    price: `Mulai Rp${PREMIUM_PRICE.toLocaleString('id-ID')}`,
+    originalPrice: PREVIOUS_PREMIUM_PRICE,
     href: '/produk#akrilik',
     label: 'Lihat pilihan akrilik',
     className: 'border-purple-200 bg-purple-50/60 dark:border-purple-900/50 dark:bg-purple-950/20',
@@ -97,7 +99,10 @@ export function ProductShowcaseSection() {
                     </span>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white">{product.title}</h3>
-                      <p className="text-sm font-semibold text-brand-red-dark dark:text-red-300">{product.price}</p>
+                      <div className="flex items-center gap-2">
+                        {product.originalPrice && <span className="text-xs text-gray-500 line-through dark:text-gray-400">Rp{product.originalPrice.toLocaleString('id-ID')}</span>}
+                        <p className="text-sm font-semibold text-brand-red-dark dark:text-red-300">{product.price}</p>
+                      </div>
                     </div>
                   </div>
                   <p className="flex-1 text-sm leading-6 text-gray-600 dark:text-gray-300">{product.description}</p>

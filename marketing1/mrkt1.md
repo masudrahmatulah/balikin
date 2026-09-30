@@ -51,7 +51,7 @@ Setelah mahasiswa di Fase 1 mengisi ulasan mereka, sistem akan secara otomatis m
 
 | Jenis | Harga |
 |------|-------|
-| **Harga Coret (Anchor Price)** | Rp54.000 |
+| **Harga Sebelumnya** | Rp54.000 |
 | **Harga Diskon (Menggunakan Voucher)** | Rp44.000 |
 | **Branding Diskon** | "Hemat Rp10.000" (≈ 18,5%) |
 

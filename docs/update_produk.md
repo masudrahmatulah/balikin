@@ -6,12 +6,12 @@ Dokumen ini berisi spesifikasi lengkap 9 produk Balikin, strategi penetapan harg
 
 ## 1. Matriks Produk, Harga, & Deskripsi Balikin
 
-Daftar lengkap 9 produk Balikin terbagi menjadi tiga kategori utama untuk menjangkau pasar ritel, grosir, maupun B2B, menggunakan **Balikin Armor Tag** sebagai pricing anchor.
+Daftar lengkap 9 produk Balikin terbagi menjadi tiga kategori utama untuk menjangkau pasar ritel, grosir, maupun B2B, menggunakan **Balikin Armor Tag** sebagai produk fisik affordable premium.
 
 | ID | Nama Produk | Harga | Spesifikasi | Deskripsi & Target Barang | Strategi |
 |:--:|:--|--:|:--|:--|:--|
 | 01 | Balikin Free Pass | Rp 0 | Digital (Cetak Mandiri) | QR Code digital untuk dicetak sendiri di kertas biasa. Fitur terbatas pada notifikasi email dan estimasi lokasi berdasarkan IP Address penemu. | **The Hook**: Penetrasi pasar cepat dan membangun database pengguna aktif. |
-| 02 | Balikin Armor Tag (Prime Tag) | Rp 54.000 | 1 Pcs Gantungan Kunci Akrilik | Gantungan kunci akrilik premium tebal, tahan benturan dan cuaca ekstrem. Sangat pas untuk kunci motor/mobil, tas sekolah, atau koper. | **The Anchor**: Tolok ukur nilai produk fisik premium pertama. |
+| 02 | Balikin Armor Tag (Prime Tag) | Rp 45.000 | 1 Pcs Gantungan Kunci Akrilik | Gantungan kunci akrilik premium tebal, tahan benturan dan cuaca ekstrem. Sangat pas untuk kunci motor/mobil, tas sekolah, atau koper. | **Affordable Premium**: Produk fisik premium yang tetap terjangkau. |
 | 03 | Stiker Balikin Pro | Rp 59.000 | 1 Sheet A5 (Isi 4 QR) | Stiker Vinyl Premium ukuran besar (125 × 43 mm). Untuk laptop, helm motor, koper, hardcase kamera, atau kaca spion. | Khusus profesional dengan aset berdimensi luas. |
 | 04 | Stiker Balikin Daily | Rp 59.000 | 1 Sheet A5 (Isi 5 QR) | Stiker Vinyl Premium ukuran sedang (95 × 33 mm). Untuk botol minum/tumbler, buku agenda, paspor, tablet/iPad, atau kamera mirrorless. | Khusus mengamankan barang bawaan harian kantor/sekolah. |
 | 05 | Stiker Balikin Micro | Rp 59.000 | 1 Sheet A5 (Isi 8 QR) | Stiker Vinyl Premium ukuran saku (65 × 23 mm). Untuk casing TWS, remote keyless, powerbank, charger, flashdisk, atau gantungan ID Card. | Khusus barang-barang mini yang sangat rentan terselip. |

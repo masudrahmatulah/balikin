@@ -113,7 +113,8 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
       products: [
         {
           name: 'Premium Acrylic Tag',
-          price: 'Rp 54.000',
+           price: 'Rp 45.000',
+           originalPrice: 'Rp 54.000',
           icon: Shield,
           features: [
             '🔑 Gantungan kunci akrilik cerdas dan sederhana',

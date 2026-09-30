@@ -12,7 +12,7 @@ Checkout harus mendukung 9 produk dengan struktur:
 ```
 Digital (Rp 0)
 ├─ Balikin Free Pass (QR digital)
-Physical (Rp 54.000)
+Physical (Rp 45.000)
 ├─ Balikin Armor Tag (Gantungan kunci)
 Sticker (Rp 59.000 each)
 ├─ Stiker Balikin Pro (4 QR besar)
@@ -308,7 +308,7 @@ balikin_tags
 
 ## 5. Important Notes
 
-1. **Pricing Anchor Strategy**: Armor Tag @ Rp 54.000 is reference point
+1. **Affordable Premium Strategy**: Armor Tag @ Rp 45.000 is the entry-level physical product
 2. **Bundle Discounts**: 
    - Ultimate Pack: Save Rp 24k vs separate purchase
    - Family Pack: Save Rp 57k (4x Ultimate)
