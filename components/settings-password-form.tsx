@@ -41,7 +41,10 @@ export function SettingsPasswordForm({ hasPassword }: { hasPassword: boolean }) 
     setIsSubmitting(false);
 
     if (result.error) {
-      setMessage({ type: 'error', text: result.error.message || 'Password lama tidak valid.' });
+      setMessage({
+        type: 'error',
+        text: typeof result.error === 'string' ? result.error : result.error.message || 'Password lama tidak valid.',
+      });
       return;
     }
 

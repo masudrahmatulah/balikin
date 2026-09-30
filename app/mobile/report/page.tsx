@@ -5,7 +5,7 @@ import { MobileReport } from '@/components/mobile/mobile-report';
 
 export default function MobileReportPage() {
   return (
-    <MobileLayout activeTab="report">
+    <MobileLayout>
       <MobileReport />
     </MobileLayout>
   );

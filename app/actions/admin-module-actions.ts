@@ -1,16 +1,17 @@
 'use server';
 
-import { cache } from 'react';
 import { db } from '@/db';
 import { userModulePermissions, user, moduleUsageAnalytics } from '@/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import type { ModuleType } from '@/lib/admin-modules';
 
 // Constants
 const MAX_REASON_LENGTH = 500;
 const MAX_USER_IDS = 100;
+const APP_ID = 'balikin_id';
 
 /**
  * Helper to get admin session directly in server actions
@@ -25,7 +26,7 @@ async function getAdminSession() {
   }
 
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -54,7 +55,10 @@ export async function getUserModulePermissions(userId: string) {
   }
 
   const permissions = await db.query.userModulePermissions.findMany({
-    where: eq(userModulePermissions.userId, userId),
+    where: and(
+      eq(userModulePermissions.userId, userId),
+      eq(userModulePermissions.app_id, APP_ID)
+    ),
   });
 
   return permissions;
@@ -86,7 +90,8 @@ export async function setUserModulePermission({
   const existing = await db.query.userModulePermissions.findFirst({
     where: and(
       eq(userModulePermissions.userId, userId),
-      eq(userModulePermissions.moduleType, moduleType)
+      eq(userModulePermissions.moduleType, moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -101,11 +106,15 @@ export async function setUserModulePermission({
         reason,
         updatedAt: new Date(),
       })
-      .where(eq(userModulePermissions.id, existing.id));
+      .where(and(
+        eq(userModulePermissions.id, existing.id),
+        eq(userModulePermissions.app_id, APP_ID)
+      ));
 
     // Log analytics only if status changed
     if (existing.isEnabled !== isEnabled) {
       await db.insert(moduleUsageAnalytics).values({
+        app_id: APP_ID,
         userId,
         moduleType,
         actionType: isEnabled ? 'activate' : 'deactivate',
@@ -115,6 +124,7 @@ export async function setUserModulePermission({
   } else {
     // Create new record
     await db.insert(userModulePermissions).values({
+      app_id: APP_ID,
       userId,
       moduleType,
       isEnabled,
@@ -126,6 +136,7 @@ export async function setUserModulePermission({
     // Log analytics for new permission
     if (isEnabled) {
       await db.insert(moduleUsageAnalytics).values({
+        app_id: APP_ID,
         userId,
         moduleType,
         actionType: 'activate',
@@ -152,6 +163,7 @@ export async function getUsersWithModulePermissions() {
   }
 
   const users = await db.query.user.findMany({
+    where: eq(user.app_id, APP_ID),
     orderBy: [desc(user.createdAt)],
     with: {
       userModulePermissions: true,
@@ -193,7 +205,8 @@ export async function bulkSetModulePermissions({
   const existingPermissions = await db.query.userModulePermissions.findMany({
     where: and(
       inArray(userModulePermissions.userId, userIds),
-      eq(userModulePermissions.moduleType, moduleType)
+      eq(userModulePermissions.moduleType, moduleType),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 
@@ -220,7 +233,7 @@ export async function bulkSetModulePermissions({
   // Perform bulk operations
   await Promise.allSettled([
     // Bulk update existing permissions
-    toUpdate.length > 0 ? db.update(userModulePermissions)
+      toUpdate.length > 0 ? db.update(userModulePermissions)
       .set({
         isEnabled,
         grantedBy: isEnabled ? adminId : null,
@@ -228,11 +241,15 @@ export async function bulkSetModulePermissions({
         reason: sanitizedReason,
         updatedAt: new Date(),
       })
-      .where(inArray(userModulePermissions.id, toUpdate)) : Promise.resolve(),
+        .where(and(
+          inArray(userModulePermissions.id, toUpdate),
+          eq(userModulePermissions.app_id, APP_ID)
+        )) : Promise.resolve(),
 
     // Bulk insert new permissions
     toInsert.length > 0 ? db.insert(userModulePermissions)
       .values(toInsert.map(userId => ({
+        app_id: APP_ID,
         userId,
         moduleType,
         isEnabled,
@@ -247,14 +264,16 @@ export async function bulkSetModulePermissions({
     ...existingPermissions.filter(p => p.isEnabled !== isEnabled).map(p => ({
       userId: p.userId,
       moduleType,
-      actionType: (isEnabled ? 'activate' : 'deactivate') as const,
+      actionType: isEnabled ? 'activate' as const : 'deactivate' as const,
       performedBy: adminId,
+      app_id: APP_ID,
     })),
     ...toInsert.map(userId => ({
       userId,
       moduleType,
       actionType: 'activate' as const,
       performedBy: adminId,
+      app_id: APP_ID,
     })),
   ];
 
@@ -271,10 +290,21 @@ export async function bulkSetModulePermissions({
  * Get enabled modules for a user (client-side)
  */
 export async function getEnabledModulesForUser(userId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+
+  const isSelf = session.user.id === userId;
+  if (!isSelf && !await getAdminSession()) {
+    throw new Error('Forbidden');
+  }
+
   const permissions = await db.query.userModulePermissions.findMany({
     where: and(
       eq(userModulePermissions.userId, userId),
-      eq(userModulePermissions.isEnabled, true)
+      eq(userModulePermissions.isEnabled, true),
+      eq(userModulePermissions.app_id, APP_ID)
     ),
   });
 

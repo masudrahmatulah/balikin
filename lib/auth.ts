@@ -202,13 +202,15 @@ export const auth = betterAuth({
     },
     cookiePrefix: process.env.NODE_ENV === 'production' ? 'balikin_auth' : 'balikin_auth_dev',
     useSecureCookies: process.env.NODE_ENV === 'production',
-    cookieAttributes: {
+    defaultCookieAttributes: {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
     },
   },
-  logger: process.env.NODE_ENV !== 'production',
+  logger: {
+    disabled: process.env.NODE_ENV === 'production',
+  },
   databaseHooks: {
     user: {
       create: {

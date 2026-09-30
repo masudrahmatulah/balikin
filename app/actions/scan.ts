@@ -129,6 +129,7 @@ export async function logScan(tagId: string, clientLocation?: ClientLocation): P
     const insertedScan = await db
       .insert(scanLogs)
       .values({
+         app_id: 'balikin_id',
         tagId,
         ipAddress: ip,
         city,
@@ -224,8 +225,12 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
       return { success: false, error: 'Invalid coordinates' };
     }
 
+    const headersList = await headers();
+    const requestIp = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || headersList.get('x-real-ip')?.trim()
+      || 'unknown';
     const latestScans = await db
-      .select({ id: scanLogs.id })
+      .select({ id: scanLogs.id, ipAddress: scanLogs.ipAddress })
       .from(scanLogs)
       .where(and(
         eq(scanLogs.tagId, tagId),
@@ -235,7 +240,9 @@ export async function updateLatestScanLocation(tagId: string, clientLocation: Cl
       .orderBy(desc(scanLogs.scannedAt))
       .limit(1);
 
-    if (latestScans.length === 0) {
+    if (latestScans.length === 0 || (
+      latestScans[0].ipAddress && latestScans[0].ipAddress !== requestIp
+    )) {
       return { success: false, error: 'No scan found' };
     }
 
@@ -278,6 +285,7 @@ export async function getScanCount24h(tagId: string): Promise<number> {
       .where(
         and(
           eq(scanLogs.tagId, tagId),
+          eq(scanLogs.app_id, 'balikin_id'),
           gt(scanLogs.scannedAt, yesterday)
         )
       );

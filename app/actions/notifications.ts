@@ -43,13 +43,14 @@ async function checkWhatsAppRateLimit(ownerId: string): Promise<boolean> {
   const recentNotifications = await db.query.notificationLogs.findMany({
     where: and(
       eq(notificationLogs.channel, "whatsapp"),
-      gte(notificationLogs.createdAt, fiveMinutesAgo)
+      gte(notificationLogs.createdAt, fiveMinutesAgo),
+      eq(notificationLogs.app_id, 'balikin_id')
     ),
   });
 
   // Filter notifications yang terkait dengan owner ini
   const ownerTagIds = await db.query.tags.findMany({
-    where: eq(tags.ownerId, ownerId),
+    where: and(eq(tags.ownerId, ownerId), eq(tags.app_id, 'balikin_id')),
     columns: { id: true },
   });
 
@@ -68,7 +69,7 @@ async function checkWhatsAppRateLimit(ownerId: string): Promise<boolean> {
 async function getUnreadMessageCount(tagId: string): Promise<number> {
   // Cari room aktif untuk tag ini
   const activeRooms = await db.query.chatRooms.findMany({
-    where: eq(chatRooms.tagId, tagId),
+    where: and(eq(chatRooms.tagId, tagId), eq(chatRooms.app_id, 'balikin_id')),
     columns: { id: true },
   });
 
@@ -80,7 +81,8 @@ async function getUnreadMessageCount(tagId: string): Promise<number> {
   const unreadMessages = await db.query.messages.findMany({
     where: and(
       eq(messages.senderType, "finder"),
-      eq(messages.isReadByOwner, false)
+      eq(messages.isReadByOwner, false),
+      eq(messages.app_id, 'balikin_id')
     ),
   });
 
@@ -95,7 +97,7 @@ async function getOwnerUnreadSummary(ownerId: string): Promise<{
   tagsWithUnread: Array<{ tagId: string; tagName: string; count: number }>;
 }> {
   const ownerTags = await db.query.tags.findMany({
-    where: eq(tags.ownerId, ownerId),
+    where: and(eq(tags.ownerId, ownerId), eq(tags.app_id, 'balikin_id')),
     columns: { id: true, name: true, contactWhatsapp: true },
   });
 
@@ -134,7 +136,7 @@ async function sendAggregatedWhatsAppNotification(
 ): Promise<void> {
   // Ambil info owner
   const ownerTags = await db.query.tags.findMany({
-    where: eq(tags.ownerId, ownerId),
+    where: and(eq(tags.ownerId, ownerId), eq(tags.app_id, 'balikin_id')),
     columns: { id: true, name: true, contactWhatsapp: true },
     limit: 1,
   });
@@ -187,6 +189,7 @@ async function sendAggregatedWhatsAppNotification(
     // Log notification
     if (summary.tagsWithUnread.length > 0) {
       await db.insert(notificationLogs).values({
+        app_id: 'balikin_id',
         tagId: summary.tagsWithUnread[0].tagId,
         channel: "whatsapp",
         provider: "fonnte_standard",
@@ -209,7 +212,7 @@ async function sendAggregatedWhatsAppNotification(
  */
 export async function scheduleChatNotification(tagId: string): Promise<void> {
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
     columns: { id: true, ownerId: true },
   });
 

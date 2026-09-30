@@ -9,11 +9,6 @@ export interface PWAInstallPrompt {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-export interface ServiceWorkerRegistration {
-  update: () => void;
-  unregister: () => Promise<void>;
-}
-
 /**
  * Hook untuk mendeteksi dan menghandle PWA install prompt
  */
@@ -74,7 +69,7 @@ export function usePWAInstall() {
  * Hook untuk mendaftarkan service worker
  */
 export function useServiceWorker() {
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [registration, setRegistration] = useState<globalThis.ServiceWorkerRegistration | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
 

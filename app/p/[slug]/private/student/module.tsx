@@ -85,4 +85,3 @@ export async function StudentKitModule({ tag }: StudentKitModuleProps) {
     </div>
   );
 }
-

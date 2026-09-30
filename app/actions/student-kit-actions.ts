@@ -24,6 +24,7 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
 import {
   UpdateStudentKitSchema,
   UpdateInternshipVCardSchema,
@@ -139,7 +140,7 @@ export async function getStudentKitData() {
 /**
  * Update student kit data with validation
  */
-export async function updateStudentKit(data: UpdateStudentKitInput) {
+export async function updateStudentKit(data: z.input<typeof UpdateStudentKitSchema>) {
   const session = await getSession();
 
   // Validate input using Zod

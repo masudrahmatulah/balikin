@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { blogPostsAnalytics } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { isAdmin } from "@/lib/admin";
+import { and, eq } from "drizzle-orm";
 
 /**
  * POST /api/blog/analytics/view - Record a page view
@@ -26,12 +27,16 @@ export async function POST(req: NextRequest) {
 
     // Check if this IP has viewed this post in the last hour
     const recentView = await db.query.blogPostsAnalytics.findFirst({
-      where: eq(blogPostsAnalytics.postId, postId),
+      where: and(
+        eq(blogPostsAnalytics.postId, postId),
+        eq(blogPostsAnalytics.app_id, "balikin_id")
+      ),
     });
 
     // Simple approach: just increment the view count
     // In production, you'd want more sophisticated deduplication
     await db.insert(blogPostsAnalytics).values({
+      app_id: "balikin_id",
       postId,
       ipAddress,
       viewType: "page_view",
@@ -48,6 +53,10 @@ export async function POST(req: NextRequest) {
  * GET /api/blog/analytics?postId=xxx - Get analytics for a post
  */
 export async function GET(req: NextRequest) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const searchParams = req.nextUrl.searchParams;
     const postId = searchParams.get("postId");
@@ -57,7 +66,10 @@ export async function GET(req: NextRequest) {
     }
 
     const analytics = await db.query.blogPostsAnalytics.findMany({
-      where: eq(blogPostsAnalytics.postId, postId),
+      where: and(
+        eq(blogPostsAnalytics.postId, postId),
+        eq(blogPostsAnalytics.app_id, "balikin_id")
+      ),
     });
 
     const pageViews = analytics.filter(a => a.viewType === "page_view").length;

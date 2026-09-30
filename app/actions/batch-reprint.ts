@@ -2,14 +2,14 @@
 
 import { db } from "@/db";
 import { printBatches, tags } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/admin";
 import { generateBatchReprint } from "@/lib/vdp-engine";
 
 interface ReprintResult {
   success: boolean;
   error?: string;
-  stream?: ReadableStream;
+  stream?: AsyncGenerator<Buffer, void, unknown>;
   batchNumber?: string;
   totalStickers?: number;
 }
@@ -34,7 +34,7 @@ export async function generateBatchPdf(
   try {
     // Fetch batch data with all related tags
     const batch = await db.query.printBatches.findFirst({
-      where: eq(printBatches.id, batchId),
+      where: and(eq(printBatches.id, batchId), eq(printBatches.app_id, "balikin_id")),
       columns: {
         id: true,
         batchNumber: true,
@@ -50,7 +50,7 @@ export async function generateBatchPdf(
 
     // Fetch all tags for this batch with activation data
     const batchTags = await db.query.tags.findMany({
-      where: eq(tags.batchId, batchId),
+      where: and(eq(tags.batchId, batchId), eq(tags.app_id, "balikin_id")),
       columns: {
         id: true,
         slug: true,
@@ -81,7 +81,7 @@ export async function generateBatchPdf(
     }
 
     // Generate PDF using existing data (no token regeneration)
-    const stream = await generateBatchReprint(batchId, db, paperSize);
+    const stream = generateBatchReprint(batchId, db);
 
     return {
       success: true,
@@ -120,6 +120,7 @@ export async function listReprintableBatches(): Promise<{
 
   try {
     const batches = await db.query.printBatches.findMany({
+      where: eq(printBatches.app_id, "balikin_id"),
       columns: {
         id: true,
         batchNumber: true,
@@ -141,7 +142,8 @@ export async function listReprintableBatches(): Promise<{
       success: true,
       batches: reprintableBatches.map((batch) => ({
         ...batch,
-        createdAt: new Date(batch.createdAt),
+        serialNumberRange: batch.serialNumberRange ?? undefined,
+        createdAt: batch.createdAt ?? new Date(),
       })),
     };
   } catch (error) {

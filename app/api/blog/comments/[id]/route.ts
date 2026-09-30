@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { blogComments } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { waitUntil } from "@vercel/functions";
+import { getAdminSession } from "@/lib/admin";
+import { canAccessRoute } from "@/lib/admin-divisions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,9 +13,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!canAccessRoute(session.user.division, "/admin/blog/comments")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
@@ -27,20 +31,22 @@ export async function PATCH(
         ...(body.isApproved !== undefined && { isApproved: body.isApproved }),
         ...(body.isGiveawayWinner !== undefined && { isGiveawayWinner: body.isGiveawayWinner }),
         ...(body.hasHeroBadge !== undefined && { hasHeroBadge: body.hasHeroBadge }),
-        updatedAt: new Date(),
       })
-      .where(eq(blogComments.id, id))
+      .where(and(
+        eq(blogComments.id, id),
+        eq(blogComments.app_id, "balikin_id"),
+      ))
       .returning();
 
     if (updated.length === 0) {
       return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
-    waitUntil(async () => {
-      if (body.isGiveawayWinner) {
-        console.log(`Sending WhatsApp notification to winner ${updated[0].whatsappNumber}`);
-      }
-    });
+     waitUntil((async () => {
+       if (body.isGiveawayWinner) {
+         console.log(`Sending WhatsApp notification to winner ${updated[0].whatsappNumber}`);
+       }
+     })());
 
     return NextResponse.json(updated[0]);
   } catch (error: any) {

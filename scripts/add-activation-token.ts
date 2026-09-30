@@ -5,11 +5,10 @@ import postgres from 'postgres';
 // Load environment variables from .env.local
 dotenv.config({ path: path.join(__dirname, '../.env.local') });
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL ?? '';
 
 if (!connectionString) {
-  console.error('DATABASE_URL environment variable is not set');
-  process.exit(1);
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
 async function addActivationTokenColumn() {

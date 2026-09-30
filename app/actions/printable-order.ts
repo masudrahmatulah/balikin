@@ -40,6 +40,7 @@ export async function createPrintableOrder(input: {
   }
 
   const [order] = await db.insert(stickerOrders).values({
+    app_id: 'balikin_id',
     userId: session.user.id,
     productType: 'printable',
     recipientName,

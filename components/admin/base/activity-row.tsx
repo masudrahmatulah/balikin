@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Clock, XCircle, ArrowRight, type LucideIcon } from "lucide-react";
 
-interface ActivityRowProps {
+export interface ActivityRowProps {
   icon?: LucideIcon | string;
   iconClassName?: string;
   event: string;

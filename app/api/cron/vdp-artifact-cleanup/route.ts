@@ -52,7 +52,10 @@ export async function GET(request: NextRequest) {
         artifactSize: null,
         artifactExpiresAt: null,
       })
-      .where(eq(printBatches.id, batch.id));
+      .where(and(
+        eq(printBatches.id, batch.id),
+        eq(printBatches.app_id, "balikin_id"),
+      ));
   }
 
   return NextResponse.json({ success: true, deleted, timestamp: new Date().toISOString() });

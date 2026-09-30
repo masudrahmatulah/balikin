@@ -8,8 +8,9 @@ import { generateVDPStream, generateBatchReprint, type TagVDPData } from '@/lib/
 import { deriveAcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { db } from '@/db';
 import { tags, printBatches } from '@/db/schema';
-import { isAdmin } from '@/lib/admin';
-import { eq, inArray, asc } from 'drizzle-orm';
+import { getAdminSession } from '@/lib/admin';
+import { hasPermission } from '@/lib/admin-divisions';
+import { and, eq, inArray, asc } from 'drizzle-orm';
 import { Readable } from 'stream';
 
 export const runtime = 'nodejs';
@@ -53,15 +54,29 @@ function asyncGeneratorToReadable(generator: AsyncGenerator<Buffer, void, unknow
  */
 export async function POST(request: NextRequest) {
   try {
-    const admin = await isAdmin();
+    const admin = await getAdminSession();
     if (!admin) {
       return new Response('Unauthorized', { status: 401 });
+    }
+    if (!hasPermission(admin.user.division, 'vdp_tool')) {
+      return new Response('Forbidden', { status: 403 });
     }
 
     const body: GenerateRequest = await request.json();
 
     // Handle batch reprint
     if (body.batchId) {
+      const batch = await db.query.printBatches.findFirst({
+        where: and(
+          eq(printBatches.id, body.batchId),
+          eq(printBatches.app_id, 'balikin_id'),
+        ),
+        columns: { id: true },
+      });
+      if (!batch) {
+        throw new Error('Batch not found');
+      }
+
       const generator = generateBatchReprint(body.batchId, db);
       const stream = asyncGeneratorToReadable(generator);
 
@@ -77,13 +92,14 @@ export async function POST(request: NextRequest) {
     // Handle tag-based generation
     if (body.tagIds && body.tagIds.length > 0) {
       const tagsData = await db.query.tags.findMany({
-        where: inArray(tags.id, body.tagIds),
+        where: and(
+          inArray(tags.id, body.tagIds),
+          eq(tags.app_id, 'balikin_id'),
+        ),
         columns: {
           id: true,
           slug: true,
           serialNumber: true,
-          activationPinPlain: true,
-          activationTokenHash: true,
           isCustom: true,
           name: true,
           productType: true,
@@ -92,11 +108,10 @@ export async function POST(request: NextRequest) {
       });
 
       const vdpTags: TagVDPData[] = tagsData.map((t) => ({
+        productSlug: t.productType || '',
         id: t.id,
         slug: t.slug,
-        serialNumber: t.serialNumber || undefined,
-        activationPinPlain: t.activationPinPlain || undefined,
-        activationTokenHash: t.activationTokenHash || undefined,
+        serialNumber: t.serialNumber || '',
         isCustom: t.isCustom || false,
         name: t.name,
       }));

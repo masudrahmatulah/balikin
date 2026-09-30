@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
 import dynamicImport from "next/dynamic";
-import { Link } from "next/link";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
@@ -135,7 +135,7 @@ export default async function MarketingDashboardPage() {
           </Link>
           <Link href="/admin/marketing/campaigns">
             <Button variant="outline" className="w-full gap-2">
-              <Campaign className="w-4 h-4" />
+              <Megaphone className="w-4 h-4" />
               Kelola Campaign
             </Button>
           </Link>

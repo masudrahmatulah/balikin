@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/db';
-import { tags, scanLogs, emergencyInformation } from '@/db/schema';
-import { and, desc, eq, gte } from 'drizzle-orm';
+import { tags, emergencyInformation } from '@/db/schema';
+import { and, eq } from 'drizzle-orm';
 import { logScan } from '@/app/actions/scan';
 import { MobileClaim } from '@/components/mobile/mobile-claim';
 import { JsonLd } from '@/components/json-ld';
@@ -26,6 +26,21 @@ export const metadata: Metadata = {
 async function getTagData(slug: string) {
   const tag = await db.query.tags.findFirst({
     where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
+    columns: {
+      id: true,
+      ownerId: true,
+      activationPinHash: true,
+      name: true,
+      status: true,
+      contactWhatsapp: true,
+      customMessage: true,
+      rewardNote: true,
+      tier: true,
+      productType: true,
+      slug: true,
+      expiresAt: true,
+      createdAt: true,
+    },
   });
 
   return tag;
@@ -41,24 +56,16 @@ async function getEmergencyInfo(tagId: string) {
       eq(emergencyInformation.tagId, tagId),
       eq(emergencyInformation.app_id, 'balikin_id')
     ),
+    columns: {
+      emergencyContact: true,
+      emergencyContactName: true,
+      bloodType: true,
+      allergies: true,
+      medicalConditions: true,
+    },
   });
 
-  return emergencyInfo;
-}
-
-/**
- * Get recent scan logs for lost tags.
- */
-async function getRecentScans(tagId: string, isStickerTag: boolean) {
-  const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-  return db.query.scanLogs.findMany({
-    where: isStickerTag
-      ? and(eq(scanLogs.tagId, tagId), gte(scanLogs.scannedAt, stickerHistoryCutoff))
-      : eq(scanLogs.tagId, tagId),
-    orderBy: [desc(scanLogs.scannedAt)],
-    limit: 5,
-  });
+  return emergencyInfo ?? null;
 }
 
 export default async function MobileClaimPage({ params }: MobileClaimPageProps) {
@@ -87,20 +94,8 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     logScan(tag.id).catch(console.error);
   }
 
-  // Get recent scan logs and emergency info in parallel
-  let recentScans: typeof scanLogs.$inferSelect[] = [];
-  let emergencyInfo: typeof emergencyInformation.$inferSelect | null = null;
-
-  if (!isExpired) {
-    if (isLost && !isFreeTag) {
-      [recentScans, emergencyInfo] = await Promise.all([
-        getRecentScans(tag.id, isStickerTag),
-        getEmergencyInfo(tag.id),
-      ]);
-    } else {
-      emergencyInfo = await getEmergencyInfo(tag.id);
-    }
-  }
+  // Emergency information is public tag content; scan location history is not.
+  const emergencyInfo = !isExpired ? await getEmergencyInfo(tag.id) : null;
 
   // Generate structured data for lost items
   const structuredData = isLost ? {
@@ -110,11 +105,6 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     description: tag.customMessage || `${tag.name} hilang. Jika menemukan, hubungi pemilik.`,
     identifier: tag.slug,
     found: 'false',
-    potentialAction: tag.contactWhatsapp ? {
-      '@type': 'InformAction',
-      name: 'Hubungi Pemilik',
-      target: `https://wa.me/${tag.contactWhatsapp}`,
-    } : undefined,
   } : {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -131,13 +121,19 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     <>
       <JsonLd data={structuredData} />
       <MobileClaim
-        tag={tag}
+        tag={{
+          id: tag.id,
+          name: tag.name,
+          hasContactWhatsapp: Boolean(tag.contactWhatsapp),
+          customMessage: tag.customMessage,
+          rewardNote: tag.rewardNote,
+          slug: tag.slug,
+        }}
         isLost={isLost}
         isFreeTag={isFreeTag}
         isStickerTag={isStickerTag}
         isExpired={isExpired}
         isUnclaimed={!tag.ownerId}
-        recentScans={recentScans}
         emergencyInfo={emergencyInfo}
       />
     </>

@@ -5,7 +5,7 @@ import { MobileHistory } from '@/components/mobile/mobile-history';
 
 export default function MobileHistoryPage() {
   return (
-    <MobileLayout activeTab="history">
+    <MobileLayout>
       <MobileHistory />
     </MobileLayout>
   );

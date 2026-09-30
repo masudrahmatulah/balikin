@@ -2,14 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-// FIXED: Lazy load JSZip only when needed (~70KB)
-const JSZip = dynamic(() => import('jszip'), {
-  ssr: false,
-  loading: () => null,
-});
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,8 +29,12 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [createdTags, setCreatedTags] = useState<Array<{ slug: string; qrUrl: string }>>([]);
-  const [formData, setFormData] = useState({
-    bundleType: 'student_kit' as BundleType,
+  const [formData, setFormData] = useState<{
+    bundleType: Exclude<BundleType, null>;
+    quantity: number;
+    batchSize: number;
+  }>({
+    bundleType: 'student_kit',
     quantity: 10,
     batchSize: 100, // For batch numbering
   });
@@ -74,6 +72,7 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
   const handleDownloadAll = async () => {
     try {
       // Create new ZIP instance
+      const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
 
       // Add all QR codes to ZIP
@@ -224,7 +223,7 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
                 <button
                   key={bundle.type}
                   type="button"
-                  onClick={() => setFormData({ ...formData, bundleType: bundle.type })}
+                  onClick={() => bundle.type && setFormData({ ...formData, bundleType: bundle.type })}
                   className={cn(
                     'p-4 rounded-lg border-2 text-left transition-all',
                     formData.bundleType === bundle.type
@@ -258,9 +257,10 @@ export function BundleCreateForm({ existingCount }: BundleCreateFormProps) {
             </div>
             <Slider
               value={[formData.quantity]}
-              onValueChange={([value]) =>
-                setFormData({ ...formData, quantity: value })
-              }
+              onValueChange={(value) => {
+                const quantity = Array.isArray(value) ? value[0] : value;
+                setFormData({ ...formData, quantity });
+              }}
               min={1}
               max={100}
               step={1}

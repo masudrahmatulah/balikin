@@ -5,7 +5,7 @@ import {
   getCSModuleRequestsSummary,
 } from './data-access';
 import { revalidatePath } from 'next/cache';
-import { Link } from 'next/link';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   CreditCard,
@@ -187,10 +187,10 @@ export default async function CSDashboardPage() {
                       Rp {order.totalAmount.toLocaleString()}
                     </p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {new Date(order.createdAt).toLocaleDateString('id-ID', {
+                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
-                      })}
+                       }) : '-'}
                     </p>
                   </div>
                 </div>
@@ -250,10 +250,10 @@ export default async function CSDashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {new Date(request.createdAt).toLocaleDateString('id-ID', {
+                       {request.createdAt ? new Date(request.createdAt).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
-                      })}
+                       }) : '-'}
                     </p>
                   </div>
                 </div>

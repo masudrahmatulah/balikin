@@ -102,29 +102,34 @@ function normalizeOrderIds(orderIds: unknown): string[] {
 // ─── Verify & status transitions (existing) ──────────────────────────────
 
 export async function verifyStickerOrder(orderId: string) {
-  const session = await verifyAdminSession();
+  await verifyAdminSession();
 
-  const order = await db.query.stickerOrders.findFirst({
-    where: and(
-      eq(stickerOrders.id, orderId),
-      eq(stickerOrders.app_id, APP_ID)
-    ),
-  });
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(stickerOrders)
+      .where(and(
+        eq(stickerOrders.id, orderId),
+        eq(stickerOrders.app_id, APP_ID),
+      ))
+      .for('update');
 
-  if (!order) {
-    throw new Error('Order tidak ditemukan');
-  }
+    if (!order) {
+      throw new Error('Order tidak ditemukan');
+    }
 
-  if (order.paymentStatus === 'paid') {
-    throw new Error('Order sudah diverifikasi');
-  }
+    if (order.paymentStatus === 'paid') {
+      return { alreadyVerified: true };
+    }
+    if (order.paymentStatus !== 'pending') {
+      throw new Error('Order sudah diproses');
+    }
 
-  await db.transaction(async (tx) => {
     const stockAvailable = order.productType !== 'acrylic'
       ? true
       : await consumeAcrylicStock(tx, order.productVariant, order.packQuantity * order.unitCountPerPack);
 
-    await tx.update(stickerOrders)
+    const updatedOrders = await tx.update(stickerOrders)
       .set({
         paymentStatus: 'paid',
         status: order.productType === 'acrylic'
@@ -133,10 +138,23 @@ export async function verifyStickerOrder(orderId: string) {
         verifiedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(stickerOrders.id, orderId));
+      .where(and(
+        eq(stickerOrders.id, orderId),
+        eq(stickerOrders.app_id, APP_ID),
+        eq(stickerOrders.paymentStatus, 'pending'),
+      ))
+      .returning({ id: stickerOrders.id });
+
+    if (updatedOrders.length === 0) {
+      throw new Error('Order sudah diproses');
+    }
+
+    return { alreadyVerified: false };
   });
 
-  await revalidateStickerOrdersCache();
+  if (!result.alreadyVerified) {
+    await revalidateStickerOrdersCache();
+  }
 }
 
 export async function updateStickerOrderStatus(
@@ -159,7 +177,10 @@ export async function updateStickerOrderStatus(
   await db
     .update(stickerOrders)
     .set({ status })
-    .where(eq(stickerOrders.id, orderId));
+      .where(and(
+        eq(stickerOrders.id, orderId),
+        eq(stickerOrders.app_id, APP_ID)
+      ));
 
   await revalidateStickerOrdersCache();
 }
@@ -185,7 +206,7 @@ export async function createStickerOrderByAdmin(input: AdminCreateOrderInput) {
 
   const email = validateField(input.userEmail, 'Email User', 255).toLowerCase();
   const buyer = await db.query.user.findFirst({
-    where: eq(user.email, email),
+    where: and(eq(user.email, email), eq(user.app_id, APP_ID)),
     columns: { id: true },
   });
   if (!buyer) {
@@ -306,7 +327,10 @@ export async function updateStickerOrderByAdmin(input: AdminUpdateOrderInput) {
       totalAmount: validateInt(input.totalAmount, 'Total Harga', 0, 100_000_000),
       updatedAt: new Date(),
     })
-    .where(eq(stickerOrders.id, orderId));
+    .where(and(
+      eq(stickerOrders.id, orderId),
+      eq(stickerOrders.app_id, APP_ID)
+    ));
 
   await revalidateStickerOrdersCache();
 }

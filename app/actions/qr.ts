@@ -3,7 +3,7 @@
 import { cache } from 'react';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { requireAuth } from '@/lib/session';
 
 /**
@@ -17,7 +17,7 @@ export async function generateQRCodePNG(tagSlug: string) {
 
   // Verify tag ownership
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, tagSlug),
+    where: and(eq(tags.slug, tagSlug), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== session.user.id) {
@@ -46,7 +46,7 @@ export async function generateQRCodeSVG(tagSlug: string) {
 
   // Verify tag ownership
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, tagSlug),
+    where: and(eq(tags.slug, tagSlug), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== session.user.id) {

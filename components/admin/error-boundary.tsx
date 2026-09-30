@@ -174,7 +174,7 @@ export function withErrorBoundary<P extends object>(
  * Catches promise rejections and async errors
  */
 export class AsyncErrorBoundary extends React.Component<Props, State> {
-  private state: State = {
+  state: State = {
     hasError: false,
     error: null,
     errorInfo: null,

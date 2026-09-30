@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentClusters, blogContentPlans } from "@/db/schema";
 import { isAdmin } from "@/lib/admin";
@@ -82,7 +82,9 @@ const seedArticles = [
 export async function POST() {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const existing = await db.select({ id: blogContentClusters.id }).from(blogContentClusters);
+  const existing = await db.select({ id: blogContentClusters.id })
+    .from(blogContentClusters)
+    .where(eq(blogContentClusters.app_id, APP_ID));
   if (existing.length > 0) return NextResponse.json({ error: "Content strategy sudah memiliki data." }, { status: 409 });
 
   const clusters = await db.insert(blogContentClusters).values(seedClusters.map((cluster) => ({
@@ -116,7 +118,10 @@ export async function POST() {
     if (index % 10 === 0) continue;
     await db.update(blogContentPlans)
       .set({ parentPlanId: insertedPlans[Math.floor(index / 10) * 10].id })
-      .where(eq(blogContentPlans.id, insertedPlans[index].id));
+      .where(and(
+        eq(blogContentPlans.id, insertedPlans[index].id),
+        eq(blogContentPlans.app_id, APP_ID),
+      ));
   }
 
   return NextResponse.json({ clusters: clusters.length, plans: plans.length }, { status: 201 });

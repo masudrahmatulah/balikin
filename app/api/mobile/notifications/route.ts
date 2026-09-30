@@ -25,7 +25,7 @@ export async function GET() {
 
     // Get user's tags
     const userTags = await db.query.tags.findMany({
-      where: eq(tags.ownerId, userId),
+      where: and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')),
       columns: { id: true },
     });
 
@@ -37,7 +37,10 @@ export async function GET() {
 
     // Get notification logs for user's tags
     const notifications = await db.query.notificationLogs.findMany({
-      where: inArray(notificationLogs.tagId, userTagIds),
+      where: and(
+        inArray(notificationLogs.tagId, userTagIds),
+        eq(notificationLogs.app_id, 'balikin_id')
+      ),
       orderBy: desc(notificationLogs.createdAt),
       limit: 20,
     });
@@ -53,8 +56,8 @@ export async function GET() {
 
       return {
         id: notification.id,
-        type: notification.type,
-        message: notification.message,
+        type: notification.channel,
+        message: notification.errorMessage || 'Notifikasi pengiriman',
         status: notification.status,
         time: timeAgo,
         createdAt: notification.createdAt,

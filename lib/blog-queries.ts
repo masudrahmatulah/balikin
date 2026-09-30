@@ -4,9 +4,11 @@
  */
 
 import { db } from '@/db';
-import { blogPosts, blogComments, user } from '@/db/schema';
+import { blogPosts, blogComments, blogPostsAnalytics, user } from '@/db/schema';
 import { eq, desc, and, isNull, sql } from 'drizzle-orm';
 import type { BlogPostPublic, BlogCommentPublic } from '@/types/blog-api';
+
+const APP_ID = 'balikin_id';
 
 // ============================================================================
 // PAGINATION CONSTANTS
@@ -55,6 +57,7 @@ export async function getPublishedPostsPaginated(
     .from(blogPosts)
     .where(
       and(
+        eq(blogPosts.app_id, APP_ID),
         eq(blogPosts.isPublished, true),
         isNull(blogPosts.deletedAt)
       )
@@ -63,6 +66,7 @@ export async function getPublishedPostsPaginated(
   // Get posts with limit/offset
   const posts = await db.query.blogPosts.findMany({
     where: and(
+      eq(blogPosts.app_id, APP_ID),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
     ),
@@ -101,6 +105,7 @@ export async function getPublishedPostsPaginated(
 export async function getPostBySlug(slug: string) {
   const post = await db.query.blogPosts.findFirst({
     where: and(
+      eq(blogPosts.app_id, APP_ID),
       eq(blogPosts.slug, slug),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
@@ -130,6 +135,7 @@ export async function getPostBySlug(slug: string) {
     .from(blogComments)
     .where(
       and(
+        eq(blogComments.app_id, APP_ID),
         eq(blogComments.postId, post.id),
         eq(blogComments.isApproved, true)
       )
@@ -144,9 +150,10 @@ export async function getPostBySlug(slug: string) {
 /**
  * Get published, relevant posts for server-rendered internal links.
  */
-export async function getRelatedPosts(postId: string, limit = 3) {
+export async function getRelatedPosts(postId: string, limit = 3, appId = APP_ID) {
   const currentPost = await db.query.blogPosts.findFirst({
     where: and(
+      eq(blogPosts.app_id, appId),
       eq(blogPosts.id, postId),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
@@ -157,6 +164,7 @@ export async function getRelatedPosts(postId: string, limit = 3) {
 
   const candidates = await db.query.blogPosts.findMany({
     where: and(
+      eq(blogPosts.app_id, appId),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt),
       sql`${blogPosts.id} != ${postId}`
@@ -218,6 +226,7 @@ export async function getApprovedCommentsForPost(
 
   const comments = await db.query.blogComments.findMany({
     where: and(
+      eq(blogComments.app_id, APP_ID),
       eq(blogComments.postId, postId),
       eq(blogComments.isApproved, true)
     ),
@@ -244,6 +253,7 @@ export async function getApprovedCommentsForPost(
 export async function getCommentTreeForPost(postId: string) {
   const comments = await db.query.blogComments.findMany({
     where: and(
+      eq(blogComments.app_id, APP_ID),
       eq(blogComments.postId, postId),
       eq(blogComments.isApproved, true)
     ),
@@ -289,14 +299,20 @@ export async function getCommentTreeForPost(postId: string) {
 export async function getBlogAnalyticsSummary(postId: string) {
   const [views] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(db.schema.blogPostsAnalytics)
-    .where(eq(db.schema.blogPostsAnalytics.postId, postId));
+    .from(blogPostsAnalytics)
+    .where(
+      and(
+        eq(blogPostsAnalytics.app_id, APP_ID),
+        eq(blogPostsAnalytics.postId, postId),
+      ),
+    );
 
   const [comments] = await db
     .select({ count: sql<number>`count(*)` })
     .from(blogComments)
     .where(
       and(
+        eq(blogComments.app_id, APP_ID),
         eq(blogComments.postId, postId),
         eq(blogComments.isApproved, true)
       )

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { lostLocationsReport } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 /**
  * GET /api/blog/location-reports?postId=xxx - Get all location reports for a post
@@ -16,7 +16,10 @@ export async function GET(req: NextRequest) {
     }
 
     const reports = await db.query.lostLocationsReport.findMany({
-      where: eq(lostLocationsReport.postId, postId),
+      where: and(
+        eq(lostLocationsReport.postId, postId),
+        eq(lostLocationsReport.app_id, "balikin_id"),
+      ),
       orderBy: [lostLocationsReport.createdAt],
     });
 

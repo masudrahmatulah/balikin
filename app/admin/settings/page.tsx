@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
+import { canAccessRoute } from "@/lib/admin-divisions";
 import { getSiteSettings } from "@/app/actions/site-settings";
 import { TagGreetingSettingsForm } from "@/components/admin/tag-greeting-settings-form";
 import { WhatsappSettingsForm } from "@/components/admin/whatsapp-settings-form";
@@ -17,7 +18,7 @@ export default async function AdminSettingsPage() {
   if (!session) {
     redirect("/sign-in?redirect=/admin/settings");
   }
-  if (session.user.role !== "admin") {
+  if (!canAccessRoute(session.user.division, "/admin/settings")) {
     redirect("/admin");
   }
 

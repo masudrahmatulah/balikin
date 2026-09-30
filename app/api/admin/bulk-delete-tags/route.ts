@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     if (affectedBatchIds.length > 0) {
       const keptBatches = await db
-        .select({ batchId: printBatches.id })
+        .select({ batchId: tags.batchId })
         .from(tags)
         .where(
           and(

@@ -21,7 +21,7 @@ interface Comment {
   isApproved: boolean;
   isGiveawayWinner: boolean;
   hasHeroBadge: boolean;
-  createdAt: string;
+  createdAt: Date | string;
   post: {
     id: string;
     title: string;

@@ -122,11 +122,13 @@ ${await getProductContext()}
 
           const parsed = JSON.parse(response.text?.trim() || "{}");
           const recommendations = Array.isArray(parsed.recommendations) ? parsed.recommendations : [];
-          if (recommendations.length !== recommendationCount || recommendations.some((item) => (
-            typeof item?.title !== "string" ||
-            typeof item?.keyword !== "string" ||
-            typeof item?.angle !== "string"
-          ))) {
+           if (recommendations.length !== recommendationCount || recommendations.some((item: unknown) => {
+             if (!item || typeof item !== 'object') return true;
+             const candidate = item as Record<string, unknown>;
+             return typeof candidate.title !== "string" ||
+               typeof candidate.keyword !== "string" ||
+               typeof candidate.angle !== "string";
+           })) {
             throw new Error("Gemini returned an invalid recommendation list");
           }
 

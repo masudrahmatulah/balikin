@@ -23,7 +23,7 @@ interface AdminSession {
 }
 
 interface AdminHeaderProps {
-  session: AdminSession | any;
+  session: AdminSession;
   pendingOrdersCount?: number;
   pendingRequestsCount?: number;
   showMobileMenu?: boolean;

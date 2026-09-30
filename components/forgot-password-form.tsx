@@ -33,12 +33,10 @@ export function ForgotPasswordForm() {
           throw new Error("Masukkan alamat email yang valid.");
         }
 
-        const result = await authClient.forgetPassword({
+        await authClient.emailOtp.requestPasswordReset({
           email,
-          redirectTo: "/reset-password",
         });
 
-        if (result.error) throw new Error(result.error.message || "Gagal mengirim link reset.");
         setSuccess(true);
         return;
       }
@@ -53,7 +51,9 @@ export function ForgotPasswordForm() {
 
         const result = await requestWhatsAppPasswordReset(whatsapp);
 
-        if (result.error) throw new Error(result.error.message || "Gagal mengirim OTP WhatsApp.");
+        if (result.error) {
+          throw new Error(result.error || "Gagal mengirim OTP WhatsApp.");
+        }
         setStep("verify");
       } else {
         if (otp.length !== 6) throw new Error("Masukkan OTP 6 digit.");
@@ -62,13 +62,12 @@ export function ForgotPasswordForm() {
         }
         if (password !== confirmation) throw new Error("Konfirmasi password tidak sama.");
 
-        const result = await authClient.emailOtp.resetPasswordEmailOTP({
+        const result = await authClient.emailOtp.resetPassword({
           email: identifier,
           otp,
           password,
         });
 
-        if (result.error) throw new Error(result.error.message || "Gagal mereset password.");
         setSuccess(true);
       }
     } catch (err: unknown) {

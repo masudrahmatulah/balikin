@@ -55,28 +55,42 @@ export async function requestModule({
     throw new Error('Module already enabled');
   }
 
-  // Check if there's already a pending request for this module
-  const pendingRequest = await db.query.moduleRequests.findFirst({
-    where: and(
-      eq(moduleRequests.userId, userId),
-      eq(moduleRequests.moduleType, moduleType),
-      eq(moduleRequests.status, 'pending'),
-      eq(moduleRequests.app_id, APP_ID)
-    ),
+  const created = await db.transaction(async (tx) => {
+    await tx
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.id, userId), eq(user.app_id, APP_ID)))
+      .for('update');
+
+    const [pendingRequest] = await tx
+      .select()
+      .from(moduleRequests)
+      .where(and(
+        eq(moduleRequests.userId, userId),
+        eq(moduleRequests.moduleType, moduleType),
+        eq(moduleRequests.status, 'pending'),
+        eq(moduleRequests.app_id, APP_ID)
+      ))
+      .limit(1);
+
+    if (pendingRequest) {
+      return false;
+    }
+
+    await tx.insert(moduleRequests).values({
+      app_id: APP_ID,
+      userId,
+      moduleType,
+      status: 'pending',
+      reason,
+    });
+
+    return true;
   });
 
-  if (pendingRequest) {
+  if (!created) {
     throw new Error('Request already pending');
   }
-
-  // Create the request
-  await db.insert(moduleRequests).values({
-    app_id: APP_ID,
-    userId,
-    moduleType,
-    status: 'pending',
-    reason,
-  });
 
   // Send WhatsApp notification to admin
   try {
@@ -165,6 +179,11 @@ export async function approveModuleRequest(requestId: string) {
     throw new Error('Request not found');
   }
 
+  const requestUser = Array.isArray(request.user) ? request.user[0] : request.user;
+  if (!requestUser) {
+    throw new Error('Request user not found');
+  }
+
   if (request.status !== 'pending') {
     throw new Error('Request already processed');
   }
@@ -230,8 +249,8 @@ export async function approveModuleRequest(requestId: string) {
   // Send WhatsApp notification to user
   try {
     await sendModuleApprovedNotificationToUser({
-      phoneNumber: request.user.email, // Fallback to email for now
-      userName: request.user.name || 'Pengguna',
+       phoneNumber: requestUser.email, // Fallback to email for now
+       userName: requestUser.name || 'Pengguna',
       moduleType: request.moduleType,
     });
   } catch (error) {
@@ -288,6 +307,11 @@ export async function rejectModuleRequest({
     throw new Error('Request not found');
   }
 
+  const requestUser = Array.isArray(request.user) ? request.user[0] : request.user;
+  if (!requestUser) {
+    throw new Error('Request user not found');
+  }
+
   if (request.status !== 'pending') {
     throw new Error('Request already processed');
   }
@@ -310,8 +334,8 @@ export async function rejectModuleRequest({
   // Send WhatsApp notification to user
   try {
     await sendModuleRejectedNotificationToUser({
-      phoneNumber: request.user.email, // Fallback to email for now
-      userName: request.user.name || 'Pengguna',
+       phoneNumber: requestUser.email, // Fallback to email for now
+       userName: requestUser.name || 'Pengguna',
       moduleType: request.moduleType,
       rejectionReason,
     });

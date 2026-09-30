@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { blogPosts, blogPostsAnalytics, blogComments } from '@/db/schema';
 import { eq, desc, count } from 'drizzle-orm';
@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Eye, MessageSquare, Users, TrendingUp } from 'lucide-react';
 
 async function getAnalyticsData() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }

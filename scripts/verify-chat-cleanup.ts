@@ -114,11 +114,6 @@ async function verifyCleanup() {
     const roomIdArray = roomIdsToDelete.map((r) => r.id);
 
     if (roomIdArray.length > 0) {
-      const messagesToDelete = await db
-        .select({ count: count() })
-        .from(messages)
-        .where(messages.roomId === null); // Using raw query for IN clause
-
       // Manual count for messages
       const messagesCountResult = await client`
         SELECT COUNT(*) as count

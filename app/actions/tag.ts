@@ -132,7 +132,11 @@ async function getClaimSession() {
         })
         .from(sessionTable)
         .innerJoin(user, eq(sessionTable.userId, user.id))
-        .where(eq(sessionTable.token, sessionToken))
+        .where(and(
+          eq(sessionTable.token, sessionToken),
+          eq(sessionTable.app_id, 'balikin_id'),
+          eq(user.app_id, 'balikin_id')
+        ))
         .limit(1);
 
       if (sessionRecord && new Date(sessionRecord.session.expiresAt) > new Date()) {
@@ -185,6 +189,7 @@ export async function createTag(data: CreateTagInput) {
   const isPremium = false;
 
   await db.insert(tags).values({
+    app_id: 'balikin_id',
     name: sanitizedName,
     slug,
     ownerId: userId,
@@ -211,7 +216,12 @@ export async function createTag(data: CreateTagInput) {
 export async function updateTagStatus(tagId: string, status: 'normal' | 'lost') {
   await requireTagOwnership(tagId);
 
-  await db.update(tags).set({ status }).where(eq(tags.id, tagId));
+  await db.update(tags)
+    .set({ status })
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id')
+    ));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -229,10 +239,13 @@ export async function updateTagTier(tagId: string, tier: 'free' | 'premium') {
   await db.update(tags)
     .set({
       tier,
-      productType: tier === 'premium' ? 'acrylic' : 'free',
-      expiresAt: tier === 'premium' ? null : new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
+      productType: 'free',
+      expiresAt: new Date(Date.now() + FREE_TAG_TRIAL_DAYS * 24 * 60 * 60 * 1000),
     })
-    .where(eq(tags.id, tagId));
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id')
+    ));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -243,7 +256,12 @@ export async function updateTagTier(tagId: string, tier: 'free' | 'premium') {
 export async function updateTagVerified(tagId: string, isVerified: boolean) {
   await requireTagOwnership(tagId);
 
-  await db.update(tags).set({ isVerified }).where(eq(tags.id, tagId));
+  await db.update(tags)
+    .set({ isVerified })
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id')
+    ));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
@@ -354,7 +372,11 @@ export async function claimTag(tagId: string, pin?: string) {
 
   const updatedTags = await db.update(tags)
     .set({ ownerId: session.user.id, claimedAt: new Date() })
-    .where(and(eq(tags.id, tagId), isNull(tags.ownerId)))
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id'),
+      isNull(tags.ownerId)
+    ))
     .returning({ id: tags.id });
 
   if (updatedTags.length === 0) {
@@ -402,7 +424,11 @@ export async function claimTagWithUniversalCode(claimCode: string) {
       claimedAt: new Date(),
       isVerified: true,
     })
-    .where(and(eq(tags.id, tag.id), isNull(tags.ownerId)))
+    .where(and(
+      eq(tags.id, tag.id),
+      eq(tags.app_id, 'balikin_id'),
+      isNull(tags.ownerId)
+    ))
     .returning({ id: tags.id });
 
   if (updatedTags.length === 0) {
@@ -442,10 +468,10 @@ export async function claimStickerTag(tagId: string, name: string, pin?: string)
 
   const [bundle, order] = await Promise.all([
     db.query.tagBundles.findFirst({
-      where: eq(tagBundles.id, tag.bundleId),
+      where: and(eq(tagBundles.id, tag.bundleId), eq(tagBundles.app_id, 'balikin_id')),
     }),
     db.query.stickerOrders.findFirst({
-      where: eq(stickerOrders.id, tag.bundleId),
+      where: and(eq(stickerOrders.id, tag.bundleId), eq(stickerOrders.app_id, 'balikin_id')),
     }),
   ]);
 
@@ -461,7 +487,7 @@ export async function claimStickerTag(tagId: string, name: string, pin?: string)
     throw new Error('Sticker pack ini terhubung ke akun lain');
   }
 
-  await db.update(tags)
+  const updatedTags = await db.update(tags)
     .set({
       ownerId: session.user.id,
       name: name.trim(),
@@ -473,7 +499,16 @@ export async function claimStickerTag(tagId: string, name: string, pin?: string)
       isVerified: true,
       whatsappAlertsEnabled: true,
     })
-    .where(eq(tags.id, tagId));
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id'),
+      isNull(tags.ownerId)
+    ))
+    .returning({ id: tags.id });
+
+  if (updatedTags.length === 0) {
+    throw new Error('Tag sudah diklaim oleh pengguna lain.');
+  }
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');

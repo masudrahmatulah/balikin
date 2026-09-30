@@ -45,7 +45,11 @@ export async function processActivation(
       const [tagData] = await tx
         .select()
         .from(tags)
-        .where(and(eq(tags.slug, data.slug), eq(tags.status, "unclaimed")))
+        .where(and(
+          eq(tags.slug, data.slug),
+          eq(tags.status, "unclaimed"),
+          eq(tags.app_id, "balikin_id"),
+        ))
         .for("update");
 
       if (!tagData) {
@@ -69,7 +73,7 @@ export async function processActivation(
           status: "claimed",
           claimedAt: new Date(),
         })
-        .where(eq(tags.id, tagData.id));
+        .where(and(eq(tags.id, tagData.id), eq(tags.app_id, "balikin_id")));
 
       return {
         success: true,
@@ -85,7 +89,7 @@ export async function processActivation(
 
     // Get user name for success message
     const owner = await db.query.user.findFirst({
-      where: eq(user.id, userId),
+      where: and(eq(user.id, userId), eq(user.app_id, "balikin_id")),
       columns: { name: true },
     });
 
@@ -176,6 +180,7 @@ export async function processBatchActivation(
           UPDATE balikin_sticker_sheets
           SET status = 'active', owner_id = ${session.user.id}, claimed_at = NOW()
           WHERE id = ${sheet.id}
+            AND app_id = 'balikin_id'
         `);
         return {
           success: true,
@@ -203,7 +208,9 @@ export async function processBatchActivation(
       await tx.execute(sql`
         UPDATE balikin_tags
         SET owner_id = ${session.user.id}, claimed_at = NOW()
-        WHERE id = ${tag.id} AND owner_id IS NULL
+        WHERE id = ${tag.id}
+          AND app_id = 'balikin_id'
+          AND owner_id IS NULL
       `);
       return { success: true, serialNumber: tag.serial_number || undefined, claimedCount: 1 };
     });
@@ -225,7 +232,7 @@ export async function checkTagAvailability(slug: string): Promise<{
 }> {
   try {
     const tag = await db.query.tags.findFirst({
-      where: eq(tags.slug, slug),
+      where: and(eq(tags.slug, slug), eq(tags.app_id, "balikin_id")),
     });
 
     if (!tag) {

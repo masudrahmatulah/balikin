@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { tags, stickerSheets } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { hashValue } from '@/lib/crypto';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
@@ -92,7 +92,7 @@ export async function getClaimCodesForOrder(
     ORDER BY t.serial_number ASC
     `);
 
-    const resultRows = rows.rows as Array<{
+    const resultRows = rows as unknown as Array<{
     sheet_code: string;
     activation_pin_plain: string | null;
     serial_number: string | null;
@@ -134,7 +134,9 @@ export async function getClaimCodesForOrder(
 export async function getStickerSheetClaimContext(tagId: string): Promise<StickerSheetClaimContext> {
   const userId = await requireUserId();
 
-  const tag = await db.query.tags.findFirst({ where: eq(tags.id, tagId) });
+  const tag = await db.query.tags.findFirst({
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
+  });
   if (!tag || !tag.sheetId) {
     return { scenario: 'NOT_FOUND' };
   }
@@ -143,7 +145,9 @@ export async function getStickerSheetClaimContext(tagId: string): Promise<Sticke
     return { scenario: tag.ownerId === userId ? 'ALREADY_OWNED' : 'FORBIDDEN' };
   }
 
-  const sheet = await db.query.stickerSheets.findFirst({ where: eq(stickerSheets.id, tag.sheetId) });
+  const sheet = await db.query.stickerSheets.findFirst({
+    where: and(eq(stickerSheets.id, tag.sheetId), eq(stickerSheets.app_id, 'balikin_id')),
+  });
   if (!sheet) {
     return { scenario: 'NOT_FOUND' };
   }
@@ -181,9 +185,16 @@ export async function activateStickerSheet(
   try {
     const result = await db.transaction(async (tx) => {
       const tagRows = await tx.execute(sql`
-        SELECT * FROM balikin_tags WHERE id = ${tagId} FOR UPDATE
+        SELECT * FROM balikin_tags
+        WHERE id = ${tagId}
+          AND app_id = 'balikin_id'
+        FOR UPDATE
       `);
-      const tagRow = tagRows.rows[0] as any;
+       const tagRow = tagRows[0] as {
+         id: string;
+         sheet_id: string | null;
+         owner_id: string | null;
+       } | undefined;
 
       if (!tagRow || !tagRow.sheet_id) {
         return { success: false, error: 'Stiker ini tidak terhubung ke lembaran manapun.' };
@@ -193,9 +204,17 @@ export async function activateStickerSheet(
       }
 
       const sheetRows = await tx.execute(sql`
-        SELECT * FROM balikin_sticker_sheets WHERE id = ${tagRow.sheet_id} FOR UPDATE
+        SELECT * FROM balikin_sticker_sheets
+        WHERE id = ${tagRow.sheet_id}
+          AND app_id = 'balikin_id'
+        FOR UPDATE
       `);
-      const sheet = sheetRows.rows[0] as any;
+       const sheet = sheetRows[0] as {
+         id: string;
+         status: string;
+         owner_id: string | null;
+         activation_pin_hash: string | null;
+       } | undefined;
 
       if (!sheet) {
         return { success: false, error: 'Lembaran stiker tidak ditemukan.' };
@@ -209,6 +228,7 @@ export async function activateStickerSheet(
             SET owner_id = ${userId}, name = ${name}, claimed_at = NOW(),
                 status = 'normal', tier = 'premium', is_verified = true, whatsapp_alerts_enabled = true
             WHERE id = ${tagId}
+              AND app_id = 'balikin_id'
           `);
           return { success: true };
         }
@@ -223,6 +243,7 @@ export async function activateStickerSheet(
         UPDATE balikin_sticker_sheets
         SET status = 'active', owner_id = ${userId}, claimed_at = NOW()
         WHERE id = ${sheet.id}
+          AND app_id = 'balikin_id'
       `);
 
       await tx.execute(sql`
@@ -230,13 +251,14 @@ export async function activateStickerSheet(
         SET owner_id = ${userId}, name = ${name}, claimed_at = NOW(),
             status = 'normal', tier = 'premium', is_verified = true, whatsapp_alerts_enabled = true
         WHERE id = ${tagId}
+          AND app_id = 'balikin_id'
       `);
 
       return { success: true };
     });
 
     if (result.success) {
-      revalidateTag('tags');
+       revalidateTag('tags', 'max');
       revalidatePath('/dashboard');
       revalidatePath('/p/[slug]');
     }
@@ -256,7 +278,9 @@ export async function claimStickerTagInActiveSheet(tagId: string, itemName: stri
   const userId = await requireUserId();
   const name = validateItemName(itemName);
 
-  const tag = await db.query.tags.findFirst({ where: eq(tags.id, tagId) });
+  const tag = await db.query.tags.findFirst({
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
+  });
   if (!tag || !tag.sheetId) {
     return { success: false, error: 'Stiker ini tidak terhubung ke lembaran manapun.' };
   }
@@ -264,7 +288,9 @@ export async function claimStickerTagInActiveSheet(tagId: string, itemName: stri
     return { success: false, error: 'Stiker ini sudah diklaim.' };
   }
 
-  const sheet = await db.query.stickerSheets.findFirst({ where: eq(stickerSheets.id, tag.sheetId) });
+  const sheet = await db.query.stickerSheets.findFirst({
+    where: and(eq(stickerSheets.id, tag.sheetId), eq(stickerSheets.app_id, 'balikin_id')),
+  });
   if (!sheet || sheet.status !== 'active' || sheet.ownerId !== userId) {
     return { success: false, error: 'Lembaran ini belum aktif untuk akun Anda.' };
   }
@@ -279,11 +305,11 @@ export async function claimStickerTagInActiveSheet(tagId: string, itemName: stri
       isVerified: true,
       whatsappAlertsEnabled: true,
     })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
-  revalidateTag('tags');
+   revalidateTag('tags', 'max');
 
   return { success: true };
 }

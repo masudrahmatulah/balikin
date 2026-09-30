@@ -68,6 +68,7 @@ const PRODUCT_LINK_ALLOWLIST = [
   "/sign-up",
   "/how-it-works",
 ] as const;
+const APP_ID = "balikin_id";
 
 function isAllowedProductUrl(url: string): boolean {
   return PRODUCT_LINK_ALLOWLIST.some(
@@ -120,7 +121,11 @@ async function getApprovedProductContext() {
 
 async function getInternalLinkContext() {
   const posts = await db.query.blogPosts.findMany({
-    where: and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)),
+    where: and(
+      eq(blogPosts.app_id, APP_ID),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt),
+    ),
     columns: {
       title: true,
       slug: true,
@@ -313,9 +318,12 @@ ${internalLinkContext}
            }
 
             if (planId) {
-              await db.update(blogContentPlans)
-                .set({ status: "ai_drafted", updatedAt: new Date() })
-                .where(eq(blogContentPlans.id, planId));
+               await db.update(blogContentPlans)
+                 .set({ status: "ai_drafted", updatedAt: new Date() })
+                 .where(and(
+                   eq(blogContentPlans.id, planId),
+                   eq(blogContentPlans.app_id, APP_ID),
+                 ));
             }
 
              const generatedWordCount = countContentWords(content);

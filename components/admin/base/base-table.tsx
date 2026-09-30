@@ -46,14 +46,14 @@ interface BaseTableContextType<T> {
   goToLastPage: () => void;
 }
 
-const BaseTableContext = createContext<BaseTableContextType<any> | null>(null);
+const BaseTableContext = createContext<BaseTableContextType<never> | null>(null);
 
 /**
  * Base Table Component
  * Provides consistent table functionality: sorting, filtering, pagination, search
  * Reduces code duplication across 25+ table components
  */
-export function BaseTable<T extends Record<string, any>>({
+export function BaseTable<T extends Record<string, unknown>>({
   data,
   columns,
   pageSize = 10,
@@ -188,7 +188,7 @@ export function BaseTable<T extends Record<string, any>>({
   // If children function is provided, render with context
   if (typeof children === "function") {
     return (
-      <BaseTableContext.Provider value={contextValue}>
+        <BaseTableContext.Provider value={contextValue as unknown as BaseTableContextType<never>}>
         {children(contextValue)}
       </BaseTableContext.Provider>
     );
@@ -196,7 +196,7 @@ export function BaseTable<T extends Record<string, any>>({
 
   // Default table UI
   return (
-    <BaseTableContext.Provider value={contextValue}>
+    <BaseTableContext.Provider value={contextValue as unknown as BaseTableContextType<never>}>
       <div className={cn("space-y-4", className)}>
         {/* Controls */}
         {(searchable || filterable) && (
@@ -214,7 +214,7 @@ export function BaseTable<T extends Record<string, any>>({
             )}
 
             {filterable && (
-              <Select value={filterValue} onValueChange={setFilterValue}>
+              <Select value={filterValue} onValueChange={(value) => value !== null && setFilterValue(value)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
@@ -302,7 +302,7 @@ export function BaseTable<T extends Record<string, any>>({
                   <TableRow key={rowIndex}>
                     {columns.map((column) => (
                       <TableCell key={column.key}>
-                        {column.cell ? column.cell(row) : row[column.key]}
+                        {column.cell ? column.cell(row) : String(row[column.key] ?? "")}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -378,5 +378,5 @@ export function useBaseTable<T>() {
   if (!context) {
     throw new Error("useBaseTable must be used within a BaseTable");
   }
-  return context as BaseTableContextType<T>;
+  return context as unknown as BaseTableContextType<T>;
 }

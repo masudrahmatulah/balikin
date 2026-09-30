@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BulkForm } from "./bulk-form";
+import { BulkForm, type BulkFormData } from "./bulk-form";
 import { BulkInfoPanel } from "./bulk-info-panel";
 
 interface BulkGenerationSectionProps {
@@ -10,14 +10,20 @@ interface BulkGenerationSectionProps {
 }
 
 export function BulkGenerationSection({ adminId, onGenerated }: BulkGenerationSectionProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BulkFormData>({
     batchName: "",
     quantity: 100,
     materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
     productType: "standard" as "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat",
-    paperSize: "a4" as "a4" | "a3",
+    paperSize: "a5",
+    stickerProductKey: "stiker-family",
+    stickerColorTheme: "navy-premium",
     stickerShape: "circle" as "circle" | "square" | "rectangle",
     stickerSize: "medium" as "small" | "medium" | "large",
+    isCustom: false,
+    customPhotoData: "",
+    includeActivation: true,
+    outputFormat: "pdf",
   });
 
   return (

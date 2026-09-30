@@ -52,7 +52,10 @@ export async function GET() {
           scannedAt: scanLogs.scannedAt,
         })
         .from(scanLogs)
-        .where(inArray(scanLogs.tagId, tagIds))
+        .where(and(
+          inArray(scanLogs.tagId, tagIds),
+          eq(scanLogs.app_id, 'balikin_id')
+        ))
         .orderBy(desc(scanLogs.scannedAt)),
 
       // Scan counts for non-sticker tags (all time) and sticker tags (30 days)
@@ -66,9 +69,13 @@ export async function GET() {
           stickerTagIds.length > 0
             ? and(
                 inArray(scanLogs.tagId, stickerTagIds),
-                gte(scanLogs.scannedAt, thirtyDaysAgo)
+                gte(scanLogs.scannedAt, thirtyDaysAgo),
+                eq(scanLogs.app_id, 'balikin_id')
               )
-            : inArray(scanLogs.tagId, tagIds)
+            : and(
+                inArray(scanLogs.tagId, tagIds),
+                eq(scanLogs.app_id, 'balikin_id')
+              )
         )
         .groupBy(scanLogs.tagId),
     ]);
@@ -76,6 +83,7 @@ export async function GET() {
     // Map recent scans by tag (first one is the most recent)
     const mostRecentScanByTag = new Map<string, Date | null>();
     recentScansResult.forEach(scan => {
+      if (!scan.tagId) return;
       if (!mostRecentScanByTag.has(scan.tagId)) {
         mostRecentScanByTag.set(scan.tagId, scan.scannedAt);
       }
@@ -84,6 +92,7 @@ export async function GET() {
     // Map scan counts by tag
     const scanCountByTag = new Map<string, number>();
     totalScansResult.forEach(result => {
+      if (!result.tagId) return;
       scanCountByTag.set(result.tagId, result.count);
     });
 

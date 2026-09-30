@@ -24,17 +24,17 @@ interface ModuleOrder {
   id: string;
   userId: string;
   moduleType: string;
-  status: 'pending_payment' | 'paid' | 'approved' | 'rejected' | 'cancelled';
+  status: string;
   amount: number;
   paymentProofUrl: string | null;
-  requestedAt: Date;
+  requestedAt: Date | null;
   paidAt: Date | null;
   reviewedAt: Date | null;
   rejectionReason: string | null;
   user: {
     name: string | null;
     email: string;
-  };
+  } | null;
 }
 
 interface ModuleOrdersTableProps {
@@ -136,7 +136,7 @@ export function ModuleOrdersTable({ orders, initialFilter = 'all' }: ModuleOrder
       {/* Filter */}
       <div className="mb-4 flex items-center gap-4">
         <span className="text-sm text-gray-600 dark:text-gray-400">Filter:</span>
-        <Select value={filter} onValueChange={setFilter}>
+        <Select value={filter} onValueChange={(value) => value !== null && setFilter(value)}>
           <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
@@ -212,10 +212,10 @@ export function ModuleOrdersTable({ orders, initialFilter = 'all' }: ModuleOrder
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {order.user.name || 'Tanpa Nama'}
+                          {order.user?.name || 'Tanpa Nama'}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {order.user.email}
+                          {order.user?.email || '-'}
                         </div>
                       </div>
                     </td>
@@ -341,7 +341,7 @@ function PaymentProofModal({
               <span className="font-medium">Order ID:</span> #{order.id.slice(0, 8)}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">User:</span> {order.user.name || 'Tanpa Nama'} ({order.user.email})
+              <span className="font-medium">User:</span> {order.user?.name || 'Tanpa Nama'} ({order.user?.email || '-'})
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               <span className="font-medium">Nominal:</span>{' '}

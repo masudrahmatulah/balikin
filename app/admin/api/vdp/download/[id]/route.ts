@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
+import { hasPermission } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { tags, printBatches, printQueue } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
@@ -7,6 +8,7 @@ import { generateVDPStream, type TagVDPData } from "@/lib/vdp-engine";
 import { deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
 
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 /**
  * Convert AsyncGenerator<Buffer> to ReadableStream
@@ -37,23 +39,25 @@ export async function GET(
     if (!session) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+    if (!hasPermission(session.user.division, "vdp_batch_download")) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
 
     // Check printBatches first (new VDP batches)
     const batch = await db.query.printBatches.findFirst({
-      where: eq(printBatches.id, batchId),
+      where: and(eq(printBatches.id, batchId), eq(printBatches.app_id, APP_ID)),
       with: {
         tags: {
+          where: eq(tags.app_id, APP_ID),
           columns: {
             id: true,
             slug: true,
             serialNumber: true,
-            activationPinPlain: true,
-            activationTokenHash: true,
             isCustom: true,
             name: true,
             productType: true,
           },
-          orderBy: (tags: any, { asc }) => [asc(tags.slug)],
+          orderBy: (tagTable, { asc }) => [asc(tagTable.slug)],
         },
       },
     });
@@ -62,14 +66,13 @@ export async function GET(
       // Use new VDP stream engine
       const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
       const generator = generateVDPStream(
-        batch.tags.map((t: any) => ({
+        batch.tags.map((t) => ({
+          productSlug: t.productType || "",
           id: t.id,
           slug: t.slug,
-          serialNumber: t.serialNumber,
-          activationPinPlain: t.activationPinPlain,
-          activationTokenHash: t.activationTokenHash,
-          isCustom: t.isCustom,
-          name: t.name,
+          serialNumber: t.serialNumber || "",
+          isCustom: t.isCustom || false,
+          name: t.name || "",
         })),
         shapeKey,
         { isReprint: true }
@@ -87,7 +90,7 @@ export async function GET(
 
     // Fallback to printQueue (legacy batches)
     const printQueueItem = await db.query.printQueue.findFirst({
-      where: eq(printQueue.batchId, batchId),
+      where: and(eq(printQueue.batchId, batchId), eq(printQueue.app_id, APP_ID)),
     });
 
     if (!printQueueItem) {
@@ -95,7 +98,18 @@ export async function GET(
     }
 
     const batchTags = await db.query.tags.findMany({
-      where: sql`${tags.slug} LIKE ${batchId + "-%"}`,
+      where: and(
+        sql`${tags.slug} LIKE ${batchId + "-%"}`,
+        eq(tags.app_id, APP_ID),
+      ),
+      columns: {
+        id: true,
+        slug: true,
+        serialNumber: true,
+        isCustom: true,
+        name: true,
+        productType: true,
+      },
       orderBy: (tags, { asc }) => [asc(tags.slug)],
     });
 
@@ -104,10 +118,12 @@ export async function GET(
     }
 
     const vdpTags: TagVDPData[] = batchTags.map((tag) => ({
+      productSlug: tag.productType || "",
       id: tag.id,
       slug: tag.slug,
       isCustom: false,
-      name: tag.name,
+      name: tag.name || "",
+      serialNumber: tag.serialNumber || "",
     }));
 
     const generator = generateVDPStream(vdpTags, deriveAcrylicShapeKey(printQueueItem.materialType));

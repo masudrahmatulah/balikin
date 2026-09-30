@@ -3,6 +3,8 @@ import { stickerOrders, materialInventory } from "@/db/schema";
 import { gte, lte, and, sql, eq } from "drizzle-orm";
 import { withQueryTimeout } from "@/lib/postgres-utils";
 
+const APP_ID = "balikin_id";
+
 export async function getRevenueStats(period: "daily" | "monthly" = "daily") {
   const stats = await getRevenueStatsBoth();
   return period === "daily" ? { ...stats.daily, period } : { ...stats.monthly, period };
@@ -31,6 +33,7 @@ export async function getRevenueStatsBoth() {
           .from(stickerOrders)
           .where(
             and(
+              eq(stickerOrders.app_id, APP_ID),
               eq(stickerOrders.paymentStatus, "paid"),
               gte(stickerOrders.createdAt, monthStart)
             )
@@ -67,6 +70,7 @@ export async function getMaterialStockAlerts() {
     // Add timeout protection
     const materials = await withQueryTimeout(
       () => db.query.materialInventory.findMany({
+        where: eq(materialInventory.app_id, APP_ID),
         limit: 100, // Prevent large result sets
       }),
       [],

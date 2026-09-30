@@ -125,7 +125,7 @@ export function MobileProfile() {
 
   const displayName = session?.user?.name || profileData?.user?.name || 'Pengguna';
   const displayEmail = session?.user?.email || profileData?.user?.email || '';
-  const stats = profileData?.stats || { activeTags: 0, totalTags: 0, totalScans: 0, returnedItems: 0 };
+  const stats = profileData?.stats || { activeTags: 0, totalTags: 0, lostTags: 0, totalScans: 0, returnedItems: 0 };
   const tagCount = stats.totalTags > 0 ? stats.totalTags : (profileData?.tags?.length || 0);
 
   const lostTagsCount = stats.lostTags || 0;

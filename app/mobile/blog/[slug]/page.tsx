@@ -245,12 +245,12 @@ export default async function MobileBlogDetailPage({ params }: BlogPageProps) {
               {comments.map((comment) => (
                 <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium text-gray-900">{comment.authorName}</span>
+                     <span className="font-medium text-gray-900">{comment.name}</span>
                     <span className="text-xs text-gray-500">
                       {comment.createdAt ? formatDate(comment.createdAt) : ''}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700">{comment.content}</p>
+                   <p className="text-sm text-gray-700">{comment.commentText}</p>
                 </div>
               ))}
             </div>

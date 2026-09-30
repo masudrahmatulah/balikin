@@ -150,6 +150,7 @@ async function getUserTags(userId: string): Promise<TagData[]> {
 
     const mostRecentScanByTag = new Map<string, Date | null>();
     recentScansResult.forEach(scan => {
+      if (!scan.tagId) return;
       if (!mostRecentScanByTag.has(scan.tagId)) {
         mostRecentScanByTag.set(scan.tagId, scan.scannedAt);
       }
@@ -157,6 +158,7 @@ async function getUserTags(userId: string): Promise<TagData[]> {
 
     const scanCountByTag = new Map<string, number>();
     totalScansResult.forEach(result => {
+      if (!result.tagId) return;
       scanCountByTag.set(result.tagId, result.count);
     });
 
@@ -209,7 +211,10 @@ async function getRecentActivity(userId: string): Promise<ScanLog[]> {
     const userTagIds = new Set(userTags.map(tag => tag.id));
 
     const userRecentScans = recentScans
-      .filter(scan => userTagIds.has(scan.tagId))
+      .filter((scan): scan is typeof scan & { tagId: string } => {
+        const tagId = scan.tagId;
+        return tagId !== null && userTagIds.has(tagId);
+      })
       .slice(0, 5);
 
     const activities = userRecentScans.map((scan) => {

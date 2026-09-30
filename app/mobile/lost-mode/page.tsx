@@ -5,7 +5,7 @@ import { MobileLostMode } from '@/components/mobile/mobile-lost-mode';
 
 export default function MobileLostModePage() {
   return (
-    <MobileLayout activeTab="lost-mode">
+    <MobileLayout>
       <MobileLostMode />
     </MobileLayout>
   );

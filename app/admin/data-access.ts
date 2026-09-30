@@ -4,8 +4,10 @@ import { cache } from 'react';
 import { db } from '@/db';
 import { user, tags, stickerOrders, materialInventory, modulePurchaseOrders, auditLogs, printQueue } from '@/db/schema';
 import { count, eq, sql, desc, gte, and } from 'drizzle-orm';
-import { getTagsApproximateCount, withQueryTimeout } from '@/lib/postgres-utils';
+import { withQueryTimeout } from '@/lib/postgres-utils';
 import { getRevenueStats, getMaterialStockAlerts } from '@/lib/admin-dashboard';
+
+const APP_ID = 'balikin_id';
 
 /**
  * Get dashboard statistics with Next.js 16 cache components
@@ -13,9 +15,7 @@ import { getRevenueStats, getMaterialStockAlerts } from '@/lib/admin-dashboard';
  */
 async function getDashboardStatsCore() {
 
-  // Use approximate count for tags (large table) - instant, no table scan
-  const tagsCount = await getTagsApproximateCount();
-
+  // Keep tenant-scoped dashboard counts in one query.
   // All queries in ONE parallel block to minimize connection-pool pressure.
   // Counts are consolidated into a single round trip via scalar subqueries, and
   // daily+monthly revenue into one FILTER query — critical because every query
@@ -33,36 +33,39 @@ async function getDashboardStatsCore() {
       () =>
         db.execute(sql`
           SELECT
-            (SELECT count(*) FROM ${user}) AS total_users,
-            (SELECT count(*) FROM ${stickerOrders}) AS total_orders,
-            (SELECT count(*) FROM ${stickerOrders} WHERE ${stickerOrders.paymentStatus} = 'pending') AS pending_orders,
-            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id') AS tags_total,
-            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id' AND ${tags.status} = 'lost') AS tags_lost,
-            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = 'balikin_id' AND ${tags.tier} <> 'free') AS tags_premium
+            (SELECT count(*) FROM ${user} WHERE ${user.app_id} = ${APP_ID}) AS total_users,
+            (SELECT count(*) FROM ${stickerOrders} WHERE ${stickerOrders.app_id} = ${APP_ID}) AS total_orders,
+            (SELECT count(*) FROM ${stickerOrders} WHERE ${stickerOrders.app_id} = ${APP_ID} AND ${stickerOrders.paymentStatus} = 'pending') AS pending_orders,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = ${APP_ID}) AS tags_total,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = ${APP_ID} AND ${tags.status} = 'lost') AS tags_lost,
+            (SELECT count(*) FROM ${tags} WHERE ${tags.app_id} = ${APP_ID} AND ${tags.tier} <> 'free') AS tags_premium
         `),
       null,
       5000
     ),
-    getRevenueStatsBoth(),
+    Promise.all([getRevenueStats('daily'), getRevenueStats('monthly')]).then(([daily, monthly]) => ({ daily, monthly })),
     getMaterialStockAlerts(),
     getDailyOrdersSeries(),
     getTagDistribution(),
     getPrintQueueStats(),
   ]);
 
-  const summaryRows: any[] =
+  type SummaryRow = Record<string, unknown>;
+  const isSummaryRow = (value: unknown): value is SummaryRow =>
+    typeof value === 'object' && value !== null;
+  const summaryRows: SummaryRow[] =
     summaryRes && typeof summaryRes === 'object'
-      ? 'rows' in (summaryRes as any) && Array.isArray((summaryRes as any).rows)
-        ? (summaryRes as any).rows
+      ? 'rows' in summaryRes && Array.isArray(summaryRes.rows)
+        ? summaryRes.rows.filter(isSummaryRow)
         : Array.isArray(summaryRes)
-          ? summaryRes
+          ? summaryRes.filter(isSummaryRow)
           : []
       : [];
   const s = summaryRows[0] ?? {};
 
   return {
     totalUsers: Number(s.total_users || 0),
-    totalTags: tagsCount,
+    totalTags: Number(s.tags_total || 0),
     totalOrders: Number(s.total_orders || 0),
     pendingOrders: Number(s.pending_orders || 0),
     lostTags: Number(s.tags_lost || 0),
@@ -98,6 +101,7 @@ async function getDailyOrdersSeries(): Promise<number[]> {
           .from(stickerOrders)
           .where(
             and(
+              eq(stickerOrders.app_id, APP_ID),
               eq(stickerOrders.paymentStatus, 'paid'),
               gte(stickerOrders.createdAt, sevenDaysAgo)
             )
@@ -170,7 +174,8 @@ async function getPrintQueueStats(): Promise<{ total: number; completed: number;
         db
           .select({ status: printQueue.status, count: count() })
           .from(printQueue)
-          .groupBy(printQueue.status),
+          .where(eq(printQueue.app_id, APP_ID))
+           .groupBy(printQueue.status),
       [] as { status: string; count: number }[],
       5000
     );
@@ -203,13 +208,13 @@ async function getPendingCountsCore() {
       () => db
         .select({ count: count() })
         .from(stickerOrders)
-        .where(eq(stickerOrders.paymentStatus, 'pending')),
-      { count: 0 },
+        .where(and(eq(stickerOrders.app_id, APP_ID), eq(stickerOrders.paymentStatus, 'pending'))),
+      [{ count: 0 }],
       5000
     ),
     withQueryTimeout(
-      () => db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.status, 'pending_payment')),
-      { count: 0 },
+      () => db.select({ count: count() }).from(stickerOrders).where(and(eq(stickerOrders.app_id, APP_ID), eq(stickerOrders.status, 'pending_payment'))),
+      [{ count: 0 }],
       5000
     ),
   ]);
@@ -285,6 +290,7 @@ async function getRecentActivityCore(limit: number = 8): Promise<DashboardActivi
       withQueryTimeout(
         () =>
           db.query.auditLogs.findMany({
+            where: eq(auditLogs.app_id, APP_ID),
             orderBy: [desc(auditLogs.createdAt)],
             limit: 5,
             columns: {
@@ -311,7 +317,8 @@ async function getRecentActivityCore(limit: number = 8): Promise<DashboardActivi
               createdAt: stickerOrders.createdAt,
             })
             .from(stickerOrders)
-            .orderBy(desc(stickerOrders.createdAt))
+             .where(eq(stickerOrders.app_id, APP_ID))
+             .orderBy(desc(stickerOrders.createdAt))
             .limit(4),
         [],
         5000
@@ -335,14 +342,17 @@ async function getRecentActivityCore(limit: number = 8): Promise<DashboardActivi
     ]);
 
     const activities: DashboardActivity[] = [
-      ...auditEntries.map((entry) => ({
-        id: `audit-${entry.id}`,
-        event: `${entry.action} pada ${entry.entityType}`,
-        reference: entry.entityId ? entry.entityId.slice(0, 8) : undefined,
-        admin: entry.admin?.name || entry.admin?.email || 'Admin',
-        timestamp: formatTime(entry.createdAt),
-        status: 'success' as const,
-      })),
+      ...auditEntries.map((entry) => {
+        const admin = Array.isArray(entry.admin) ? entry.admin[0] : entry.admin;
+        return {
+          id: `audit-${entry.id}`,
+          event: `${entry.action} pada ${entry.entityType}`,
+          reference: entry.entityId ? entry.entityId.slice(0, 8) : undefined,
+          admin: admin?.name || admin?.email || 'Admin',
+          timestamp: formatTime(entry.createdAt),
+          status: 'success' as const,
+        };
+      }),
       ...recentOrders.map((order) => ({
         id: `order-${order.id}`,
         event: `Order baru — ${order.recipientName}`,

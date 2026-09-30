@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { tags, tagUpgradeOrders } from '@/db/schema';
 import { PREMIUM_UPGRADE_PRICE } from '@/lib/constants';
@@ -15,31 +15,53 @@ export async function initiateTagUpgradePayment(tagId: string) {
     redirect('/sign-in');
   }
 
-  const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+  const { tag, order } = await db.transaction(async (tx) => {
+    const [tag] = await tx
+      .select()
+      .from(tags)
+      .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')))
+      .for('update');
+
+    if (!tag) {
+      throw new Error('Tag tidak ditemukan');
+    }
+
+    if (tag.ownerId !== session.user.id) {
+      throw new Error('Tag ini bukan milik Anda');
+    }
+
+    if (tag.tier === 'premium') {
+      throw new Error('Tag ini sudah premium');
+    }
+
+    const [pendingOrder] = await tx
+      .select()
+      .from(tagUpgradeOrders)
+      .where(and(
+        eq(tagUpgradeOrders.tagId, tag.id),
+        eq(tagUpgradeOrders.userId, session.user.id),
+        eq(tagUpgradeOrders.paymentStatus, 'pending'),
+        eq(tagUpgradeOrders.app_id, 'balikin_id'),
+      ))
+      .limit(1);
+
+    if (pendingOrder) {
+      throw new Error('Upgrade order masih menunggu pembayaran');
+    }
+
+    const [order] = await tx
+      .insert(tagUpgradeOrders)
+      .values({
+        app_id: 'balikin_id',
+        tagId: tag.id,
+        userId: session.user.id,
+        amount: PREMIUM_UPGRADE_PRICE,
+        paymentStatus: 'pending',
+      })
+      .returning();
+
+    return { tag, order };
   });
-
-  if (!tag) {
-    throw new Error('Tag tidak ditemukan');
-  }
-
-  if (tag.ownerId !== session.user.id) {
-    throw new Error('Tag ini bukan milik Anda');
-  }
-
-  if (tag.tier === 'premium') {
-    throw new Error('Tag ini sudah premium');
-  }
-
-  const [order] = await db
-    .insert(tagUpgradeOrders)
-    .values({
-      tagId: tag.id,
-      userId: session.user.id,
-      amount: PREMIUM_UPGRADE_PRICE,
-      paymentStatus: 'pending',
-    })
-    .returning();
 
   const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/payment/webhook`;
 
@@ -79,7 +101,10 @@ export async function getTagUpgradeOrderStatus(orderId: string) {
   }
 
   const order = await db.query.tagUpgradeOrders.findFirst({
-    where: eq(tagUpgradeOrders.id, orderId),
+    where: and(
+      eq(tagUpgradeOrders.id, orderId),
+      eq(tagUpgradeOrders.app_id, 'balikin_id'),
+    ),
   });
 
   if (!order || order.userId !== session.user.id) {

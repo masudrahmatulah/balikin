@@ -517,7 +517,7 @@ function CreateOrderDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Tipe Produk</Label>
-              <Select value={form.productType} onValueChange={(v) => setForm((f) => ({ ...f, productType: v }))}>
+               <Select value={form.productType} onValueChange={(v) => v !== null && setForm((f) => ({ ...f, productType: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PRODUCT_TYPE_OPTIONS.map((p) => (

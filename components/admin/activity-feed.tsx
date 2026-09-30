@@ -60,7 +60,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
               activities.map((activity) => (
                 <ActivityRow
                   key={activity.id}
-                  icon={activity.icon as any}
+                  icon={activity.icon}
                   iconClassName={activity.iconClassName}
                   event={activity.event}
                   reference={activity.reference}

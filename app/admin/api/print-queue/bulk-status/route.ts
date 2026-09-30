@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
-import { printQueue } from '@/db/schema';
+import { printQueue, type NewPrintQueue } from '@/db/schema';
 import { inArray, and, eq } from 'drizzle-orm';
 import { logAuditAction, getRequestContext } from '@/lib/admin-audit';
 
@@ -13,6 +13,11 @@ const VALID_STATUSES = [
   'ready_for_stock',
   'completed',
 ] as const;
+type PrintQueueStatus = typeof VALID_STATUSES[number];
+
+function isPrintQueueStatus(value: unknown): value is PrintQueueStatus {
+  return typeof value === 'string' && VALID_STATUSES.includes(value as PrintQueueStatus);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,18 +26,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as { ids?: unknown; status?: unknown; adminId?: unknown };
     const { ids, status, adminId } = body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id): id is string => typeof id === 'string')) {
       return NextResponse.json({ error: 'IDs are required' }, { status: 400 });
     }
 
-    if (!status || !VALID_STATUSES.includes(status as any)) {
+    if (!isPrintQueueStatus(status)) {
       return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
 
-    if (!adminId) {
+    if (typeof adminId !== 'string' || !adminId) {
       return NextResponse.json({ error: 'Admin ID is required' }, { status: 400 });
     }
 
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
     const currentItemsMap = new Map(currentItems.map(item => [item.id, item]));
 
     const updates = currentItems.map(item => {
-      const updateData: any = { status };
+      const updateData: Partial<NewPrintQueue> = { status };
 
       if (status === 'printing' && !item.printedAt) {
         updateData.printedAt = new Date();

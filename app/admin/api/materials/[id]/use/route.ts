@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
+import { hasPermission } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { materialInventory } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getAdminSession();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!hasPermission(session.user.division, "material_logs")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
-    const { amount, adminId } = body;
+    const { amount } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
@@ -26,7 +33,7 @@ export async function POST(
 
     // Get current material
     const currentMaterial = await db.query.materialInventory.findFirst({
-      where: eq(materialInventory.id, params.id),
+      where: and(eq(materialInventory.id, id), eq(materialInventory.app_id, APP_ID)),
     });
 
     if (!currentMaterial) {
@@ -50,15 +57,15 @@ export async function POST(
         quantity: newQuantity,
         updatedAt: new Date(),
       })
-      .where(eq(materialInventory.id, params.id));
+      .where(and(eq(materialInventory.id, id), eq(materialInventory.app_id, APP_ID)));
 
     // Log the action
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
-      adminId,
+      adminId: session.user.id,
       action: "use_material",
       entityType: "material_inventory",
-      entityId: params.id,
+      entityId: id,
       originalValue: { quantity: currentMaterial.quantity },
       newValue: { quantity: newQuantity },
       ipAddress: ip,

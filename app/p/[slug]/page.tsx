@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { db } from '@/db';
-import { tags, scanLogs, emergencyInformation } from '@/db/schema';
+import { tags, scanLogs, emergencyInformation, user } from '@/db/schema';
 import { and, desc, eq, gte } from 'drizzle-orm';
 import { logScan } from '@/app/actions/scan';
 import { WhatsAppButton } from '@/components/whatsapp-button';
@@ -38,11 +38,6 @@ export const metadata: Metadata = buildMetadata({
 async function getTagBySlug(slug: string) {
   return db.query.tags.findFirst({
     where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
-    with: {
-      owner: {
-        columns: { name: true },
-      },
-    },
   });
 }
 
@@ -63,13 +58,17 @@ async function getRecentScans(tagId: string, isStickerTag: boolean) {
   if (isStickerTag) {
     const stickerHistoryCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     return db.query.scanLogs.findMany({
-      where: and(eq(scanLogs.tagId, tagId), gte(scanLogs.scannedAt, stickerHistoryCutoff)),
+      where: and(
+        eq(scanLogs.tagId, tagId),
+        eq(scanLogs.app_id, 'balikin_id'),
+        gte(scanLogs.scannedAt, stickerHistoryCutoff)
+      ),
       orderBy: [desc(scanLogs.scannedAt)],
       limit: 5,
     });
   }
     return db.query.scanLogs.findMany({
-      where: eq(scanLogs.tagId, tagId),
+    where: and(eq(scanLogs.tagId, tagId), eq(scanLogs.app_id, 'balikin_id')),
       orderBy: [desc(scanLogs.scannedAt)],
       limit: 5,
     });
@@ -93,14 +92,23 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const isStickerTag = isStickerProduct(tag);
   const isAcrylicTag = isAcrylicProduct(tag);
   const productLabel = getTagProductLabel(tag);
-  const ownerName = tag.owner?.name || tag.name;
 
   // Batch parallel queries for better performance
-  const [emergencyInfo, recentScans, siteSettings] = await Promise.all([
+  const [owner, emergencyInfo, recentScans, siteSettings] = await Promise.all([
+    tag.ownerId
+      ? db.query.user.findFirst({
+          where: and(
+            eq(user.id, tag.ownerId),
+            eq(user.app_id, 'balikin_id')
+          ),
+          columns: { name: true },
+        })
+      : Promise.resolve(null),
     getEmergencyInfo(tag.id),
     isLost && !isFreeTag ? getRecentScans(tag.id, isStickerTag) : Promise.resolve([]),
     getSiteSettings(),
   ]);
+  const ownerName = owner?.name || tag.name;
   const tagGreeting = renderTagGreeting(siteSettings.tagGreetingTemplate, ownerName);
 
   // Check ownership - if owner is viewing, redirect to private page

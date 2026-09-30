@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { printQueue, materialInventory } from "@/db/schema";
 import { desc, count, eq, and } from "drizzle-orm";
 import { StockStatusIndicator } from "@/components/admin/stock-status-indicator";
-import { Link } from "next/link";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Package,
@@ -54,9 +54,6 @@ export default async function ProductionDashboardPage() {
   // Get recent material logs (last 5)
   const recentLogs = await db.query.materialInventory.findMany({
     orderBy: [desc(materialInventory.lastRestockedAt)],
-    with: {
-      addedByUser: true,
-    },
     limit: 5,
   });
 
@@ -200,12 +197,11 @@ export default async function ProductionDashboardPage() {
                       {log.materialType}
                     </span>
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      ({log.materialSize})
+                      ({log.unit})
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Stok: {log.currentStock} {log.unit} |
-                    Ditambahkan oleh {log.addedByUser?.name || log.addedByUser?.email || "Unknown"}
+                    Stok: {log.quantity} {log.unit}
                   </p>
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">

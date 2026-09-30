@@ -32,6 +32,10 @@ function MobileCheckoutInner() {
       notes: String(formData.get('notes') ?? ''),
       segment,
       productKey,
+      shippingCost: 0,
+      shippingCourier: 'jne',
+      destinationCityId: String(formData.get('city') ?? ''),
+      destinationCityName: String(formData.get('city') ?? ''),
     };
 
     setErrors({});

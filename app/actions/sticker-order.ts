@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
@@ -38,6 +38,7 @@ const DEFAULT_TAG_CONFIG = {
   emailAlertsEnabled: false,
   whatsappAlertsEnabled: true,
 } as const;
+const APP_ID = 'balikin_id';
 
 // ============================================================================
 // TYPES
@@ -108,6 +109,7 @@ export async function createStickerOrder(input: CreateStickerOrderInput) {
   }
 
   const [order] = await db.insert(stickerOrders).values({
+    app_id: APP_ID,
     userId: session.user.id,
     recipientName,
     phone,
@@ -137,7 +139,10 @@ export async function getUserStickerOrders(userId: string) {
   }
 
   return db.query.stickerOrders.findMany({
-    where: eq(stickerOrders.userId, userId),
+    where: and(
+      eq(stickerOrders.userId, userId),
+      eq(stickerOrders.app_id, APP_ID)
+    ),
     orderBy: [desc(stickerOrders.createdAt)],
     columns: {
       id: true,
@@ -162,8 +167,10 @@ export async function getUserStickerOrders(userId: string) {
               name: true,
               status: true,
             },
+            where: (tags, { eq }) => eq(tags.app_id, APP_ID),
           },
         },
+        where: (bundles, { eq }) => eq(bundles.app_id, APP_ID),
       },
     },
   });
@@ -186,7 +193,7 @@ export async function verifyStickerOrder(orderId: string) {
       verifiedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(stickerOrders.id, orderId));
+    .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
 
 }
 
@@ -205,7 +212,7 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
       status,
       updatedAt: new Date(),
     })
-    .where(eq(stickerOrders.id, orderId));
+    .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
 
 }
 
@@ -227,64 +234,67 @@ export async function generateStickerBundle(
     throw new Error('Unauthorized');
   }
 
-  const order = await db.query.stickerOrders.findFirst({
-    where: eq(stickerOrders.id, orderId),
-    columns: {
-      id: true,
-      userId: true,
-      paymentStatus: true,
-      phone: true,
-      status: true,
-    },
-    with: {
-      bundles: {
-        columns: {
-          id: true,
-          itemCount: true,
-        },
-      },
-    },
+  const bundle = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select({
+        id: stickerOrders.id,
+        userId: stickerOrders.userId,
+        paymentStatus: stickerOrders.paymentStatus,
+        phone: stickerOrders.phone,
+      })
+      .from(stickerOrders)
+      .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)))
+      .for('update');
+
+    if (!order) {
+      throw new Error('Order tidak ditemukan');
+    }
+
+    if (order.paymentStatus !== 'paid') {
+      throw new Error('Order belum diverifikasi pembayarannya');
+    }
+
+    const [existingBundle] = await tx
+      .select({ id: tagBundles.id })
+      .from(tagBundles)
+      .where(and(eq(tagBundles.orderId, order.id), eq(tagBundles.app_id, APP_ID)))
+      .limit(1);
+
+    if (existingBundle) {
+      throw new Error('Bundle sticker sudah pernah dibuat untuk order ini');
+    }
+
+    const [newBundle] = await tx.insert(tagBundles).values({
+      app_id: APP_ID,
+      orderId: order.id,
+      productType: 'sticker',
+      itemCount: STICKER_PACK_SIZE,
+      status: 'ready_for_fulfillment',
+      stickerShape,
+      stickerSize,
+    }).returning();
+
+    const packTags = Array.from({ length: STICKER_PACK_SIZE }, (_, index) => ({
+      app_id: APP_ID,
+      slug: nanoid(12),
+      bundleId: newBundle.id,
+      ownerId: order.userId,
+      name: `Sticker Pack #${index + 1}`,
+      contactWhatsapp: order.phone,
+      ...DEFAULT_TAG_CONFIG,
+    }));
+
+    await tx.insert(tags).values(packTags);
+
+    await tx.update(stickerOrders)
+      .set({
+        status: 'in_production',
+        updatedAt: new Date(),
+      })
+      .where(and(eq(stickerOrders.id, order.id), eq(stickerOrders.app_id, APP_ID)));
+
+    return newBundle;
   });
-
-  if (!order) {
-    throw new Error('Order tidak ditemukan');
-  }
-
-  if (order.paymentStatus !== 'paid') {
-    throw new Error('Order belum diverifikasi pembayarannya');
-  }
-
-  if (order.bundles.length > 0) {
-    throw new Error('Bundle sticker sudah pernah dibuat untuk order ini');
-  }
-
-  const [bundle] = await db.insert(tagBundles).values({
-    orderId: order.id,
-    productType: 'sticker',
-    itemCount: STICKER_PACK_SIZE,
-    status: 'ready_for_fulfillment',
-    stickerShape,
-    stickerSize,
-  }).returning();
-
-  const packTags = Array.from({ length: STICKER_PACK_SIZE }, (_, index) => ({
-    slug: nanoid(12),
-    bundleId: bundle.id,
-    ownerId: order.userId,
-    name: `Sticker Pack #${index + 1}`,
-    contactWhatsapp: order.phone,
-    ...DEFAULT_TAG_CONFIG,
-  }));
-
-  await db.insert(tags).values(packTags);
-
-  await db.update(stickerOrders)
-    .set({
-      status: 'in_production',
-      updatedAt: new Date(),
-    })
-    .where(eq(stickerOrders.id, order.id));
-
 
   return bundle;
 }

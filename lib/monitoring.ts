@@ -521,5 +521,4 @@ export async function withFallback<T>(
 // EXPORTS
 // ============================================================================
 
-export { ErrorCode, ErrorSeverity, ErrorCategory };
 export type { ErrorContext, ErrorMetadata, PerformanceMetric, LogEntry };

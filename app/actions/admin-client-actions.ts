@@ -148,7 +148,7 @@ export async function updateClient(userId: string, data: UpdateClientInput) {
       .then(rows => rows[0]?.count || 0);
 
     const existingUser = await db.query.user.findFirst({
-      where: eq(user.id, userId),
+      where: and(eq(user.id, userId), eq(user.app_id, 'balikin_id')),
     });
 
     if (!existingUser) {
@@ -168,7 +168,7 @@ export async function updateClient(userId: string, data: UpdateClientInput) {
         role: data.role,
         updatedAt: new Date(),
       })
-      .where(eq(user.id, userId));
+      .where(and(eq(user.id, userId), eq(user.app_id, 'balikin_id')));
 
     revalidatePath('/admin');
     revalidatePath(`/admin/client/${userId}`);
@@ -203,7 +203,14 @@ export async function setClientPassword(userId: string, newPassword: string) {
       return { error: 'User tidak ditemukan' };
     }
 
-    await auth.api.setUserPassword({
+    const adminAuthApi = auth.api as typeof auth.api & {
+      setUserPassword: (options: {
+        body: { userId: string; newPassword: string };
+        headers: Awaited<ReturnType<typeof headers>>;
+      }) => Promise<unknown>;
+    };
+
+    await adminAuthApi.setUserPassword({
       body: { userId, newPassword },
       headers: await headers(),
     });
@@ -242,12 +249,15 @@ export async function deleteClient(userId: string) {
     // Count tags owned by this user
     const tagCount = await db.select({ count: count() })
       .from(tags)
-      .where(eq(tags.ownerId, userId))
+      .where(and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')))
       .then(rows => rows[0]?.count || 0);
 
     // Cascade delete: delete all tags first (if any)
     if (tagCount > 0) {
-      await db.delete(tags).where(eq(tags.ownerId, userId));
+      await db.delete(tags).where(and(
+        eq(tags.ownerId, userId),
+        eq(tags.app_id, 'balikin_id')
+      ));
     }
 
     // Then delete the user
@@ -283,6 +293,7 @@ export async function getAllClients() {
 
   const tagCounts = await db.select({ ownerId: tags.ownerId, count: count() })
     .from(tags)
+    .where(eq(tags.app_id, 'balikin_id'))
     .groupBy(tags.ownerId);
 
   const tagCountByOwner = new Map(tagCounts.map((row) => [row.ownerId, row.count]));

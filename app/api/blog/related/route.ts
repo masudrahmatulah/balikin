@@ -14,7 +14,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing postId parameter" }, { status: 400 });
     }
 
-    const relatedPosts = await getRelatedPosts(postId, Math.min(Math.max(limit, 1), 10));
+    const relatedPosts = await getRelatedPosts(
+      postId,
+      Math.min(Math.max(limit, 1), 10),
+      "balikin_id",
+    );
 
     return NextResponse.json({
       related: relatedPosts,

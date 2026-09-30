@@ -63,35 +63,48 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
     throw new Error('You already have access to this module');
   }
 
-  // Check if there's already a pending order for this module
-  const pendingOrder = await db.query.modulePurchaseOrders.findFirst({
-    where: and(
-      eq(modulePurchaseOrders.userId, userId),
-      eq(modulePurchaseOrders.moduleType, moduleType),
-      eq(modulePurchaseOrders.status, 'pending_payment'),
-      eq(modulePurchaseOrders.app_id, APP_ID)
-    ),
+  const { order, created } = await db.transaction(async (tx) => {
+    await tx
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.id, userId), eq(user.app_id, APP_ID)))
+      .for('update');
+
+    const [pendingOrder] = await tx
+      .select()
+      .from(modulePurchaseOrders)
+      .where(and(
+        eq(modulePurchaseOrders.userId, userId),
+        eq(modulePurchaseOrders.moduleType, moduleType),
+        eq(modulePurchaseOrders.status, 'pending_payment'),
+        eq(modulePurchaseOrders.app_id, APP_ID)
+      ))
+      .limit(1);
+
+    if (pendingOrder) {
+      return { order: pendingOrder, created: false };
+    }
+
+    const [newOrder] = await tx.insert(modulePurchaseOrders).values({
+      app_id: APP_ID,
+      userId,
+      moduleType,
+      status: 'pending_payment',
+      amount: moduleConfigData.price,
+      paymentMethod: 'manual_qris',
+    }).returning();
+
+    return { order: newOrder, created: true };
   });
 
-  if (pendingOrder) {
-    // Return existing order
-    return { success: true, order: pendingOrder };
+  if (!created) {
+    return { success: true, order };
   }
-
-  // Create the order
-  const order = await db.insert(modulePurchaseOrders).values({
-    app_id: APP_ID,
-    userId,
-    moduleType,
-    status: 'pending_payment',
-    amount: moduleConfigData.price,
-    paymentMethod: 'manual_qris',
-  }).returning();
 
   // Send WhatsApp notification to admin
   try {
     await sendModulePurchaseNotificationToAdmin({
-      orderId: order[0].id,
+       orderId: order.id,
       userName: session.user.name || 'Pengguna',
       userEmail: session.user.email,
       moduleType,
@@ -105,7 +118,7 @@ export async function createModulePurchaseOrder(moduleType: ModuleType) {
   revalidatePath('/dashboard/modules/purchases');
   revalidatePath('/admin/module-orders');
 
-  return { success: true, order: order[0] };
+  return { success: true, order };
 }
 
 /**
@@ -140,12 +153,14 @@ export async function uploadPaymentProof(orderId: string, paymentProofUrl: strin
     throw new Error('Order is not in pending_payment status');
   }
 
-  if (!paymentProofUrl.startsWith('https://') || !paymentProofUrl.includes('.blob.vercel-storage.com/')) {
+  // The upload route persists the server-issued object URL before this action runs.
+  // Bind the proof to that record instead of trusting a client-supplied blob URL.
+  if (!paymentProofUrl || order.paymentProofUrl !== paymentProofUrl) {
     throw new Error('URL bukti pembayaran tidak valid');
   }
 
   // Update order with payment proof
-  await db
+  const updatedOrders = await db
     .update(modulePurchaseOrders)
     .set({
       paymentProofUrl,
@@ -153,7 +168,17 @@ export async function uploadPaymentProof(orderId: string, paymentProofUrl: strin
       paidAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(and(eq(modulePurchaseOrders.id, orderId), eq(modulePurchaseOrders.app_id, 'balikin_id')));
+    .where(and(
+      eq(modulePurchaseOrders.id, orderId),
+      eq(modulePurchaseOrders.userId, userId),
+      eq(modulePurchaseOrders.app_id, 'balikin_id'),
+      eq(modulePurchaseOrders.status, 'pending_payment'),
+    ))
+    .returning({ id: modulePurchaseOrders.id });
+
+  if (updatedOrders.length === 0) {
+    throw new Error('Order is not in pending_payment status');
+  }
 
   revalidatePath('/dashboard/modules/purchases');
   revalidatePath('/admin/module-orders');
@@ -294,6 +319,11 @@ export async function approveModulePurchaseOrder(orderId: string) {
     throw new Error('Order not found');
   }
 
+  const orderUser = Array.isArray(order.user) ? order.user[0] : order.user;
+  if (!orderUser) {
+    throw new Error('Order user not found');
+  }
+
   if (order.status !== 'paid') {
     throw new Error('Order must be in paid status before approval');
   }
@@ -359,8 +389,8 @@ export async function approveModulePurchaseOrder(orderId: string) {
   // Send WhatsApp notification to user
   try {
     await sendModuleApprovedNotificationToUser({
-      phoneNumber: order.user.email, // Fallback to email
-      userName: order.user.name || 'Pengguna',
+       phoneNumber: orderUser.email, // Fallback to email
+       userName: orderUser.name || 'Pengguna',
       moduleType: order.moduleType,
     });
   } catch (error) {
@@ -416,6 +446,11 @@ export async function rejectModulePurchaseOrder({
     throw new Error('Order not found');
   }
 
+  const orderUser = Array.isArray(order.user) ? order.user[0] : order.user;
+  if (!orderUser) {
+    throw new Error('Order user not found');
+  }
+
   // Update order status
   await db
     .update(modulePurchaseOrders)
@@ -434,8 +469,8 @@ export async function rejectModulePurchaseOrder({
   // Send WhatsApp notification to user
   try {
     await sendModuleRejectedNotificationToUser({
-      phoneNumber: order.user.email, // Fallback to email
-      userName: order.user.name || 'Pengguna',
+       phoneNumber: orderUser.email, // Fallback to email
+       userName: orderUser.name || 'Pengguna',
       moduleType: order.moduleType,
       rejectionReason,
     });

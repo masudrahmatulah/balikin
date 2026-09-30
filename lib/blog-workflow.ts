@@ -1,8 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { blogPosts, blogPostRevisions, auditLogs } from '@/db/schema';
 import { canPublishBlogPosts, getBlogSessionForAction } from '@/lib/blog-permissions';
 import { after } from 'next/server';
+
+const APP_ID = 'balikin_id';
 
 export type ReviewStatus = 'draft' | 'pending_review' | 'approved' | 'rejected';
 
@@ -23,7 +25,7 @@ export async function submitPostForReview(postId: string): Promise<void> {
   }
 
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -39,7 +41,7 @@ export async function submitPostForReview(postId: string): Promise<void> {
       isPublished: false,
       updatedAt: new Date(),
     })
-    .where(eq(blogPosts.id, postId));
+    .where(and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)));
 
   // Create revision record
   await createPostRevision(postId, 'submit_for_review', session.user.id);
@@ -56,7 +58,7 @@ export async function approvePost(postId: string): Promise<void> {
   }
 
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -71,13 +73,14 @@ export async function approvePost(postId: string): Promise<void> {
       reviewedByTitle: session.user.name || 'Admin',
       updatedAt: new Date(),
     })
-    .where(eq(blogPosts.id, postId));
+    .where(and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)));
 
   // Create revision record
   await createPostRevision(postId, 'approve', session.user.id);
 
   // Create audit log
   await db.insert(auditLogs).values({
+    app_id: APP_ID,
     adminId: session.user.id,
     action: 'approve_blog_post',
     entityType: 'blog_post',
@@ -98,7 +101,7 @@ export async function rejectPost(postId: string, reason: string): Promise<void> 
   }
 
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -112,13 +115,14 @@ export async function rejectPost(postId: string, reason: string): Promise<void> 
       reviewedByTitle: session.user.name || 'Admin',
       updatedAt: new Date(),
     })
-    .where(eq(blogPosts.id, postId));
+    .where(and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)));
 
   // Create revision record
   await createPostRevision(postId, 'reject', session.user.id, reason);
 
   // Create audit log
   await db.insert(auditLogs).values({
+    app_id: APP_ID,
     adminId: session.user.id,
     action: 'reject_blog_post',
     entityType: 'blog_post',
@@ -140,7 +144,7 @@ export async function requestChanges(postId: string, feedback: string): Promise<
   }
 
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -152,13 +156,14 @@ export async function requestChanges(postId: string, feedback: string): Promise<
       isPublished: false,
       updatedAt: new Date(),
     })
-    .where(eq(blogPosts.id, postId));
+    .where(and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)));
 
   // Create revision record
   await createPostRevision(postId, 'request_changes', session.user.id, feedback);
 
   // Create audit log
   await db.insert(auditLogs).values({
+    app_id: APP_ID,
     adminId: session.user.id,
     action: 'request_changes_blog_post',
     entityType: 'blog_post',
@@ -179,7 +184,7 @@ async function createPostRevision(
   changeReason?: string
 ): Promise<void> {
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -188,12 +193,16 @@ async function createPostRevision(
 
   // Get current revision count
   const revisions = await db.query.blogPostRevisions.findMany({
-    where: eq(blogPostRevisions.postId, postId),
+    where: and(
+      eq(blogPostRevisions.postId, postId),
+      eq(blogPostRevisions.app_id, APP_ID),
+    ),
   });
 
   const revisionNumber = revisions.length + 1;
 
   await db.insert(blogPostRevisions).values({
+    app_id: APP_ID,
     postId,
     revisionNumber,
     title: post.title,
@@ -222,7 +231,7 @@ async function createPostRevision(
  */
 export async function getPostWorkflowStatus(postId: string) {
   const post = await db.query.blogPosts.findFirst({
-    where: eq(blogPosts.id, postId),
+    where: and(eq(blogPosts.id, postId), eq(blogPosts.app_id, APP_ID)),
   });
 
   if (!post) {
@@ -264,6 +273,7 @@ export async function getPostWorkflowStatus(postId: string) {
 export async function getPendingReviewPosts() {
   const posts = await db.query.blogPosts.findMany({
     where: (table, { and, eq, isNull }) => and(
+      eq(table.app_id, APP_ID),
       eq(table.isPublished, false),
       isNull(table.reviewedById)
     ),

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { db } from "@/db";
 import { lostLocationsReport, blogPosts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getClientIP, getUserAgent } from "@/lib/blog-common";
 import { generateFingerprint, getRateLimitHeaders, checkRateLimitByFingerprint } from "@/lib/rate-limit-enhanced";
 
@@ -20,7 +19,10 @@ export async function POST(req: NextRequest) {
 
     // Verify post exists
     const post = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, postId),
+      where: and(
+        eq(blogPosts.id, postId),
+        eq(blogPosts.app_id, "balikin_id"),
+      ),
     });
 
     if (!post) {
@@ -47,6 +49,7 @@ export async function POST(req: NextRequest) {
 
     // Create location report
     const report = await db.insert(lostLocationsReport).values({
+      app_id: "balikin_id",
       postId,
       locationName,
       locationType,

@@ -106,7 +106,10 @@ export async function generateCutFoldPDF(
   const tagsWithActivation = await Promise.all(
     tags.map(async (tag) => {
       const tagData = await db.query.tags.findFirst({
-        where: eq(tagsTable.slug, tag.slug),
+        where: and(
+          eq(tagsTable.slug, tag.slug),
+          eq(tagsTable.app_id, 'balikin_id'),
+        ),
         columns: {
           activationTokenHash: true,
           activationPinPlain: true,
@@ -118,15 +121,15 @@ export async function generateCutFoldPDF(
 
       if (activationBatchId || tagData?.activationTokenHash) {
         const activationQrDataUrl = batchActivationQr || await generateQRCodeCached(
-          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData?.activationTokenHash}`
+          `${baseUrl}/activate?slug=${tag.slug}&token=${tagData?.activationTokenHash ?? ''}`
         );
         return {
           ...tag,
           activationQrDataUrl,
-          activationPinPlain: tagData.activationPinPlain || '',
-          serialNumber: tagData.serialNumber || '',
-          isCustom: tagData.isCustom || false,
-          customPhotoUrl: tagData.customPhotoUrl,
+          activationPinPlain: tagData?.activationPinPlain || '',
+          serialNumber: tagData?.serialNumber || '',
+          isCustom: tagData?.isCustom || false,
+          customPhotoUrl: tagData?.customPhotoUrl ?? undefined,
         };
       }
 
@@ -152,7 +155,7 @@ export async function generateCutFoldPDF(
       baseUrl,
       paperSize,
       logoDataUrl,
-    })
+    }) as Parameters<typeof pdf>[0]
   ).toBlob();
 
   // Convert blob to Uint8Array
@@ -174,7 +177,10 @@ export async function generateCutFoldPDFByBatchId(
   }
 
   const batchTags = await db.query.tags.findMany({
-    where: like(tags.slug, `${batchId}-%`),
+    where: and(
+      like(tags.slug, `${batchId}-%`),
+      eq(tags.app_id, 'balikin_id'),
+    ),
     columns: {
       id: true,
       slug: true,

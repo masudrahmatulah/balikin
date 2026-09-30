@@ -9,6 +9,11 @@ interface ClientQRGeneratorProps {
   client: User;
 }
 
+interface CreatedTag {
+  slug: string;
+  name: string;
+}
+
 export function ClientQRGenerator({ client }: ClientQRGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [tagName, setTagName] = useState("");
@@ -16,7 +21,7 @@ export function ClientQRGenerator({ client }: ClientQRGeneratorProps) {
   const [customMessage, setCustomMessage] = useState("");
   const [rewardNote, setRewardNote] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [createdTag, setCreatedTag] = useState<any>(null);
+  const [createdTag, setCreatedTag] = useState<CreatedTag | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
 
   const handleCreate = async (e: React.FormEvent) => {

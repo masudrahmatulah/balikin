@@ -13,7 +13,7 @@ interface PendingRequest {
   userId: string;
   moduleType: string;
   reason: string | null;
-  requestedAt: Date;
+  requestedAt: Date | null;
   user: {
     name: string | null;
     email: string;
@@ -214,13 +214,13 @@ export function AdminRequestsTable({ pendingRequests }: AdminRequestsTableProps)
               </thead>
               <tbody className='divide-y divide-gray-200 dark:divide-gray-700'>
                 {pendingRequests.map((request) => {
-                  const requestedDate = new Date(request.requestedAt).toLocaleDateString('id-ID', {
+                  const requestedDate = request.requestedAt ? new Date(request.requestedAt).toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                  });
+                  }) : '-';
 
                   return (
                     <tr

@@ -68,7 +68,7 @@ export default async function StudentKitPage({
         )}
       </div>
 
-      <StudentKitClient studentData={studentData} />
+      <StudentKitClient studentData={studentData ?? null} />
     </div>
   );
 }

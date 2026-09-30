@@ -12,9 +12,12 @@ export async function getPendingOrdersCount() {
     .select({ count: count() })
     .from(stickerOrders)
     .where(
-      or(
-        eq(stickerOrders.status, 'pending_payment'),
-        eq(stickerOrders.paymentStatus, 'pending')
+      and(
+        eq(stickerOrders.app_id, 'balikin_id'),
+        or(
+          eq(stickerOrders.status, 'pending_payment'),
+          eq(stickerOrders.paymentStatus, 'pending')
+        )
       )
     );
   const pendingStickerOrdersCount = pendingStickerOrdersResult[0]?.count || 0;
@@ -24,9 +27,12 @@ export async function getPendingOrdersCount() {
     .select({ count: count() })
     .from(modulePurchaseOrders)
     .where(
-      or(
-        eq(modulePurchaseOrders.status, 'pending_payment'),
-        eq(modulePurchaseOrders.status, 'paid')
+      and(
+        eq(modulePurchaseOrders.app_id, 'balikin_id'),
+        or(
+          eq(modulePurchaseOrders.status, 'pending_payment'),
+          eq(modulePurchaseOrders.status, 'paid')
+        )
       )
     );
   const pendingModuleOrdersCount = pendingModuleOrdersResult[0]?.count || 0;
@@ -35,7 +41,12 @@ export async function getPendingOrdersCount() {
   const pendingUpgradeResult = await db
     .select({ count: count() })
     .from(tagUpgradeOrders)
-    .where(eq(tagUpgradeOrders.paymentStatus, 'pending'));
+    .where(
+      and(
+        eq(tagUpgradeOrders.app_id, 'balikin_id'),
+        eq(tagUpgradeOrders.paymentStatus, 'pending'),
+      ),
+    );
   const pendingUpgradeCount = pendingUpgradeResult[0]?.count || 0;
 
   // Total pending orders (sticker + module + tag upgrade)
@@ -52,7 +63,12 @@ export async function getPendingRequestsCount() {
   const pendingRequestsResult = await db
     .select({ count: count() })
     .from(moduleRequests)
-    .where(eq(moduleRequests.status, 'pending'));
+    .where(
+      and(
+        eq(moduleRequests.app_id, 'balikin_id'),
+        eq(moduleRequests.status, 'pending'),
+      ),
+    );
 
   return pendingRequestsResult[0]?.count || 0;
 }

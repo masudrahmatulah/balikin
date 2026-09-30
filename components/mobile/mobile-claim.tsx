@@ -3,29 +3,21 @@
 import {
   QrCode,
   Shield,
-  MapPin,
   Clock,
   AlertTriangle,
   Gift,
   Award,
   MessageCircle,
   Phone,
-  User,
-  ChevronRight,
   Lock
 } from 'lucide-react';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface MobileClaimProps {
   tag: {
     id: string;
     name: string;
-    status: string;
-    productType: string | null;
-    tier: string | null;
-    isVerified: boolean;
-    contactWhatsapp: string | null;
+    hasContactWhatsapp: boolean;
     customMessage: string | null;
     rewardNote: string | null;
     slug: string;
@@ -35,11 +27,6 @@ interface MobileClaimProps {
   isStickerTag: boolean;
   isExpired: boolean;
   isUnclaimed: boolean;
-  recentScans: Array<{
-    id: string;
-    city: string | null;
-    scannedAt: Date | null;
-  }>;
   emergencyInfo: {
     emergencyContact: string | null;
     emergencyContactName: string | null;
@@ -56,21 +43,17 @@ export function MobileClaim({
   isStickerTag,
   isExpired,
   isUnclaimed,
-  recentScans,
   emergencyInfo
 }: MobileClaimProps) {
   const router = useRouter();
-  const [showScans, setShowScans] = useState(false);
 
   const whatsappMessage = isLost
     ? `Halo, saya menemukan barang "${tag.name}" yang Anda laporkan hilang. ${tag.customMessage || ''}`
     : `Halo, saya ingin bertanya tentang tag "${tag.name}".`;
 
   const handleWhatsAppClick = () => {
-    if (tag.contactWhatsapp) {
-      const url = `https://wa.me/${tag.contactWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`;
-      window.open(url, '_blank');
-    }
+    const url = `/api/go/${tag.slug}?text=${encodeURIComponent(whatsappMessage)}`;
+    window.open(url, '_blank');
   };
 
   const handleEmergencyCall = () => {
@@ -267,54 +250,8 @@ export function MobileClaim({
           </p>
         </div>
 
-        {/* Recent Scans (for lost items) */}
-        {isLost && !isFreeTag && recentScans.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 overflow-hidden animate-fade-up-20 stagger-delay-4">
-            <button
-              onClick={() => setShowScans(!showScans)}
-              className="w-full flex items-center justify-between p-5 active:bg-gray-50 transition-colors btn-press"
-              aria-expanded={showScans}
-              aria-controls="scan-history"
-            >
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-mobile-info" aria-hidden="true" />
-                <span className="font-bold text-gray-900">Riwayat Scan</span>
-                <span className="text-xs text-gray-400">({recentScans.length})</span>
-              </div>
-              <ChevronRight
-                className={`h-5 w-5 text-gray-400 transition-transform ${showScans ? 'rotate-90' : ''}`}
-                aria-hidden="true"
-              />
-            </button>
-            {showScans && (
-              <div id="scan-history" className="px-5 pb-5 space-y-2">
-                {recentScans.map((scan) => (
-                  <div
-                    key={scan.id}
-                    className="bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between"
-                  >
-                    <span className="text-sm text-gray-700">
-                      {scan.city || 'Lokasi tidak diketahui'}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {scan.scannedAt
-                        ? new Date(scan.scannedAt).toLocaleString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : '-'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* WhatsApp CTA Button */}
-        {tag.contactWhatsapp && (
+        {tag.hasContactWhatsapp && (
           <div className="pt-2 animate-fade-up-20 stagger-delay-5">
             <button
               onClick={handleWhatsAppClick}

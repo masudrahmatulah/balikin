@@ -90,7 +90,6 @@ export async function GET(request: NextRequest) {
     const result = await cleanupExpiredChats();
 
     return NextResponse.json({
-      success: true,
       ...result,
       timestamp: new Date().toISOString(),
     });

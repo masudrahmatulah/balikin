@@ -53,6 +53,7 @@ async function getTagScanCountsUncached(tagIds: string[]): Promise<Map<string, n
 
   const counts = new Map<string, number>();
   result.forEach((row) => {
+    if (!row.tagId) return;
     counts.set(row.tagId, row.count);
   });
 

@@ -46,7 +46,10 @@ export async function PATCH(
 
     // Get the existing claim
     const existingClaim = await db.query.giveawayClaims.findFirst({
-      where: eq(giveawayClaims.id, claimId),
+      where: and(
+        eq(giveawayClaims.id, claimId),
+        eq(giveawayClaims.app_id, 'balikin_id')
+      ),
     });
 
     if (!existingClaim) {
@@ -55,7 +58,10 @@ export async function PATCH(
 
     // Get the post for title
     const post = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, existingClaim.postId),
+      where: and(
+        eq(blogPosts.id, existingClaim.postId),
+        eq(blogPosts.app_id, 'balikin_id')
+      ),
     });
 
     // Update the claim
@@ -68,7 +74,10 @@ export async function PATCH(
         processedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(giveawayClaims.id, claimId))
+      .where(and(
+        eq(giveawayClaims.id, claimId),
+        eq(giveawayClaims.app_id, 'balikin_id')
+      ))
       .returning();
 
     const claim = updated[0];
@@ -145,7 +154,10 @@ export async function DELETE(
       throw new ValidationError('Format Claim ID tidak valid');
     }
 
-    await db.delete(giveawayClaims).where(eq(giveawayClaims.id, claimId));
+    await db.delete(giveawayClaims).where(and(
+      eq(giveawayClaims.id, claimId),
+      eq(giveawayClaims.app_id, 'balikin_id')
+    ));
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -5,7 +5,9 @@
 
 import { db } from "@/db";
 import { user, tags, stickerOrders } from "@/db/schema";
-import { eq, or, like, desc, sql } from "drizzle-orm";
+import { eq, or, like, desc, and } from "drizzle-orm";
+
+const APP_ID = "balikin_id";
 
 export interface SearchResult {
   type: 'user' | 'tag' | 'order';
@@ -85,10 +87,13 @@ export async function globalSearch(
         })
         .from(user)
         .where(
-          or(
-            like(user.email, `%${trimmedQuery}%`),
-            // FIXED: Use like() instead of sql template to prevent SQL injection
-            like(user.name, `%${trimmedQuery}%`)
+          and(
+            eq(user.app_id, APP_ID),
+            or(
+              like(user.email, `%${trimmedQuery}%`),
+              // FIXED: Use like() instead of sql template to prevent SQL injection
+              like(user.name, `%${trimmedQuery}%`)
+            )
           )
         )
         .orderBy(desc(user.createdAt))
@@ -124,9 +129,12 @@ export async function globalSearch(
         })
         .from(tags)
         .where(
-          isNanoid
-            ? eq(tags.slug, trimmedQuery)
-            : like(tags.slug, `%${trimmedQuery}%`)
+          and(
+            eq(tags.app_id, APP_ID),
+            isNanoid
+              ? eq(tags.slug, trimmedQuery)
+              : like(tags.slug, `%${trimmedQuery}%`)
+          )
         )
         .orderBy(desc(tags.createdAt))
         .limit(limit);
@@ -155,16 +163,19 @@ export async function globalSearch(
           id: stickerOrders.id,
           userId: stickerOrders.userId,
           status: stickerOrders.status,
-          orderType: stickerOrders.orderType,
+          productType: stickerOrders.productType,
           totalAmount: stickerOrders.totalAmount,
           createdAt: stickerOrders.createdAt,
         })
         .from(stickerOrders)
         .where(
-          or(
-            like(stickerOrders.id, `%${trimmedQuery}%`)
-            // FIXED: Removed customerName field which doesn't exist in schema
-            // and was using vulnerable sql template literal
+          and(
+            eq(stickerOrders.app_id, APP_ID),
+            or(
+              like(stickerOrders.id, `%${trimmedQuery}%`)
+              // FIXED: Removed customerName field which doesn't exist in schema
+              // and was using vulnerable sql template literal
+            )
           )
         )
         .orderBy(desc(stickerOrders.createdAt))
@@ -176,7 +187,7 @@ export async function globalSearch(
           type: 'order',
           id: order.id,
           title: `Order: ${order.id}`,
-          subtitle: `${order.orderType} • ${order.status} • Rp${order.totalAmount?.toLocaleString() || '0'}`,
+          subtitle: `${order.productType} • ${order.status} • Rp${order.totalAmount?.toLocaleString() || '0'}`,
           href: `/admin/sticker-orders`,
           relevance: relevance,
         });

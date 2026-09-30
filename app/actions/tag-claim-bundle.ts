@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { tags, userModulePermissions, userModuleSelections, moduleUsageAnalytics } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -44,7 +44,11 @@ export async function claimBundleTag(input: ClaimBundleInput) {
         })
         .from(sessionTable)
         .innerJoin(user, eq(sessionTable.userId, user.id))
-        .where(eq(sessionTable.token, sessionToken))
+        .where(and(
+          eq(sessionTable.token, sessionToken),
+          eq(sessionTable.app_id, 'balikin_id'),
+          eq(user.app_id, 'balikin_id'),
+        ))
         .limit(1);
 
       if (sessionRecord.length && new Date(sessionRecord[0].session.expiresAt) > new Date()) {
@@ -62,7 +66,7 @@ export async function claimBundleTag(input: ClaimBundleInput) {
 
   // Get tag
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag) {
@@ -80,7 +84,7 @@ export async function claimBundleTag(input: ClaimBundleInput) {
   }
 
   // Claim the tag
-  await db.update(tags)
+  const claimedTags = await db.update(tags)
     .set({
       ownerId: session.user.id,
       name: name?.trim() || bundleConfig.name,
@@ -93,7 +97,16 @@ export async function claimBundleTag(input: ClaimBundleInput) {
       whatsappAlertsEnabled: true,
       hasTabTwoEnabled: true, // Enable dual-tab for bundle tags
     })
-    .where(eq(tags.id, tagId));
+    .where(and(
+      eq(tags.id, tagId),
+      eq(tags.app_id, 'balikin_id'),
+      isNull(tags.ownerId)
+    ))
+    .returning({ id: tags.id });
+
+  if (claimedTags.length === 0) {
+    throw new Error('Tag sudah dimiliki oleh user lain');
+  }
 
   // Auto-activate module if configured and not skipped
   if (bundleConfig.moduleType && !skipModule) {
@@ -183,7 +196,7 @@ async function activateModuleForUser(userId: string, moduleType: ModuleType) {
  */
 export async function isBundleTag(tagId: string): Promise<boolean> {
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   return tag?.bundleType !== null && tag?.bundleType !== undefined;
@@ -194,14 +207,14 @@ export async function isBundleTag(tagId: string): Promise<boolean> {
  */
 export async function getBundleInfo(tagId: string) {
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag?.bundleType) {
     return null;
   }
 
-  return getBundleConfig(tag.bundleType);
+  return getBundleConfig(tag.bundleType as BundleType);
 }
 
 /**
@@ -217,7 +230,7 @@ export async function completeOnboarding(tagId: string) {
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== session.user.id) {
@@ -226,7 +239,7 @@ export async function completeOnboarding(tagId: string) {
 
   await db.update(tags)
     .set({ onboardingCompleted: true })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   return { success: true };
 }
@@ -244,7 +257,7 @@ export async function markWelcomeShown(tagId: string) {
   }
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== session.user.id) {
@@ -253,7 +266,7 @@ export async function markWelcomeShown(tagId: string) {
 
   await db.update(tags)
     .set({ welcomeShown: true })
-    .where(eq(tags.id, tagId));
+    .where(and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')));
 
   return { success: true };
 }

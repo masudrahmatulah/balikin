@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import Link from 'next/link';
 import { CheckCircle2, XCircle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { setupGallerySubmissions } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 async function getPendingSubmissions() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }
@@ -37,7 +37,7 @@ async function rejectSubmission(submissionId: string) {
 }
 
 export default async function SetupGalleryPage() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     redirect('/');
   }
@@ -58,7 +58,7 @@ export default async function SetupGalleryPage() {
           </div>
         ) : (
           <div className="divide-y">
-            {submissions?.map((submission: any) => (
+            {submissions?.map((submission) => (
               <div key={submission.id} className="p-6">
                 <div className="flex gap-6">
                   <img

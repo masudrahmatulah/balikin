@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CheckCircle, Lock, ShieldAlert, Tag } from 'lucide-react';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { claimStickerTag, claimTag } from '@/app/actions/tag';
 import { activateStickerSheet, claimStickerTagInActiveSheet, getStickerSheetClaimContext } from '@/app/actions/sticker-sheet';
 import { getSession } from '@/lib/session';
@@ -22,7 +22,7 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
   const { error: claimError } = await searchParams;
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.id, tagId),
+    where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag) {
@@ -41,12 +41,12 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
   let stickerOrder = null;
   if (tag.productType === 'sticker' && tag.bundleId) {
     const bundle = await db.query.tagBundles.findFirst({
-      where: eq(tagBundles.id, tag.bundleId),
+      where: and(eq(tagBundles.id, tag.bundleId), eq(tagBundles.app_id, 'balikin_id')),
     });
 
     if (bundle) {
       stickerOrder = await db.query.stickerOrders.findFirst({
-        where: eq(stickerOrders.id, bundle.orderId),
+        where: and(eq(stickerOrders.id, bundle.orderId), eq(stickerOrders.app_id, 'balikin_id')),
       });
     }
   }

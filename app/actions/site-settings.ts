@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { siteSettings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
@@ -22,7 +22,10 @@ async function getAdminSessionForAction() {
 export const getSiteSettings = unstable_cache(
   async () => {
     const row = await db.query.siteSettings.findFirst({
-      where: eq(siteSettings.id, SETTINGS_ID),
+      where: and(
+        eq(siteSettings.id, SETTINGS_ID),
+        eq(siteSettings.app_id, 'balikin_id')
+      ),
     });
     return {
       tagGreetingTemplate: row?.tagGreetingTemplate || DEFAULT_TAG_GREETING_TEMPLATE,
@@ -61,13 +64,14 @@ async function updateSiteSettings(data: { tagGreetingTemplate?: string; adminWha
   try {
     await db
       .insert(siteSettings)
-      .values({ id: SETTINGS_ID, ...data, updatedAt: new Date() })
+      .values({ id: SETTINGS_ID, app_id: 'balikin_id', ...data, updatedAt: new Date() })
       .onConflictDoUpdate({
         target: siteSettings.id,
         set: { ...data, updatedAt: new Date() },
+        where: eq(siteSettings.app_id, 'balikin_id'),
       });
 
-    revalidateTag('site-settings');
+    revalidateTag('site-settings', 'max');
     revalidatePath('/admin/settings');
 
     return { success: true };

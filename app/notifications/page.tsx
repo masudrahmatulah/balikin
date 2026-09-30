@@ -18,12 +18,19 @@ export default async function NotificationsPage() {
   const userEmail = session.user.email ?? 'Pengguna Balikin';
 
   const notifications = await db.query.notificationLogs.findMany({
-    where: eq(notificationLogs.userId, session.user.id),
+    where: and(eq(notificationLogs.app_id, 'balikin_id')),
     with: {
-      tag: true,
+      tag: {
+        columns: { name: true, ownerId: true },
+      },
     },
     orderBy: [desc(notificationLogs.createdAt)],
     limit: 50,
+  });
+
+  const userNotifications = notifications.filter((notification) => {
+    const tag = Array.isArray(notification.tag) ? notification.tag[0] : notification.tag;
+    return tag?.ownerId === session.user.id;
   });
 
   return (
@@ -47,7 +54,7 @@ export default async function NotificationsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {notifications.length === 0 ? (
+            {userNotifications.length === 0 ? (
               <div className="text-center py-8">
                 <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500">Belum ada notifikasi terkirim</p>
@@ -57,7 +64,9 @@ export default async function NotificationsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {notifications.map((notification) => (
+                {userNotifications.map((notification) => {
+                  const tag = Array.isArray(notification.tag) ? notification.tag[0] : notification.tag;
+                  return (
                   <div
                     key={notification.id}
                     className="flex items-start gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100"
@@ -78,7 +87,7 @@ export default async function NotificationsPage() {
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div>
                           <p className="font-medium text-gray-900">
-                            {notification.tag?.name || 'Tag'}
+                            {tag?.name || 'Tag'}
                           </p>
                           <p className="text-sm text-gray-500">
                             {notification.channel === 'priority' ? 'Priority WhatsApp' : notification.channel}
@@ -101,7 +110,8 @@ export default async function NotificationsPage() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

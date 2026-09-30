@@ -7,7 +7,7 @@ import { Calendar, Clock, Link as LinkIcon, FileText } from 'lucide-react';
 import type { StudentKitData } from '@/db/schema';
 
 interface StudentKitDisplayProps {
-  data: StudentKitData;
+  data: Pick<StudentKitData, 'classSchedule' | 'assignmentDeadlines' | 'driveLinks' | 'ktmKrsPhotos'>;
 }
 
 export function StudentKitDisplay({ data }: StudentKitDisplayProps) {

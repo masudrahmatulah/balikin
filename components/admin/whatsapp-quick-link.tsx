@@ -12,7 +12,7 @@ interface WhatsAppQuickLinkProps {
   userDivision?: string | null;
   recipientName?: string;
   customMessage?: string;
-  onLogAccess?: (log: any) => void;
+  onLogAccess?: (log: ReturnType<typeof createPrivacyAccessLog>) => void;
 }
 
 /**

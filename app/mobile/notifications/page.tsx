@@ -5,7 +5,7 @@ import { MobileNotifications } from '@/components/mobile/mobile-notifications';
 
 export default function MobileNotificationsPage() {
   return (
-    <MobileLayout activeTab="notifications">
+    <MobileLayout>
       <MobileNotifications />
     </MobileLayout>
   );

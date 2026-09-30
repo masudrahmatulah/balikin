@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { getAdminSessionForAction } from '@/lib/admin';
+import { hasPermission } from '@/lib/admin-divisions';
 import { db } from '@/db';
 import { stickerOrders, tagUpgradeOrders, tags } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -13,7 +14,7 @@ const APP_ID = 'balikin_id';
 
 async function requireAdmin() {
   const session = await getAdminSessionForAction();
-  if (!session) {
+  if (!session || !hasPermission(session.user.division, 'payment_verification')) {
     redirect('/sign-in?redirect=/admin/payments');
   }
   return session;
@@ -26,49 +27,67 @@ async function requireAdmin() {
 export async function verifyTagUpgradePayment(orderId: string) {
   const session = await requireAdmin();
 
-  const order = await db.query.tagUpgradeOrders.findFirst({
-    where: and(
-      eq(tagUpgradeOrders.id, orderId),
-      eq(tagUpgradeOrders.app_id, APP_ID)
-    ),
-    with: {
-      tag: {
-        columns: { id: true, slug: true, tier: true },
-      },
-    },
-  });
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(tagUpgradeOrders)
+      .where(and(
+        eq(tagUpgradeOrders.id, orderId),
+        eq(tagUpgradeOrders.app_id, APP_ID),
+      ))
+      .for('update');
 
-  if (!order) {
-    throw new Error('Order upgrade tidak ditemukan');
-  }
+    if (!order) {
+      throw new Error('Order upgrade tidak ditemukan');
+    }
+    if (order.paymentStatus === 'paid') {
+      return { alreadyVerified: true };
+    }
+    if (order.paymentStatus !== 'pending') {
+      throw new Error('Order sudah diproses');
+    }
 
-  if (order.paymentStatus === 'paid') {
-    throw new Error('Order sudah berstatus paid');
-  }
+    const [tag] = await tx
+      .select({ id: tags.id })
+      .from(tags)
+      .where(and(eq(tags.id, order.tagId), eq(tags.app_id, APP_ID)))
+      .for('update');
 
-  if (!order.tag) {
-    throw new Error('Tag terkait tidak ditemukan');
-  }
+    if (!tag) {
+      throw new Error('Tag terkait tidak ditemukan');
+    }
 
-  await db.transaction(async (tx) => {
-    await tx
+    const updatedOrders = await tx
       .update(tagUpgradeOrders)
       .set({ paymentStatus: 'paid', updatedAt: new Date() })
-      .where(eq(tagUpgradeOrders.id, orderId));
+      .where(and(
+        eq(tagUpgradeOrders.id, orderId),
+        eq(tagUpgradeOrders.app_id, APP_ID),
+        eq(tagUpgradeOrders.paymentStatus, 'pending'),
+      ))
+      .returning({ id: tagUpgradeOrders.id });
+
+    if (updatedOrders.length === 0) {
+      throw new Error('Order sudah diproses');
+    }
 
     await tx
       .update(tags)
       .set({ tier: 'premium', productType: 'acrylic', expiresAt: null })
-      .where(eq(tags.id, order.tag.id));
+      .where(and(eq(tags.id, tag.id), eq(tags.app_id, APP_ID)));
+
+    return { alreadyVerified: false };
   });
 
   revalidatePath('/admin/payments');
   revalidatePath('/admin/sticker-orders');
   revalidatePath('/dashboard');
   revalidatePath('/p/[slug]');
-  revalidateTag('tags');
+  if (!result.alreadyVerified) {
+    revalidateTag('tags', 'max');
+  }
 
-  return { success: true, adminId: session.user.id };
+  return { success: true, alreadyVerified: result.alreadyVerified, adminId: session.user.id };
 }
 
 /**
@@ -77,29 +96,45 @@ export async function verifyTagUpgradePayment(orderId: string) {
 export async function markTagUpgradeFailed(orderId: string) {
   const session = await requireAdmin();
 
-  const order = await db.query.tagUpgradeOrders.findFirst({
-    where: and(
-      eq(tagUpgradeOrders.id, orderId),
-      eq(tagUpgradeOrders.app_id, APP_ID)
-    ),
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select({ id: tagUpgradeOrders.id, paymentStatus: tagUpgradeOrders.paymentStatus })
+      .from(tagUpgradeOrders)
+      .where(and(
+        eq(tagUpgradeOrders.id, orderId),
+        eq(tagUpgradeOrders.app_id, APP_ID),
+      ))
+      .for('update');
+
+    if (!order) {
+      throw new Error('Order upgrade tidak ditemukan');
+    }
+    if (order.paymentStatus === 'failed') {
+      return { alreadyFailed: true };
+    }
+    if (order.paymentStatus !== 'pending') {
+      throw new Error('Hanya order berstatus pending yang dapat ditandai gagal');
+    }
+
+    const updatedOrders = await tx
+      .update(tagUpgradeOrders)
+      .set({ paymentStatus: 'failed', updatedAt: new Date() })
+      .where(and(
+        eq(tagUpgradeOrders.id, orderId),
+        eq(tagUpgradeOrders.app_id, APP_ID),
+        eq(tagUpgradeOrders.paymentStatus, 'pending'),
+      ))
+      .returning({ id: tagUpgradeOrders.id });
+
+    if (updatedOrders.length === 0) {
+      throw new Error('Order sudah diproses');
+    }
+    return { alreadyFailed: false };
   });
-
-  if (!order) {
-    throw new Error('Order upgrade tidak ditemukan');
-  }
-
-  if (order.paymentStatus !== 'pending') {
-    throw new Error('Hanya order berstatus pending yang dapat ditandai gagal');
-  }
-
-  await db
-    .update(tagUpgradeOrders)
-    .set({ paymentStatus: 'failed', updatedAt: new Date() })
-    .where(eq(tagUpgradeOrders.id, orderId));
 
   revalidatePath('/admin/payments');
 
-  return { success: true, adminId: session.user.id };
+  return { success: true, alreadyFailed: result.alreadyFailed, adminId: session.user.id };
 }
 
 /**
@@ -108,31 +143,36 @@ export async function markTagUpgradeFailed(orderId: string) {
 export async function verifyStickerOrderPayment(orderId: string) {
   const session = await requireAdmin();
 
-  const order = await db.query.stickerOrders.findFirst({
-    where: and(
-      eq(stickerOrders.id, orderId),
-      eq(stickerOrders.app_id, APP_ID)
-    ),
-  });
+  const result = await db.transaction(async (tx) => {
+    const [order] = await tx
+      .select()
+      .from(stickerOrders)
+      .where(and(
+        eq(stickerOrders.id, orderId),
+        eq(stickerOrders.app_id, APP_ID),
+      ))
+      .for('update');
 
-  if (!order) {
-    throw new Error('Order sticker tidak ditemukan');
-  }
+    if (!order) {
+      throw new Error('Order sticker tidak ditemukan');
+    }
 
-  if (order.paymentStatus === 'paid') {
-    throw new Error('Order sudah berstatus paid');
-  }
+    if (order.paymentStatus === 'paid') {
+      return { alreadyVerified: true };
+    }
+    if (order.paymentStatus !== 'pending') {
+      throw new Error('Order sudah diproses');
+    }
 
-  if (order.productType === 'printable' && !order.paymentProofUrl) {
-    throw new Error('Bukti pembayaran printable belum diupload');
-  }
+    if (order.productType === 'printable' && !order.paymentProofUrl) {
+      throw new Error('Bukti pembayaran printable belum diupload');
+    }
 
-  await db.transaction(async (tx) => {
     const stockAvailable = order.productType !== 'acrylic'
       ? true
       : await consumeAcrylicStock(tx, order.productVariant, order.packQuantity * order.unitCountPerPack);
 
-    await tx.update(stickerOrders).set({
+    const updatedOrders = await tx.update(stickerOrders).set({
       paymentStatus: 'paid',
       status: order.productType === 'printable'
         ? 'completed'
@@ -141,12 +181,21 @@ export async function verifyStickerOrderPayment(orderId: string) {
           : 'pending_fulfillment',
       verifiedAt: new Date(),
       updatedAt: new Date(),
-    }).where(eq(stickerOrders.id, orderId));
+    }).where(and(
+      eq(stickerOrders.id, orderId),
+      eq(stickerOrders.app_id, APP_ID),
+      eq(stickerOrders.paymentStatus, 'pending'),
+    )).returning({ id: stickerOrders.id });
+
+    if (updatedOrders.length === 0) {
+      throw new Error('Order sudah diproses');
+    }
 
     if (order.productType === 'printable') {
       let label = 'Printable QR Tag';
       try { label = JSON.parse(order.notes || '{}').label || label; } catch { /* legacy order note */ }
       await tx.insert(tags).values(Array.from({ length: order.unitCountPerPack }, (_, index) => ({
+        app_id: APP_ID,
         slug: nanoid(12),
         ownerId: order.userId,
         name: `${label} ${index + 1}`,
@@ -161,11 +210,15 @@ export async function verifyStickerOrderPayment(orderId: string) {
         expiresAt: null,
       })));
     }
+
+    return { alreadyVerified: false };
   });
 
-  revalidatePath('/admin/payments');
-  revalidatePath('/admin/sticker-orders');
-  revalidatePath('/dashboard');
+  if (!result.alreadyVerified) {
+    revalidatePath('/admin/payments');
+    revalidatePath('/admin/sticker-orders');
+    revalidatePath('/dashboard');
+  }
 
-  return { success: true, adminId: session.user.id };
+  return { success: true, alreadyVerified: result.alreadyVerified, adminId: session.user.id };
 }

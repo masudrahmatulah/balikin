@@ -2,6 +2,7 @@
 
 import { db } from '@/db';
 import { campaignLeads } from '@/db/schema';
+import { isAdmin } from '@/lib/admin';
 import { eq, and } from 'drizzle-orm';
 
 export async function subscribeCampaignLead(
@@ -27,7 +28,8 @@ export async function subscribeCampaignLead(
       .where(
         and(
           eq(campaignLeads.email, email.toLowerCase()),
-          eq(campaignLeads.campaignName, campaignName)
+          eq(campaignLeads.campaignName, campaignName),
+          eq(campaignLeads.app_id, 'balikin_id')
         )
       )
       .limit(1);
@@ -38,7 +40,12 @@ export async function subscribeCampaignLead(
         await db
           .update(campaignLeads)
           .set({ status: 'subscribed', updatedAt: new Date() })
-          .where(eq(campaignLeads.id, existingLead[0].id));
+          .where(
+            and(
+              eq(campaignLeads.id, existingLead[0].id),
+              eq(campaignLeads.app_id, 'balikin_id')
+            )
+          );
       }
       return {
         success: true,
@@ -52,6 +59,7 @@ export async function subscribeCampaignLead(
     const newLead = await db
       .insert(campaignLeads)
       .values({
+        app_id: 'balikin_id',
         email: email.toLowerCase(),
         campaignName,
         source,
@@ -88,7 +96,8 @@ export async function unsubscribeCampaignLead(
       .where(
         and(
           eq(campaignLeads.email, email.toLowerCase()),
-          eq(campaignLeads.campaignName, campaignName)
+          eq(campaignLeads.campaignName, campaignName),
+          eq(campaignLeads.app_id, 'balikin_id')
         )
       )
       .returning();
@@ -104,11 +113,20 @@ export async function unsubscribeCampaignLead(
 }
 
 export async function getCampaignLeads(campaignName: string) {
+  if (!(await isAdmin())) {
+    throw new Error('Unauthorized: Admin access required');
+  }
+
   try {
     const leads = await db
       .select()
       .from(campaignLeads)
-      .where(eq(campaignLeads.campaignName, campaignName));
+      .where(
+        and(
+          eq(campaignLeads.campaignName, campaignName),
+          eq(campaignLeads.app_id, 'balikin_id')
+        )
+      );
 
     return {
       success: true,

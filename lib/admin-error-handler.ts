@@ -139,8 +139,10 @@ export function createErrorResponse(
 
   return {
     error: handled.error || "Internal server error",
-    statusCode: handled.statusCode || 500,
-    ...(process.env.NODE_ENV === "development" && { details: handled.details }),
+    statusCode: 'statusCode' in handled ? handled.statusCode || 500 : 500,
+    ...(process.env.NODE_ENV === "development" && {
+      details: 'details' in handled ? handled.details : undefined,
+    }),
   };
 }
 

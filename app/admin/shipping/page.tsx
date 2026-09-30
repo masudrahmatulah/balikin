@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin";
 import { db } from "@/db";
-import { stickerOrders, shippingTracking } from "@/db/schema";
+import { stickerOrders } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { ShippingTable } from "@/components/admin/shipping-table";
 
@@ -17,9 +17,6 @@ export default async function ShippingPage() {
   const orders = await db.query.stickerOrders.findMany({
     where: eq(stickerOrders.paymentStatus, "paid"),
     orderBy: [desc(stickerOrders.createdAt)],
-    with: {
-      shippingTracking: true,
-    },
   });
 
   return (

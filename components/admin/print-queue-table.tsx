@@ -36,7 +36,7 @@ interface PrintQueueItem {
   printedBy: string | null;
   printedAt: Date | null;
   completedAt: Date | null;
-  createdAt: Date;
+  createdAt: Date | null;
   printedByUser?: {
     id: string;
     name: string | null;
@@ -291,7 +291,7 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600 dark:text-gray-400">Set status:</span>
             <Select
-              onValueChange={bulkUpdateStatus}
+              onValueChange={(value) => value !== null && bulkUpdateStatus(value)}
               disabled={bulkUpdating}
               value=""
             >
@@ -335,7 +335,7 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
 
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-400" aria-hidden="true" />
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <Select value={filterStatus} onValueChange={(value) => value !== null && setFilterStatus(value)}>
             <SelectTrigger className="w-[180px]" aria-label="Filter by status">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -442,13 +442,13 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
                       )}
                     </TableCell>
                     <TableCell>
-                      {new Date(item.createdAt).toLocaleDateString('id-ID', {
+                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit',
-                      })}
+                       }) : '-'}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -476,7 +476,7 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
                         </Button>
                         <Select
                           value={item.status}
-                          onValueChange={(value) => updateStatus(item.id, value)}
+                           onValueChange={(value) => value !== null && updateStatus(item.id, value)}
                           disabled={updating === item.id}
                         >
                           <SelectTrigger className="w-[140px]" aria-label={`Update status for ${item.batchName}`}>

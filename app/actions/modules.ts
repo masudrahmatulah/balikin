@@ -448,9 +448,12 @@ export async function setUserModuleSelections(moduleTypes: string[]) {
       await tx
         .update(userModuleSelections)
         .set({ isActive: true, updatedAt: new Date() })
-        .where(inArray(
-          userModuleSelections.id,
-          modulesToUpdate.map(m => m.id)
+        .where(and(
+          inArray(
+            userModuleSelections.id,
+            modulesToUpdate.map(m => m.id)
+          ),
+          eq(userModuleSelections.app_id, 'balikin_id'),
         ));
     }
 

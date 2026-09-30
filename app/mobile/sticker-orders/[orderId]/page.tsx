@@ -150,7 +150,7 @@ export default async function MobileStickerOrderDetailPage({
                   <p className="text-sm font-semibold text-gray-900">Bundle {bundle.id}</p>
                   <p className="text-xs text-gray-500 mt-1">Status: {bundle.status}</p>
                   <div className="mt-3 grid gap-2 grid-cols-2">
-                    {bundle.tags.map((tag) => (
+                     {bundle.tags.map((tag: { id: string; name: string; slug: string; ownerId: string | null }) => (
                       <div key={tag.id} className="bg-white rounded-lg p-3 border border-gray-100">
                         <p className="text-sm font-medium text-gray-900">{tag.name}</p>
                         <p className="text-xs text-gray-500 font-mono">/p/{tag.slug}</p>

@@ -7,12 +7,15 @@ import { eq, and, desc, count } from 'drizzle-orm';
 import type { ModuleType } from '@/lib/admin-modules';
 import { MODULES } from '@/lib/admin-modules';
 
+const APP_ID = 'balikin_id';
+
 /**
  * Get all module configurations with caching
  */
 async function getAllModuleConfigsCore() {
 
   const configs = await db.query.moduleConfig.findMany({
+    where: eq(moduleConfig.app_id, APP_ID),
     orderBy: [moduleConfig.sortOrder, moduleConfig.moduleType],
   });
 
@@ -30,7 +33,10 @@ export const getAllModuleConfigs = cache(getAllModuleConfigsCore);
 async function getModuleConfigByTypeCore(moduleType: string) {
 
   const config = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(
+      eq(moduleConfig.moduleType, moduleType),
+      eq(moduleConfig.app_id, APP_ID)
+    ),
   });
 
   return config;
@@ -47,7 +53,10 @@ export const getModuleConfigByType = cache(getModuleConfigByTypeCore);
 async function getActiveModuleConfigsCore() {
 
   const configs = await db.query.moduleConfig.findMany({
-    where: eq(moduleConfig.isEnabled, true),
+    where: and(
+      eq(moduleConfig.isEnabled, true),
+      eq(moduleConfig.app_id, APP_ID)
+    ),
     orderBy: [moduleConfig.sortOrder, moduleConfig.moduleType],
   });
 
@@ -64,7 +73,9 @@ export const getActiveModuleConfigs = cache(getActiveModuleConfigsCore);
  */
 async function getModuleStatsCore() {
 
-  const configs = await db.query.moduleConfig.findMany();
+  const configs = await db.query.moduleConfig.findMany({
+    where: eq(moduleConfig.app_id, APP_ID),
+  });
 
   const stats = await Promise.all(
     configs.map(async (config) => {
@@ -75,7 +86,8 @@ async function getModuleStatsCore() {
           .where(
             and(
               eq(userModulePermissions.moduleType, config.moduleType),
-              eq(userModulePermissions.isEnabled, true)
+              eq(userModulePermissions.isEnabled, true),
+              eq(userModulePermissions.app_id, APP_ID)
             )
           ),
         db
@@ -84,7 +96,8 @@ async function getModuleStatsCore() {
           .where(
             and(
               eq(modulePurchaseOrders.moduleType, config.moduleType),
-              eq(modulePurchaseOrders.status, 'pending_payment')
+              eq(modulePurchaseOrders.status, 'pending_payment'),
+              eq(modulePurchaseOrders.app_id, APP_ID)
             )
           ),
         db
@@ -93,7 +106,8 @@ async function getModuleStatsCore() {
           .where(
             and(
               eq(modulePurchaseOrders.moduleType, config.moduleType),
-              eq(modulePurchaseOrders.status, 'paid')
+              eq(modulePurchaseOrders.status, 'paid'),
+              eq(modulePurchaseOrders.app_id, APP_ID)
             )
           ),
       ]);

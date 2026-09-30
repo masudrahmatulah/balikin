@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { tags } from "@/db/schema";
 import { FREE_TAG_TRIAL_DAYS } from "@/lib/constants";
+import { and, eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
 
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Check if slug already exists
     const existingTag = await db.query.tags.findFirst({
-      where: (tags, { eq }) => eq(tags.slug, slug),
+      where: and(eq(tags.slug, slug), eq(tags.app_id, "balikin_id")),
     });
 
     if (existingTag) {
@@ -81,12 +82,16 @@ export async function GET(request: NextRequest) {
     const ownerId = searchParams.get("ownerId");
 
     const tagsQuery = db.query.tags.findMany({
+      where: eq(tags.app_id, "balikin_id"),
       orderBy: (tags, { desc }) => [desc(tags.createdAt)],
     });
 
     const allTags = ownerId
       ? await db.query.tags.findMany({
-          where: (tags, { eq }) => eq(tags.ownerId, ownerId),
+          where: and(
+            eq(tags.ownerId, ownerId),
+            eq(tags.app_id, "balikin_id")
+          ),
           orderBy: (tags, { desc }) => [desc(tags.createdAt)],
         })
       : await tagsQuery;

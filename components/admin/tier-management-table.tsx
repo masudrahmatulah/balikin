@@ -34,7 +34,7 @@ interface User {
   name: string | null;
   email: string;
   role: string;
-  createdAt: Date;
+  createdAt: Date | null;
 }
 
 interface TierManagementTableProps {
@@ -254,16 +254,16 @@ export function TierManagementTable({ users, adminId }: TierManagementTableProps
                       )}
                     </TableCell>
                     <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString("id-ID", {
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString("id-ID", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
-                      })}
+                      }) : "-"}
                     </TableCell>
                     <TableCell>
                       <Select
                         value={user.role}
-                        onValueChange={(value) => upgradeTier(user.id, value)}
+                         onValueChange={(value) => value !== null && upgradeTier(user.id, value)}
                         disabled={updating === user.id}
                       >
                         <SelectTrigger className="w-[140px]">

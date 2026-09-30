@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import { Info, AlertTriangle, CheckCircle, XCircle, type LucideIcon } from "lucide-react";
 
-interface AlertBoxProps {
+export interface AlertBoxProps {
   type: "info" | "warning" | "success" | "error";
   title?: string;
   message: string;
@@ -78,7 +78,8 @@ export function AlertBox({
   );
 }
 
-interface AlertCardProps extends AlertBoxProps {
+export interface AlertCardProps extends AlertBoxProps {
+  children?: ReactNode;
   icon?: LucideIcon;
   items?: Array<{ label: string; value: string }>;
   primaryAction?: {
@@ -95,6 +96,7 @@ export function AlertCard({
   icon,
   items,
   primaryAction,
+  children,
   ...alertBoxProps
 }: AlertCardProps) {
   const alertConfig = {
@@ -144,6 +146,7 @@ export function AlertCard({
           </div>
         </div>
       </div>
+      {children}
       {items && items.length > 0 && (
         <div className="divide-y divide-slate-200/70 dark:divide-slate-700/70">
           {items.map((item, index) => (

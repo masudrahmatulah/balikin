@@ -38,7 +38,10 @@ export async function GET(
     }
 
     const batch = await db.query.printBatches.findFirst({
-      where: eq(printBatches.id, queueItem.batchId),
+      where: and(
+        eq(printBatches.id, queueItem.batchId),
+        eq(printBatches.app_id, "balikin_id"),
+      ),
       columns: {
         artifactUrl: true,
         artifactFilename: true,

@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { blogComments, blogPosts, user } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { CommentsTable } from '@/components/blog/comments-table';
 
 async function getComments() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }
@@ -15,11 +15,14 @@ async function getComments() {
     orderBy: [desc(blogComments.createdAt)],
     with: {
       post: true,
-      author: true,
+      user: true,
     },
   });
 
-  return { comments, currentUserId: session.user.id };
+  return {
+    comments: comments.map((comment) => ({ ...comment, author: comment.user })),
+    currentUserId: session.user.id,
+  };
 }
 
 export default async function AdminCommentsPage() {

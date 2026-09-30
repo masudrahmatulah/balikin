@@ -26,8 +26,8 @@ import { getAppBaseUrl } from './app-url';
 
 export interface TagData {
   productSlug: string;
-  activationTokenHash: string;
-  activationPinPlain: string;
+  activationTokenHash?: string;
+  activationPinPlain?: string;
   serialNumber: string;
   name?: string;
   id?: string;
@@ -724,10 +724,9 @@ export async function* generateVDPStream(
 ): AsyncGenerator<Buffer, void, unknown> {
   const n = options.pairsPerRow === 3 ? 3 : 2;
   const toVdp = (t: TagVDPData): TagVDPData => ({
+    productSlug: t.productSlug,
     id: t.id,
     slug: t.slug,
-    activationTokenHash: t.activationTokenHash || '',
-    activationPinPlain: t.activationPinPlain || '',
     serialNumber: t.serialNumber || '',
     isCustom: t.isCustom || false,
     name: t.name,
@@ -755,21 +754,20 @@ export async function* generateBatchReprint(
   db: any
 ): AsyncGenerator<Buffer, void, unknown> {
   const batch = await db.query.printBatches.findFirst({
-    where: { id: batchId },
+    where: { id: batchId, app_id: 'balikin_id' },
     with: {
       tags: {
+        where: { app_id: 'balikin_id' },
         columns: {
           id: true,
           slug: true,
           serialNumber: true,
-          activationPinPlain: true,
-          activationTokenHash: true,
           isCustom: true,
           customPhotoUrl: true,
           name: true,
           productType: true
         },
-        orderBy: (tags: any, { asc }) => [asc(tags.slug)]
+         orderBy: (tags: { slug: unknown }, { asc }: { asc: (column: unknown) => unknown }) => [asc(tags.slug)]
       }
     }
   });
@@ -781,11 +779,10 @@ export async function* generateBatchReprint(
   const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
 
   const tags: TagVDPData[] = batch.tags.map((tag: any) => ({
+    productSlug: tag.productType || '',
     id: tag.id,
     slug: tag.slug,
     serialNumber: tag.serialNumber || undefined,
-    activationPinPlain: tag.activationPinPlain || undefined,
-    activationTokenHash: tag.activationTokenHash || undefined,
     isCustom: tag.isCustom || false,
     customPhotoUrl: tag.customPhotoUrl || undefined,
     name: tag.name

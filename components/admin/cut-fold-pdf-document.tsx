@@ -51,6 +51,15 @@ const PAPER_CONFIGS = {
     // 3 kolom × 9 baris = 27 tags per halaman
     colGap: '4mm',
   },
+  a5: {
+    width: '210mm',
+    height: '148mm',
+    margin: '8mm',
+    rows: 3,
+    cols: 1,
+    rowGap: '3mm',
+    colGap: '0mm',
+  },
 } as const;
 
 const PAGE_MARGIN = '10mm';
@@ -392,7 +401,7 @@ export function CutFoldPDFDocument({ tags, totalPages, baseUrl = 'https://baliki
 
     // Create page content
     const pageContent = (
-      <Page size={paperSize.toUpperCase()} style={styles.page} key={`page-${pageNum}`}>
+       <Page size={paperSize.toUpperCase() as 'A3' | 'A4' | 'A5'} style={styles.page} key={`page-${pageNum}`}>
         <View style={styles.grid}>
           {rows.map((rowItems, rowIndex) => (
             <View key={rowIndex} style={styles.row} wrap={false}>

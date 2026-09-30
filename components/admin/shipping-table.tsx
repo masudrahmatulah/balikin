@@ -39,7 +39,7 @@ interface Order {
   phone: string;
   city: string;
   totalAmount: number;
-  createdAt: Date;
+  createdAt: Date | null;
   shippingTracking?: {
     id: string;
     courier: string;
@@ -279,7 +279,7 @@ export function ShippingTable({ orders, adminId }: ShippingTableProps) {
                                 <Select
                                   value={manualUpdate.orderId === order.id ? manualUpdate.courier : ""}
                                   onValueChange={(value) =>
-                                    setManualUpdate({ ...manualUpdate, courier: value })
+                                    value !== null && setManualUpdate({ ...manualUpdate, courier: value })
                                   }
                                 >
                                   <SelectTrigger>

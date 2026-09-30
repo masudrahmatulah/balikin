@@ -70,17 +70,7 @@ export function sanitizeInput(input: string, maxLength: number): string {
 export function sanitizeHtmlContent(html: string): string {
   if (!html) return '';
 
-  const clean = DOMPurify.sanitize(html, {
-    ...PURIFY_CONFIG,
-    // Add noopener/noreferrer to all links for security
-    TRANSFORM_URL: (url) => {
-      // Only allow http/https protocols
-      if (!/^https?:\/\//i.test(url)) {
-        return '#';
-      }
-      return url;
-    },
-  });
+  const clean = DOMPurify.sanitize(html, PURIFY_CONFIG);
 
   return clean;
 }

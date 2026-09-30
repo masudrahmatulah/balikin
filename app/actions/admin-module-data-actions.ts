@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { otomotifData, pertanianData } from '@/db/schema';
 import { getAdminSession } from '@/lib/admin';
@@ -21,7 +21,7 @@ export async function updateAdminOtomotifData(id: string, formData: FormData) {
     insuranceNumber: String(formData.get('insuranceNumber') || ''),
     insuranceProvider: String(formData.get('insuranceProvider') || ''),
     updatedAt: new Date(),
-  }).where(eq(otomotifData.id, id));
+  }).where(and(eq(otomotifData.id, id), eq(otomotifData.app_id, 'balikin_id')));
   revalidatePath('/admin/modules/data');
   revalidatePath('/admin/modules/data/otomotif/' + id);
 }
@@ -34,7 +34,7 @@ export async function updateAdminPertanianData(id: string, formData: FormData) {
     harvestLog: String(formData.get('harvestLog') || ''),
     laborCostNotes: String(formData.get('laborCostNotes') || ''),
     updatedAt: new Date(),
-  }).where(eq(pertanianData.id, id));
+  }).where(and(eq(pertanianData.id, id), eq(pertanianData.app_id, 'balikin_id')));
   revalidatePath('/admin/modules/data');
   revalidatePath('/admin/modules/data/pertanian/' + id);
 }

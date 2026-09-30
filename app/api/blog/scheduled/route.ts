@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { blogPosts } from "@/db/schema";
-import { eq, and, isNotNull, gt, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
+import { isAdmin } from "@/lib/admin";
 
 /**
  * GET /api/blog/scheduled - List all scheduled posts (scheduledAt in future)
  */
 export async function GET(req: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "admin") {
+  if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const now = new Date();
     const allUnpublished = await db.query.blogPosts.findMany({
-      where: eq(blogPosts.isPublished, false),
+      where: and(
+        eq(blogPosts.app_id, "balikin_id"),
+        eq(blogPosts.isPublished, false),
+      ),
       orderBy: [desc(blogPosts.scheduledAt)],
     });
 

@@ -51,7 +51,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
   const [filterByClaimStatus, setFilterByClaimStatus] = useState<ClaimStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Sort and pagination state
   const [sortBy, setSortBy] = useState<SortBy>("createdAt");
@@ -113,7 +113,7 @@ export function StockListTable({ className = "" }: StockListTableProps) {
     fetchData();
   }, [filterByTier, filterByClaimStatus, sortBy, sortOrder, currentPage, debouncedSearch]);
 
-  const formatDate = (date: string | null) => {
+  const formatDate = (date: string | null | undefined) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString('id-ID', {
       day: '2-digit',

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BundleConfig, getBundleConfig, formatBundlePrice } from '@/lib/bundles';
+import { BUNDLE_CONFIGS, BundleConfig, getBundleConfig, formatBundlePrice, type BundleType } from '@/lib/bundles';
 import { getQRBrandConfig } from '@/lib/qr-branding';
 import { Download, QrCode, Eye, MoreVertical } from 'lucide-react';
 import {
@@ -25,10 +25,13 @@ export function BundleCard({ tag }: BundleCardProps) {
   const router = useRouter();
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
-  const bundleConfig = getBundleConfig(tag.bundleType);
+  const bundleType: BundleType = tag.bundleType && tag.bundleType in BUNDLE_CONFIGS
+    ? tag.bundleType as Exclude<BundleType, null>
+    : null;
+  const bundleConfig = getBundleConfig(bundleType);
   if (!bundleConfig) return null;
 
-  const qrBrandConfig = getQRBrandConfig(tag.bundleType);
+  const qrBrandConfig = getQRBrandConfig(bundleType);
   const isClaimed = !!tag.ownerId;
 
   const handleDownloadQR = async () => {

@@ -154,7 +154,11 @@ export function BaseModalContent({
 export function withModal<P extends object>(
   Component: React.ComponentType<P & { isOpen: boolean; onClose: () => void }>
 ) {
-  return function WithModalWrapper(props: Omit<P, "isOpen" | "onClose">) {
+  type WrapperProps = Omit<P, "isOpen" | "onClose"> & {
+    children?: React.ReactNode | ((context: { open: () => void; close: () => void }) => React.ReactNode);
+  };
+
+  return function WithModalWrapper(props: WrapperProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleOpen = () => setIsOpen(true);

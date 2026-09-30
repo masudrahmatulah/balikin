@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, Check, Package, ArrowRight } from "lucide-react";
-import { Link } from "next/link";
+import Link from "next/link";
 
 interface TagStats {
   total: number;

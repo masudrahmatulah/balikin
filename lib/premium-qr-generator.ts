@@ -117,7 +117,6 @@ export function generateStyledQRCode(
   return new QRCodeStyling({
     width: size,
     height: size,
-    type: 'png',
     data,
     margin,
     qrOptions: {

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, BarChart3, type LucideIcon } from "lucide-react";
 
-interface StatCardProps {
+export interface StatCardProps {
   label: string;
   value: number | string;
   trend?: {
@@ -14,7 +14,7 @@ interface StatCardProps {
   trendLabel?: string;
 }
 
-interface StatCardWithChartProps extends StatCardProps {
+export interface StatCardWithChartProps extends StatCardProps {
   chartData?: number[];
 }
 

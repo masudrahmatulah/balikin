@@ -150,7 +150,7 @@ export default async function StickerOrderDetailPage({
                     <p className="text-sm font-semibold text-slate-950 dark:text-white">Bundle {bundle.id}</p>
                     <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Status: {bundle.status}</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      {bundle.tags.map((tag) => (
+                       {bundle.tags.map((tag: { id: string; name: string; slug: string; ownerId: string | null }) => (
                         <div key={tag.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
                           <p className="font-medium text-slate-950 dark:text-white">{tag.name}</p>
                           <p className="break-all font-mono text-xs text-slate-700 dark:text-slate-300">/p/{tag.slug}</p>

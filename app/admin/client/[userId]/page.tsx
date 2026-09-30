@@ -4,8 +4,8 @@ import { getAdminSession } from "@/lib/admin";
 import { getUserById } from "@/lib/admin";
 import { formatEmailForUser } from "@/lib/admin-privacy";
 import { db } from "@/db";
-import { tags, stickerOrders } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { tags, stickerOrders, scanLogs } from "@/db/schema";
+import { and, eq, desc } from "drizzle-orm";
 import { ClientTagsList } from "@/components/admin/client-tags-list";
 import { ClientQRGenerator } from "@/components/admin/client-qr-generator";
 import { WhatsAppQuickLink } from "@/components/admin/whatsapp-quick-link";
@@ -38,16 +38,18 @@ export default async function ClientDetailPage({
 
   // Get client's tags
   const clientTags = await db.query.tags.findMany({
-    where: eq(tags.ownerId, userId),
+    where: and(eq(tags.ownerId, userId), eq(tags.app_id, "balikin_id")),
     orderBy: [desc(tags.createdAt)],
     with: {
-      scanLogs: true,
+      scanLogs: {
+        where: eq(scanLogs.app_id, "balikin_id"),
+      },
     },
   });
 
   // Get client's orders
   const clientOrders = await db.query.stickerOrders.findMany({
-    where: eq(stickerOrders.userId, userId),
+    where: and(eq(stickerOrders.userId, userId), eq(stickerOrders.app_id, "balikin_id")),
     orderBy: [desc(stickerOrders.createdAt)],
   });
 
@@ -146,7 +148,7 @@ export default async function ClientDetailPage({
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-500 dark:text-gray-400">WhatsApp</p>
                 <WhatsAppQuickLink
-                  phone={client.phone || null}
+                  phone={null}
                   userDivision={session.user.division}
                   recipientName={client.name || "Halo"}
                 />

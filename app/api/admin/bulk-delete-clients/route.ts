@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAdmin } from "@/lib/admin";
+import { getAdminSessionForAction } from "@/lib/admin";
+import { hasPermission } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { user, tags, studentKitData } from "@/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
@@ -9,8 +10,8 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     // FIXED: Use centralized isAdmin() function for consistent authorization
-    const adminCheck = await isAdmin();
-    if (!adminCheck) {
+    const adminSession = await getAdminSessionForAction();
+    if (!adminSession || !hasPermission(adminSession.user.division, 'client_management')) {
       return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
     }
 

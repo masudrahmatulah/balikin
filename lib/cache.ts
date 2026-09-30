@@ -126,7 +126,7 @@ export function cacheTagData<T>(
  * Invalidate cache by tag
  */
 export function invalidateCacheTag(tag: CacheTag): void {
-  revalidateTag(tag);
+  revalidateTag(tag, 'max');
 }
 
 /**

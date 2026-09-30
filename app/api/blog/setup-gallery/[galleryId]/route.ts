@@ -21,10 +21,19 @@ export async function GET(
 
     const photos = await db.query.setupGallerySubmissions.findMany({
       where: and(
+        eq(setupGallerySubmissions.app_id, "balikin_id"),
         eq(setupGallerySubmissions.galleryId, galleryId),
         eq(setupGallerySubmissions.postId, postId),
         eq(setupGallerySubmissions.isApproved, true)
       ),
+      columns: {
+        id: true,
+        app_id: true,
+        userName: true,
+        photoUrl: true,
+        description: true,
+        createdAt: true,
+      },
       orderBy: [setupGallerySubmissions.createdAt],
     });
 

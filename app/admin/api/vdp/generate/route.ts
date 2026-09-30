@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { tags, printQueue, printBatches, stickerSheets, stickerOrders, tagBundles } from "@/db/schema";
 import { randomUUID } from "crypto";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc, and, isNull, isNotNull } from "drizzle-orm";
 import { generateVDPStream, generateBatchActivationData, type TagVDPData } from "@/lib/vdp-engine";
 import { deriveAcrylicShapeKey, getAcrylicPairsPerRow } from "@/lib/acrylic-shapes";
 import { generateA5StickerStream } from "@/lib/vdp-a5-sticker";
@@ -19,6 +19,7 @@ import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { getAppBaseUrl } from '@/lib/app-url';
+import { hasPermission } from '@/lib/admin-divisions';
 
 // Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
 const STICKER_PRODUCT_CODE: Record<string, string> = {
@@ -28,7 +29,20 @@ const STICKER_PRODUCT_CODE: Record<string, string> = {
   'stiker-family': 'FAM',
 };
 
+const STICKER_PRODUCT_KEYS = ['stiker-pro', 'stiker-daily', 'stiker-micro', 'stiker-family'] as const;
+
+function isStickerProductKey(value: string | null | undefined): value is StickerProductKey {
+  return value !== null && value !== undefined && STICKER_PRODUCT_KEYS.includes(value as StickerProductKey);
+}
+
+interface GeneratedTag {
+  slug: string;
+  sequenceNumber: string;
+  filename: string;
+}
+
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 interface VDPGenerateRequest {
   orderId?: string;
@@ -41,7 +55,7 @@ interface VDPGenerateRequest {
   stickerSize?: "small" | "medium" | "large";
   stickerProductKey?: StickerProductKey;
   stickerColorTheme?: string;
-  adminId: string;
+  adminId?: string;
   isCustom: boolean; // Custom photo order flag
   customPhotoData?: string; // Base64 encoded photo data
   outputFormat?: "pdf" | "png"; // Pilihan file hasil akrilik: PDF (cetak) atau PNG (per-baris, ZIP)
@@ -79,21 +93,38 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!hasPermission(session.user.division, "vdp_tool")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const { searchParams } = await request.nextUrl;
     const filter = searchParams.get("filter") || "all";
 
     let whereClause;
     if (filter === "claimed") {
-      whereClause = tags.ownerId !== null;
+      whereClause = and(eq(tags.app_id, APP_ID), isNotNull(tags.ownerId));
     } else if (filter === "unclaimed") {
-      whereClause = tags.ownerId === null;
+      whereClause = and(eq(tags.app_id, APP_ID), isNull(tags.ownerId));
     } else {
-      whereClause = undefined;
+      whereClause = eq(tags.app_id, APP_ID);
     }
 
     const allTags = await db.query.tags.findMany({
       where: whereClause,
+      columns: {
+        id: true,
+        slug: true,
+        name: true,
+        ownerId: true,
+        contactWhatsapp: true,
+        customMessage: true,
+        rewardNote: true,
+        status: true,
+        tier: true,
+        productType: true,
+        bundleType: true,
+        createdAt: true,
+      },
       orderBy: [asc(tags.slug)],
     });
 
@@ -118,6 +149,9 @@ export async function DELETE(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!hasPermission(session.user.division, "vdp_tool")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const { searchParams } = await request.nextUrl;
     const tagId = searchParams.get("tagId");
@@ -127,7 +161,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const tag = await db.query.tags.findFirst({
-      where: eq(tags.id, tagId),
+      where: and(eq(tags.id, tagId), eq(tags.app_id, APP_ID)),
     });
 
     if (!tag) {
@@ -138,7 +172,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Cannot delete claimed tags" }, { status: 400 });
     }
 
-    await db.delete(tags).where(eq(tags.id, tagId));
+    await db.delete(tags).where(and(eq(tags.id, tagId), eq(tags.app_id, APP_ID)));
 
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
@@ -166,15 +200,24 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (!hasPermission(session.user.division, "vdp_tool")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const body = await request.json();
     const { orderId } = body as VDPGenerateRequest;
-    let { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, adminId, isCustom, customPhotoData, singleTag, outputFormat } = body as VDPGenerateRequest;
+    let { batchName, quantity, materialType, productType, paperSize, stickerShape, stickerSize, stickerProductKey, stickerColorTheme, isCustom, customPhotoData, singleTag, outputFormat } = body as VDPGenerateRequest;
+    const adminId = session.user.id;
 
     const order = orderId
       ? await db.query.stickerOrders.findFirst({
           where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, "balikin_id")),
-          with: { bundles: { columns: { id: true } } },
+          with: {
+            bundles: {
+              where: eq(tagBundles.app_id, APP_ID),
+              columns: { id: true },
+            },
+          },
         })
       : null;
 
@@ -195,7 +238,6 @@ export async function POST(request: NextRequest) {
       productType = "standard";
       isCustom = false;
       customPhotoData = undefined;
-      adminId = session.user.id;
       outputFormat = "pdf";
 
       if (order.productType === "sticker") {
@@ -210,7 +252,7 @@ export async function POST(request: NextRequest) {
         paperSize = "a5";
         stickerShape = stickerShape || "circle";
         stickerSize = stickerSize || "medium";
-        stickerProductKey = stickerProductKey || order.productVariant || fallbackProductKey;
+        stickerProductKey = stickerProductKey || (isStickerProductKey(order.productVariant) ? order.productVariant : undefined) || fallbackProductKey;
         stickerColorTheme = order.stickerColorTheme || stickerColorTheme;
       } else if (order.productType === "acrylic") {
         const acrylicVariant = order.productVariant?.replace(/^acrylic-/, '') || "rectangle-emboss";
@@ -238,7 +280,7 @@ export async function POST(request: NextRequest) {
     const batchId = randomUUID();
     const isAcrylicMaterial = materialType !== "sticker";
     const baseUrl = getAppBaseUrl();
-    const generatedTags: any[] = [];
+    const generatedTags: GeneratedTag[] = [];
 
     // Upload custom photo to Vercel Blob if provided
     let customPhotoUrl: string | null = null;
@@ -473,6 +515,7 @@ export async function POST(request: NextRequest) {
     let linkedBundleId: string | null = null;
     if (order) {
       const [bundle] = await db.insert(tagBundles).values({
+        app_id: APP_ID,
         orderId: order.id,
         productType: order?.productType || materialType,
         itemCount: quantity,
@@ -484,7 +527,7 @@ export async function POST(request: NextRequest) {
       linkedBundleId = bundle.id;
       await db.update(tags)
         .set({ bundleId: bundle.id })
-        .where(eq(tags.batchId, batchId));
+        .where(and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)));
     }
 
     let downloadUrl: string;
@@ -498,22 +541,25 @@ export async function POST(request: NextRequest) {
     console.log('[API] paperSize:', paperSize);
     console.log('[API] stickerProductKey:', stickerProductKey);
 
-    const isA5Sticker = materialType === "sticker" && paperSize === "a5" && stickerProductKey;
+    const isA5Sticker = materialType === "sticker" && paperSize === "a5" && !!stickerProductKey;
 
     if (isA5Sticker) {
+      const activeStickerProductKey = stickerProductKey;
+      if (!activeStickerProductKey) {
+        throw new Error("A5 sticker product key is required");
+      }
       // A5 Sticker: Generate sticker sheets
       console.log('[API] Using A5 Sticker path with product:', stickerProductKey);
       const allTags = await db.query.tags.findMany({
-        where: eq(tags.batchId, batchId),
+        where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
         columns: {
           id: true,
           slug: true,
           serialNumber: true,
-          activationPinPlain: true,
-          activationTokenHash: true,
           isCustom: true,
           customPhotoUrl: true,
           name: true,
+          productType: true,
         },
         orderBy: [asc(tags.slug)],
       });
@@ -522,8 +568,6 @@ export async function POST(request: NextRequest) {
         id: t.id,
         slug: t.slug,
         serialNumber: t.serialNumber || undefined,
-        activationPinPlain: t.activationPinPlain || undefined,
-        activationTokenHash: t.activationTokenHash || undefined,
         isCustom: t.isCustom || false,
         customPhotoUrl: t.customPhotoUrl || undefined,
         name: t.name,
@@ -536,7 +580,7 @@ export async function POST(request: NextRequest) {
         ? generateProtectedCardStream(a5Tags, stickerProductKey, selectedColorTheme)
         : stickerProductKey === "stiker-family"
           ? generateFamilyCardStream(a5Tags, selectedColorTheme)
-          : generateA5TwoColStickerStream(a5Tags, stickerProductKey as StickerProductKey);
+          : generateA5TwoColStickerStream(a5Tags, activeStickerProductKey);
 
       const sheetBuffers: Buffer[] = [];
       for await (const buffer of stickerSheetStream) {
@@ -554,7 +598,8 @@ export async function POST(request: NextRequest) {
       if (isStickerMaterial) {
         // Master PIN manifest for printing the physical PIN insert per sheet
         const sheets = await db.query.stickerSheets.findMany({
-          where: eq(stickerSheets.batchId, batchId),
+          where: and(eq(stickerSheets.batchId, batchId), eq(stickerSheets.app_id, APP_ID)),
+          columns: { sheetCode: true, activationPinPlain: true },
           orderBy: [asc(stickerSheets.sheetCode)],
         });
         const manifestLines = [
@@ -581,42 +626,37 @@ export async function POST(request: NextRequest) {
       console.log('[API] Using VDP Stream path');
       // Fetch all tags yang baru dibuat using batchId
       const allTags = await db.query.tags.findMany({
-        where: eq(tags.batchId, batchId),
+        where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
         columns: {
           id: true,
           slug: true,
           serialNumber: true,
-          activationPinPlain: true,
-          activationTokenHash: true,
           isCustom: true,
           customPhotoUrl: true,
           name: true,
+          productType: true,
         },
         orderBy: [asc(tags.slug)],
       });
 
       const vdpTags: TagVDPData[] = allTags.map((t) => ({
+        productSlug: t.productType || "",
         id: t.id,
         slug: t.slug,
-        serialNumber: t.serialNumber || undefined,
-        activationPinPlain: t.activationPinPlain || undefined,
-        activationTokenHash: t.activationTokenHash || undefined,
+        serialNumber: t.serialNumber || "",
         isCustom: t.isCustom || false,
         customPhotoUrl: t.customPhotoUrl || undefined,
-        name: t.name,
+        name: t.name || "",
       }));
 
       console.log('[API] Fetched', allTags.length, 'tags from database');
-      console.log('[API] First tag activationTokenHash:', allTags[0]?.activationTokenHash);
       console.log('[API] First tag isCustom:', allTags[0]?.isCustom);
-      console.log('[API] First vdpTag activationTokenHash:', vdpTags[0]?.activationTokenHash);
 
       // Generate rows dan tambahkan ke ZIP
       console.log('[API] Starting VDP stream generation...');
       console.log('[API] Total tags for VDP:', vdpTags.length);
       console.log('[API] First vdpTag:', JSON.stringify({
         slug: vdpTags[0]?.slug,
-        activationTokenHash: vdpTags[0]?.activationTokenHash ? 'PRESENT' : 'MISSING',
         isCustom: vdpTags[0]?.isCustom,
       }));
 
@@ -638,13 +678,18 @@ export async function POST(request: NextRequest) {
         rowBuffers.forEach((buf, i) => {
           zip.file(`${batchName}-baris-${String(i + 1).padStart(2, "0")}.png`, buf);
         });
+        const claimTags = await db.query.tags.findMany({
+          where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
+          columns: { serialNumber: true, slug: true, activationPinPlain: true },
+          orderBy: [asc(tags.serialNumber)],
+        });
         const pinLines = [
           `PIN Klaim Khusus - ${batchName}`,
           `Dibuat: ${new Date().toISOString()}`,
           '',
           'Satu kode berlaku untuk 1 tag. Scan pertama wajib memasukkan kode ini.',
           '',
-          ...allTags.map((t) => `${t.serialNumber || t.slug}-${t.activationPinPlain || '-'}`),
+          ...claimTags.map((t) => `${t.serialNumber || t.slug}-${t.activationPinPlain || '-'}`),
         ];
         zip.file('kode-klaim.txt', pinLines.join('\n'));
         const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
@@ -730,7 +775,7 @@ export async function POST(request: NextRequest) {
         artifactExpiresAt,
         generationConfig,
       })
-      .where(eq(printBatches.id, batchId));
+      .where(and(eq(printBatches.id, batchId), eq(printBatches.app_id, APP_ID)));
 
     await db.insert(printQueue).values({
       id: randomUUID(),
@@ -786,11 +831,12 @@ export async function POST(request: NextRequest) {
 
     if (materialType === 'sticker') {
       const sheets = await db.query.stickerSheets.findMany({
-        where: eq(stickerSheets.batchId, batchId),
+        where: and(eq(stickerSheets.batchId, batchId), eq(stickerSheets.app_id, APP_ID)),
+        columns: { id: true, sheetCode: true, activationPinPlain: true },
         orderBy: [asc(stickerSheets.sheetCode)],
       });
       const sheetTags = await db.query.tags.findMany({
-        where: eq(tags.batchId, batchId),
+        where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
         columns: { sheetId: true, serialNumber: true },
         orderBy: [asc(tags.serialNumber)],
       });
@@ -800,7 +846,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       const claimTags = await db.query.tags.findMany({
-        where: eq(tags.batchId, batchId),
+        where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
         columns: { serialNumber: true, activationPinPlain: true },
         orderBy: [asc(tags.serialNumber)],
       });

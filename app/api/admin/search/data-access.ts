@@ -145,7 +145,7 @@ async function searchOrders(query: string, limit: number): Promise<SearchResult[
       .select({
         id: stickerOrders.id,
         status: stickerOrders.status,
-        orderType: stickerOrders.orderType,
+        productType: stickerOrders.productType,
         totalAmount: stickerOrders.totalAmount,
         createdAt: stickerOrders.createdAt,
       })
@@ -163,7 +163,7 @@ async function searchOrders(query: string, limit: number): Promise<SearchResult[
       type: 'order' as const,
       id: o.id,
       title: `Order: ${o.id}`,
-      subtitle: `${o.orderType} • ${o.status} • Rp${o.totalAmount?.toLocaleString() || '0'}`,
+       subtitle: `${o.productType} • ${o.status} • Rp${o.totalAmount?.toLocaleString() || '0'}`,
       href: `/admin/sticker-orders`,
       relevance: calculateRelevance(query, o.id, ''),
     }));

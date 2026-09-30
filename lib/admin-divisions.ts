@@ -181,9 +181,9 @@ export function hasPermission(
   if (!permissions) return false;
 
   // Admin has all permissions
-  if (permissions.includes('*')) return true;
+  if (permissions.some((item) => item === '*')) return true;
 
-  return permissions.includes(permission as any);
+  return permissions.some((item) => item === permission);
 }
 
 /**

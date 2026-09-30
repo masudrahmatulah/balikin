@@ -18,7 +18,10 @@ export async function GET(
 
     // Verify post exists and get poll module
     const post = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, postId),
+      where: and(
+        eq(blogPosts.id, postId),
+        eq(blogPosts.app_id, "balikin_id"),
+      ),
     });
 
     if (!post) {
@@ -35,6 +38,7 @@ export async function GET(
     // Get all votes for this poll
     const votes = await db.query.pollVotes.findMany({
       where: and(
+        eq(pollVotes.app_id, "balikin_id"),
         eq(pollVotes.postId, postId),
         eq(pollVotes.pollId, pollId)
       ),

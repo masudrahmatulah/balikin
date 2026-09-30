@@ -22,13 +22,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bundleConfig = BUNDLE_CONFIGS[bundleType as BundleType];
-    if (!bundleConfig) {
+    const validBundleType = typeof bundleType === 'string' && bundleType in BUNDLE_CONFIGS
+      ? bundleType as BundleType
+      : null;
+    if (!validBundleType) {
       return NextResponse.json(
         { error: 'Invalid bundle type' },
         { status: 400 }
       );
     }
+    const bundleConfig = BUNDLE_CONFIGS[validBundleType];
 
     // Generate tags
     const createdTags: Array<{ slug: string; qrUrl: string }> = [];
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest) {
         app_id: 'balikin_id',
         slug,
         name: `${bundleConfig.name} #${batchNumber}`,
-        bundleType: bundleType,
+         bundleType: validBundleType,
         autoActivateModule: bundleConfig.moduleType,
         productType: 'bundle',
         tier: 'premium',
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       tags: createdTags,
-      bundleType,
+      bundleType: validBundleType,
       quantity,
     });
   } catch (error) {

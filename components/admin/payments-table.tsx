@@ -31,6 +31,7 @@ interface UpgradeRow {
 
 interface StickerRow {
   id: string;
+  amount?: number;
   totalAmount: number;
   paymentStatus: string;
   createdAt: Date | null;

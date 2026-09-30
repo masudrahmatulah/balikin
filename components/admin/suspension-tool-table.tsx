@@ -38,7 +38,7 @@ interface Suspension {
   suspensionType: string;
   identifier: string;
   reason: string;
-  suspendedAt: Date;
+  suspendedAt: Date | null;
   liftedAt: Date | null;
   isActive: boolean;
   user?: {
@@ -204,8 +204,8 @@ export function SuspensionToolTable({ suspensions, stats = { active: 0, lifted: 
                 <Label htmlFor="suspensionType">Suspension Type</Label>
                 <Select
                   value={newSuspension.suspensionType}
-                  onValueChange={(value: 'user_id' | 'device_id') =>
-                    setNewSuspension({ ...newSuspension, suspensionType: value })
+                  onValueChange={(value) =>
+                    value !== null && setNewSuspension({ ...newSuspension, suspensionType: value })
                   }
                 >
                   <SelectTrigger id="suspensionType">
@@ -311,11 +311,11 @@ export function SuspensionToolTable({ suspensions, stats = { active: 0, lifted: 
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Date(suspension.suspendedAt).toLocaleDateString('id-ID', {
+                        {suspension.suspendedAt ? new Date(suspension.suspendedAt).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
-                        })}
+                        }) : '-'}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -369,11 +369,11 @@ export function SuspensionToolTable({ suspensions, stats = { active: 0, lifted: 
                       <TableCell className="font-mono text-sm">{suspension.identifier}</TableCell>
                       <TableCell className="max-w-xs truncate" title={suspension.reason}>{suspension.reason}</TableCell>
                       <TableCell>
-                        {new Date(suspension.suspendedAt).toLocaleDateString('id-ID', {
+                        {suspension.suspendedAt ? new Date(suspension.suspendedAt).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
-                        })}
+                        }) : '-'}
                       </TableCell>
                       <TableCell>
                         {suspension.liftedAt ? (

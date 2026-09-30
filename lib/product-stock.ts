@@ -51,7 +51,10 @@ export async function consumeAcrylicStock(tx: any, productVariant: string | null
       quantityOnHand: stock.quantityOnHand - quantity,
       updatedAt: new Date(),
     })
-    .where(eq(productInventory.id, stock.id));
+    .where(and(
+      eq(productInventory.id, stock.id),
+      eq(productInventory.app_id, 'balikin_id'),
+    ));
 
   return true;
 }

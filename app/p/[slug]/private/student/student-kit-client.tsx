@@ -75,8 +75,6 @@ export function StudentKitClient({ studentData }: StudentKitClientProps) {
   }, []);
 
   // Memoize whether student data exists
-  const hasStudentData = useMemo(() => !!studentData, [studentData]);
-
   return (
     <>
       {/* Action Buttons */}
@@ -89,7 +87,7 @@ export function StudentKitClient({ studentData }: StudentKitClientProps) {
           <Download className="w-4 h-4" />
           Import Jadwal
         </Button>
-        {hasStudentData && (
+        {studentData && (
           <Button
             onClick={handleShare}
             className="flex items-center gap-2"
@@ -102,7 +100,7 @@ export function StudentKitClient({ studentData }: StudentKitClientProps) {
       </div>
 
       {/* Content */}
-      {hasStudentData ? (
+      {studentData ? (
         <>
           <StudentKitDisplay data={studentData} />
 

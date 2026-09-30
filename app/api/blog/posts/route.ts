@@ -149,7 +149,10 @@ export async function POST(req: NextRequest) {
 
     // Check if slug already exists
     const existing = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.slug, validatedSlug),
+      where: and(
+        eq(blogPosts.slug, validatedSlug),
+        eq(blogPosts.app_id, 'balikin_id')
+      ),
     });
 
     if (existing) {
@@ -175,6 +178,7 @@ export async function POST(req: NextRequest) {
     await validateContentPlanWordTarget(data.contentPlanId, data.content, shouldPublish);
 
     const post = await db.insert(blogPosts).values({
+      app_id: 'balikin_id',
       title: data.title,
       slug: validatedSlug,
       summary: data.summary,
@@ -231,7 +235,11 @@ export async function PUT(req: NextRequest) {
 
     const { id, ...data } = validationResult.data;
     const existing = await db.query.blogPosts.findFirst({
-      where: and(eq(blogPosts.id, id), isNull(blogPosts.deletedAt)),
+      where: and(
+        eq(blogPosts.id, id),
+        eq(blogPosts.app_id, 'balikin_id'),
+        isNull(blogPosts.deletedAt)
+      ),
     });
     if (!existing) throw new NotFoundError('Artikel blog', id);
 
@@ -268,7 +276,10 @@ export async function PUT(req: NextRequest) {
       }),
       ...(data.scheduledAt !== undefined && { scheduledAt: isScheduled ? nextScheduledDate : null }),
       updatedAt: new Date(),
-    }).where(eq(blogPosts.id, id)).returning();
+    }).where(and(
+      eq(blogPosts.id, id),
+      eq(blogPosts.app_id, 'balikin_id')
+    )).returning();
 
     return NextResponse.json(post);
   } catch (error) {

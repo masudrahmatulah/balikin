@@ -164,7 +164,10 @@ export function MarketingDashboard({ embedded = false }: { embedded?: boolean })
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={(entry) => `${entry.module}: Rp${entry.revenue.toLocaleString()}`}
+                         label={({ index }) => {
+                           const entry = data.modulePerformance[index ?? 0];
+                           return entry ? `${entry.module}: Rp${entry.revenue.toLocaleString()}` : "";
+                         }}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="revenue"
@@ -291,7 +294,7 @@ export function MarketingDashboard({ embedded = false }: { embedded?: boolean })
     return (
       <div className="space-y-6">
         <div className="flex justify-end">
-          <Select value={timeRange} onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeRange(value)}>
+          <Select value={timeRange} onValueChange={(value) => value !== null && setTimeRange(value)}>
             <SelectTrigger className="w-[180px]" aria-label="Select time range">
               <SelectValue />
             </SelectTrigger>
@@ -374,7 +377,7 @@ export function MarketingDashboard({ embedded = false }: { embedded?: boolean })
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Select value={timeRange} onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeRange(value)}>
+        <Select value={timeRange} onValueChange={(value) => value !== null && setTimeRange(value)}>
           <SelectTrigger className="w-[180px]" aria-label="Select time range">
             <SelectValue />
           </SelectTrigger>

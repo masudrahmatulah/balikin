@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { logError, ValidationError, AppError, NotFoundError } from '@/lib/error-handler';
+import { getBlogSessionForAction } from '@/lib/blog-permissions';
 import {
   submitPostForReview,
   approvePost,
@@ -74,6 +74,11 @@ export async function GET(
   { params }: { params: Promise<{ postId: string }> }
 ) {
   try {
+    const session = await getBlogSessionForAction();
+    if (!session || (!session.permissions.canCreatePosts && !session.permissions.canPublishPosts)) {
+      throw new AppError('Unauthorized', 'AUTH_ERROR', 401);
+    }
+
     const { postId } = await params;
     const status = await getPostWorkflowStatus(postId);
 

@@ -15,8 +15,9 @@ interface WhatsAppOTPOptions {
 
 interface ScanAlertWhatsAppOptions {
   phoneNumber: string;
-  tagName: string;
-  scannedAt: Date | string | null;
+  message?: string;
+  tagName?: string;
+  scannedAt?: Date | string | null;
   city?: string | null;
   locationSource?: string | null;
   /** Override mentah baris lokasi (mis. alert non-scan) */
@@ -124,8 +125,8 @@ Balikin - Smart Lost & Found QR Tag`,
 }
 
 function generateScanAlertWhatsAppMessage({
-  tagName,
-  scannedAt,
+  tagName = 'Tag',
+  scannedAt = null,
   city,
   locationSource,
   locationLabel,
@@ -272,8 +273,8 @@ export async function sendWhatsAppOTP(options: WhatsAppOTPOptions): Promise<void
 }
 
 export async function sendScanAlertWhatsApp(options: ScanAlertWhatsAppOptions): Promise<WhatsAppSendResult> {
-  const { phoneNumber, channel = 'standard', ...templateOptions } = options;
-  const message = generateScanAlertWhatsAppMessage(templateOptions);
+  const { phoneNumber, channel = 'standard', message: customMessage, ...templateOptions } = options;
+  const message = customMessage ?? generateScanAlertWhatsAppMessage(templateOptions);
   const config = resolveChannelProvider(channel);
 
   try {

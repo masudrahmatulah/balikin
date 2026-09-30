@@ -4,7 +4,7 @@
  * Grill Guard 2.1: Prevents state loss during registration flow
  */
 
-import { getIronSession } from 'iron-session';
+import { getIronSession, type IronSession } from 'iron-session';
 import { cookies } from 'next/headers';
 
 // ============================================================================
@@ -42,12 +42,12 @@ function getSessionPassword(): string {
 /**
  * Get activation session from encrypted cookie
  */
-export async function getActivationSession(): Promise<ActivationCookieData> {
+export async function getActivationSession(): Promise<IronSession<ActivationCookieData>> {
   const cookieStore = await cookies();
 
-  return getIronSession<ActivationCookieData>(cookieStore, SESSION_COOKIE_NAME, {
+  return getIronSession<ActivationCookieData>(cookieStore, {
     password: getSessionPassword(),
-    ttl: SESSION_MAX_AGE * 1000, // Convert to milliseconds
+    ttl: SESSION_MAX_AGE,
     cookieName: SESSION_COOKIE_NAME,
     cookieOptions: {
       secure: process.env.NODE_ENV === 'production',

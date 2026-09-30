@@ -57,7 +57,7 @@ export async function requestWhatsAppPasswordReset(phone: string) {
   }
 
   try {
-    await auth.api.requestPasswordResetEmailOTP({
+    await auth.api.requestPasswordReset({
       body: { email: identifier },
       headers: await headers(),
     });

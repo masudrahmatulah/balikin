@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { trueStorySubmissions } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { TrueStoriesTable } from '@/components/blog/true-stories-table';
 
 async function getTrueStorySubmissions() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }
@@ -15,7 +15,13 @@ async function getTrueStorySubmissions() {
     orderBy: [desc(trueStorySubmissions.createdAt)],
   });
 
-  return { submissions, currentUserId: session.user.id };
+  return {
+    submissions: submissions.map((submission) => ({
+      ...submission,
+      storyDescription: submission.storyText,
+    })),
+    currentUserId: session.user.id,
+  };
 }
 
 export default async function AdminTrueStoriesPage() {

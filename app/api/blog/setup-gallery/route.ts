@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { db } from "@/db";
 import { setupGallerySubmissions, blogPosts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getClientIP, getUserAgent } from "@/lib/blog-common";
 import { generateFingerprint, getRateLimitHeaders, checkRateLimitByFingerprint } from "@/lib/rate-limit-enhanced";
 
@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
 
     // Verify post exists
     const post = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, postId),
+      where: and(
+        eq(blogPosts.id, postId),
+        eq(blogPosts.app_id, "balikin_id"),
+      ),
     });
 
     if (!post) {
@@ -50,6 +53,7 @@ export async function POST(req: NextRequest) {
 
     // Create submission
     const submission = await db.insert(setupGallerySubmissions).values({
+      app_id: "balikin_id",
       postId,
       galleryId,
       userName,

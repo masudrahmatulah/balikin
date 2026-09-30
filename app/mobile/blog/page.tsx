@@ -87,9 +87,9 @@ export default async function MobileBlogPage() {
                       {post.title}
                     </h2>
 
-                    {post.excerpt && (
+                    {post.summary && (
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {post.excerpt}
+                        {post.summary}
                       </p>
                     )}
 

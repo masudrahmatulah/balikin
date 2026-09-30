@@ -10,7 +10,7 @@ export default async function VDPToolPage() {
     redirect('/sign-in?redirect=/admin/vdp-tool');
   }
 
-  const [tagStats, printQueueStats, recentBatches] = await Promise.all([
+  const [, , recentBatches] = await Promise.all([
     getVDPTagStats(),
     getVDPPrintQueueStats(),
     getVDPRecentBatches(),
@@ -18,8 +18,8 @@ export default async function VDPToolPage() {
 
   return (
     <main className="space-y-8">
-      <BulkGenerationSection adminId={session.user.id} tagStats={tagStats} />
-      <QuickActionsBar printQueueStats={printQueueStats} />
+      <BulkGenerationSection adminId={session.user.id} />
+      <QuickActionsBar />
     </main>
   );
 }

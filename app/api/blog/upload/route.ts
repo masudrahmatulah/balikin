@@ -26,13 +26,14 @@ export async function POST(req: NextRequest) {
       throw new ValidationError('Invalid file. Must be JPG, PNG, WebP, or GIF under 5MB');
     }
 
-    const extension = getImageExtension(file.type);
+    const contentType = file.type as 'image/png' | 'image/jpeg' | 'image/jpg' | 'image/webp';
+    const extension = getImageExtension(contentType);
     const filename = generateBlogImageFilename(type, extension);
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const result = await uploadBlogImage(buffer, filename, file.type);
+    const result = await uploadBlogImage(buffer, filename, contentType);
 
     return NextResponse.json({
       url: result.url,

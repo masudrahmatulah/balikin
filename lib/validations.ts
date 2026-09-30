@@ -12,7 +12,7 @@ export const ClassScheduleItemSchema = z.object({
   course: z.string().min(1, 'Nama mata kuliah harus diisi').max(100, 'Mata kuliah terlalu panjang'),
   room: z.string().max(50, 'Kode ruang terlalu panjang').optional(),
   day: z.enum(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'], {
-    errorMap: () => ({ message: 'Hari tidak valid' }),
+    error: 'Hari tidak valid',
   }),
   time: z.string().regex(/^\d{1,2}:\d{2}$/, {
     message: 'Format waktu harus HH:MM (contoh: 08:00)',
@@ -196,7 +196,7 @@ export const TrueStorySubmissionSchema = z.object({
       }
     }, 'URL harus dari TikTok, Instagram, atau Google Drive'),
   jacketSize: z.enum(['S', 'M', 'L', 'XL', 'XXL'], {
-    errorMap: () => ({ message: 'Ukuran jaket harus S, M, L, XL, atau XXL' }),
+    error: 'Ukuran jaket harus S, M, L, XL, atau XXL',
   }),
   shippingAddress: z.string()
     .min(20, 'Alamat lengkap minimal 20 karakter')

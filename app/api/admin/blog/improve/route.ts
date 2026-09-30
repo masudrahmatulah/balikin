@@ -28,6 +28,7 @@ const RESPONSE_SCHEMA = {
 } as const;
 
 const PRODUCT_URLS = ["/pricing", "/stickers", "/stickers/checkout", "/sign-up", "/how-it-works"];
+const APP_ID = "balikin_id";
 
 function getKeys() {
   const numbered = [1, 2, 3]
@@ -52,7 +53,11 @@ async function getContext() {
   const [productContext, posts] = await Promise.all([
     fs.readFile(path.join(process.cwd(), "content", "helpdesk", "products-and-specifications.md"), "utf8").catch(() => "Knowledge base produk tidak tersedia."),
     db.query.blogPosts.findMany({
-      where: and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)),
+       where: and(
+         eq(blogPosts.app_id, APP_ID),
+         eq(blogPosts.isPublished, true),
+         isNull(blogPosts.deletedAt),
+       ),
       columns: { title: true, slug: true, summary: true, focusKeyword: true, metaKeywords: true },
       orderBy: (table, { desc }) => [desc(table.publishedAt)],
       limit: 50,

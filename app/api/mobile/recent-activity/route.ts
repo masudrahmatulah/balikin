@@ -42,7 +42,10 @@ export async function GET() {
           scannedAt: scanLogs.scannedAt,
         })
         .from(scanLogs)
-        .where(gte(scanLogs.scannedAt, thirtyDaysAgo))
+        .where(and(
+          gte(scanLogs.scannedAt, thirtyDaysAgo),
+          eq(scanLogs.app_id, 'balikin_id')
+        ))
         .orderBy(desc(scanLogs.scannedAt))
         .limit(20),
     ]);
@@ -57,7 +60,9 @@ export async function GET() {
 
     // Filter scans to only user's tags and take top 5
     const userRecentScans = recentScans
-      .filter(scan => userTagIds.has(scan.tagId))
+      .filter((scan): scan is typeof scan & { tagId: string } =>
+        scan.tagId !== null && userTagIds.has(scan.tagId)
+      )
       .slice(0, 5);
 
     // Format scan activities

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
-interface AdminCardProps {
+export interface AdminCardProps {
   children: ReactNode;
   title?: string;
   description?: string;
@@ -57,7 +57,7 @@ export function AdminCard({
   return content;
 }
 
-interface AdminCardWithHeaderProps {
+export interface AdminCardWithHeaderProps {
   title: string;
   description?: string;
   children: ReactNode;

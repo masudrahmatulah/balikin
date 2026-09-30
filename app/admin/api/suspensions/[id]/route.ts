@@ -10,9 +10,10 @@ const MAX_LIFT_REASON_LENGTH = 500;
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getAdminSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,7 +37,7 @@ export async function DELETE(
     }
 
     const currentSuspension = await db.query.suspensionLog.findFirst({
-      where: and(eq(suspensionLog.id, params.id), eq(suspensionLog.app_id, APP_ID)),
+       where: and(eq(suspensionLog.id, id), eq(suspensionLog.app_id, APP_ID)),
     });
 
     if (!currentSuspension) {
@@ -54,14 +55,14 @@ export async function DELETE(
         liftedBy: adminId,
         liftReason: liftReason?.trim() || null,
       })
-      .where(eq(suspensionLog.id, params.id));
+      .where(eq(suspensionLog.id, id));
 
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
       adminId,
       action: 'lift_suspension',
       entityType: 'suspension',
-      entityId: params.id,
+       entityId: id,
       originalValue: { isActive: true },
       newValue: { isActive: false, liftReason },
       ipAddress: ip,

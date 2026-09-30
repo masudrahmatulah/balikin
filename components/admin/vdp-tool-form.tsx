@@ -22,6 +22,7 @@ import QRCode from "qrcode";
 import QRCodeStyling from "qr-code-styling";
 import { getPremiumQRColors } from "@/lib/premium-qr-generator";
 import { ACRYLIC_SHAPES, deriveAcrylicShapeKey } from "@/lib/acrylic-shapes";
+import type { BundleType } from "@/lib/bundles";
 
 interface Tag {
   id: string;
@@ -50,6 +51,23 @@ interface VDPToolFormProps {
   adminId: string;
 }
 
+type ProductModule = "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat";
+type PaperSize = "a4" | "a3" | "a5";
+type StickerShape = "circle" | "square" | "rectangle";
+type StickerSize = "small" | "medium" | "large";
+type StickerProductKey = "stiker-pro" | "stiker-daily" | "stiker-micro" | "stiker-family";
+type VDPFormData = {
+  batchName: string;
+  quantity: number;
+  materialType: "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss";
+  productType: ProductModule;
+  paperSize: PaperSize;
+  stickerShape: StickerShape;
+  stickerSize: StickerSize;
+  stickerProductKey: StickerProductKey;
+  outputFormat: "pdf" | "png";
+};
+
 export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [activeTab, setActiveTab] = useState("generate");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -59,10 +77,10 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
   const [downloadNote, setDownloadNote] = useState<string | null>(null);
   const [activationQrDataUrl, setActivationQrDataUrl] = useState<string | null>(null);
   const [claimCodeManifest, setClaimCodeManifest] = useState<string | null>(null);
-  const [generatedTags, setGeneratedTags] = useState<any[]>([]);
+  const [generatedTags, setGeneratedTags] = useState<unknown[]>([]);
 
   // Bulk generation form
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<VDPFormData>({
     batchName: "",
     quantity: 100,
     materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
@@ -140,7 +158,9 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
     size: number = 600
   ): Promise<string> => {
     try {
-      const colors = getPremiumQRColors(productType !== "standard" ? productType : "standard");
+      const bundleTypes: Exclude<BundleType, null>[] = ["standard", "student_kit", "otomotif", "pertanian", "diklat"];
+      const bundleType = bundleTypes.find((type) => type === productType) ?? "standard";
+      const colors = getPremiumQRColors(bundleType);
 
       const qrCode = new QRCodeStyling({
         width: size,
@@ -169,9 +189,15 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
 
       // Convert QR to base64 using canvas
       return new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        qrCode.apply(canvas).then(() => {
-          resolve(canvas.toDataURL('image/png'));
+        qrCode.getRawData("png").then((rawData) => {
+          if (!(rawData instanceof Blob)) {
+            reject(new Error("QR code data was not generated as an image"));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+          reader.onerror = () => reject(reader.error ?? new Error("Failed to read QR code image"));
+          reader.readAsDataURL(rawData);
         }).catch(reject);
       });
     } catch (error) {
@@ -549,7 +575,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Select
                         value={formData.materialType}
                         onValueChange={(value) =>
-                          setFormData({ ...formData, materialType: value as any })
+                           setFormData({ ...formData, materialType: value as VDPFormData["materialType"] })
                         }
                       >
                         <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
@@ -577,7 +603,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Label htmlFor="productType" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Product Module</Label>
                       <Select
                         value={formData.productType}
-                        onValueChange={(value: any) => setFormData({ ...formData, productType: value })}
+                         onValueChange={(value) => setFormData({ ...formData, productType: value as ProductModule })}
                       >
                         <SelectTrigger id="productType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
@@ -597,7 +623,7 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                       <Label htmlFor="paperSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Paper Size</Label>
                       <Select
                         value={formData.paperSize}
-                        onValueChange={(value: "a4" | "a3" | "a5") => setFormData({ ...formData, paperSize: value })}
+                         onValueChange={(value) => value !== null && setFormData({ ...formData, paperSize: value })}
                       >
                         <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                           <SelectValue />
@@ -656,8 +682,8 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                           <Label htmlFor="stickerProductKey" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Product</Label>
                           <Select
                             value={formData.stickerProductKey}
-                            onValueChange={(value: any) =>
-                              setFormData({ ...formData, stickerProductKey: value })
+                             onValueChange={(value) =>
+                               setFormData({ ...formData, stickerProductKey: value as StickerProductKey })
                             }
                           >
                             <SelectTrigger id="stickerProductKey" className="font-body text-sm rounded-sm border-secondary/20 h-10">
@@ -680,9 +706,9 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                             <Label htmlFor="stickerShape" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Shape</Label>
                             <Select
                               value={formData.stickerShape}
-                              onValueChange={(value: "circle" | "square" | "rectangle") =>
-                                setFormData({ ...formData, stickerShape: value })
-                              }
+                               onValueChange={(value) =>
+                                 value !== null && setFormData({ ...formData, stickerShape: value })
+                               }
                             >
                               <SelectTrigger id="stickerShape" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                                 <SelectValue />
@@ -699,9 +725,9 @@ export function VDPToolForm({ adminId }: VDPToolFormProps) {
                             <Label htmlFor="stickerSize" className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Sticker Size</Label>
                             <Select
                               value={formData.stickerSize}
-                              onValueChange={(value: "small" | "medium" | "large") =>
-                                setFormData({ ...formData, stickerSize: value })
-                              }
+                               onValueChange={(value) =>
+                                 value !== null && setFormData({ ...formData, stickerSize: value })
+                               }
                             >
                               <SelectTrigger id="stickerSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                                 <SelectValue />

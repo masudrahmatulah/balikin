@@ -23,7 +23,7 @@ export default async function MobileTagDetailPage({ params }: TagDetailPageProps
   const { slug } = await params;
 
   const tag = await db.query.tags.findFirst({
-    where: eq(tags.slug, slug),
+    where: and(eq(tags.slug, slug), eq(tags.app_id, 'balikin_id')),
   });
 
   if (!tag || tag.ownerId !== session.user.id) {
@@ -39,14 +39,21 @@ export default async function MobileTagDetailPage({ params }: TagDetailPageProps
   const [scans, recentNotificationAttempts, studentKitModule] = await Promise.all([
     db.query.scanLogs.findMany({
       where: isStickerTag
-        ? and(eq(scanLogs.tagId, tag.id), gte(scanLogs.scannedAt, stickerHistoryCutoff))
-        : eq(scanLogs.tagId, tag.id),
+        ? and(
+            eq(scanLogs.tagId, tag.id),
+            eq(scanLogs.app_id, 'balikin_id'),
+            gte(scanLogs.scannedAt, stickerHistoryCutoff)
+          )
+        : and(eq(scanLogs.tagId, tag.id), eq(scanLogs.app_id, 'balikin_id')),
       orderBy: [desc(scanLogs.scannedAt)],
       limit: 10,
     }),
     !isFreeTag
       ? db.query.notificationLogs.findMany({
-          where: eq(notificationLogs.tagId, tag.id),
+          where: and(
+            eq(notificationLogs.tagId, tag.id),
+            eq(notificationLogs.app_id, 'balikin_id')
+          ),
           orderBy: [desc(notificationLogs.createdAt)],
           limit: 5,
         })

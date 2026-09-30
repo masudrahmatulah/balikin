@@ -16,10 +16,10 @@ export function sanitizeText(input: string): string {
 
   // For text content, only remove HTML tags but preserve basic formatting
   return input
-    .replace(/<script[^>]*>.*?<\/script>/gis, '')
-    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
-    .replace(/<object[^>]*>.*?<\/object>/gis, '')
-    .replace(/<embed[^>]*>/gis, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[^>]*>[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed[^>]*>/gi, '')
     .replace(/<[^>]+>/g, '')
     .trim();
 }

@@ -29,7 +29,7 @@ export async function getManufacturingQueueStats() {
               eq(stickerOrders.status, 'ready_for_fulfillment')
             )
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         vinylCount = typeof vinylResult[0]?.count === 'number'
@@ -48,7 +48,7 @@ export async function getManufacturingQueueStats() {
               eq(stickerOrders.status, 'ready_for_fulfillment')
             )
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         acrylicCount = typeof acrylicResult[0]?.count === 'number'
@@ -67,7 +67,7 @@ export async function getManufacturingQueueStats() {
               eq(stickerOrders.status, 'ready_for_fulfillment')
             )
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         bundlesCount = typeof bundleResult[0]?.count === 'number'
@@ -230,6 +230,7 @@ export async function getLostFoundSuccessRate(days = 30) {
           () => db.select({
             id: tags.id,
             status: tags.status,
+            createdAt: tags.createdAt,
           }).from(tags).where(
             gte(tags.createdAt, startDate)
           ),
@@ -263,6 +264,7 @@ export async function getLostFoundSuccessRate(days = 30) {
             if (recoveredTagIds.has(tag.id)) {
               const firstScan = recoveryScans
                 .filter(s => s.tagId === tag.id)
+                .filter((scan): scan is typeof scan & { scannedAt: Date } => scan.scannedAt !== null)
                 .sort((a, b) =>
                   new Date(a.scannedAt).getTime() - new Date(b.scannedAt).getTime()
                 )[0];
@@ -492,7 +494,7 @@ export async function getConversionFunnelData(timeRange: 'daily' | 'weekly' | 'm
           () => db.select({ count: count() }).from(user).where(
             gte(user.createdAt, startDate)
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         funnelStages[0].count = typeof freeUsers[0]?.count === 'number'
@@ -507,7 +509,7 @@ export async function getConversionFunnelData(timeRange: 'daily' | 'weekly' | 'm
               gte(stickerOrders.createdAt, startDate)
             )
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         funnelStages[1].count = typeof stickerOrdersCount[0]?.count === 'number'
@@ -522,7 +524,7 @@ export async function getConversionFunnelData(timeRange: 'daily' | 'weekly' | 'm
               gte(stickerOrders.createdAt, startDate)
             )
           ),
-          { count: 0 },
+           [{ count: 0 }],
           2000
         );
         funnelStages[2].count = typeof premiumOrdersCount[0]?.count === 'number'

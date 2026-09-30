@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
+import { hasPermission } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { shippingTracking, stickerOrders } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +16,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!hasPermission(session.user.division, "sticker_orders")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
-    const { updates, adminId } = body;
+    const { updates } = body;
 
     if (!updates || !Array.isArray(updates) || updates.length === 0) {
       return NextResponse.json({ error: "Invalid updates data" }, { status: 400 });
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
 
         // Check if order exists
         const order = await db.query.stickerOrders.findFirst({
-          where: eq(stickerOrders.id, orderId),
+          where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)),
         });
 
         if (!order) {
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
 
         // Check if tracking already exists
         const existing = await db.query.shippingTracking.findFirst({
-          where: eq(shippingTracking.orderId, orderId),
+          where: and(eq(shippingTracking.orderId, orderId), eq(shippingTracking.app_id, APP_ID)),
         });
 
         if (existing) {
@@ -59,7 +65,7 @@ export async function POST(request: NextRequest) {
               shippedAt: new Date(),
               updatedAt: new Date(),
             })
-            .where(eq(shippingTracking.orderId, orderId));
+            .where(and(eq(shippingTracking.orderId, orderId), eq(shippingTracking.app_id, APP_ID)));
         } else {
           // Create new tracking
           await db.insert(shippingTracking).values({
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
         await db
           .update(stickerOrders)
           .set({ status: "shipped", updatedAt: new Date() })
-          .where(eq(stickerOrders.id, orderId));
+          .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
 
         successCount++;
       } catch (error) {
@@ -89,7 +95,7 @@ export async function POST(request: NextRequest) {
     // Log the bulk action
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
-      adminId,
+      adminId: session.user.id,
       action: "bulk_update_tracking",
       entityType: "shipping_tracking",
       entityId: "bulk",

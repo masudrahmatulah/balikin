@@ -31,8 +31,8 @@ interface Material {
   lowStockThreshold: number;
   lastRestockedAt: Date | null;
   notes: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 interface MaterialInventoryTableProps {

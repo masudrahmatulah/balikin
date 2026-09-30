@@ -117,7 +117,7 @@ export const TagDetailSheet = memo(({ tag, trigger }: TagDetailSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
+      {trigger && <SheetTrigger>{trigger}</SheetTrigger>}
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Tag Details: {tag.slug}</SheetTitle>
@@ -273,7 +273,7 @@ export const TagDetailSheet = memo(({ tag, trigger }: TagDetailSheetProps) => {
         </div>
 
         <SheetFooter>
-          <SheetClose asChild>
+          <SheetClose>
             <Button variant="outline">Close</Button>
           </SheetClose>
           <Button

@@ -107,8 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get current indexes
-    const result = await db.execute(
-      sql.raw`
+    const result = await db.execute(sql.raw(`
         SELECT
           schemaname,
           tablename,
@@ -117,12 +116,12 @@ export async function GET(request: NextRequest) {
         FROM pg_indexes
         WHERE tablename LIKE 'balikin_%'
         ORDER BY tablename, indexname
-      `
-    );
+      `));
+    const rows = [...result];
 
     return NextResponse.json({
-      indexes: result.rows,
-      count: result.rows.length,
+      indexes: rows,
+      count: rows.length,
     });
   } catch (error) {
     console.error("Error getting indexes:", error);

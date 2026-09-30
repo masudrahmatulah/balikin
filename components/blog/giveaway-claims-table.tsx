@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,12 +19,12 @@ interface GiveawayClaim {
   whatsappNumber: string;
   shippingAddress: string;
   score: number;
-  status: "pending" | "approved" | "shipped" | "rejected";
+  status: string;
   trackingNumber: string | null;
   notes: string | null;
   processedBy: string | null;
-  processedAt: string | null;
-  createdAt: string;
+  processedAt: Date | string | null;
+  createdAt: Date | string;
   post: {
     id: string;
     title: string;
@@ -162,14 +162,14 @@ export function GiveawayClaimsTable({ claims, currentUserId }: GiveawayClaimsTab
     }
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: "bg-amber-500/10 text-amber-600",
     approved: "bg-emerald-500/10 text-emerald-600",
     shipped: "bg-blue-500/10 text-blue-600",
     rejected: "bg-destructive/10 text-destructive",
   };
 
-  const statusIcons = {
+  const statusIcons: Record<string, ReactNode> = {
     pending: <Gift className="w-4 h-4" />,
     approved: <Check className="w-4 h-4" />,
     shipped: <Package className="w-4 h-4" />,
@@ -185,7 +185,7 @@ export function GiveawayClaimsTable({ claims, currentUserId }: GiveawayClaimsTab
             <Badge variant="secondary">{filteredClaims.length}</Badge>
           </div>
 
-          <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+           <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -210,8 +210,8 @@ export function GiveawayClaimsTable({ claims, currentUserId }: GiveawayClaimsTab
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{claim.fullName}</span>
-                        <Badge className={statusColors[claim.status]}>
-                          {statusIcons[claim.status]}
+                         <Badge className={statusColors[claim.status as keyof typeof statusColors]}>
+                           {statusIcons[claim.status as keyof typeof statusIcons]}
                           <span className="ml-1 capitalize">{claim.status}</span>
                         </Badge>
                         {claim.score && (

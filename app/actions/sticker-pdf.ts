@@ -1,6 +1,6 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { toDataURL } from 'qrcode';
 import { jsPDF } from 'jspdf';
 import { isAdmin } from '@/lib/admin';
@@ -327,7 +327,7 @@ export async function generateBundlePDF(
   }
 
   const bundle = await db.query.tagBundles.findFirst({
-    where: eq(tagBundles.id, bundleId),
+    where: and(eq(tagBundles.id, bundleId), eq(tagBundles.app_id, 'balikin_id')),
     columns: {
       id: true,
       stickerShape: true,
@@ -336,6 +336,7 @@ export async function generateBundlePDF(
     with: {
       tags: {
         columns: { id: true, slug: true },
+        where: (tags, { eq }) => eq(tags.app_id, 'balikin_id'),
         orderBy: (tags, { asc }) => [asc(tags.slug)],
       },
     },

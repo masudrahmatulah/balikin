@@ -9,6 +9,8 @@ import { headers } from 'next/headers';
 import type { ModuleType } from '@/lib/admin-modules';
 import { revalidateModuleCaches } from '@/app/admin/modules/data-access';
 
+const APP_ID = 'balikin_id';
+
 /**
  * Helper function to get authenticated session
  */
@@ -30,7 +32,7 @@ export async function getAllModuleConfigs() {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -38,6 +40,7 @@ export async function getAllModuleConfigs() {
   }
 
   const configs = await db.query.moduleConfig.findMany({
+    where: eq(moduleConfig.app_id, APP_ID),
     orderBy: [moduleConfig.sortOrder, moduleConfig.moduleType],
   });
 
@@ -49,7 +52,7 @@ export async function getAllModuleConfigs() {
  */
 export async function getModuleConfigByType(moduleType: string) {
   const config = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, APP_ID)),
   });
 
   return config;
@@ -60,7 +63,7 @@ export async function getModuleConfigByType(moduleType: string) {
  */
 export async function getActiveModuleConfigs() {
   const configs = await db.query.moduleConfig.findMany({
-    where: eq(moduleConfig.isEnabled, true),
+    where: and(eq(moduleConfig.isEnabled, true), eq(moduleConfig.app_id, APP_ID)),
     orderBy: [moduleConfig.sortOrder, moduleConfig.moduleType],
   });
 
@@ -72,7 +75,7 @@ export async function getActiveModuleConfigs() {
  */
 export async function isModuleGloballyEnabled(moduleType: string): Promise<boolean> {
   const config = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, APP_ID)),
   });
 
   return config?.isEnabled ?? false;
@@ -108,7 +111,7 @@ export async function updateModuleConfig({
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -117,7 +120,7 @@ export async function updateModuleConfig({
 
   // Check if config exists
   const existing = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, APP_ID)),
   });
 
   const featuresJson = features ? JSON.stringify(features) : undefined;
@@ -136,10 +139,11 @@ export async function updateModuleConfig({
         ...(sortOrder !== undefined && { sortOrder }),
         updatedAt: new Date(),
       })
-      .where(eq(moduleConfig.id, existing.id));
+      .where(and(eq(moduleConfig.id, existing.id), eq(moduleConfig.app_id, APP_ID)));
   } else {
     // Create new
     await db.insert(moduleConfig).values({
+      app_id: APP_ID,
       moduleType,
       isEnabled: isEnabled ?? true,
       price: price ?? 0,
@@ -183,7 +187,7 @@ export async function createModuleConfig({
   if (!session?.user) throw new Error('Unauthorized');
 
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
   if (!dbUser || dbUser.role !== 'admin') throw new Error('Forbidden: Admin access required');
 
@@ -198,11 +202,12 @@ export async function createModuleConfig({
   }
 
   const existing = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, normalizedType),
+    where: and(eq(moduleConfig.moduleType, normalizedType), eq(moduleConfig.app_id, APP_ID)),
   });
   if (existing) throw new Error('Slug modul sudah digunakan.');
 
   await db.insert(moduleConfig).values({
+    app_id: APP_ID,
     moduleType: normalizedType,
     displayName: normalizedName,
     description: description?.trim() || '',
@@ -231,7 +236,7 @@ export async function toggleModuleStatus(moduleType: string, isEnabled: boolean)
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -239,7 +244,7 @@ export async function toggleModuleStatus(moduleType: string, isEnabled: boolean)
   }
 
   const existing = await db.query.moduleConfig.findFirst({
-    where: eq(moduleConfig.moduleType, moduleType),
+    where: and(eq(moduleConfig.moduleType, moduleType), eq(moduleConfig.app_id, APP_ID)),
   });
 
   if (existing) {
@@ -249,10 +254,11 @@ export async function toggleModuleStatus(moduleType: string, isEnabled: boolean)
         isEnabled,
         updatedAt: new Date(),
       })
-      .where(eq(moduleConfig.id, existing.id));
+      .where(and(eq(moduleConfig.id, existing.id), eq(moduleConfig.app_id, APP_ID)));
   } else {
     // Create with default values
     await db.insert(moduleConfig).values({
+      app_id: APP_ID,
       moduleType,
       isEnabled,
       price: 0,
@@ -283,14 +289,16 @@ export async function getModuleStats() {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
     throw new Error('Forbidden: Admin access required');
   }
 
-  const configs = await db.query.moduleConfig.findMany();
+  const configs = await db.query.moduleConfig.findMany({
+    where: eq(moduleConfig.app_id, APP_ID),
+  });
 
   const stats = await Promise.all(
     configs.map(async (config) => {
@@ -301,7 +309,8 @@ export async function getModuleStats() {
         .where(
           and(
             eq(userModulePermissions.moduleType, config.moduleType),
-            eq(userModulePermissions.isEnabled, true)
+            eq(userModulePermissions.isEnabled, true),
+            eq(userModulePermissions.app_id, APP_ID)
           )
         );
 
@@ -312,7 +321,8 @@ export async function getModuleStats() {
         .where(
           and(
             eq(modulePurchaseOrders.moduleType, config.moduleType),
-            eq(modulePurchaseOrders.status, 'pending_payment')
+            eq(modulePurchaseOrders.status, 'pending_payment'),
+            eq(modulePurchaseOrders.app_id, APP_ID)
           )
         );
 
@@ -323,7 +333,8 @@ export async function getModuleStats() {
         .where(
           and(
             eq(modulePurchaseOrders.moduleType, config.moduleType),
-            eq(modulePurchaseOrders.status, 'paid')
+            eq(modulePurchaseOrders.status, 'paid'),
+            eq(modulePurchaseOrders.app_id, APP_ID)
           )
         );
 
@@ -354,7 +365,7 @@ export async function initializeDefaultModuleConfigs() {
 
   // Verify admin role
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
+    where: and(eq(user.id, session.user.id), eq(user.app_id, APP_ID)),
   });
 
   if (!dbUser || dbUser.role !== 'admin') {
@@ -430,11 +441,11 @@ export async function initializeDefaultModuleConfigs() {
 
   for (const config of defaultConfigs) {
     const existing = await db.query.moduleConfig.findFirst({
-      where: eq(moduleConfig.moduleType, config.moduleType),
+      where: and(eq(moduleConfig.moduleType, config.moduleType), eq(moduleConfig.app_id, APP_ID)),
     });
 
     if (!existing) {
-      await db.insert(moduleConfig).values(config);
+       await db.insert(moduleConfig).values({ ...config, app_id: APP_ID });
     }
   }
 

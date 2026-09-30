@@ -6,10 +6,9 @@ import * as dotenv from "dotenv";
 // Load environment variables
 dotenv.config({ path: '.env.local' });
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL ?? '';
 if (!databaseUrl) {
-  console.error('❌ DATABASE_URL environment variable is not set');
-  process.exit(1);
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
 async function runMigration() {

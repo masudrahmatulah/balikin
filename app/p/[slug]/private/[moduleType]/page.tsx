@@ -42,26 +42,27 @@ export default async function TagModulePage({ params }: ModulePageProps) {
     return <div className="py-12 text-center text-slate-600">Akses ke modul ini belum aktif.</div>;
   }
 
-  const data = moduleType === "otomotif"
-      ? await db.query.otomotifData.findFirst({ where: and(eq(otomotifData.tagId, tag.id), eq(otomotifData.userId, session.user.id), eq(otomotifData.app_id, "balikin_id")) })
-      : await db.query.pertanianData.findFirst({ where: and(eq(pertanianData.tagId, tag.id), eq(pertanianData.userId, session.user.id), eq(pertanianData.app_id, "balikin_id")) });
-
-  return (
-    <div className="space-y-6">
-      <header>
-        <p className="text-sm font-medium text-brand-red">Tag: {tag.name || tag.slug}</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-          {moduleType === "otomotif" ? "Modul Otomotif" : "Modul Pertanian"}
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Kelola data yang terhubung ke tag ini. Tag lain memiliki data modulnya sendiri.
-        </p>
-      </header>
-      {moduleType === "otomotif" ? (
-        <TagModuleForm moduleType="otomotif" tagId={tag.id} initialData={data} />
-      ) : (
-        <TagModuleForm moduleType="pertanian" tagId={tag.id} initialData={data} />
-      )}
-    </div>
+  const header = (
+    <header>
+      <p className="text-sm font-medium text-brand-red">Tag: {tag.name || tag.slug}</p>
+      <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+        {moduleType === "otomotif" ? "Modul Otomotif" : "Modul Pertanian"}
+      </h1>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        Kelola data yang terhubung ke tag ini. Tag lain memiliki data modulnya sendiri.
+      </p>
+    </header>
   );
+
+  if (moduleType === "otomotif") {
+    const data = await db.query.otomotifData.findFirst({
+      where: and(eq(otomotifData.tagId, tag.id), eq(otomotifData.userId, session.user.id), eq(otomotifData.app_id, "balikin_id")),
+    });
+    return <div className="space-y-6">{header}<TagModuleForm moduleType="otomotif" tagId={tag.id} initialData={data ?? null} /></div>;
+  }
+
+  const data = await db.query.pertanianData.findFirst({
+    where: and(eq(pertanianData.tagId, tag.id), eq(pertanianData.userId, session.user.id), eq(pertanianData.app_id, "balikin_id")),
+  });
+  return <div className="space-y-6">{header}<TagModuleForm moduleType="pertanian" tagId={tag.id} initialData={data ?? null} /></div>;
 }

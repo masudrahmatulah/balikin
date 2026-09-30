@@ -4,10 +4,12 @@
  * Uses Next.js unstable_cache for server-side caching
  */
 
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { user, tags, stickerOrders } from "@/db/schema";
-import { count, eq, desc, sql } from "drizzle-orm";
+import { count, eq, desc, sql, and } from "drizzle-orm";
+
+const APP_ID = "balikin_id";
 
 /**
  * Get dashboard statistics with caching
@@ -16,9 +18,9 @@ import { count, eq, desc, sql } from "drizzle-orm";
 export const getCachedDashboardStats = unstable_cache(
   async () => {
     const [usersResult, tagsResult, ordersResult] = await Promise.all([
-      db.select({ count: count() }).from(user),
-      db.select({ count: count() }).from(tags),
-      db.select({ count: count() }).from(stickerOrders),
+      db.select({ count: count() }).from(user).where(eq(user.app_id, APP_ID)),
+      db.select({ count: count() }).from(tags).where(eq(tags.app_id, APP_ID)),
+      db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.app_id, APP_ID)),
     ]);
 
     return {
@@ -44,8 +46,11 @@ export const getCachedPendingCounts = unstable_cache(
       db
         .select({ count: count() })
         .from(stickerOrders)
-        .where(eq(stickerOrders.paymentStatus, "pending")),
-      db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.status, "pending_payment")),
+        .where(and(eq(stickerOrders.app_id, APP_ID), eq(stickerOrders.paymentStatus, "pending"))),
+      db
+        .select({ count: count() })
+        .from(stickerOrders)
+        .where(and(eq(stickerOrders.app_id, APP_ID), eq(stickerOrders.status, "pending_payment"))),
     ]);
 
     return {
@@ -67,11 +72,11 @@ export const getCachedPendingCounts = unstable_cache(
 export const getCachedStockStats = unstable_cache(
   async () => {
     const [totalProduced, totalClaimed] = await Promise.all([
-      db.select({ count: count() }).from(tags),
+      db.select({ count: count() }).from(tags).where(eq(tags.app_id, APP_ID)),
       db
         .select({ count: count() })
         .from(tags)
-        .where(sql`${tags.ownerId} IS NOT NULL`),
+        .where(and(eq(tags.app_id, APP_ID), sql`${tags.ownerId} IS NOT NULL`)),
     ]);
 
     // Get counts by type with proper column checks
@@ -82,7 +87,7 @@ export const getCachedStockStats = unstable_cache(
       const stickerData = await db
         .select({ count: count(), claimed: count(tags.ownerId) })
         .from(tags)
-        .where(eq(tags.tier, "sticker"));
+        .where(and(eq(tags.app_id, APP_ID), eq(tags.tier, "sticker")));
       stickerCount = {
         produced: stickerData[0]?.count || 0,
         claimed: stickerData[0]?.claimed || 0,
@@ -95,7 +100,7 @@ export const getCachedStockStats = unstable_cache(
       const acrylicData = await db
         .select({ count: count(), claimed: count(tags.ownerId) })
         .from(tags)
-        .where(eq(tags.tier, "premium"));
+        .where(and(eq(tags.app_id, APP_ID), eq(tags.tier, "premium")));
       acrylicCount = {
         produced: acrylicData[0]?.count || 0,
         claimed: acrylicData[0]?.claimed || 0,
@@ -132,6 +137,7 @@ export const getCachedStockStats = unstable_cache(
 export const getCachedRecentUsers = unstable_cache(
   async (limit = 10) => {
     const users = await db.query.user.findMany({
+      where: eq(user.app_id, APP_ID),
       orderBy: [desc(user.createdAt)],
       limit,
       columns: {
@@ -160,8 +166,8 @@ export async function invalidateTagsCache() {
   // Invalidate all tag-related caches
   // In Next.js 15+, you can use revalidateTag()
   if (typeof revalidateTag === "function") {
-    await revalidateTag("admin-stats");
-    await revalidateTag("stock-stats");
+    revalidateTag("admin-stats", "max");
+    revalidateTag("stock-stats", "max");
   }
 }
 
@@ -171,7 +177,7 @@ export async function invalidateTagsCache() {
 export async function invalidateOrdersCache() {
   // Invalidate order-related caches
   if (typeof revalidateTag === "function") {
-    await revalidateTag("admin-stats");
-    await revalidateTag("admin-pending-counts");
+    revalidateTag("admin-stats", "max");
+    revalidateTag("admin-pending-counts", "max");
   }
 }

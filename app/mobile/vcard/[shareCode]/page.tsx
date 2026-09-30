@@ -6,7 +6,8 @@ import {
   sanitizeVCardForDisplay,
   generateVCardFilename,
   isSafeUrl,
-  type VCardData,
+    type VCardData,
+  vCardSchema,
 } from '@/lib/vcard';
 import { getVCardByShareCode } from '@/app/actions/modules';
 import { NotFoundError } from '@/lib/errors';
@@ -16,9 +17,9 @@ interface VCardPageProps {
   params: Promise<{ shareCode: string }>;
 }
 
-async function getVCardData(shareCode: string) {
+async function getVCardData(shareCode: string): Promise<VCardData> {
   const data = await getVCardByShareCode(shareCode);
-  return data.vcardData;
+  return vCardSchema.parse(data.vcardData);
 }
 
 export async function generateMetadata({ params }: VCardPageProps) {
@@ -45,7 +46,7 @@ export default async function MobileVCardPage({ params }: VCardPageProps) {
   let vcardData: VCardData;
   try {
     const data = await getVCardData(shareCode);
-    vcardData = data as VCardData;
+    vcardData = data;
   } catch (error) {
     if (error instanceof NotFoundError) {
       notFound();

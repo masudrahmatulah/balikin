@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { pollVotes, blogPosts } from "@/db/schema";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
 
     // Verify post exists
     const post = await db.query.blogPosts.findFirst({
-      where: eq(blogPosts.id, postId),
+      where: and(
+        eq(blogPosts.id, postId),
+        eq(blogPosts.app_id, "balikin_id")
+      ),
     });
 
     if (!post) {
@@ -26,30 +29,60 @@ export async function POST(req: NextRequest) {
     const headersList = await headers();
     const ipAddress = headersList.get("x-forwarded-for") || headersList.get("x-vercel-forwarded-for") || "unknown";
 
-    // Check if this IP has already voted for this poll
-    const existingVote = await db.query.pollVotes.findFirst({
-      where: and(
-        eq(pollVotes.postId, postId),
-        eq(pollVotes.pollId, pollId),
-        eq(pollVotes.ipAddress, ipAddress)
-      ),
-    });
+    // Serialize the duplicate check and insert because the schema has no unique constraint.
+    let voteRecorded: boolean;
+    try {
+      voteRecorded = await db.transaction(async (tx) => {
+        const existingVote = await tx.query.pollVotes.findFirst({
+          where: and(
+            eq(pollVotes.app_id, "balikin_id"),
+            eq(pollVotes.postId, postId),
+            eq(pollVotes.pollId, pollId),
+            eq(pollVotes.ipAddress, ipAddress)
+          ),
+        });
 
-    if (existingVote) {
-      return NextResponse.json({ error: "Anda sudah memberikan suara untuk polling ini." }, { status: 400 });
+        if (existingVote) {
+          return false;
+        }
+
+        await tx.insert(pollVotes).values({
+          app_id: "balikin_id",
+          postId,
+          pollId,
+          selectedOptionIndex,
+          ipAddress,
+        });
+
+        return true;
+      }, { isolationLevel: "serializable" });
+    } catch (error) {
+      if ((error as { code?: string }).code === "40001") {
+        const concurrentVote = await db.query.pollVotes.findFirst({
+          where: and(
+            eq(pollVotes.app_id, "balikin_id"),
+            eq(pollVotes.postId, postId),
+            eq(pollVotes.pollId, pollId),
+            eq(pollVotes.ipAddress, ipAddress)
+          ),
+        });
+
+        if (concurrentVote) {
+          return NextResponse.json({ error: "Anda sudah memberikan suara untuk polling ini." }, { status: 400 });
+        }
+      }
+
+      throw error;
     }
 
-    // Record the vote
-    await db.insert(pollVotes).values({
-      postId,
-      pollId,
-      selectedOptionIndex,
-      ipAddress,
-    });
+    if (!voteRecorded) {
+      return NextResponse.json({ error: "Anda sudah memberikan suara untuk polling ini." }, { status: 400 });
+    }
 
     // Calculate updated results
     const votes = await db.query.pollVotes.findMany({
       where: and(
+        eq(pollVotes.app_id, "balikin_id"),
         eq(pollVotes.postId, postId),
         eq(pollVotes.pollId, pollId)
       ),

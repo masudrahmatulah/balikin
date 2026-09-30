@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { db } from "@/db";
 import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export async function GET() {
     }
 
     const dbUser = await db.query.user.findFirst({
-      where: eq(user.id, session.user.id),
+      where: and(eq(user.id, session.user.id), eq(user.app_id, 'balikin_id')),
       columns: {
         role: true,
       },

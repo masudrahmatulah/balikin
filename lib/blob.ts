@@ -23,7 +23,7 @@ const DOCUMENT_TYPES = {
   PROFILE_PHOTO: 'profile_photo',
 } as const;
 
-type DocumentType = typeof DOCUMENT_TYPES[keyof typeof DOCUMENT_TYPE];
+type DocumentType = typeof DOCUMENT_TYPES[keyof typeof DOCUMENT_TYPES];
 
 // ============================================================================
 // VALIDATION

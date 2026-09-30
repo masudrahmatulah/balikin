@@ -39,6 +39,11 @@ async function getBlogPost(slug: string, recordView = true) {
   const comments = await db.query.blogComments.findMany({
     where: eq(blogComments.postId, post.id),
   });
+  const normalizedComments = comments.map((comment) => ({
+    ...comment,
+    parentId: comment.parentId ?? undefined,
+    createdAt: comment.createdAt?.toISOString() ?? '',
+  }));
 
   // Record page view for analytics
   if (recordView) {
@@ -54,7 +59,7 @@ async function getBlogPost(slug: string, recordView = true) {
     }
   }
 
-  return { post, comments };
+  return { post, comments: normalizedComments };
 }
 
 function generateJSONLD(post: any, modules: BlogModule[], slug: string): string {

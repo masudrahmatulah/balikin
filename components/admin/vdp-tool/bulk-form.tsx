@@ -23,12 +23,28 @@ import {
 
 interface BulkFormProps {
   adminId: string;
-  onGenerate?: (data: any) => void;
-  onDataChange?: (data: any) => void;
+  onGenerate?: (data: unknown) => void;
+  onDataChange?: (data: BulkFormData) => void;
 }
 
+export type BulkFormData = {
+  batchName: string;
+  quantity: number;
+  materialType: "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss";
+  productType: "standard" | "student_kit" | "otomotif" | "pertanian" | "diklat";
+  paperSize: "a4" | "a3" | "a5";
+  stickerProductKey: StickerProductKey;
+  stickerColorTheme: StickerColorTheme;
+  stickerShape: "circle" | "square" | "rectangle";
+  stickerSize: "small" | "medium" | "large";
+  isCustom: boolean;
+  customPhotoData: string;
+  includeActivation: boolean;
+  outputFormat: "pdf" | "png";
+};
+
 export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BulkFormData>({
     batchName: "",
     quantity: 100,
     materialType: "sticker" as "sticker" | "acrylic-oval" | "acrylic-octagon" | "acrylic-heart" | "acrylic-rectangle" | "acrylic-rectangle-motif" | "acrylic-square" | "acrylic-circle" | "acrylic-rectangle-emboss",
@@ -44,7 +60,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
     outputFormat: "pdf" as "pdf" | "png",
   });
 
-  const updateFormData = (updates: any) => {
+  const updateFormData = (updates: Partial<BulkFormData>) => {
     const newData = { ...formData, ...updates };
     setFormData(newData);
     if (onDataChange) {
@@ -171,6 +187,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         stickerSize: "medium",
         isCustom: false,
         customPhotoData: "",
+        includeActivation: true,
         outputFormat: "pdf",
       });
       setPreviewImage(null);
@@ -238,8 +255,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.materialType}
-                onValueChange={(value: any) =>
-                  updateFormData({ materialType: value })
+                onValueChange={(value) =>
+                  value !== null && updateFormData({ materialType: value })
                 }
               >
                 <SelectTrigger id="materialType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
@@ -350,7 +367,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.productType}
-                onValueChange={(value: any) => updateFormData({ productType: value })}
+                 onValueChange={(value) => value !== null && updateFormData({ productType: value })}
               >
                 <SelectTrigger id="productType" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                   <SelectValue />
@@ -371,8 +388,8 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.paperSize}
-                onValueChange={(value: "a4" | "a3" | "a5") => {
-                  updateFormData({ paperSize: value });
+                 onValueChange={(value) => {
+                   if (value !== null) updateFormData({ paperSize: value });
                 }}
               >
                 <SelectTrigger id="paperSize" className="font-body text-sm rounded-sm border-secondary/20 h-10">
@@ -400,9 +417,9 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
               </Label>
               <Select
                 value={formData.stickerProductKey}
-                onValueChange={(value: StickerProductKey) =>
-                  updateFormData({ stickerProductKey: value })
-                }
+                 onValueChange={(value) =>
+                   value !== null && updateFormData({ stickerProductKey: value })
+                 }
               >
                 <SelectTrigger id="stickerProductKey" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                   <SelectValue />
@@ -432,7 +449,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
                 </Label>
                 <Select
                   value={formData.stickerColorTheme}
-                  onValueChange={(value: StickerColorTheme) => updateFormData({ stickerColorTheme: value })}
+                   onValueChange={(value) => value !== null && updateFormData({ stickerColorTheme: value })}
                 >
                   <SelectTrigger id="stickerColorTheme" className="font-body text-sm rounded-sm border-secondary/20 h-10">
                     <SelectValue />

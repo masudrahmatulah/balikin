@@ -3,7 +3,7 @@
  * Tests: 2 tags × 3 columns (QR, Logo, Activation) with explicit pixel coordinates
  */
 
-import { generateOneRowSticker, type TagData } from '../lib/vdp-engine';
+import { generateOneRowSticker, type TagVDPData } from '../lib/vdp-engine';
 import { writeFileSync } from 'fs';
 import { hashValue } from '../lib/crypto';
 
@@ -14,21 +14,25 @@ async function testVDP() {
   const mockToken1 = 'test-token-hash-1';
   const mockToken2 = 'test-token-hash-2';
 
-  const tagA: TagData = {
+  const tagA: TagVDPData = {
     productSlug: 'test-001',
     activationTokenHash: mockToken1,
     activationPinPlain: 'A1B-C2D',
     serialNumber: 'B01-001',
     id: '1',
+    slug: 'test-001',
+    isCustom: false,
     name: 'Test Tag A',
   };
 
-  const tagB: TagData = {
+  const tagB: TagVDPData = {
     productSlug: 'test-002',
     activationTokenHash: mockToken2,
     activationPinPlain: 'E3F-G4H',
     serialNumber: 'B01-002',
     id: '2',
+    slug: 'test-002',
+    isCustom: false,
     name: 'Test Tag B',
   };
 

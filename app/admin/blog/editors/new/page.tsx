@@ -1,14 +1,15 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { updateUserBlogPermissions } from '@/lib/blog-permissions';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { SubmitButton } from '@/components/submit-button';
+import { eq } from 'drizzle-orm';
 
 async function getUsers() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return [];
   }
@@ -24,7 +25,7 @@ async function getUsers() {
 async function createEditor(formData: FormData) {
   'use server';
 
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return;
   }

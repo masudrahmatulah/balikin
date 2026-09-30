@@ -116,14 +116,16 @@ export function CheckoutForm({
   }, []);
 
   // Load cities when province changes
-  const handleProvinceChange = async (provinceId: string) => {    setSelectedProvince(provinceId);
+  const handleProvinceChange = async (provinceId: string | null) => {
+    const nextProvinceId = provinceId ?? '';
+    setSelectedProvince(nextProvinceId);
     setSelectedCity('');
     setCities([]);
     setIsLoadingCities(true);
     setShippingError(null);
 
     try {
-      const response = await fetch(`/api/shipping?type=cities&province=${provinceId}`);
+      const response = await fetch(`/api/shipping?type=cities&province=${nextProvinceId}`);
       if (!response.ok) throw new Error('Failed to load cities');
       const data = await response.json();
       if (data.success) {
@@ -356,7 +358,7 @@ export function CheckoutForm({
         <Label className="text-slate-700 dark:text-slate-200" htmlFor="segment">
           Produk ini untuk kepentingan? <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
-        <Select value={segment} onValueChange={setSegment} required>
+        <Select value={segment} onValueChange={(value) => setSegment(value ?? '')} required>
           <SelectTrigger
             className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="segment"
@@ -400,7 +402,11 @@ export function CheckoutForm({
         <Label className="text-slate-700 dark:text-slate-200" htmlFor="province">
           Provinsi <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
-        <Select value={selectedProvince} onValueChange={handleProvinceChange} disabled={isLoadingProvinces}>
+        <Select
+          value={selectedProvince}
+          onValueChange={(value) => void handleProvinceChange(value)}
+          disabled={isLoadingProvinces}
+        >
           <SelectTrigger
             className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="province"
@@ -427,7 +433,11 @@ export function CheckoutForm({
         <Label className="text-slate-700 dark:text-slate-200" htmlFor="city">
           Kota <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
-        <Select value={selectedCity} onValueChange={setSelectedCity} disabled={isLoadingCities || !selectedProvince}>
+        <Select
+          value={selectedCity}
+          onValueChange={(value) => setSelectedCity(value ?? '')}
+          disabled={isLoadingCities || !selectedProvince}
+        >
           <SelectTrigger
             className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="city"
@@ -456,7 +466,7 @@ export function CheckoutForm({
         <Label className="text-slate-700 dark:text-slate-200" htmlFor="courier">
           Kurir Pengiriman <span className="text-red-500" aria-hidden="true">*</span>
         </Label>
-        <Select value={selectedCourier} onValueChange={setSelectedCourier}>
+        <Select value={selectedCourier} onValueChange={(value) => setSelectedCourier(value ?? '')}>
           <SelectTrigger
             className="mt-1 h-11 w-full border-slate-200 bg-white/80 dark:border-slate-700 dark:bg-slate-950/50"
             id="courier"

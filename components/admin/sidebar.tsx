@@ -275,7 +275,7 @@ export function Sidebar({ userDivision, isAdmin = false, pendingHelpdeskQuestion
                 )}
                 <ItemIcon className="w-[18px] h-[18px]" strokeWidth={2} />
                 <span className="text-sm">{item.title}</span>
-                {item.badge !== undefined && item.badge > 0 && (
+                {"badge" in item && typeof item.badge === "number" && item.badge > 0 && (
                   <span className="ml-auto px-2 py-0.5 bg-white text-blue-700 text-[11px] font-semibold rounded-full">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>

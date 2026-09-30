@@ -157,7 +157,7 @@ export function EditClientModal({ isOpen, onClose, user }: EditClientModalProps)
                 User ID: {user.id}
               </p>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                Terdaftar: {new Date(user.createdAt).toLocaleDateString('id-ID')}
+                Terdaftar: {user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID') : '-'}
               </p>
             </div>
 

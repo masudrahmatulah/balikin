@@ -3,13 +3,18 @@
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
-import { printQueue } from '@/db/schema';
+import { printQueue, type NewPrintQueue } from '@/db/schema';
 import { eq, inArray, and } from 'drizzle-orm';
 import { logAuditAction, getRequestContext } from '@/lib/admin-audit';
 import { revalidatePrintQueueCache } from './data-access';
 
 const APP_ID = 'balikin_id';
 const VALID_STATUSES = ['pending', 'printing', 'quality_check', 'ready_for_stock', 'completed'] as const;
+type PrintQueueStatus = typeof VALID_STATUSES[number];
+
+function isPrintQueueStatus(value: string): value is PrintQueueStatus {
+  return VALID_STATUSES.includes(value as PrintQueueStatus);
+}
 
 async function verifyAdminSession() {
   const session = await getAdminSession();
@@ -26,7 +31,7 @@ export async function updatePrintQueueStatus(
 ) {
   const session = await verifyAdminSession();
 
-  if (!VALID_STATUSES.includes(newStatus as any)) {
+  if (!isPrintQueueStatus(newStatus)) {
     throw new Error('Status tidak valid');
   }
 
@@ -41,7 +46,7 @@ export async function updatePrintQueueStatus(
     throw new Error('Item tidak ditemukan');
   }
 
-  const updateData: any = { status: newStatus };
+  const updateData: Partial<NewPrintQueue> = { status: newStatus };
 
   if (newStatus === 'printing' && !currentItem.printedAt) {
     updateData.printedAt = new Date();
@@ -55,7 +60,10 @@ export async function updatePrintQueueStatus(
   await db
     .update(printQueue)
     .set(updateData)
-    .where(eq(printQueue.id, itemId));
+    .where(and(
+      eq(printQueue.id, itemId),
+      eq(printQueue.app_id, APP_ID)
+    ));
 
   const { ip, userAgent } = await getRequestContext();
   await logAuditAction({
@@ -79,7 +87,7 @@ export async function bulkUpdatePrintQueueStatus(
 ) {
   const session = await verifyAdminSession();
 
-  if (!VALID_STATUSES.includes(newStatus as any)) {
+  if (!isPrintQueueStatus(newStatus)) {
     throw new Error('Status tidak valid');
   }
 
@@ -95,7 +103,7 @@ export async function bulkUpdatePrintQueueStatus(
   }
 
   const updates = currentItems.map(item => {
-    const updateData: any = { status: newStatus };
+    const updateData: Partial<NewPrintQueue> = { status: newStatus };
 
     if (newStatus === 'printing' && !item.printedAt) {
       updateData.printedAt = new Date();
@@ -112,9 +120,12 @@ export async function bulkUpdatePrintQueueStatus(
   await Promise.all(
     updates.map(({ id, updateData }) =>
       db
-        .update(printQueue)
-        .set(updateData)
-        .where(eq(printQueue.id, id))
+         .update(printQueue)
+         .set(updateData)
+         .where(and(
+           eq(printQueue.id, id),
+           eq(printQueue.app_id, APP_ID)
+         ))
     )
   );
 

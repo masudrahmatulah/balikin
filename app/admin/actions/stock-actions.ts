@@ -20,7 +20,7 @@ export async function getStockStatsServer() {
       // Use approximate count with timeout for claimed tags
       const claimedResult = await withQueryTimeout(
         () => db.select({ count: count() }).from(tags).where(sql`${tags.ownerId} IS NOT NULL`),
-        { count: 0 },
+        [{ count: 0 }],
         2000
       );
 
@@ -40,7 +40,7 @@ export async function getStockStatsServer() {
             .select({ count: count(), claimed: count(tags.ownerId) })
             .from(tags)
             .where(eq(tags.tier, "sticker")),
-          { count: 0, claimed: 0 },
+          [{ count: 0, claimed: 0 }],
           2000
         );
         stickersCount = {
@@ -58,7 +58,7 @@ export async function getStockStatsServer() {
             .select({ count: count(), claimed: count(tags.ownerId) })
             .from(tags)
             .where(eq(tags.tier, "premium")),
-          { count: 0, claimed: 0 },
+          [{ count: 0, claimed: 0 }],
           2000
         );
         acrylicCount = {
@@ -82,7 +82,7 @@ export async function getStockStatsServer() {
                 sql`${tags.tier} != 'premium'`
               )
             ),
-          { count: 0, claimed: 0 },
+          [{ count: 0, claimed: 0 }],
           2000
         );
         bundlesCount = {
@@ -106,7 +106,7 @@ export async function getStockStatsServer() {
                 sql`${tags.status} != 'lost'`
               )
             ),
-          { count: 0, claimed: 0 },
+          [{ count: 0, claimed: 0 }],
           2000
         );
         freeTagsCount = {
@@ -124,7 +124,7 @@ export async function getStockStatsServer() {
             .select({ count: count(), claimed: count(tags.ownerId) })
             .from(tags)
             .where(eq(tags.status, "lost")),
-          { count: 0, claimed: 0 },
+          [{ count: 0, claimed: 0 }],
           2000
         );
         lostCount = {
@@ -173,12 +173,12 @@ export async function getDashboardStatsServer() {
       const [usersResult, ordersResult] = await Promise.all([
         withQueryTimeout(
           () => db.select({ count: count() }).from(user),
-          { count: 0 },
+          [{ count: 0 }],
           2000
         ),
         withQueryTimeout(
           () => db.select({ count: count() }).from(stickerOrders),
-          { count: 0 },
+          [{ count: 0 }],
           2000
         ),
       ]);
@@ -186,7 +186,7 @@ export async function getDashboardStatsServer() {
       // For lost tags, also use timeout protection - this has a WHERE clause so it's slower
       const lostTagsResult = await withQueryTimeout(
         () => db.select({ count: count() }).from(tags).where(eq(tags.status, "lost")),
-        { count: 0 },
+        [{ count: 0 }],
         2000
       );
 
@@ -233,12 +233,12 @@ export async function getPendingCountsServer() {
             .select({ count: count() })
             .from(stickerOrders)
             .where(eq(stickerOrders.paymentStatus, "pending")),
-          { count: 0 },
+          [{ count: 0 }],
           2000
         ),
         withQueryTimeout(
           () => db.select({ count: count() }).from(stickerOrders).where(eq(stickerOrders.status, "pending_payment")),
-          { count: 0 },
+          [{ count: 0 }],
           2000
         ),
       ]);

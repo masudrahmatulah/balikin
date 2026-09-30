@@ -7,6 +7,16 @@ import { headers } from "next/headers";
 import { AuthenticationError, AuthorizationError, logError } from "@/lib/error-handler";
 import { Division, type DivisionType } from "@/lib/admin-divisions";
 
+const APP_ID = 'balikin_id';
+
+async function requireSuperAdmin() {
+  const session = await getAdminSessionForAction();
+  if (!session || session.user.division !== Division.ADMIN) {
+    throw new AuthorizationError('Super admin permission required');
+  }
+  return session;
+}
+
 /**
  * Core admin session logic (shared between cached and non-cached versions)
  * Uses better-auth API for session, then queries database for role and division
@@ -46,7 +56,7 @@ async function getAdminSessionCore() {
         ),
       ]);
 
-    let dbUser: Awaited<ReturnType<typeof db.query.user.findFirst>>;
+    let dbUser: Awaited<ReturnType<typeof db.query.user.findFirst>> | null;
     try {
       dbUser = await fetchDbUser(4000);
     } catch (firstError) {
@@ -232,7 +242,12 @@ export async function getSessionInfo() {
  * Get all users with pagination (admin only)
  */
 export async function getAllUsers(limit = 100, offset = 0) {
+  if (!await getAdminSession()) {
+    throw new AuthenticationError('Admin session required');
+  }
+
   const users = await db.query.user.findMany({
+    where: eq(user.app_id, APP_ID),
     orderBy: (u, { desc }) => [desc(u.createdAt)],
     limit,
     offset,
@@ -244,7 +259,12 @@ export async function getAllUsers(limit = 100, offset = 0) {
  * Get users with tag counts (optimized single query)
  */
 export async function getUsersWithTagCounts(limit = 100) {
+  if (!await getAdminSession()) {
+    throw new AuthenticationError('Admin session required');
+  }
+
   const users = await db.query.user.findMany({
+    where: eq(user.app_id, APP_ID),
     orderBy: (u, { desc }) => [desc(u.createdAt)],
     limit,
   });
@@ -256,6 +276,7 @@ export async function getUsersWithTagCounts(limit = 100) {
       count: count(),
     })
     .from(tags)
+    .where(eq(tags.app_id, APP_ID))
     .groupBy(tags.ownerId);
 
   // Create a map for quick lookup
@@ -272,8 +293,12 @@ export async function getUsersWithTagCounts(limit = 100) {
  * Get user by ID (admin only)
  */
 export async function getUserById(userId: string) {
+  if (!await getAdminSession()) {
+    throw new AuthenticationError('Admin session required');
+  }
+
   const userData = await db.query.user.findFirst({
-    where: eq(user.id, userId),
+    where: and(eq(user.id, userId), eq(user.app_id, APP_ID)),
   });
   return userData;
 }
@@ -282,26 +307,34 @@ export async function getUserById(userId: string) {
  * Update user role (admin only)
  */
 export async function updateUserRole(userId: string, role: "admin" | "user") {
+  await requireSuperAdmin();
+
   await db.update(user)
     .set({ role, updatedAt: new Date() })
-    .where(eq(user.id, userId));
+    .where(and(eq(user.id, userId), eq(user.app_id, APP_ID)));
 }
 
 /**
  * Update user division (admin only)
  */
 export async function updateUserDivision(userId: string, division: DivisionType | null) {
+  await requireSuperAdmin();
+
   await db.update(user)
     .set({ division, updatedAt: new Date() })
-    .where(eq(user.id, userId));
+    .where(and(eq(user.id, userId), eq(user.app_id, APP_ID)));
 }
 
 /**
  * Get user division (admin only)
  */
 export async function getUserDivision(userId: string): Promise<DivisionType | null> {
+  if (!await getAdminSession()) {
+    throw new AuthenticationError('Admin session required');
+  }
+
   const dbUser = await db.query.user.findFirst({
-    where: eq(user.id, userId),
+    where: and(eq(user.id, userId), eq(user.app_id, APP_ID)),
   });
 
   return dbUser?.division as DivisionType | null || null;
@@ -311,8 +344,12 @@ export async function getUserDivision(userId: string): Promise<DivisionType | nu
  * Get all admins by division
  */
 export async function getAdminsByDivision(division: DivisionType) {
+  if (!await getAdminSession()) {
+    throw new AuthenticationError('Admin session required');
+  }
+
   const admins = await db.query.user.findMany({
-    where: eq(user.role, 'admin'),
+    where: and(eq(user.app_id, APP_ID), eq(user.role, 'admin')),
   });
 
   return admins.filter(admin => admin.division === division);

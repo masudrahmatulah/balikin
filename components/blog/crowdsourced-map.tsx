@@ -9,16 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Dynamically import Leaflet to avoid SSR issues
-const LeafletMap = dynamic(() => import("./leaflet-map"), {
-  ssr: false,
-  loading: () => (
-    <div className="bg-muted rounded-xl h-64 flex items-center justify-center">
-      <p className="text-muted-foreground">Loading map...</p>
-    </div>
-  ),
-});
-
 interface LocationReport {
   id: string;
   locationName: string;
@@ -27,6 +17,21 @@ interface LocationReport {
   lostItemType: string;
   createdAt: string;
 }
+
+interface LeafletMapProps {
+  regionId: string;
+  reports: LocationReport[];
+}
+
+// Dynamically import Leaflet to avoid SSR issues
+const LeafletMap = dynamic<LeafletMapProps>(() => import("./leaflet-map").then((module) => module.LeafletMap), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-muted rounded-xl h-64 flex items-center justify-center">
+      <p className="text-muted-foreground">Loading map...</p>
+    </div>
+  ),
+});
 
 const LOCATION_TYPES = [
   { value: "Parkiran", label: "Parkiran" },
@@ -155,7 +160,7 @@ export function BlogCrowdsourcedMap({ mapRegionId, postId }: CrowdsourcedMapProp
               <Label>Jenis Lokasi *</Label>
               <Select
                 value={formData.locationType}
-                onValueChange={(value) => setFormData({ ...formData, locationType: value })}
+                 onValueChange={(value) => setFormData({ ...formData, locationType: value ?? "" })}
                 required
               >
                 <SelectTrigger>

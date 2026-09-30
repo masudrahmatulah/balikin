@@ -265,7 +265,7 @@ export function calculateA5StickerPositions(
         // Rows 0: 3 large (35mm)
         // Rows 1: 4 medium (25mm)
         // Rows 2-3: 5 small (18mm) spread across
-        let itemH = config.itemHeight;
+        let itemH: number = config.itemHeight;
         if (row === 0) itemH = 35; // Large items
         else if (row === 1) itemH = 25; // Medium items
         else itemH = 18; // Small items

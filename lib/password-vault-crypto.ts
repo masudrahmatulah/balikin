@@ -14,6 +14,10 @@ export interface EncryptedPasswordVaultEntry {
 
 const PBKDF2_ITERATIONS = 310_000;
 
+function toBufferSource(bytes: Uint8Array): BufferSource {
+  return new Uint8Array(bytes);
+}
+
 function bytesToBase64(bytes: Uint8Array) {
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
@@ -33,7 +37,7 @@ async function deriveKey(masterPassword: string, salt: Uint8Array) {
     ['deriveKey'],
   );
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: toBufferSource(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     material,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -50,7 +54,7 @@ export async function derivePasswordVerifier(masterPassword: string, salt: Uint8
     ['deriveBits'],
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: toBufferSource(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     material,
     256,
   );

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { db } from '@/db';
-import { blogComments, blogPosts, user } from '@/db/schema';
+import { blogComments, blogPosts, trueStorySubmissions, user } from '@/db/schema';
 import { auth } from '@/lib/auth';
-import { eq, desc } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { logError, ValidationError, AppError } from '@/lib/error-handler';
 import { checkBlogCommentRateLimit, generateFingerprint, getRateLimitHeaders } from '@/lib/rate-limit-enhanced';
 import { BlogCommentSchema, type BlogCommentInput } from '@/lib/validations';
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // Zod validation
     const validationResult = BlogCommentSchema.safeParse(body);
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.errors.map(e => e.message).join(', ');
+       const errorMessages = validationResult.error.issues.map((issue) => issue.message).join(', ');
       throw new ValidationError(`Validasi gagal: ${errorMessages}`);
     }
 
@@ -57,15 +57,19 @@ export async function POST(req: NextRequest) {
     let hasHeroBadge = false;
     if (userId) {
       const [userSubmission] = await db
-        .select({ status: true })
-        .from(db.schema.trueStorySubmissions)
-        .where(eq(db.schema.trueStorySubmissions.userId, userId))
+        .select({ status: trueStorySubmissions.status })
+        .from(trueStorySubmissions)
+        .where(and(
+          eq(trueStorySubmissions.userId, userId),
+          eq(trueStorySubmissions.app_id, 'balikin_id'),
+        ))
         .limit(1);
 
       hasHeroBadge = userSubmission?.status === 'winner_jacket';
     }
 
     const comment = await db.insert(blogComments).values({
+      app_id: 'balikin_id',
       postId: data.postId,
       parentId: data.parentId || null,
       userId,
@@ -81,12 +85,18 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         const post = await db.query.blogPosts.findFirst({
-          where: eq(blogPosts.id, data.postId),
+          where: and(
+            eq(blogPosts.id, data.postId),
+            eq(blogPosts.app_id, 'balikin_id'),
+          ),
         });
 
         if (post) {
           const admins = await db.query.user.findMany({
-            where: eq(user.role, 'admin'),
+            where: and(
+              eq(user.role, 'admin'),
+              eq(user.app_id, 'balikin_id'),
+            ),
             limit: 5,
           });
 
@@ -143,7 +153,10 @@ export async function GET(req: NextRequest) {
     }
 
     const comments = await db.query.blogComments.findMany({
-      where: eq(blogComments.postId, postId),
+      where: and(
+        eq(blogComments.postId, postId),
+        eq(blogComments.app_id, 'balikin_id'),
+      ),
       orderBy: (table, { desc }) => desc(table.createdAt),
     });
 

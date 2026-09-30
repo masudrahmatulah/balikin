@@ -17,7 +17,7 @@ function CheckoutPageInner() {
 
   const productKey: ProductKey = resolveProductKey(searchParams.get('product'));
   const product = PRODUCT_CATALOG[productKey];
-  const stickerColorTheme = normalizeStickerColorTheme(searchParams.get('color'));
+  const stickerColorTheme = normalizeStickerColorTheme(searchParams.get('color') ?? undefined);
   const requestedVariant = searchParams.get('variant')?.replace(/^acrylic-/, '') as AcrylicShapeKey | undefined;
   const acrylicVariant = productKey === 'armor-tag' && requestedVariant && requestedVariant in ACRYLIC_SHAPES
     ? requestedVariant

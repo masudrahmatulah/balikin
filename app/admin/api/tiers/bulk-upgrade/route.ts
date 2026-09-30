@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
+import { Division } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { user } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,10 +16,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { emails, newRole, adminId } = body;
+    if (session.user.division !== Division.ADMIN) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    if (!emails || !Array.isArray(emails) || emails.length === 0) {
+    const body = await request.json();
+    const { emails, newRole } = body;
+
+    if (!Array.isArray(emails) || emails.length === 0 || !emails.every((email) => typeof email === "string") || !["user", "premium"].includes(newRole)) {
       return NextResponse.json({ error: "Invalid emails data" }, { status: 400 });
     }
 
@@ -28,7 +34,7 @@ export async function POST(request: NextRequest) {
       try {
         // Find user by email
         const existingUser = await db.query.user.findFirst({
-          where: eq(user.email, email),
+          where: and(eq(user.email, email), eq(user.app_id, APP_ID)),
         });
 
         if (!existingUser) {
@@ -40,7 +46,7 @@ export async function POST(request: NextRequest) {
         await db
           .update(user)
           .set({ role: newRole, updatedAt: new Date() })
-          .where(eq(user.id, existingUser.id));
+          .where(and(eq(user.id, existingUser.id), eq(user.app_id, APP_ID)));
 
         successCount++;
       } catch (error) {
@@ -52,7 +58,7 @@ export async function POST(request: NextRequest) {
     // Log the bulk action
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
-      adminId,
+      adminId: session.user.id,
       action: "bulk_change_user_tier",
       entityType: "user",
       entityId: "bulk",

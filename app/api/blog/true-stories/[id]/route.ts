@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { trueStorySubmissions } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { waitUntil } from "@vercel/functions";
+import { headers } from "next/headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -29,7 +30,10 @@ export async function PATCH(
         ...(body.rejectionReason !== undefined && { rejectionReason: body.rejectionReason }),
         updatedAt: new Date(),
       })
-      .where(eq(trueStorySubmissions.id, id))
+      .where(and(
+        eq(trueStorySubmissions.id, id),
+        eq(trueStorySubmissions.app_id, "balikin_id")
+      ))
       .returning();
 
     if (updated.length === 0) {
@@ -38,14 +42,14 @@ export async function PATCH(
 
     const submission = updated[0];
 
-    waitUntil(async () => {
+     waitUntil((async () => {
       if (body.status === "winner_jacket" && submission.whatsappNumber) {
         console.log(`Sending jacket award notification to ${submission.whatsappNumber}`);
       }
       if (body.status === "verified") {
         console.log(`Sending verification confirmation to ${submission.whatsappNumber}`);
       }
-    });
+     })());
 
     return NextResponse.json(submission);
   } catch (error: any) {

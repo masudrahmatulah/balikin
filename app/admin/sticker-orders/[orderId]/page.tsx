@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound, redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
 import QRCode from 'qrcode';
@@ -10,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PrintBundleButton } from '@/components/admin/print-bundle-button';
 import { GenerateVdpOrderButton } from '@/components/admin/generate-vdp-order-button';
-import { getShapeLabel, getSizeLabel } from '@/lib/sticker-template';
+import { getShapeLabel, getSizeLabel, type StickerShape, type StickerSize } from '@/lib/sticker-template';
 import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { getOrderProductDisplayName } from '@/lib/product-catalog';
 
@@ -110,10 +111,12 @@ export default async function AdminStickerOrderDetailPage({
             <CardContent className="pt-0">
               <p className="mb-2 text-sm font-medium text-gray-900 dark:text-white">Gambar custom sisi belakang:</p>
               <a href={order.backsideCustomImageUrl} target="_blank" rel="noopener noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={order.backsideCustomImageUrl}
                   alt="Custom backside"
+                  width={160}
+                  height={160}
+                  unoptimized
                   className="h-40 w-40 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
                 />
               </a>
@@ -163,21 +166,29 @@ export default async function AdminStickerOrderDetailPage({
             </CardContent>
           </Card>
         ) : (
-          bundlesWithQr.map((bundle, bundleIndex) => (
+          bundlesWithQr.map((bundle, bundleIndex) => {
+            const stickerShape: StickerShape = bundle.stickerShape === 'square' || bundle.stickerShape === 'rectangle'
+              ? bundle.stickerShape
+              : 'circle';
+            const stickerSize: StickerSize = bundle.stickerSize === 'small' || bundle.stickerSize === 'large'
+              ? bundle.stickerSize
+              : 'medium';
+
+            return (
             <Card key={bundle.id} className="mb-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Bundle {bundle.id.slice(0, 8)}...</CardTitle>
                     <CardDescription>
-                      {bundle.itemCount} sticker • {getShapeLabel(bundle.stickerShape as any)} • {getSizeLabel(bundle.stickerSize as any)} • {bundle.status}
+                      {bundle.itemCount} sticker • {getShapeLabel(stickerShape)} • {getSizeLabel(stickerSize)} • {bundle.status}
                     </CardDescription>
                   </div>
                   <PrintBundleButton
                     bundleId={bundle.id}
                     bundleIndex={bundleIndex + 1}
-                    stickerShape={bundle.stickerShape as any}
-                    stickerSize={bundle.stickerSize as any}
+                    stickerShape={stickerShape}
+                    stickerSize={stickerSize}
                   />
                 </div>
               </CardHeader>
@@ -206,7 +217,8 @@ export default async function AdminStickerOrderDetailPage({
                 </div>
               </CardContent>
             </Card>
-          ))
+            );
+          })
         )}
     </div>
   );

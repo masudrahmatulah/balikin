@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
+import { hasPermission } from "@/lib/admin-divisions";
 import { db } from "@/db";
 import { shippingTracking, stickerOrders } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { logAuditAction, getRequestContext } from "@/lib/admin-audit";
 
 export const dynamic = "force-dynamic";
+const APP_ID = "balikin_id";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,16 +16,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!hasPermission(session.user.division, "sticker_orders")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
-    const { orderId, courier, trackingNumber, adminId } = body;
+    const { orderId, courier, trackingNumber } = body;
 
     if (!orderId || !courier || !trackingNumber) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const order = await db.query.stickerOrders.findFirst({
+      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)),
+    });
+
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
     // Check if tracking already exists
     const existing = await db.query.shippingTracking.findFirst({
-      where: eq(shippingTracking.orderId, orderId),
+      where: and(eq(shippingTracking.orderId, orderId), eq(shippingTracking.app_id, APP_ID)),
     });
 
     if (existing) {
@@ -37,7 +51,7 @@ export async function POST(request: NextRequest) {
           shippedAt: new Date(),
           updatedAt: new Date(),
         })
-        .where(eq(shippingTracking.orderId, orderId));
+        .where(and(eq(shippingTracking.orderId, orderId), eq(shippingTracking.app_id, APP_ID)));
     } else {
       // Create new tracking
       await db.insert(shippingTracking).values({
@@ -55,12 +69,12 @@ export async function POST(request: NextRequest) {
     await db
       .update(stickerOrders)
       .set({ status: "shipped", updatedAt: new Date() })
-      .where(eq(stickerOrders.id, orderId));
+      .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
 
     // Log the action
     const { ip, userAgent } = await getRequestContext();
     await logAuditAction({
-      adminId,
+      adminId: session.user.id,
       action: "add_tracking",
       entityType: "shipping_tracking",
       entityId: orderId,

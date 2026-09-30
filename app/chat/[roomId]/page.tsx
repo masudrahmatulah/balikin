@@ -14,20 +14,34 @@ interface Message {
   id: string;
   senderType: "owner" | "finder";
   messageText: string;
-  createdAt: Date;
+  createdAt: Date | null;
 }
 
 interface ChatRoom {
   id: string;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   tag: {
     id: string;
-    name: string;
+     name: string | null;
     slug: string;
-    ownerId: string;
-  };
+    ownerId?: string | null;
+  } | null;
+}
+
+function normalizeMessages(messages: Array<{
+  id: string;
+  senderType: string;
+  messageText: string;
+  createdAt: Date | null;
+}>): Message[] {
+  return messages.flatMap((message) => {
+    if (message.senderType !== 'owner' && message.senderType !== 'finder') {
+      return [];
+    }
+    return [{ ...message, senderType: message.senderType, createdAt: message.createdAt }];
+  });
 }
 
 export default function ChatRoomPage() {
@@ -61,7 +75,7 @@ export default function ChatRoomPage() {
       }
 
       if (messagesResult.success && messagesResult.messages) {
-        setMessages(messagesResult.messages);
+        setMessages(normalizeMessages(messagesResult.messages));
       }
 
       setIsLoading(false);
@@ -77,7 +91,7 @@ export default function ChatRoomPage() {
     const interval = setInterval(async () => {
       const result = await getChatMessages(roomId, 20);
       if (result.success && result.messages) {
-        setMessages(result.messages);
+         setMessages(normalizeMessages(result.messages));
       }
     }, 3000); // Poll setiap 3 detik
 
@@ -101,7 +115,7 @@ export default function ChatRoomPage() {
       // Refresh pesan
       const messagesResult = await getChatMessages(roomId);
       if (messagesResult.success && messagesResult.messages) {
-        setMessages(messagesResult.messages);
+         setMessages(normalizeMessages(messagesResult.messages));
       }
     } else {
       toast.error(result.error || "Gagal mengirim pesan");
@@ -128,7 +142,8 @@ export default function ChatRoomPage() {
     }
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: Date | null) => {
+    if (!date) return '-';
     const d = new Date(date);
     return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
   };
@@ -171,7 +186,7 @@ export default function ChatRoomPage() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="font-semibold text-slate-900">{room.tag.name}</h1>
+             <h1 className="font-semibold text-slate-900">{room.tag?.name || 'Tag'}</h1>
             <p className="text-xs text-slate-500 flex items-center gap-1">
               {isOwner ? (
                 <>

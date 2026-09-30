@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { user } from '@/db/schema';
 import { getBlogEditors, updateUserBlogPermissions } from '@/lib/blog-permissions';
@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, Shield, UserPlus } from 'lucide-react';
 
 async function getEditorsData() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }
@@ -26,7 +26,7 @@ async function getEditorsData() {
 async function updateEditorPermissions(formData: FormData) {
   'use server';
 
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return;
   }
@@ -107,31 +107,31 @@ export default async function AdminBlogEditorsPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <PermissionBadge
                   label="Create Posts"
-                  granted={editor.permissions.canCreatePosts}
+                  granted={editor.permissions.canCreatePosts ?? false}
                 />
                 <PermissionBadge
                   label="Edit Own Posts"
-                  granted={editor.permissions.canEditOwnPosts}
+                  granted={editor.permissions.canEditOwnPosts ?? false}
                 />
                 <PermissionBadge
                   label="Edit Any Post"
-                  granted={editor.permissions.canEditAnyPost}
+                  granted={editor.permissions.canEditAnyPost ?? false}
                 />
                 <PermissionBadge
                   label="Publish Posts"
-                  granted={editor.permissions.canPublishPosts}
+                  granted={editor.permissions.canPublishPosts ?? false}
                 />
                 <PermissionBadge
                   label="Moderate Comments"
-                  granted={editor.permissions.canModerateComments}
+                  granted={editor.permissions.canModerateComments ?? false}
                 />
                 <PermissionBadge
                   label="Manage Giveaway"
-                  granted={editor.permissions.canManageGiveaway}
+                  granted={editor.permissions.canManageGiveaway ?? false}
                 />
                 <PermissionBadge
                   label="Review Stories"
-                  granted={editor.permissions.canReviewStories}
+                  granted={editor.permissions.canReviewStories ?? false}
                 />
               </div>
             </div>

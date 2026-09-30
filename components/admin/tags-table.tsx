@@ -5,27 +5,12 @@ import { useRouter } from "next/navigation";
 import { Check, Square, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/date";
 import { BulkDeleteTagsModal } from "@/components/admin/bulk-delete-tags-modal";
+import type { TagWithOwner } from "@/app/actions/admin-tag-actions";
 
-interface TagOwner {
+interface TagOwnerOption {
+  id: string;
   name: string | null;
   email: string;
-}
-
-interface TagOwnerOption extends TagOwner {
-  id: string;
-}
-
-interface TagWithOwner {
-  id: string;
-  name: string;
-  slug: string;
-  status: string;
-  tier: string;
-  productType: string;
-  ownerId: string | null;
-  owner: TagOwner | null;
-  scanCount: number;
-  createdAt: Date;
 }
 
 interface TagsTableProps {

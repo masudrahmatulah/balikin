@@ -1,6 +1,9 @@
 import { db } from "@/db";
 import { auditLogs } from "@/db/schema";
 import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
+
+const APP_ID = "balikin_id";
 
 export interface AuditLogParams {
   adminId: string;
@@ -19,6 +22,7 @@ export interface AuditLogParams {
 export async function logAuditAction(params: AuditLogParams) {
   try {
     await db.insert(auditLogs).values({
+      app_id: APP_ID,
       adminId: params.adminId,
       action: params.action,
       entityType: params.entityType,

@@ -74,31 +74,49 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    // Check if this user has already claimed for this quiz (by phone number)
-    const existing = await db.query.giveawayClaims.findFirst({
-      where: (table, { and, eq }) => and(
-        eq(table.postId, data.postId),
-        eq(table.quizId, data.quizId),
-        eq(table.whatsappNumber, data.whatsappNumber)
-      ),
+    const claim = await db.transaction(async (tx) => {
+      // The current schema has no unique constraint for this natural key. Lock the
+      // parent post so concurrent claims for the same post cannot pass the check together.
+      const [lockedPost] = await tx
+        .select({ id: blogPosts.id })
+        .from(blogPosts)
+        .where(and(
+          eq(blogPosts.id, data.postId),
+          eq(blogPosts.app_id, 'balikin_id'),
+        ))
+        .for('update');
+
+      if (!lockedPost) throw new ValidationError('Artikel giveaway tidak ditemukan.');
+
+      const [existing] = await tx
+        .select({ id: giveawayClaims.id })
+        .from(giveawayClaims)
+        .where(and(
+          eq(giveawayClaims.postId, data.postId),
+          eq(giveawayClaims.quizId, data.quizId),
+          eq(giveawayClaims.whatsappNumber, data.whatsappNumber),
+          eq(giveawayClaims.app_id, 'balikin_id'),
+        ))
+        .limit(1);
+
+      if (existing) {
+        throw new ValidationError(
+          'Anda sudah pernah mengklaim hadiah untuk kuis ini',
+          'DUPLICATE_CLAIM'
+        );
+      }
+
+      return tx.insert(giveawayClaims).values({
+        app_id: 'balikin_id',
+        postId: data.postId,
+        quizId: data.quizId,
+        fullName: data.fullName,
+        whatsappNumber: data.whatsappNumber,
+        shippingAddress: data.shippingAddress,
+        score: quizResult.score,
+        status: 'pending',
+      }).returning();
     });
-
-    if (existing) {
-      throw new ValidationError(
-        'Anda sudah pernah mengklaim hadiah untuk kuis ini',
-        'DUPLICATE_CLAIM'
-      );
-    }
-
-    const claim = await db.insert(giveawayClaims).values({
-      postId: data.postId,
-      quizId: data.quizId,
-      fullName: data.fullName,
-      whatsappNumber: data.whatsappNumber,
-      shippingAddress: data.shippingAddress,
-      score: quizResult.score,
-      status: 'pending',
-    }).returning();
 
     return NextResponse.json(
       { success: true, claimId: claim[0].id, score: quizResult.score },
@@ -133,11 +151,15 @@ export async function GET(req: NextRequest) {
     let claims;
     if (status) {
       claims = await db.query.giveawayClaims.findMany({
-        where: eq(giveawayClaims.status, status),
+        where: and(
+          eq(giveawayClaims.status, status),
+          eq(giveawayClaims.app_id, 'balikin_id')
+        ),
         orderBy: (table, { desc }) => desc(table.createdAt),
       });
     } else {
       claims = await db.query.giveawayClaims.findMany({
+        where: eq(giveawayClaims.app_id, 'balikin_id'),
         orderBy: (table, { desc }) => desc(table.createdAt),
       });
     }

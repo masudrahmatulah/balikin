@@ -40,7 +40,8 @@ function buildTagWhere(filters: AdminTagFilters, ownerSearchIds: string[] = []) 
     if (ownerSearchIds.length > 0) {
       searchConditions.push(inArray(tags.ownerId, ownerSearchIds));
     }
-    conditions.push(or(...searchConditions));
+    const searchCondition = or(...searchConditions);
+    if (searchCondition) conditions.push(searchCondition);
   }
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(tags.status, filters.status));
@@ -66,7 +67,10 @@ export async function getTagsForAdmin(filters: AdminTagFilters = {}): Promise<Ad
     ? (await db
         .select({ id: user.id })
         .from(user)
-        .where(or(ilike(user.name, `%${search}%`), ilike(user.email, `%${search}%`))))
+        .where(and(
+          eq(user.app_id, 'balikin_id'),
+          or(ilike(user.name, `%${search}%`), ilike(user.email, `%${search}%`)),
+        )))
         .map((row) => row.id)
     : [];
   const where = buildTagWhere(filters, ownerSearchIds);
@@ -76,10 +80,10 @@ export async function getTagsForAdmin(filters: AdminTagFilters = {}): Promise<Ad
 
   const pageTags = await db.query.tags.findMany({
     where,
-    orderBy: [desc(tags.createdAt)],
-    with: {
+      orderBy: [desc(tags.createdAt)],
+      with: {
       owner: true,
-    },
+      },
     limit: ADMIN_TAGS_PAGE_SIZE,
     offset: (page - 1) * ADMIN_TAGS_PAGE_SIZE,
   });
@@ -89,7 +93,10 @@ export async function getTagsForAdmin(filters: AdminTagFilters = {}): Promise<Ad
     ? await db
         .select({ tagId: scanLogs.tagId, count: count() })
         .from(scanLogs)
-        .where(inArray(scanLogs.tagId, tagIds))
+         .where(and(
+           inArray(scanLogs.tagId, tagIds),
+           eq(scanLogs.app_id, 'balikin_id'),
+         ))
         .groupBy(scanLogs.tagId)
     : [];
 

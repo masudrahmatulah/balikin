@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { giveawayClaims } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { waitUntil } from "@vercel/functions";
+import { getAdminSession } from "@/lib/admin";
+import { canAccessRoute } from "@/lib/admin-divisions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,9 +13,12 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "admin") {
+  const adminSession = await getAdminSession();
+  if (!adminSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!canAccessRoute(adminSession.user.division, "/admin/blog/giveaway")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
@@ -27,11 +31,14 @@ export async function PATCH(
         ...(body.status !== undefined && { status: body.status }),
         ...(body.trackingNumber !== undefined && { trackingNumber: body.trackingNumber }),
         ...(body.notes !== undefined && { notes: body.notes }),
-        processedBy: session.user.id,
+        processedBy: adminSession.user.id,
         processedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(giveawayClaims.id, id))
+      .where(and(
+        eq(giveawayClaims.id, id),
+        eq(giveawayClaims.app_id, "balikin_id"),
+      ))
       .returning();
 
     if (updated.length === 0) {
@@ -40,14 +47,14 @@ export async function PATCH(
 
     const claim = updated[0];
 
-    waitUntil(async () => {
+     waitUntil((async () => {
       if (body.status === "shipped" && claim.whatsappNumber) {
         console.log(`Sending shipping notification to ${claim.whatsappNumber}: Tracking ${claim.trackingNumber}`);
       }
       if (body.status === "approved") {
         console.log(`Sending approval notification to ${claim.whatsappNumber}`);
       }
-    });
+     })());
 
     return NextResponse.json(claim);
   } catch (error: any) {

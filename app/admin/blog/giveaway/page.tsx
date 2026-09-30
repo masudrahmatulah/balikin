@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
+import { getAdminSession } from '@/lib/admin';
 import { db } from '@/db';
 import { giveawayClaims, blogPosts } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { GiveawayClaimsTable } from '@/components/blog/giveaway-claims-table';
 
 async function getGiveawayClaims() {
-  const session = await auth();
+  const session = await getAdminSession();
   if (!session?.user || session.user.role !== 'admin') {
     return null;
   }

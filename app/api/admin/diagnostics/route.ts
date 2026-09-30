@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { user, tags, scanLogs } from '@/db/schema';
-import { count } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { isAdmin } from '@/lib/admin';
 
 export const dynamic = 'force-dynamic';
@@ -43,15 +43,15 @@ export async function GET() {
   const test = async (
     name: string,
     timeoutMs: number,
-    testFn: () => Promise<{ duration: number; details: string; status: 'success' | 'warning' | 'error' }>
+    testFn: () => Promise<{ details: string; status: 'success' | 'warning' | 'error' }>
   ) => {
     const start = Date.now();
     try {
       const result = await withTimeout(testFn(), timeoutMs, `Test timeout after ${timeoutMs}ms`);
       results.tests.push({
         name,
-        duration: Date.now() - start,
         ...result,
+        duration: Date.now() - start,
       });
     } catch (error) {
       results.tests.push({
@@ -67,7 +67,9 @@ export async function GET() {
   await test('Database Connection', 2000, async () => {
     const start = Date.now();
     try {
-      await db.select({ count: count() }).from(user).limit(1);
+      await db.select({ count: count() }).from(user)
+        .where(eq(user.app_id, 'balikin_id'))
+        .limit(1);
       const duration = Date.now() - start;
 
       if (duration > 1000) {
@@ -88,7 +90,8 @@ export async function GET() {
   // Test 2: User Count Query (with timeout)
   await test('User Count Query', 3000, async () => {
     const start = Date.now();
-    const userCount = await db.select({ count: count() }).from(user);
+    const userCount = await db.select({ count: count() }).from(user)
+      .where(eq(user.app_id, 'balikin_id'));
     const duration = Date.now() - start;
     const countValue = userCount[0]?.count || 0;
 
@@ -107,7 +110,8 @@ export async function GET() {
   // Test 3: Tag Count Query (with timeout)
   await test('Tag Count Query', 3000, async () => {
     const start = Date.now();
-    const tagCount = await db.select({ count: count() }).from(tags);
+    const tagCount = await db.select({ count: count() }).from(tags)
+      .where(eq(tags.app_id, 'balikin_id'));
     const duration = Date.now() - start;
     const countValue = tagCount[0]?.count || 0;
 

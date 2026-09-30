@@ -36,21 +36,9 @@ async function getRecentBundlesCore(limit: number = 10) {
     where: sql`${tags.bundleType} IS NOT NULL AND ${tags.app_id} = 'balikin_id'`,
     orderBy: [desc(tags.createdAt)],
     limit,
-    columns: {
-      id: true,
-      slug: true,
-      name: true,
-      tier: true,
-      bundleType: true,
-      ownerId: true,
-      createdAt: true,
-    },
   });
 
-  return recentBundles.map(tag => ({
-    ...tag,
-    createdAt: tag.createdAt?.toISOString() || new Date().toISOString(),
-  }));
+  return recentBundles;
 }
 
 /**

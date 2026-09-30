@@ -10,8 +10,8 @@ interface StockItem {
   slug: string;
   tier: string;
   status: string;
-  name: string;
-  ownerEmail: string | null;
+  name: string | null;
+  ownerId: string | null;
   createdAt: string;
 }
 
@@ -29,13 +29,13 @@ export function StockItemsTable() {
     try {
       const result = await getDetailedStockServer(
         tierFilter || undefined,
-        statusFilter || undefined,
+        statusFilter === "claimed" || statusFilter === "unclaimed" ? statusFilter : "all",
         "createdAt",
         "desc",
         pageSize,
         page
       );
-      setItems(result.items as any);
+       setItems(result.items);
       setTotal(result.total);
     } catch (e) {
       console.error("Failed to fetch stock data", e);
@@ -53,7 +53,7 @@ export function StockItemsTable() {
   return (
     <div className="space-y-4">
       <div className="flex gap-4 items-center">
-        <Select value={tierFilter} onValueChange={setTierFilter}>
+        <Select value={tierFilter} onValueChange={(value) => value !== null && setTierFilter(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by tier" />
           </SelectTrigger>
@@ -64,7 +64,7 @@ export function StockItemsTable() {
             <SelectItem value="bundle">Bundles</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(value) => value !== null && setStatusFilter(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -105,7 +105,7 @@ export function StockItemsTable() {
                 <TableCell>{item.slug}</TableCell>
                 <TableCell>{item.tier}</TableCell>
                 <TableCell>{item.status}</TableCell>
-                <TableCell>{item.ownerEmail || "-"}</TableCell>
+                <TableCell>{item.ownerId || "-"}</TableCell>
                 <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
               </TableRow>
             ))

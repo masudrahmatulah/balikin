@@ -133,6 +133,7 @@ export async function GET(request: NextRequest) {
           .from(user)
           .where(
             and(
+              eq(user.app_id, 'balikin_id'),
               gte(user.createdAt, new Date(date.setHours(0, 0, 0, 0))),
               lt(user.createdAt, new Date(date.setHours(23, 59, 59, 999)))
             )
@@ -143,6 +144,7 @@ export async function GET(request: NextRequest) {
           .from(stickerOrders)
           .where(
             and(
+              eq(stickerOrders.app_id, 'balikin_id'),
               gte(stickerOrders.createdAt, new Date(date.setHours(0, 0, 0, 0))),
               lt(stickerOrders.createdAt, new Date(date.setHours(23, 59, 59, 999)))
             )
@@ -167,6 +169,7 @@ export async function GET(request: NextRequest) {
           .from(user)
           .where(
             and(
+              eq(user.app_id, 'balikin_id'),
               gte(user.createdAt, weekStart),
               lt(user.createdAt, weekEnd)
             )
@@ -177,6 +180,7 @@ export async function GET(request: NextRequest) {
           .from(stickerOrders)
           .where(
             and(
+              eq(stickerOrders.app_id, 'balikin_id'),
               gte(stickerOrders.createdAt, weekStart),
               lt(stickerOrders.createdAt, weekEnd)
             )
@@ -201,6 +205,7 @@ export async function GET(request: NextRequest) {
           .from(user)
           .where(
             and(
+              eq(user.app_id, 'balikin_id'),
               gte(user.createdAt, monthStart),
               lt(user.createdAt, monthEnd)
             )
@@ -211,6 +216,7 @@ export async function GET(request: NextRequest) {
           .from(stickerOrders)
           .where(
             and(
+              eq(stickerOrders.app_id, 'balikin_id'),
               gte(stickerOrders.createdAt, monthStart),
               lt(stickerOrders.createdAt, monthEnd)
             )

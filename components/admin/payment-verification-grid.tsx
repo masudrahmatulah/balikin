@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Image, CheckCircle2, XCircle, Clock, Package, User, Calendar, CreditCard, AlertCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Package, User, Calendar, CreditCard, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface Payment {
@@ -26,7 +27,7 @@ interface Payment {
   unitCountPerPack: number;
   totalAmount: number;
   paymentProofUrl: string | null;
-  createdAt: Date;
+  createdAt: Date | null;
   user: {
     id: string;
     name: string | null;
@@ -204,7 +205,7 @@ export function PaymentVerificationGrid({ payments, adminId }: PaymentVerificati
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <Calendar className="w-4 h-4" />
-                    <span>{format(new Date(payment.createdAt), "MMM dd, HH:mm")}</span>
+                     <span>{payment.createdAt ? format(new Date(payment.createdAt), "MMM dd, HH:mm") : "-"}</span>
                   </div>
                 </div>
 
@@ -214,10 +215,12 @@ export function PaymentVerificationGrid({ payments, adminId }: PaymentVerificati
                     <DialogTrigger asChild>
                       <div className="relative cursor-pointer group">
                         <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                          <Image
-                            src={payment.paymentProofUrl}
-                            alt="Payment proof"
-                            className="w-full h-full object-cover"
+                           <Image
+                             src={payment.paymentProofUrl}
+                             alt="Payment proof"
+                             fill
+                             sizes="(min-width: 1024px) 33vw, 100vw"
+                             className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -233,6 +236,8 @@ export function PaymentVerificationGrid({ payments, adminId }: PaymentVerificati
                         <Image
                           src={payment.paymentProofUrl}
                           alt="Payment proof"
+                          fill
+                          sizes="100vw"
                           className="w-full h-full object-contain"
                         />
                       </div>

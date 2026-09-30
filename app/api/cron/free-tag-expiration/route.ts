@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       .returning({ id: tags.id });
 
     if (result.length > 0) {
-      revalidateTag('tags');
+       revalidateTag('tags', 'max');
     }
 
     return NextResponse.json({ success: true, updated: result.length });

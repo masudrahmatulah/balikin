@@ -45,7 +45,7 @@ export function SecurityContent() {
                     <Lock className="h-10 w-10 text-blue-600 mx-auto" aria-hidden="true" />
                   ) : (
                     <Image
-                      src={cert.image}
+                      src={cert.image ?? ''}
                       alt={cert.title}
                       width={80}
                       height={80}

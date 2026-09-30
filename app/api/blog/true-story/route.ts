@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { db } from '@/db';
-import { trueStorySubmissions, user } from '@/db/schema';
+import { trueStorySubmissions } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { eq, desc } from 'drizzle-orm';
 import { logError, ValidationError, AppError } from '@/lib/error-handler';
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // Zod validation
     const validationResult = TrueStorySubmissionSchema.safeParse(body);
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.errors.map(e => e.message).join(', ');
+       const errorMessages = validationResult.error.issues.map((issue) => issue.message).join(', ');
       throw new ValidationError(`Validasi gagal: ${errorMessages}`);
     }
 
@@ -61,7 +61,10 @@ export async function POST(req: NextRequest) {
 
     // Validate that the Balikin Tag exists
     const tagExists = await db.query.tags.findFirst({
-      where: eq(db.schema.tags.slug, data.balikinTagId),
+      where: (table, { and, eq }) => and(
+        eq(table.slug, data.balikinTagId),
+        eq(table.app_id, 'balikin_id')
+      ),
     });
 
     if (!tagExists) {
@@ -72,6 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     const submission = await db.insert(trueStorySubmissions).values({
+      app_id: 'balikin_id',
       fullName: data.fullName,
       whatsappNumber: data.whatsappNumber,
       balikinTagId: data.balikinTagId,
@@ -88,7 +92,10 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         const admins = await db.query.user.findMany({
-          where: eq(user.role, 'admin'),
+          where: (table, { and, eq }) => and(
+            eq(table.role, 'admin'),
+            eq(table.app_id, 'balikin_id')
+          ),
           limit: 5,
         });
 
@@ -148,11 +155,15 @@ export async function GET(req: NextRequest) {
     let submissions;
     if (status) {
       submissions = await db.query.trueStorySubmissions.findMany({
-        where: eq(trueStorySubmissions.status, status),
+        where: (table, { and, eq }) => and(
+          eq(table.status, status),
+          eq(table.app_id, 'balikin_id')
+        ),
         orderBy: (table, { desc }) => desc(table.createdAt),
       });
     } else {
       submissions = await db.query.trueStorySubmissions.findMany({
+        where: eq(trueStorySubmissions.app_id, 'balikin_id'),
         orderBy: (table, { desc }) => desc(table.createdAt),
       });
     }

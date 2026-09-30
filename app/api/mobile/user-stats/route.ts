@@ -73,7 +73,8 @@ export async function GET() {
         .where(
           and(
             sql`${scanLogs.tagId} = ANY(${stickerTagIds})`,
-            gte(scanLogs.scannedAt, thirtyDaysAgo)
+            gte(scanLogs.scannedAt, thirtyDaysAgo),
+            eq(scanLogs.app_id, 'balikin_id')
           )
         );
       totalScans += stickerScans[0]?.count || 0;
@@ -83,7 +84,10 @@ export async function GET() {
       const tagScans = await db
         .select({ count: count() })
         .from(scanLogs)
-        .where(sql`${scanLogs.tagId} = ANY(${nonStickerTagIds})`);
+          .where(and(
+            sql`${scanLogs.tagId} = ANY(${nonStickerTagIds})`,
+            eq(scanLogs.app_id, 'balikin_id')
+          ));
       totalScans += tagScans[0]?.count || 0;
     }
 

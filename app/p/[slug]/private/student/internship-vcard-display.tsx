@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, Share2, Mail, Phone, Globe, User, QrCode } from 'lucide-react';
 import { generateQRCodeDataURL } from '@/lib/qrcode-generator';
 import type { StudentKitData } from '@/db/schema';
+import { vCardSchema } from '@/lib/vcard';
 
 interface InternshipVCardDisplayProps {
   data: StudentKitData;
@@ -16,7 +17,8 @@ export function InternshipVCardDisplay({ data }: InternshipVCardDisplayProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
 
-  const vcardData = data.vcardData ? JSON.parse(data.vcardData) : null;
+  const parsedVCard = data.vcardData ? vCardSchema.safeParse(JSON.parse(data.vcardData)) : null;
+  const vcardData = parsedVCard?.success ? parsedVCard.data : null;
 
   useEffect(() => {
     if (data.vcardShareCode) {
@@ -164,7 +166,7 @@ export function InternshipVCardDisplay({ data }: InternshipVCardDisplayProps) {
               onClick={() => setShowQr(!showQr)}
               className="w-full mb-3"
             >
-              <QRCode className="w-4 h-4 mr-2" />
+              <QrCode className="w-4 h-4 mr-2" />
               {showQr ? 'Sembunyikan' : 'Tampilkan'} QR Code
             </Button>
 

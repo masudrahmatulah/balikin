@@ -68,12 +68,14 @@ export async function getLostFoundRateCached(days: number): Promise<LostFoundRat
       for (const tag of lostTags.filter(t => t.status === 'lost')) {
         if (recoveredTagIds.has(tag.id) && tag.createdAt) {
           const firstScan = recoveryScans
-            .filter(s => s.tagId === tag.id)
+            .filter((s): s is typeof s & { scannedAt: Date } =>
+              s.tagId === tag.id && s.scannedAt !== null
+            )
             .sort((a, b) =>
               new Date(a.scannedAt).getTime() - new Date(b.scannedAt).getTime()
             )[0];
 
-          if (firstScan) {
+          if (firstScan?.scannedAt && tag.createdAt) {
             const recoveryTime = new Date(firstScan.scannedAt).getTime() -
               new Date(tag.createdAt).getTime();
             recoveryTimes.push(recoveryTime);

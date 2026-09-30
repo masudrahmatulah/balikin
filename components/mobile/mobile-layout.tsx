@@ -12,18 +12,20 @@ interface MobileLayoutProps {
   activeTab?: 'home' | 'profile';
 }
 
+type MobileTab = 'home' | 'profile';
+
 export function MobileLayout({ children, activeTab = 'home' }: MobileLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState(activeTab);
 
-  const tabs = [
+  const tabs: Array<{ id: MobileTab; label: string; icon: typeof Home; path: string }> = [
     { id: 'home', label: 'Beranda', icon: Home, path: '/mobile' },
     { id: 'profile', label: 'Profil', icon: User, path: '/mobile/profile' },
   ];
 
-  const handleTabChange = (tabId: string, path: string) => {
-    setCurrentTab(tabId as any);
+  const handleTabChange = (tabId: MobileTab, path: string) => {
+    setCurrentTab(tabId);
     router.push(path);
   };
 

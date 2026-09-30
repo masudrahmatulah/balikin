@@ -48,6 +48,8 @@ const options = {
     date: {
       to: 1184,
       from: [1082, 1083, 1114, 1184],
+      serialize: (value: Date) => value,
+      parse: (value: string) => new Date(value),
     },
   },
 };

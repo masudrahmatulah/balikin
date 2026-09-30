@@ -72,7 +72,7 @@ export function LostFoundSuccessRate() {
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={period.toString()} onValueChange={(v) => setPeriod(parseInt(v))}>
+          <Select value={period.toString()} onValueChange={(v) => v !== null && setPeriod(parseInt(v))}>
             <SelectTrigger className="w-[100px]" aria-label="Select time period">
               <SelectValue />
             </SelectTrigger>

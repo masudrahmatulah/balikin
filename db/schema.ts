@@ -1,4 +1,4 @@
-import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index, AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations, desc } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase
@@ -1085,7 +1085,7 @@ export const blogComments = pgTable('blog_comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   app_id: text('app_id').default('balikin_id').notNull(),
   postId: uuid('post_id').notNull().references(() => blogPosts.id, { onDelete: 'cascade' }),
-  parentId: uuid('parent_id').references(() => blogComments.id, { onDelete: 'cascade' }), // For threading/replies
+  parentId: uuid('parent_id').references((): AnyPgColumn => blogComments.id, { onDelete: 'cascade' }), // For threading/replies
   userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // Optional - if logged in
   name: text('name').notNull(),
   commentText: text('comment_text').notNull(),

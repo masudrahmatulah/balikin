@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Printer,
-  Package,
-  ClipboardList,
-  Layers,
-  Tag,
+  IconLayoutDashboard,
+  IconPrinter,
+  IconPackage,
+  IconClipboardList,
+  IconStack,
+  IconTag,
 } from "@tabler/icons-react";
 
 interface NavItem {
@@ -26,32 +26,32 @@ const navItems: NavItem[] = [
   {
     title: "Dashboard",
     href: "/admin",
-    icon: LayoutDashboard,
+    icon: IconLayoutDashboard,
   },
   {
     title: "Print Queue",
     href: "/admin/print-queue",
-    icon: Printer,
+    icon: IconPrinter,
   },
   {
     title: "Stock Status",
     href: "/admin/stock",
-    icon: Package,
+    icon: IconPackage,
   },
   {
     title: "Material Logs",
     href: "/admin/material-logs",
-    icon: ClipboardList,
+    icon: IconClipboardList,
   },
   {
     title: "VDP Tool",
     href: "/admin/vdp-tool",
-    icon: Layers,
+    icon: IconStack,
   },
   {
     title: "Tags",
     href: "/admin/tags",
-    icon: Tag,
+    icon: IconTag,
   },
 ];
 

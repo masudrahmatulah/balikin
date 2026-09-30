@@ -19,11 +19,11 @@ interface TrueStorySubmission {
   storyDescription: string;
   videoUrl: string;
   balikinTagId: string;
-  jacketSize: "S" | "M" | "L" | "XL" | "XXL";
-  status: "pending" | "verified" | "winner_jacket" | "rejected";
+  jacketSize: string;
+  status: string;
   shippingAddress: string | null;
   rejectionReason: string | null;
-  createdAt: string;
+  createdAt: Date | string;
 }
 
 interface TrueStoriesTableProps {
@@ -127,14 +127,14 @@ export function TrueStoriesTable({ submissions, currentUserId }: TrueStoriesTabl
     }
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: "bg-amber-500/10 text-amber-600",
     verified: "bg-blue-500/10 text-blue-600",
     winner_jacket: "bg-emerald-500/10 text-emerald-600",
     rejected: "bg-destructive/10 text-destructive",
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: "Pending Review",
     verified: "Verified",
     winner_jacket: "🏆 Jacket Winner",
@@ -150,7 +150,7 @@ export function TrueStoriesTable({ submissions, currentUserId }: TrueStoriesTabl
             <Badge variant="secondary">{filteredSubmissions.length}</Badge>
           </div>
 
-          <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+           <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -175,8 +175,8 @@ export function TrueStoriesTable({ submissions, currentUserId }: TrueStoriesTabl
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold">{submission.fullName}</span>
-                        <Badge className={statusColors[submission.status]}>
-                          {statusLabels[submission.status]}
+                         <Badge className={statusColors[submission.status as keyof typeof statusColors]}>
+                           {statusLabels[submission.status as keyof typeof statusLabels]}
                         </Badge>
                         <Badge variant="outline">Size: {submission.jacketSize}</Badge>
                       </div>
