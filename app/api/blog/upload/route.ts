@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/admin';
 import { uploadBlogImage, generateBlogImageFilename, getImageExtension, isValidImageFile } from '@/lib/blob-storage';
 import { logError, AppError, ValidationError } from '@/lib/error-handler';

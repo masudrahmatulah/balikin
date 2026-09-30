@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { logError, ValidationError, AppError, NotFoundError } from '@/lib/error-handler';
 import { getBlogSessionForAction } from '@/lib/blog-permissions';
 import {

@@ -222,7 +222,7 @@ export async function getLostFoundSuccessRate(days = 30) {
 
       let totalLostEvents = 0;
       let recoveredItems = 0;
-      let recoveryTimes: number[] = [];
+      const recoveryTimes: number[] = [];
 
       try {
         // Get tags that were lost in the period
@@ -372,7 +372,7 @@ export async function getGeoScanData(days = 7) {
 export async function getBatchActivationMetrics() {
   const cache = unstable_cache(
     async () => {
-      let metrics: Array<{
+      const metrics: Array<{
         institution: string;
         bundleType: string;
         totalItems: number;
@@ -481,7 +481,7 @@ export async function getConversionFunnelData(timeRange: 'daily' | 'weekly' | 'm
         startDate.setDate(startDate.getDate() - 30);
       }
 
-      let funnelStages = [
+      const funnelStages = [
         { stage: 'Free Users (Digital DIY)', count: 0 },
         { stage: 'Sticker Buyers', count: 0 },
         { stage: 'Premium Upgrades', count: 0 },

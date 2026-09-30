@@ -4,7 +4,8 @@
  */
 
 import QRCodeStyling from 'qr-code-styling';
-import { BundleType, getBundleConfig } from './bundles';
+import type { BundleType} from './bundles';
+import { getBundleConfig } from './bundles';
 
 /**
  * Premium color schemes for different product types

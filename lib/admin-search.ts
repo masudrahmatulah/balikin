@@ -29,7 +29,7 @@ export interface SearchOptions {
  */
 function sanitizeSearchQuery(query: string): string {
   // Remove dangerous SQL characters
-  let sanitized = query
+  const sanitized = query
     .replace(/['";\\]/g, '') // Remove quotes and backslashes
     .replace(/--/g, '')       // Remove SQL comments
     .replace(/\/\*/g, '')     // Remove block comment start

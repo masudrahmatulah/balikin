@@ -6,7 +6,8 @@ import { eq, and, isNull } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { BundleType, getBundleConfig } from '@/lib/bundles';
+import type { BundleType} from '@/lib/bundles';
+import { getBundleConfig } from '@/lib/bundles';
 import type { ModuleType } from '@/lib/admin-modules';
 
 export interface ClaimBundleInput {

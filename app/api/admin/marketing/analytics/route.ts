@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { db } from "@/db";
 import { user, tags, stickerOrders, scanLogs, userModuleSelections } from "@/db/schema";
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest) {
     ];
 
     // Time Series Data
-    let timeSeriesData: any[] = [];
+    const timeSeriesData: any[] = [];
 
     if (timeRange === "daily") {
       // Generate daily data for last 7 days

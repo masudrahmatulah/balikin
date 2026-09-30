@@ -25,7 +25,7 @@ export async function getLostFoundRateCached(days: number): Promise<LostFoundRat
 
   let totalLostEvents = 0;
   let recoveredItems = 0;
-  let recoveryTimes: number[] = [];
+  const recoveryTimes: number[] = [];
 
   try {
     const lostTags = await db

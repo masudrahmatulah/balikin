@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { db } from '@/db';

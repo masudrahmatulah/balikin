@@ -12,7 +12,7 @@ import { BlogSetupGallery } from '@/components/blog/setup-gallery';
 import { BlogSocialSharing } from '@/components/blog/social-sharing';
 import { BlogRelatedPosts } from '@/components/blog/related-posts';
 import { BlogHouseAd, shouldShowHouseAds, countWords, splitMarkdownBlocks } from '@/components/blog/blog-house-ad';
-import { BlogModule } from '@/types/blog';
+import type { BlogModule } from '@/types/blog';
 import { buildBlogSchemas } from '@/lib/blog-jsonld';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

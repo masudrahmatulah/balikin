@@ -9,7 +9,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { FREE_TAG_LIMIT, FREE_TAG_TRIAL_DAYS } from '@/lib/constants';
 import { hashValue } from '@/lib/crypto';
-import { ProductType } from '@/lib/product';
+import type { ProductType } from '@/lib/product';
 import { revalidatePath } from 'next/cache';
 
 function validateTagName(name: string): string {

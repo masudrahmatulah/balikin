@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { publishScheduledPosts } from "@/lib/blog-publish";
 import { isCronAuthorized } from '@/lib/cron-auth';
 

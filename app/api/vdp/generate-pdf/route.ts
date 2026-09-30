@@ -3,7 +3,7 @@
  * Generates 4-column layout (2 tags × 2 columns: QR Utama + Logo/Foto) as PNG images
  */
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { generateVDPStream, generateBatchReprint, type TagVDPData } from '@/lib/vdp-engine';
 import { deriveAcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { db } from '@/db';

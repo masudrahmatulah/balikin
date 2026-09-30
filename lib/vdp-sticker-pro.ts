@@ -189,7 +189,7 @@ export async function generateProtectedCardSheet(
   productKey: ProtectedCardProductKey,
   colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
 ): Promise<Buffer> {
-  let canvas = await sharp({
+  const canvas = await sharp({
     create: {
       width: A5_WIDTH_PX,
       height: A5_HEIGHT_PX,
@@ -257,7 +257,7 @@ export async function generateFamilyCardSheet(
   tags: StickerProTag[],
   colorTheme: StickerColorTheme = DEFAULT_STICKER_COLOR_THEME,
 ): Promise<Buffer> {
-  let canvas = await sharp({
+  const canvas = await sharp({
     create: {
       width: A5_WIDTH_PX,
       height: A5_HEIGHT_PX,

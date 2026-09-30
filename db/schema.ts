@@ -1,4 +1,5 @@
-import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index, AnyPgColumn } from 'drizzle-orm/pg-core';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import { pgTableCreator, uuid, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { relations, desc } from 'drizzle-orm';
 
 // Create tables with balikin_ prefix and app_id for multi-tenant Supabase

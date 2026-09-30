@@ -79,7 +79,7 @@ export const getCachedPostBySlug = unstable_cache(
  */
 export const getCachedPostCount = unstable_cache(
   async (filter?: { category?: string; tag?: string }) => {
-    let where = and(
+    const where = and(
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
     );

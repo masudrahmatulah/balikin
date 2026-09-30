@@ -29,6 +29,7 @@ import {
   Target,
   Ticket,
   KeyRound,
+  Video,
   ChevronDown,
   type LucideIcon,
 } from "lucide-react";
@@ -62,6 +63,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "Conversion Funnel": Repeat,
   "Module Performance": BarChart3,
   Campaigns: Target,
+  "Video Planner": Video,
   Coupons: Ticket,
 };
 

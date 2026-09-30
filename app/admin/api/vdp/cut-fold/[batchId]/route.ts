@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { generateCutFoldPDFByBatchId } from '@/app/actions/cut-fold-pdf';
 import type { PaperSize } from '@/lib/sticker-template';
 

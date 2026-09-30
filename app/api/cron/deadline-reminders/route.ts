@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { processDeadlineReminders } from '@/lib/deadline-reminders';
 import { isCronAuthorized } from '@/lib/cron-auth';
 const MAX_EXECUTION_TIME = 280000;
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
-  let cleanup = false;
+  const cleanup = false;
 
   try {
     if (!isCronAuthorized(request)) {

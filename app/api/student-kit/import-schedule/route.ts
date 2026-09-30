@@ -7,7 +7,8 @@
  * ✅ Rate limiting support
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { importSchedule } from '@/app/actions/student-kit-actions';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';

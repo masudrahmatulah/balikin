@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 
 interface AuthPageWrapperProps {

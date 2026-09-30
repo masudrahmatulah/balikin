@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin";
 import { db } from "@/db";
 import { tags, printQueue, printBatches, stickerSheets, stickerOrders, tagBundles } from "@/db/schema";

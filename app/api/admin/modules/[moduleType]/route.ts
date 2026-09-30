@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { updateModuleConfig } from '@/app/actions/module-config-actions';
 import { isAdmin } from '@/lib/admin';
 

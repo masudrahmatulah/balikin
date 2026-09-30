@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { uploadR2Object } from '@/lib/r2-storage';
 import { isAdmin } from '@/lib/admin';
 

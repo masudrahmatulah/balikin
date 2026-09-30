@@ -74,7 +74,7 @@ export async function generateA5TwoColStickerSheet(
   defaultLogoBuffer?: Buffer
 ): Promise<Buffer> {
   // Create base canvas (white background at 300 DPI)
-  let canvas = await sharp({
+  const canvas = await sharp({
     create: {
       width: A5_WIDTH_PX,
       height: A5_HEIGHT_PX,

@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { BlogOGImageTemplate } from '@/components/blog/og-image-template';
 
 export const runtime = 'nodejs';

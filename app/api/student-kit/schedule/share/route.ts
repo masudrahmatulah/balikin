@@ -8,7 +8,8 @@
  * ✅ Secure session management
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { shareSchedule } from '@/app/actions/student-kit-actions';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';

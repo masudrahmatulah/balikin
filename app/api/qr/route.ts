@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { generateCachedQRCode } from "./data-access";
 import { isQRCodeError } from "@/lib/qrcode-generator";
 

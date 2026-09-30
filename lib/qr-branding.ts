@@ -2,7 +2,8 @@
  * QR Code branding utilities for generating branded QR codes
  */
 
-import { BundleType, getBundleConfig } from './bundles';
+import type { BundleType} from './bundles';
+import { getBundleConfig } from './bundles';
 
 export interface QRBrandConfig {
   foregroundColor: string;

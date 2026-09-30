@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { chatRooms, messages } from '@/db/schema';
 import { and, lt, eq, inArray } from 'drizzle-orm';

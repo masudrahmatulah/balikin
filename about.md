@@ -179,6 +179,18 @@ Menghilangkan hambatan masuk (barrier to entry) dengan memberikan akses sistem d
 * **Atomic Deduction:** Stok hanya dikurangi saat pembayaran diverifikasi.
 * **Stock Failure:** Order yang kehabisan stok menjadi `stock_unavailable` untuk refund atau penggantian varian.
 
+### Video Campaign Planner (`/admin/marketing/video-planner`)
+* **Tujuan:** Menjaga produksi konten promosi tetap konsisten dengan target awal mahasiswa dan ritme dua video per minggu.
+* **Library:** 30 ide video terstruktur dalam kategori masalah, edukasi, produk, dan trust.
+* **Script Generator:** Menghasilkan hook, script bertimestamp, voice-over, teks layar, visual, dan CTA.
+* **AI Video Prompt:** Prompt vertikal 9:16 yang siap disalin ke Google Flow atau generator video lain.
+* **Thumbnail Prompt:** Konsep thumbnail universal, teks overlay maksimal empat kata, prompt visual, dan negative prompt.
+* **Publication Pack:** Deskripsi video, caption, hashtag, YouTube tags/keywords, komentar pin, CTA, dan link katalog.
+* **Claim Guard:** Checklist wajib untuk mencegah QR palsu hasil AI, nomor HP tampil, klaim GPS live, harga keliru, atau simulasi yang dianggap testimoni nyata.
+* **Workflow:** Status Ide → Script selesai → Prompt siap → Diproduksi → Diposting → Dievaluasi.
+* **Metrik MVP:** Views dan likes dicatat sederhana per ide.
+* **Penyimpanan MVP:** Status dan metrik disimpan pada browser admin. Migrasi ke tabel campaign video dapat dilakukan setelah pola kerja tervalidasi.
+
 ### Layout Editor (Coming Soon)
 * **Custom Design:** Editor untuk desain sticker kustom.
 

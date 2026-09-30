@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { cleanupExpiredNotifications } from '@/app/actions/notifications';
 import { isCronAuthorized } from '@/lib/cron-auth';
 

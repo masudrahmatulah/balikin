@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/admin';
 import QRCode from 'qrcode';
 import { jsPDF } from 'jspdf';
