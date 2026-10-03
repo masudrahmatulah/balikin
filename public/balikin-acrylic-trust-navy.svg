@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1000 1000" role="img" aria-label="Balikin — logo akrilik">
+  <rect width="1000" height="1000" fill="#14233B"/>
+  <g transform="translate(248 50) scale(1.7)">
+    <path fill="#E53935" d="M34 14h126c65 0 95 36 95 81 0 31-17 54-47 67 40 12 63 39 63 75 0 54-40 88-105 88H34V14zm67 54v72h53c23 0 35-14 35-36 0-23-13-36-38-36h-50zm0 124v77h59c27 0 42-14 42-38 0-25-16-39-45-39h-56z"/>
+    <path d="M165 166h-54l18-17m-18 17 18 17" fill="none" stroke="#14233B" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="500" y="820" fill="#FFFFFF" font-family="DejaVu Sans, Arial, sans-serif" font-size="112" font-weight="700" letter-spacing="9" text-anchor="middle">BALIKIN</text>
+</svg>

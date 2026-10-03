@@ -136,6 +136,32 @@ async function getRawLogoBuffer(): Promise<Buffer> {
   return rawLogoBufferCache;
 }
 
+let acrylicLogoBufferCache: Buffer | null = null;
+
+// Khusus wajah logo default akrilik; logo untuk VDP nonakrilik tetap memakai
+// aset generik yang sudah ada.
+async function getAcrylicLogoBuffer(): Promise<Buffer> {
+  if (acrylicLogoBufferCache) return acrylicLogoBufferCache;
+  acrylicLogoBufferCache = await readFile(
+    path.join(process.cwd(), 'public', 'balikin-acrylic-trust-navy.png')
+  );
+  return acrylicLogoBufferCache;
+}
+
+async function fitAcrylicLogo(
+  logoBuffer: Buffer,
+  widthPx: number,
+  heightPx: number
+): Promise<Buffer> {
+  return sharp(logoBuffer)
+    .resize(widthPx, heightPx, {
+      fit: 'contain',
+      background: { r: 20, g: 35, b: 59, alpha: 1 },
+    })
+    .png()
+    .toBuffer();
+}
+
 // ============================================================================
 // EMBEDDED FONT (serverless-safe text rendering)
 // ============================================================================
@@ -678,13 +704,19 @@ export async function generateOneRowSticker(
     const logoHeightMm = (config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2;
     const logoWidthPx = mmToPx(logoWidthMm);
     const logoHeightPx = mmToPx(logoHeightMm);
-    const rawContentBuffer = tag.isCustom && tag.customPhotoUrl
-      ? await getCustomPhotoBuffer(tag.customPhotoUrl)
-      : isLogoFullBleed
-        ? await getRawLogoBuffer()
-        : await getLogoBuffer();
+    const hasCustomPhoto = tag.isCustom && !!tag.customPhotoUrl;
+    const useAcrylicBrandLogo = !!shapeKey && !hasCustomPhoto;
+    const rawContentBuffer = hasCustomPhoto
+      ? await getCustomPhotoBuffer(tag.customPhotoUrl as string)
+      : useAcrylicBrandLogo
+        ? await getAcrylicLogoBuffer()
+        : isLogoFullBleed
+          ? await getRawLogoBuffer()
+          : await getLogoBuffer();
     const contentDataUri = bufferToDataUri(
-      await fitContainWithFill(rawContentBuffer, logoWidthPx, logoHeightPx)
+      useAcrylicBrandLogo
+        ? await fitAcrylicLogo(rawContentBuffer, logoWidthPx, logoHeightPx)
+        : await fitContainWithFill(rawContentBuffer, logoWidthPx, logoHeightPx)
     );
     const kotak2 = await sharp(buildKotakSvg({
       shapeKey,
