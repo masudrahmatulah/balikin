@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PREMIUM_PRICE, PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE, WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 import { buildMetadata, absoluteUrl } from "@/lib/seo";
-import { ProductJsonLd } from "@/components/json-ld";
+import { ProductJsonLd, SiteGraphJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = buildMetadata({
@@ -35,7 +35,7 @@ const pricingPlans: PricingPlan[] = [
     features: [
       "Maksimal 1 tag digital",
       "QR code unik",
-      "Update data kontak real-time",
+      "Update data kontak tanpa mengganti QR code",
       "Mode hilang",
       "Dashboard pengelolaan tag",
     ],
@@ -90,15 +90,23 @@ const pricingPlans: PricingPlan[] = [
 ];
 
 async function PricingPage() {
-
   const offers = pricingPlans.map((plan) => ({
     name: plan.name,
     price: plan.price,
-    url: plan.cta.href ? absoluteUrl(plan.cta.href) : absoluteUrl("/sign-up"),
+    url:
+      plan.cta.href?.startsWith("https://") || plan.cta.href?.startsWith("http://")
+        ? plan.cta.href
+        : absoluteUrl(plan.cta.href || "/sign-up"),
   }));
 
   return (
-    <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <>
+      <SiteGraphJsonLd
+        path="/pricing"
+        name="Harga Balikin"
+        description="Lihat harga Balikin untuk versi gratis, tag printable, dan produk fisik premium."
+      />
+      <div className="public-content-page min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <SiteHeader />
       <header className="bg-gradient-to-r from-brand-navy to-brand-red px-4 py-16 text-white">
         <div className="mx-auto max-w-4xl text-center">
@@ -109,10 +117,11 @@ async function PricingPage() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-12">
       <ProductJsonLd
-        name="Balikin QR Tag"
-        description="Smart Lost & Found QR Tag untuk barang hilang"
+        name="Produk Balikin"
+        description="Tag QR Smart Lost & Found Balikin dalam pilihan digital printable dan produk fisik premium."
         imageUrl={absoluteUrl("/balikin_logo.webp")}
         offers={offers}
+        productId={absoluteUrl("/pricing#products")}
       />
 
       <section aria-label="Harga paket Balikin" className="not-prose">
@@ -183,7 +192,8 @@ async function PricingPage() {
           © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }
 

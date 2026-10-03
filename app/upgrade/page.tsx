@@ -19,30 +19,31 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { buildMetadata } from '@/lib/seo';
+import { PREMIUM_PRICE, WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Upgrade Premium',
   description: 'Upgrade ke Balikin Premium untuk mendapatkan gantungan kunci QR code fisik dan fitur tambahan.',
   path: '/upgrade',
   keywords: ['upgrade balikin premium', 'gantungan kunci qr code premium'],
+  noIndex: true,
 });
 
-const PREMIUM_PRICE = 35000;
-const WHATSAPP_NUMBER = '6281234567890';
+const WHATSAPP_NUMBER = WHATSAPP_ORDER_NUMBER;
 
 const freeFeatures = [
   { text: 'Maksimal 1 Tag Digital', included: true },
   { text: 'QR Code Generator', included: true },
-  { text: 'Scan Logging dengan Lokasi', included: true },
+  { text: 'Riwayat scan dan perkiraan lokasi jika tersedia', included: true },
   { text: 'Alert Scan via Email', included: true },
   { text: 'Mode Hilang dengan Info Imbalan', included: true },
-  { text: 'Update Data Real-time', included: true },
+  { text: 'Update data kontak tanpa mengganti QR code', included: true },
   { text: 'Dashboard User-Friendly', included: true },
   { text: 'Gantungan Kunci Fisik Premium', included: false },
   { text: 'Verified Owner Badge', included: false },
   { text: 'Notifikasi WhatsApp Instan', included: false },
   { text: 'Email Alert Opsional', included: false },
-  { text: 'GPS Tracking Presisi', included: false },
+  { text: 'Pelacakan GPS terus-menerus', included: false },
   { text: 'Unlimited Tags', included: false },
 ];
 
@@ -69,8 +70,8 @@ const premiumFeatures = [
   },
   {
     icon: <MapPin className="h-6 w-6" />,
-    title: 'GPS Tracking Presisi',
-    description: 'Lokasi lebih akurat dengan tracking GPS (coming soon).',
+    title: 'Catatan Scan',
+    description: 'Lihat waktu dan perkiraan lokasi scan jika data lokasi tersedia dan diizinkan browser.',
   },
   {
     icon: <Zap className="h-6 w-6" />,

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, MessageCircle, Mail, HelpCircle, BookOpen, QrCode, Shield } from 'lucide-react';
 import { MobileLayout } from '@/components/mobile/mobile-layout';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 const faqItems = [
   {
@@ -12,7 +13,7 @@ const faqItems = [
   },
   {
     question: "Apakah nomor WhatsApp saya aman?",
-    answer: "Ya, 100% aman. Nomor WhatsApp asli tidak pernah ditampilkan ke publik. Penemu hanya melihat tombol 'Hubungi Pemilik' yang dijembatani melalui server kami.",
+    answer: "Balikin berupaya mengurangi eksposur nomor WhatsApp. Nomor tidak dicetak pada tag dan penemu menggunakan tombol kontak yang tersedia; tetap hindari memasukkan data sensitif yang tidak diperlukan.",
   },
   {
     question: "Bagaimana cara aktifkan mode hilang?",
@@ -135,7 +136,7 @@ export default function MobileHelpPage() {
             <h2 className="text-base font-bold text-gray-900 mb-3">Hubungi Kami</h2>
             <div className="space-y-3">
               <a
-                href="https://wa.me/6287883956811"
+                href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-emerald-500 text-white rounded-2xl p-4 shadow-lg"

@@ -52,7 +52,7 @@ export function HeroSection() {
         >
           <span className="font-semibold text-gray-800">Platform Smart Lost and Found Indonesia</span> berbasis QR Code dinamis terkemuka.
           Sistem identifikasi barang dengan <span className="font-semibold text-gray-800">QR code WhatsApp 100% anonim</span> - penemu tidak bisa lihat nomor asli Anda.
-          Lacak lokasi scan real-time, aktifkan Mode Hilang darurat dengan desain emergency.
+          Catat waktu dan perkiraan lokasi scan jika tersedia, lalu aktifkan Mode Hilang dengan tampilan darurat.
         </motion.p>
 
         <motion.p

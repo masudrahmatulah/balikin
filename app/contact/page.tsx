@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WebPageJsonLd, ContactPointJsonLd, OrganizationJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
+import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Hubungi Kami – Balikin.online | Kontak & Customer Service Resmi",
@@ -41,11 +42,12 @@ export default function ContactPage() {
     <>
       <OrganizationJsonLd />
       <WebPageJsonLd
+        path="/contact"
         name="Hubungi Kami - Balikin"
         description="Hubungi Balikin.online untuk pemesanan QR Smart Tag, pertanyaan produk, kerja sama komunitas, sekolah, corporate, atau bantuan teknis."
       />
       <ContactPointJsonLd
-        telephone="+6287883956811"
+        telephone={`+${WHATSAPP_ORDER_NUMBER}`}
         contactType="Customer Service"
         availableLanguage="Indonesian"
         areaServed="ID"
@@ -84,7 +86,7 @@ export default function ContactPage() {
               </div>
               <p className="text-gray-600 mb-4">Respon tercepat untuk pemesanan dan pertanyaan umum</p>
               <a
-                href="https://wa.me/6287883956811?text=Halo%20Balikin,%20saya%20ingin%20bertanya%20seputar%20QR%20Smart%20Tag"
+                href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=Halo%20Balikin,%20saya%20ingin%20bertanya%20seputar%20QR%20Smart%20Tag`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-medium"

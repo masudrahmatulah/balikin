@@ -21,7 +21,7 @@ export function HowItWorksSection() {
             <p className="text-gray-600 max-w-2xl mx-auto">
               <span className="font-semibold text-gray-700">Platform smart lost and found Indonesia</span> dengan sistem pelacakan QR code yang dirancang agar mudah digunakan oleh siapa saja—
               tanpa perlu install aplikasi, tanpa registrasi yang rumit. Penemu cukup scan <span className="font-semibold text-gray-700">QR code barang hilang</span> dan langsung bisa hubungi Anda
-              melalui <span className="font-semibold text-gray-700">anonymous gateway WhatsApp</span> tanpa melihat nomor asli Anda. Sistem kami juga melacak lokasi scan secara real-time.
+              melalui <span className="font-semibold text-gray-700">jalur kontak WhatsApp</span> tanpa perlu menampilkan nomor pada tag. Sistem dapat mencatat waktu dan perkiraan lokasi scan jika data tersebut tersedia.
             </p>
           </div>
         </ScrollReveal>

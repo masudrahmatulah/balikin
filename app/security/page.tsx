@@ -6,21 +6,22 @@ import { WebPageJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pusat Keamanan & Privasi",
-  description: "Transparansi penuh tentang keamanan data, enkripsi, dan kepatuhan regulasi Balikin.",
+  description: "Penjelasan tentang praktik keamanan data, kontrol akses, dan privasi Balikin.",
   path: "/security",
-  keywords: ["security balikin", "keamanan data", "kepatuhan regulasi", "UU PDP", "SOC2", "ISO 27001"],
+  keywords: ["security balikin", "keamanan data", "privasi data", "pengelolaan data pribadi"],
 });
 
 export default function SecurityPage() {
   return (
     <>
       <WebPageJsonLd
+        path="/security"
         name="Pusat Keamanan & Privasi - Balikin"
-        description="Transparansi penuh tentang bagaimana kami melindungi data Anda dengan standar keamanan kelas dunia."
+        description="Penjelasan tentang praktik keamanan data, kontrol akses, dan privasi Balikin."
       />
       <MarketingShell
         title="Pusat Keamanan & Privasi"
-        description="Transparansi penuh tentang bagaimana kami melindungi data Anda dengan standar keamanan kelas dunia."
+        description="Penjelasan tentang bagaimana Balikin membantu melindungi data pengguna melalui kontrol akses, HTTPS, dan kebijakan privasi."
       >
         <SecurityContent />
       </MarketingShell>

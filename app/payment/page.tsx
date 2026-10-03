@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { PaymentClient } from './payment-client'
+import { absoluteUrl } from '@/lib/seo'
 
 export const metadata: Metadata = {
   title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
@@ -19,13 +20,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
     description: 'Selesaikan pembayaran Smart Tag QR Code Balikin Anda via QRIS GoPay. Transaksi aman dan terpercaya.',
-    url: 'https://balikin.online/payment',
+    url: absoluteUrl('/payment'),
     siteName: 'Balikin',
     locale: 'id_ID',
     type: 'website',
     images: [
       {
-        url: 'https://balikin.online/images/qris-gopay.svg',
+        url: absoluteUrl('/images/qris-gopay.svg'),
         width: 1200,
         height: 630,
         alt: 'QRIS GoPay Balikin untuk Pembayaran Smart Tag'
@@ -36,16 +37,16 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
     description: 'Selesaikan pembayaran Smart Tag QR Code Balikin Anda via QRIS GoPay. Transaksi aman dan terpercaya.',
-    images: ['https://balikin.online/images/qris-gopay.svg']
+    images: [absoluteUrl('/images/qris-gopay.svg')]
   },
   alternates: {
-    canonical: 'https://balikin.online/payment'
+    canonical: absoluteUrl('/payment')
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',

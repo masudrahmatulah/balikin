@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   title:
     "Balikin Smart Tag - Lisensi Sistem Pelacakan Barang Hilang Terpercaya",
   description:
-    "Lindungi barang berharga Anda dengan lisensi Balikin Smart Tag. Teknologi QR code + gantungan akrilik untuk tracking barang hilang real-time. Daftar sekarang & dapatkan akses eksklusif!",
+    "Lindungi barang berharga Anda dengan lisensi Balikin Smart Tag. Teknologi QR code dan gantungan akrilik membantu proses lost and found melalui halaman tag digital. Daftar sekarang & dapatkan akses eksklusif!",
   openGraph: {
     title: "Balikin Smart Tag - Sistem Pelacakan Barang Hilang",
     description:
-      "Lindungi barang berharga Anda dengan lisensi Balikin Smart Tag. QR code + tracking real-time + privasi terjaga.",
+      "Lindungi barang berharga Anda dengan lisensi Balikin Smart Tag. QR code, halaman tag digital, dan jalur kontak yang lebih privat.",
     type: "website",
   },
 };
@@ -324,7 +324,7 @@ export default function FirstLaunchPage() {
                   Tracking Real-Time
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Dapatkan notifikasi real-time saat barang Anda dipindai. Lihat
+                  Dapatkan notifikasi saat barang Anda dipindai sesuai konfigurasi layanan. Lihat
                   lokasi penemu dengan presisi tinggi untuk koordinasi
                   pengembalian.
                 </p>
@@ -469,10 +469,9 @@ export default function FirstLaunchPage() {
                   </span>
                 </summary>
                 <p className="text-slate-600 dark:text-slate-400 mt-4 leading-relaxed">
-                  Ya, 100% aman. Database kami hosted di Supabase dengan
-                  enkripsi tingkat banking. Nomor WhatsApp Anda tidak pernah
-                  ditampilkan kepada penemu — hanya sistem relay kami yang tahu
-                  identitas asli Anda.
+                  Kami menerapkan kontrol akses dan menggunakan provider cloud untuk
+                  menjalankan layanan. Nomor WhatsApp tidak dicetak pada tag dan jalur
+                  kontak diarahkan melalui tombol yang tersedia untuk penemu.
                 </p>
               </details>
 

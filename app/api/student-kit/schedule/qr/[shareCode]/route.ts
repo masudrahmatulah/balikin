@@ -2,6 +2,7 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { getScheduleByShareCode } from '@/app/actions/modules';
 import { generateQRCodeDataURL } from '@/lib/qrcode-generator';
+import { absoluteUrl } from '@/lib/seo';
 
 /**
  * GET /api/student-kit/schedule/qr/[shareCode]
@@ -18,8 +19,7 @@ export async function GET(
     await getScheduleByShareCode(shareCode);
 
     // Generate share URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.masudrahmat.my.id';
-    const shareUrl = `${baseUrl}/api/student-kit/schedule/import/${shareCode}`;
+    const shareUrl = absoluteUrl(`/api/student-kit/schedule/import/${shareCode}`);
 
     // Generate QR code
     const qrCodeDataUrl = await generateQRCodeDataURL(shareUrl, {

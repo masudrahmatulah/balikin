@@ -17,7 +17,10 @@ export const STICKER_PAYMENT_METHOD = 'manual_qris';
 export const STICKER_PAYMENT_LABEL = 'QRIS Manual';
 export const STICKER_QRIS_NOTES = 'Scan QRIS lalu transfer sesuai nominal. Order akan diproses setelah verifikasi admin.';
 
-export const WHATSAPP_ORDER_NUMBER = process.env.WHATSAPP_ORDER_NUMBER || '6281234567890';
+export const WHATSAPP_ORDER_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_ORDER_NUMBER ||
+  process.env.WHATSAPP_ORDER_NUMBER ||
+  '6281234567890';
 
 export const UPGRADE_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Premium Acrylic Tag Premium. Mohon infonya.`;
 export const STICKER_ORDER_WHATSAPP_MESSAGE = `Halo, saya ingin pesan Stiker Balikin Family (12 QR campuran).`;

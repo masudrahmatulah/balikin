@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HelpCircle, MessageCircle, Mail, BookOpen, QrCode, Shield, AlertTriangle, ChevronRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
+import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Bantuan & Dukungan | Balikin.online",
@@ -111,7 +112,7 @@ export default function HelpPage() {
            <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Hubungi Kami</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <a
-              href="https://wa.me/6288783956811"
+              href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
                className="block rounded-xl bg-emerald-500 p-6 text-white shadow-lg transition-colors hover:bg-emerald-600"

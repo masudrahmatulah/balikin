@@ -16,7 +16,11 @@ export const metadata: Metadata = {
 
 async function getBlogPosts() {
   const posts = await db.select().from(blogPosts)
-    .where(and(eq(blogPosts.isPublished, true), isNull(blogPosts.deletedAt)))
+    .where(and(
+      eq(blogPosts.app_id, 'balikin_id'),
+      eq(blogPosts.isPublished, true),
+      isNull(blogPosts.deletedAt),
+    ))
     .orderBy(desc(blogPosts.publishedAt))
     .limit(20);
   return posts;

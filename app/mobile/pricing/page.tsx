@@ -15,7 +15,7 @@ const pricingPlans = [
     features: [
       "Maksimal 1 tag digital",
       "QR code unik",
-      "Update data kontak real-time",
+      "Update data kontak tanpa mengganti QR code",
       "Mode hilang",
       "Dashboard pengelolaan tag",
     ],

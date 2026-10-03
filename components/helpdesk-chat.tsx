@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Bot, Loader2, MessageCircle, Send, UserRound } from "lucide-react";
 import { HELPDESK_FAQ } from "@/lib/helpdesk-knowledge";
+import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-const CS_WHATSAPP = "6287883956811";
+const CS_WHATSAPP = WHATSAPP_ORDER_NUMBER;
 
 export function HelpdeskChat() {
   const [messages, setMessages] = useState<Message[]>([

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
@@ -10,6 +11,14 @@ import { SignOutButton } from '@/components/sign-out-button';
 import { SettingsPasswordForm } from '@/components/settings-password-form';
 import { User, Bell, Shield, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildMetadata({
+  title: 'Pengaturan Akun',
+  description: 'Kelola akun dan preferensi Balikin Anda.',
+  path: '/settings',
+  noIndex: true,
+});
 
 export default async function SettingsPage() {
   const session = await getSession();

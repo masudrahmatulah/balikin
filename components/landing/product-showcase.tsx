@@ -120,7 +120,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
             '🔑 Gantungan kunci akrilik cerdas dan sederhana',
             '💪 Tahan benturan & cuaca ekstrem',
             '📍 Live tracking dengan GPS',
-            '📱 Notifikasi WhatsApp real-time',
+            '📱 Notifikasi WhatsApp saat scan sesuai konfigurasi layanan',
             '🚨 Lost Mode emergency display',
           ],
           badge: 'The Anchor',

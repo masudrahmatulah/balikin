@@ -14,6 +14,7 @@ import {
 import { getVCardByShareCode } from '@/app/actions/modules';
 import { PersonJsonLd } from '@/components/json-ld';
 import { NotFoundError } from '@/lib/errors';
+import { absoluteUrl } from '@/lib/seo';
 
 interface VCardPageProps {
   params: Promise<{ shareCode: string }>;
@@ -64,8 +65,7 @@ export default async function VCardPage({ params }: VCardPageProps) {
   const vcardFilename = `${generateVCardFilename(vcardData.fullName)}.vcf`;
 
   // Generate public URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.masudrahmat.my.id';
-  const publicUrl = `${baseUrl}/vcard/${shareCode}`;
+  const publicUrl = absoluteUrl(`/vcard/${shareCode}`);
 
   // Generate QR code as SVG
   const qrCodeSvg = await generateQRCodeSVG(publicUrl, { size: 200, margin: 2 });

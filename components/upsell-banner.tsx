@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Crown, Sparkles, Gift, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 interface UpsellBannerProps {
   variant?: 'dashboard' | 'compact';
@@ -30,7 +31,7 @@ export function UpsellBanner({ variant = 'dashboard', tagName }: UpsellBannerPro
             <Button
               size="sm"
               className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
-              onClick={() => window.open('https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20upgrade%20tag%20ke%20Premium', '_blank')}
+              onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=Halo%2C%20saya%20ingin%20upgrade%20tag%20ke%20Premium`, '_blank')}
             >
               Upgrade
             </Button>
@@ -86,7 +87,7 @@ export function UpsellBanner({ variant = 'dashboard', tagName }: UpsellBannerPro
             </Link>
             <Button
               className="w-full bg-green-500 hover:bg-green-600 text-white"
-              onClick={() => window.open('https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20upgrade%20tag%20ke%20Premium', '_blank')}
+              onClick={() => window.open(`https://wa.me/${WHATSAPP_ORDER_NUMBER}?text=Halo%2C%20saya%20ingin%20upgrade%20tag%20ke%20Premium`, '_blank')}
             >
               Pesan via WhatsApp
             </Button>

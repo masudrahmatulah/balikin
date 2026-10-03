@@ -5,7 +5,6 @@ import { tags, emergencyInformation } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { logScan } from '@/app/actions/scan';
 import { MobileClaim } from '@/components/mobile/mobile-claim';
-import { JsonLd } from '@/components/json-ld';
 import { isFreeProduct, isStickerProduct } from '@/lib/product';
 import { isTagExpired } from '@/lib/tag-expiration';
 
@@ -97,29 +96,8 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
   // Emergency information is public tag content; scan location history is not.
   const emergencyInfo = !isExpired ? await getEmergencyInfo(tag.id) : null;
 
-  // Generate structured data for lost items
-  const structuredData = isLost ? {
-    '@context': 'https://schema.org',
-    '@type': 'LostItem',
-    name: tag.name,
-    description: tag.customMessage || `${tag.name} hilang. Jika menemukan, hubungi pemilik.`,
-    identifier: tag.slug,
-    found: 'false',
-  } : {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: tag.name,
-    description: tag.customMessage || 'Tag Balikin Smart Lost & Found',
-    identifier: tag.slug,
-    brand: {
-      '@type': 'Brand',
-      name: 'Balikin',
-    },
-  };
-
   return (
     <>
-      <JsonLd data={structuredData} />
       <MobileClaim
         tag={{
           id: tag.id,

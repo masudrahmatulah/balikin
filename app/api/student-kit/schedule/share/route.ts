@@ -14,6 +14,7 @@ import { shareSchedule } from '@/app/actions/student-kit-actions';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { formatErrorMessage } from '@/lib/errors';
+import { absoluteUrl } from '@/lib/seo';
 
 /**
  * POST /api/student-kit/schedule/share
@@ -35,9 +36,8 @@ export async function POST(request: NextRequest) {
     const result = await shareSchedule();
 
     // Generate share URL and QR code URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.masudrahmat.my.id';
-    const shareUrl = `${baseUrl}/api/student-kit/schedule/import/${result.shareCode}`;
-    const qrCodeUrl = `${baseUrl}/api/student-kit/schedule/qr/${result.shareCode}`;
+    const shareUrl = absoluteUrl(`/api/student-kit/schedule/import/${result.shareCode}`);
+    const qrCodeUrl = absoluteUrl(`/api/student-kit/schedule/qr/${result.shareCode}`);
 
     return NextResponse.json({
       ...result,

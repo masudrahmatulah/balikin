@@ -13,7 +13,7 @@ export function BenefitsSection() {
     },
     {
       icon: MapPin,
-      title: 'Lacak Lokasi Scan Barang Hilang Real-time',
+      title: 'Catat Perkiraan Lokasi Saat Scan',
       desc: 'Riwayat scan menampilkan lokasi terakhir barang saat di-scan dengan akurasi kota. Sistem pelacakan QR code kami membantu Anda tahu kemana barang "terbang".',
     },
     {

@@ -1,4 +1,5 @@
 import type { BlogModule, BlogPostingSchema } from "@/types/blog";
+import { getSiteUrl } from "@/lib/seo";
 
 interface BlogPostLike {
   title: string;
@@ -18,11 +19,7 @@ interface BlogPostLike {
 }
 
 function getBlogBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://balikin.online"
-  ).replace(/\/+$/, "");
+  return getSiteUrl();
 }
 
 function toAbsoluteUrl(url: string | null | undefined, baseUrl: string): string {

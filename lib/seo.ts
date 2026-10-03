@@ -58,15 +58,29 @@ export const siteConfig = {
 };
 
 export function getSiteUrl() {
-  return (
+  const configuredUrl =
     process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
     process.env.BETTER_AUTH_URL ||
-    fallbackSiteUrl
-  ).replace(/\/+$/, "");
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+    fallbackSiteUrl;
+
+  try {
+    return new URL(configuredUrl).toString().replace(/\/+$/, "");
+  } catch {
+    return fallbackSiteUrl;
+  }
 }
 
 export function absoluteUrl(path = "/") {
-  return `${getSiteUrl()}${path === "/" ? "" : path}`;
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  const url = new URL(path, `${getSiteUrl()}/`);
+  return url.pathname === "/" && !url.search && !url.hash
+    ? getSiteUrl()
+    : url.toString();
 }
 
 interface PageMetadataInput {
@@ -101,11 +115,24 @@ export function buildMetadata({
       siteName: siteConfig.name,
       locale: "id_ID",
       type: "website",
+      images: [
+        {
+          url: absoluteUrl(
+            "/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp",
+          ),
+          alt: "Balikin Smart Tag",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
+      images: [
+        absoluteUrl(
+          "/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp",
+        ),
+      ],
     },
     robots: noIndex
       ? {

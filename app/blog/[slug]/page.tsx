@@ -19,6 +19,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import Image from 'next/image';
 import { SiteHeader } from '@/components/site-header';
+import { absoluteUrl, getSiteUrl } from '@/lib/seo';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -27,6 +28,7 @@ interface BlogPageProps {
 async function getBlogPost(slug: string, recordView = true) {
   const post = await db.query.blogPosts.findFirst({
     where: and(
+      eq(blogPosts.app_id, 'balikin_id'),
       eq(blogPosts.slug, slug),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
@@ -37,7 +39,10 @@ async function getBlogPost(slug: string, recordView = true) {
 
   // Get comments for this post
   const comments = await db.query.blogComments.findMany({
-    where: eq(blogComments.postId, post.id),
+    where: and(
+      eq(blogComments.app_id, 'balikin_id'),
+      eq(blogComments.postId, post.id),
+    ),
   });
   const normalizedComments = comments.map((comment) => ({
     ...comment,
@@ -49,6 +54,7 @@ async function getBlogPost(slug: string, recordView = true) {
   if (recordView) {
     try {
       await db.insert(blogPostsAnalytics).values({
+        app_id: 'balikin_id',
         postId: post.id,
         viewType: 'page_view',
         ipAddress: null, // Server-side, no IP available
@@ -322,7 +328,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
             {/* Social Sharing */}
             <BlogSocialSharing
-              url={`${process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.online'}/blog/${post.slug}`}
+              url={absoluteUrl(`/blog/${post.slug}`)}
               title={post.title}
               summary={post.summary}
             />
@@ -348,7 +354,7 @@ export async function generateMetadata({ params }: BlogPageProps) {
   }
 
   const { post } = data;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.online';
+  const baseUrl = getSiteUrl();
 
   // Generate OG image URL
   const ogImageUrl = new URL(`${baseUrl}/api/blog/og-image`);
@@ -356,14 +362,14 @@ export async function generateMetadata({ params }: BlogPageProps) {
   if (post.summary) ogImageUrl.searchParams.set('summary', post.summary);
   if (post.authorName) ogImageUrl.searchParams.set('author', post.authorName);
   if (post.coverImage) ogImageUrl.searchParams.set('cover', post.coverImage);
-  const socialImage = post.coverImage || ogImageUrl.toString();
+  const socialImage = post.coverImage ? absoluteUrl(post.coverImage) : ogImageUrl.toString();
 
   return {
     title: post.title,
     description: post.metaDescription || post.summary,
     keywords: post.metaKeywords || post.focusKeyword,
     alternates: {
-      canonical: `${baseUrl}/blog/${post.slug}`,
+      canonical: absoluteUrl(`/blog/${post.slug}`),
     },
     openGraph: {
       title: post.title,

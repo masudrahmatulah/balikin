@@ -19,7 +19,7 @@ const productGroups = [
       '🔒 Anonymous WhatsApp Gateway (Privacy 100%)',
       '📍 Live Scan Location Tracking',
       '🚨 Lost Mode dengan Reward System',
-      '📧 Notifikasi scan via email real-time',
+      '📧 Notifikasi scan via email sesuai konfigurasi layanan',
       '🏷️ QR Code high-quality untuk cetak sendiri',
       '📊 Dashboard management yang user-friendly',
       '♾️ Scan history unlimited (selamanya)',

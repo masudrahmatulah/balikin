@@ -12,6 +12,7 @@ import {
 import { getVCardByShareCode } from '@/app/actions/modules';
 import { NotFoundError } from '@/lib/errors';
 import Link from 'next/link';
+import { absoluteUrl } from '@/lib/seo';
 
 interface VCardPageProps {
   params: Promise<{ shareCode: string }>;
@@ -58,8 +59,7 @@ export default async function MobileVCardPage({ params }: VCardPageProps) {
   const vcardString = generateVCardString(vcardData);
   const vcardFilename = `${generateVCardFilename(vcardData.fullName)}.vcf`;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.masudrahmat.my.id';
-  const publicUrl = `${baseUrl}/mobile/vcard/${shareCode}`;
+  const publicUrl = absoluteUrl(`/mobile/vcard/${shareCode}`);
 
   const qrCodeSvg = await generateQRCodeSVG(publicUrl, { size: 200, margin: 2 });
 

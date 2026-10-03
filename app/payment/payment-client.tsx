@@ -6,6 +6,7 @@ import { AlertCircle, Copy, Check, Shield, Clock, Smartphone, QrCode } from 'luc
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants'
 
 // Mock payment data (nanti diganti dari database/API)
 const mockPaymentData = {
@@ -14,7 +15,7 @@ const mockPaymentData = {
   basePrice: 35000,
   uniqueCode: 612,
   totalPrice: 35612,
-  whatsappNumber: '6281234567890',
+  whatsappNumber: WHATSAPP_ORDER_NUMBER,
   shippingAddress: 'Jl. Merdeka No. 45, Jakarta Selatan'
 }
 

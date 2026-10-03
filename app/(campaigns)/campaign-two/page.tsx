@@ -59,7 +59,7 @@ export default function CampaignTwoPage() {
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-semibold text-slate-900 dark:text-white">
-                      Sistem Notifikasi Real-time
+                      Sistem Notifikasi Saat Scan
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       Terima alert langsung ke WhatsApp Anda

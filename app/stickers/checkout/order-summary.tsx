@@ -111,7 +111,7 @@ export function OrderSummary({ product, stickerColorTheme, shippingCost, backsid
         <CardContent className="space-y-1 pt-4 text-xs text-blue-800 dark:text-blue-200">
           <p className="mb-2 font-semibold">Yang Anda dapatkan:</p>
           <p>✓ WhatsApp Gateway gratis 1 tahun</p>
-          <p>✓ GPS Tracking presisi</p>
+          <p>✓ Riwayat scan dan perkiraan lokasi jika tersedia</p>
           <p>✓ Lost Mode emergency display</p>
           <p>✓ Nomor WhatsApp tidak dicetak permanen di sticker</p>
           <p>✓ Verified Owner Badge</p>

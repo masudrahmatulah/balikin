@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WebPageJsonLd, OrganizationJsonLd, ContactPointJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
+import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Syarat dan Ketentuan – Balikin.online | Terms of Service Resmi",
@@ -41,11 +42,12 @@ export default function TermsOfServicePage() {
     <>
       <OrganizationJsonLd />
       <WebPageJsonLd
+        path="/terms-of-service"
         name="Syarat dan Ketentuan Layanan - Balikin"
         description="Syarat dan Ketentuan Layanan Balikin.online – Ketentuan penggunaan QR Smart Tag, kebijakan akun premium lifetime, batasan tanggung jawab, dan hak kekayaan intelektual."
       />
       <ContactPointJsonLd
-        telephone="+6281234567890"
+        telephone={`+${WHATSAPP_ORDER_NUMBER}`}
         contactType="Customer Service"
         availableLanguage="Indonesian"
         areaServed="ID"
@@ -278,7 +280,7 @@ export default function TermsOfServicePage() {
                 <span className="text-2xl">💬</span>
                 <div>
                   <p className="text-sm text-red-200">Layanan WhatsApp</p>
-                  <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">+62 812-3456-7890</a>
+                  <a href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}`} target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:underline">Chat WhatsApp resmi</a>
                 </div>
               </div>
             </div>

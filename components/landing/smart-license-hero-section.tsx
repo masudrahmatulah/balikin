@@ -44,6 +44,10 @@ export function SmartLicenseHeroSection() {
           Ketenangan Jiwa untuk Barang Berharga Anda
         </motion.h1>
 
+        <p className="mx-auto mb-4 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-300">
+          Balikin adalah platform smart lost and found berbasis QR code yang membantu pemilik dan penemu barang terhubung melalui halaman web dan jalur kontak yang tersedia.
+        </p>
+
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -75,7 +79,7 @@ export function SmartLicenseHeroSection() {
                 size="lg"
                 className="text-lg px-8 py-6 w-full sm:w-auto bg-gradient-to-r from-[#ff2938] to-[#d90f1d] hover:from-[#e50d1c] hover:to-[#b90d19] border-0 text-white shadow-xl shadow-red-600/30 hover:shadow-2xl hover:shadow-red-600/40 transition-all"
               >
-                Aktifkan Lisensi Mulai Rp35.000
+                Produk Mulai Rp35.000
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

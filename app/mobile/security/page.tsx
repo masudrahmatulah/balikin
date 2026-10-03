@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft, Shield, Lock, Server, Eye } from 'lucide-react';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 export default function MobileSecurityPage() {
   return (
@@ -85,7 +86,7 @@ export default function MobileSecurityPage() {
             Laporkan masalah keamanan kepada kami segera.
           </p>
           <a
-            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_ORDER_NUMBER || '6281234567890'}`}
+            href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="block"

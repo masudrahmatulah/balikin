@@ -38,7 +38,7 @@ export function MarketingShell({
             <a href="/privacy-policy" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
               Privacy Policy
             </a>
-            <a href="/terms" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
+            <a href="/terms-of-service" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">
               Terms
             </a>
             <a href="/contact" className="hover:text-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red rounded px-2 py-1">

@@ -1,10 +1,26 @@
 import type { Metadata } from "next";
 import { WebPageJsonLd, FAQPageJsonLd, OrganizationJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
+import {
+  PRINTABLE_FIVE_PRICE,
+  PRINTABLE_SINGLE_PRICE,
+  PRINTABLE_TEN_PRICE,
+} from "@/lib/constants";
+import { PRODUCT_CATALOG } from "@/lib/product-catalog";
+
+const formatPrice = (price: number) => `Rp${price.toLocaleString("id-ID")}`;
+const productPriceSummary = [
+  `Printable Single ${formatPrice(PRINTABLE_SINGLE_PRICE)}`,
+  `Printable 5 Tag ${formatPrice(PRINTABLE_FIVE_PRICE)}`,
+  `Printable 10 Tag ${formatPrice(PRINTABLE_TEN_PRICE)}`,
+  ...Object.values(PRODUCT_CATALOG).map(
+    (product) => `${product.name} ${formatPrice(product.price)}`,
+  ),
+].join(", ");
 
 export const metadata: Metadata = {
   title: "FAQ Balikin.online | Pertanyaan Umum Seputar QR Smart Tag & Lost Found",
-  description: "Temukan jawaban FAQ Balikin tentang cara kerja QR Smart Tag, keamanan privasi, harga premium lifetime, pengiriman, garansi, dan solusi kehilangan barang di Indonesia.",
+  description: "Temukan jawaban FAQ Balikin tentang cara kerja QR Smart Tag, privasi, pilihan harga, kontak, dan batasan layanan lost & found.",
   keywords: [
     "faq balikin",
     "pertanyaan umum balikin",
@@ -13,10 +29,8 @@ export const metadata: Metadata = {
     "apakah balikin aman",
     "privasi whatsapp balikin",
     "harga balikin",
-    "premium lifetime balikin",
     "berapa harga qr tag",
     "pengiriman balikin",
-    "garansi stiker qr",
     "barang hilang bagaimana",
     "penemu barang",
     "syarat menggunakan balikin",
@@ -39,23 +53,23 @@ export const metadata: Metadata = {
 const faqItems = [
   {
     question: "Apa itu Balikin.online dan bagaimana cara kerjanya?",
-    answer: "Balikin.online adalah platform smart lost & found Indonesia yang menggunakan teknologi QR Smart Tag. Cara kerjanya: Anda menempelkan stiker atau gantungan kunci QR pada barang berharga Anda. Jika barang tersebut hilang dan ditemukan oleh orang lain, penemu cukup memindai kode QR tersebut untuk menghubungi Anda secara anon melalui sistem kami. Data pribadi Anda tetap aman dan terlindungi.",
+    answer: "Balikin.online adalah platform smart lost & found Indonesia yang menggunakan teknologi QR Smart Tag. Anda menempelkan stiker atau gantungan kunci QR pada barang; saat kode dipindai, penemu dapat membuka halaman publik tag dan menggunakan jalur kontak yang tersedia tanpa nomor WhatsApp dicetak pada tag.",
   },
   {
     question: "Apakah nomor WhatsApp saya aman? Apakah akan ditampilkan ke publik?",
-    answer: "Ya, nomor WhatsApp Anda 100% aman. Balikin menggunakan sistem privasi-by-design dimana nomor WhatsApp asli Anda tidak pernah ditampilkan di halaman publik. Penemu barang hanya melihat tombol 'Hubungi Pemilik' yang dijembatani melalui server kami. Nomor Anda hanya dibagikan jika Anda sendiri yang memberikannya secara langsung kepada penemu.",
+    answer: "Balikin tidak mencetak nomor WhatsApp pada tag. Halaman publik mengarahkan penemu melalui tombol kontak yang tersedia, sehingga nomor tidak perlu ditampilkan sebagai teks terbuka pada barang.",
   },
   {
-    question: "Apa yang dimaksud dengan Premium Lifetime? Apakah benar-benar selamanya?",
-    answer: "Premium Lifetime berarti Anda hanya membayar sekali saat membeli tag fisik, dan fitur premium akan aktif selamanya selama platform Balikin.online beroperasi secara komersial. Tidak ada biaya bulanan atau tahunan. Namun, jika suatu saat platform harus tutup karena force majeure, kewajiban layanan akan gugur secara hukum tanpa klaim ganti rugi.",
+    question: "Apa saja pilihan harga Balikin?",
+    answer: `Harga yang tercantum saat ini: ${productPriceSummary}. Tag digital gratis memiliki batas maksimal 1 tag. Periksa halaman Harga untuk informasi terbaru karena harga dan ketersediaan dapat berubah.`,
   },
   {
     question: "Berapa harga QR Smart Tag Balikin?",
-    answer: "Harga varian tergantung jenis produk fisik yang Anda pilih: Stiker QR Premium mulai dari RpXX.000, Gantungan Kunci Akrilik mulai dari RpXX.000, dan paket bundling lebih hemat. Semua produk sudah termasuk akses premium lifetime. Silakan cek halaman produk atau hubungi WhatsApp kami untuk harga terbaru.",
+    answer: `Harga bergantung pada varian yang dipilih. Katalog saat ini mencantumkan ${productPriceSummary}. Lihat halaman Harga dan Produk untuk detail paket, isi, dan ketersediaan terbaru.`,
   },
   {
     question: "Apa yang terjadi jika barang saya hilang dan ditemukan orang lain?",
-    answer: "Ketika barang Anda ditemukan dan QR code-nya dipindai, Anda akan menerima notifikasi instan melalui WhatsApp dan email berisi informasi perkiraan lokasi penemuan (jika penemu mengizinkan akses lokasi). Anda kemudian dapat memutuskan langkah selanjutnya: berkomunikasi dengan penemu melalui sistem chat, atau mengatur pertemuan untuk pengembalian barang.",
+    answer: "Saat QR code dipindai, penemu dapat melihat halaman publik tag dan jalur kontak yang tersedia. Scan dapat dicatat bersama waktu dan perkiraan lokasi jika fitur terkait tersedia dan diizinkan; Balikin tidak menjamin setiap scan menghasilkan lokasi yang akurat atau barang kembali.",
   },
   {
     question: "Apakah penemu barang perlu mengunduh aplikasi?",
@@ -67,15 +81,15 @@ const faqItems = [
   },
   {
     question: "Apakah stiker QR tahan air dan cuaca?",
-    answer: "Stiker QR Premium Balikin menggunakan material vinil waterproof dengan laminasi pelindung, dirancang untuk tahan air, sinar UV, dan penggunaan sehari-hari. Untuk penggunaan outdoor yang ekstrem, kami merekomendasikan varian gantungan kunci akrilik yang lebih durable dan tahan lama.",
+    answer: "Spesifikasi material bergantung pada varian produk. Periksa halaman Produk untuk detail terbaru sebelum membeli atau hubungi Balikin jika membutuhkan rekomendasi penggunaan.",
   },
   {
     question: "Berapa lama pengiriman produk ke seluruh Indonesia?",
-    answer: "Kami melayani pengiriman ke seluruh Indonesia dengan estimasi: Jabodetabek 2-3 hari kerja, Jawa & Bali 3-5 hari kerja, Sumatera, Kalimantan, Sulawesi 4-7 hari kerja, Papua & Maluku 7-14 hari kerja. Pengiriman menggunakan ekspedisi terpercaya (JNE, J&T, Sicepat) dengan resi yang dapat dilacak.",
+    answer: "Ketersediaan pengiriman, biaya, dan estimasi waktu bergantung pada produk serta alamat tujuan. Hubungi Balikin melalui halaman Kontak untuk informasi pengiriman terbaru sebelum memesan.",
   },
   {
     question: "Apakah ada garansi jika QR code tidak bisa dipindai?",
-    answer: "Ya, kami memberikan garansi kualitas produk. Jika QR code pada tag fisik mengalami kerusakan produksi yang menyebabkan tidak bisa dipindai dalam masa garansi, kami akan menggantinya dengan yang baru. Garansi tidak berlaku untuk kerusakan akibat penggunaan yang tidak wajar, kecelakaan, atau kelalaian pengguna.",
+    answer: "Untuk pertanyaan tentang kualitas produk, kerusakan, atau kebijakan penggantian, hubungi Balikin melalui halaman Kontak dengan menyertakan detail order dan masalah yang terjadi. Ketentuan dapat berbeda menurut produk dan order.",
   },
   {
     question: "Bisakah saya mengubah informasi kontak setelah tag terdaftar?",
@@ -91,7 +105,7 @@ const faqItems = [
   },
   {
     question: "Apakah data saya aman dan tidak akan dijual ke pihak ketiga?",
-    answer: "Kami berjanji tidak akan pernah menjual, menyewakan, atau menyalahgunakan data pribadi Anda kepada broker data atau pihak ketiga untuk tujuan periklanan. Seluruh data pengguna dilindungi dengan enkripsi standar industri dan diurus sesuai dengan Kebijakan Privasi kami yang mematuhi UU PDP Indonesia.",
+    answer: "Jenis data, tujuan penggunaan, dan langkah perlindungan dijelaskan dalam Kebijakan Privasi Balikin. Tidak ada sistem yang bebas risiko 100%, jadi pengguna sebaiknya tidak memasukkan data sensitif yang tidak diperlukan untuk layanan.",
   },
   {
     question: "Bagaimana cara menghapus akun dan data saya dari sistem?",
@@ -104,8 +118,9 @@ export default function FAQPage() {
     <>
       <OrganizationJsonLd />
       <WebPageJsonLd
+        path="/faq"
         name="FAQ Balikin - Pertanyaan Umum Seputar QR Smart Tag & Lost Found"
-        description="Temukan jawaban FAQ Balikin tentang cara kerja QR Smart Tag, keamanan privasi, harga premium lifetime, pengiriman, garansi, dan solusi kehilangan barang."
+        description="Temukan jawaban FAQ Balikin tentang cara kerja QR Smart Tag, privasi, pilihan harga, dan batasan layanan."
       />
       <FAQPageJsonLd questions={faqItems} />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
@@ -163,12 +178,10 @@ export default function FAQPage() {
                 Hubungi Kami
               </a>
               <a
-                href="https://wa.me/6281234567890"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/contact"
                 className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors text-center"
               >
-                Chat WhatsApp
+                Kontak dan WhatsApp
               </a>
             </div>
           </section>
@@ -177,7 +190,7 @@ export default function FAQPage() {
           <section className="bg-white rounded-xl shadow-lg p-8 mt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Solusi Anti Kehilangan Terpercaya di Indonesia</h2>
             <p className="text-gray-700 leading-relaxed text-justify text-sm">
-              Balikin.online hadir sebagai solusi smart lost and found pertama di Indonesia yang menggabungkan teknologi QR code dengan sistem pelacakan pasif. Platform kami telah membantu ribuan pengguna di seluruh Indonesia—mulai dari Jakarta, Bandung, Surabaya, hingga kota-kota besar lainnya—untuk melindungi barang berharga mereka. Dengan sistem privasi yang aman, premium lifetime tanpa biaya berlangganan, dan dukungan pelanggan yang responsif, Balikin menjadi pilihan terbaik untuk keamanan barang Anda.
+              Balikin.online menggabungkan QR code dengan halaman tag digital untuk membantu pemilik dan penemu berkomunikasi ketika barang hilang. Platform ini dapat digunakan untuk berbagai barang pribadi; baca Cara Kerja, Harga, dan Kebijakan Privasi untuk detail layanan, biaya, serta batasannya.
             </p>
           </section>
 

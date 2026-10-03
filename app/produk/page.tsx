@@ -10,9 +10,10 @@ import { PRODUCT_CATALOG, type ProductKey } from '@/lib/product-catalog';
 import { ACRYLIC_SHAPES } from '@/lib/acrylic-shapes';
 import { getAcrylicStock } from '@/lib/product-stock';
 import { getStickerProductInfo } from '@/lib/sticker-template';
-import { buildMetadata } from '@/lib/seo';
+import { absoluteUrl, buildMetadata } from '@/lib/seo';
 import { LicenseConfiguratorSection } from '@/components/landing/license-configurator-section';
 import { PREVIOUS_PREMIUM_PRICE, PREMIUM_PRICE, PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_TEN_PRICE } from '@/lib/constants';
+import { ProductJsonLd, SiteGraphJsonLd } from '@/components/json-ld';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Marketplace Produk Balikin',
@@ -41,14 +42,78 @@ const acrylicImages: Record<string, string> = {
   'rectangle-emboss': '/variasi_akrilik/persegi panjang timbul.webp',
 };
 
+const marketplaceProducts = [
+  {
+    key: 'printable-single',
+    name: 'QR Tag Printable Premium - Single',
+    description: 'Satu lisensi QR printable dengan file PNG dan PDF siap cetak.',
+    imageUrl: '/balikin_logo.webp',
+    price: PRINTABLE_SINGLE_PRICE,
+    offerPath: '/produk#printable',
+  },
+  {
+    key: 'printable-five',
+    name: 'QR Tag Printable Premium - Paket 5',
+    description: 'Lima lisensi QR printable dengan file PNG dan PDF siap cetak.',
+    imageUrl: '/balikin_logo.webp',
+    price: PRINTABLE_FIVE_PRICE,
+    offerPath: '/produk#printable',
+  },
+  {
+    key: 'printable-ten',
+    name: 'QR Tag Printable Premium - Paket 10',
+    description: 'Sepuluh lisensi QR printable dengan file PNG dan PDF siap cetak.',
+    imageUrl: '/balikin_logo.webp',
+    price: PRINTABLE_TEN_PRICE,
+    offerPath: '/produk#printable',
+  },
+  ...stickerKeys.map((key) => ({
+    key,
+    name: PRODUCT_CATALOG[key].name,
+    description: 'Sticker vinyl QR Balikin made-to-order dengan lisensi QR aktif.',
+    imageUrl: stickerImages[key],
+    price: PRODUCT_CATALOG[key].price,
+    offerPath: `/produk#${key}`,
+  })),
+  {
+    key: 'acrylic',
+    name: 'Gantungan Kunci Akrilik Balikin',
+    description: 'Tag akrilik QR Balikin ready-stock dalam berbagai bentuk.',
+    imageUrl: acrylicImages.circle,
+    price: PRODUCT_CATALOG['armor-tag'].price,
+    offerPath: '/produk#akrilik',
+  },
+] as const;
+
 export default async function ProductMarketplacePage() {
   const acrylicStock = await getAcrylicStock();
 
   return (
-    <MarketingShell
-      title="Pilih Produk Balikin"
-      description="Pilih QR Tag Printable Premium, sticker QR made-to-order, atau akrilik ready-stock sesuai kebutuhan Anda."
-    >
+    <>
+      <SiteGraphJsonLd
+        path="/produk"
+        name="Marketplace Produk Balikin"
+        description="Pilih QR Tag Printable Premium, sticker QR made-to-order, atau akrilik ready-stock sesuai kebutuhan Anda."
+      />
+      {marketplaceProducts.map((product) => (
+        <ProductJsonLd
+          key={product.key}
+          id={`product-schema-${product.key}`}
+          productId={absoluteUrl(`/produk#product-${product.key}`)}
+          name={product.name}
+          description={product.description}
+          imageUrl={absoluteUrl(product.imageUrl)}
+          offers={[{
+            name: product.name,
+            price: product.price,
+            url: absoluteUrl(product.offerPath),
+          }]}
+        />
+      ))}
+      <MarketingShell
+        title="Pilih Produk Balikin"
+        description="Pilih QR Tag Printable Premium, sticker QR made-to-order, atau akrilik ready-stock sesuai kebutuhan Anda."
+      >
       <div className="not-prose space-y-12">
         <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-10 text-white shadow-xl md:px-10">
           <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-indigo-500/30 blur-3xl" aria-hidden="true" />
@@ -151,7 +216,7 @@ export default async function ProductMarketplacePage() {
               <p className="mt-3 text-slate-600 dark:text-slate-300">Tag akrilik yang lebih kokoh untuk kunci, tas, koper, dan kendaraan. Pilih bentuk yang paling sesuai dengan barang Anda.</p>
               <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-300">
                 <span className="inline-flex items-center gap-1.5"><Package className="h-4 w-4 text-purple-500" />Ready stock per bentuk</span>
-                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />Stok real-time</span>
+                <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-500" />Stok ditampilkan dari inventaris</span>
               </div>
             </div>
           </div>
@@ -198,6 +263,7 @@ export default async function ProductMarketplacePage() {
         </section>
       </div>
       <LicenseConfiguratorSection />
-    </MarketingShell>
+      </MarketingShell>
+    </>
   );
 }

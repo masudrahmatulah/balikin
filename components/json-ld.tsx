@@ -1,4 +1,4 @@
-import Script from "next/script";
+import { absoluteUrl } from "@/lib/seo";
 
 interface JsonLdProps {
   data: Record<string, unknown>;
@@ -7,10 +7,84 @@ interface JsonLdProps {
 
 export function JsonLd({ data, id }: JsonLdProps) {
   return (
-    <Script
+    <script
       id={id}
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
+    />
+  );
+}
+
+const organizationId = absoluteUrl("/#organization");
+const websiteId = absoluteUrl("/#website");
+
+interface SiteGraphJsonLdProps {
+  path: string;
+  name: string;
+  description: string;
+  imageUrl?: string;
+}
+
+export function SiteGraphJsonLd({
+  path,
+  name,
+  description,
+  imageUrl,
+}: SiteGraphJsonLdProps) {
+  const pageUrl = absoluteUrl(path);
+  const pageId = `${pageUrl}#webpage`;
+
+  return (
+    <JsonLd
+      id={`site-graph-${path === "/" ? "home" : path.replace(/[^a-z0-9]+/gi, "-")}`}
+      data={{
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": organizationId,
+            name: "Balikin",
+            alternateName: "Balikin Smart Tag",
+            url: absoluteUrl("/"),
+            description:
+              "Platform smart lost and found Indonesia berbasis QR code untuk membantu barang hilang kembali ke pemilik.",
+            logo: {
+              "@type": "ImageObject",
+              "@id": absoluteUrl("/#logo"),
+              url: absoluteUrl("/balikin_logo.webp"),
+            },
+            sameAs: ["https://instagram.com/balikin.online"],
+          },
+          {
+            "@type": "WebSite",
+            "@id": websiteId,
+            url: absoluteUrl("/"),
+            name: "Balikin",
+            publisher: { "@id": organizationId },
+            inLanguage: "id-ID",
+          },
+          {
+            "@type": "WebPage",
+            "@id": pageId,
+            url: pageUrl,
+            name,
+            description,
+            isPartOf: { "@id": websiteId },
+            about: { "@id": organizationId },
+            publisher: { "@id": organizationId },
+            inLanguage: "id-ID",
+            ...(imageUrl && {
+              primaryImageOfPage: {
+                "@type": "ImageObject",
+                "@id": `${pageId}#primaryimage`,
+                url: imageUrl,
+              },
+            }),
+          },
+        ],
+      }}
     />
   );
 }
@@ -68,17 +142,26 @@ export function HowToJsonLd({ name, description, steps }: HowToJsonLdProps) {
 interface WebPageJsonLdProps {
   name: string;
   description: string;
+  path?: string;
 }
 
-export function WebPageJsonLd({ name, description }: WebPageJsonLdProps) {
+export function WebPageJsonLd({ name, description, path = "/" }: WebPageJsonLdProps) {
+  const pageUrl = absoluteUrl(path);
+
   return (
     <JsonLd
       id="webpage-schema"
       data={{
         '@context': 'https://schema.org',
         '@type': 'WebPage',
+        '@id': `${pageUrl}#webpage`,
+        url: pageUrl,
         name,
         description,
+        isPartOf: { '@id': websiteId },
+        about: { '@id': organizationId },
+        publisher: { '@id': organizationId },
+        inLanguage: 'id-ID',
       }}
     />
   );
@@ -86,8 +169,9 @@ export function WebPageJsonLd({ name, description }: WebPageJsonLdProps) {
 
 interface Offer {
   name: string;
-  price: string;
+  price: string | number;
   url: string;
+  availability?: string;
 }
 
 interface ProductJsonLdProps {
@@ -95,27 +179,42 @@ interface ProductJsonLdProps {
   description: string;
   imageUrl: string;
   offers: Offer[];
+  productId?: string;
+  id?: string;
 }
 
-export function ProductJsonLd({ name, description, imageUrl, offers }: ProductJsonLdProps) {
+export function ProductJsonLd({
+  name,
+  description,
+  imageUrl,
+  offers,
+  productId,
+  id = 'product-schema',
+}: ProductJsonLdProps) {
   return (
     <JsonLd
-      id="product-schema"
+      id={id}
       data={{
         '@context': 'https://schema.org/',
         '@type': 'Product',
+        ...(productId && { '@id': productId }),
         name,
         description,
         image: imageUrl,
+        brand: {
+          '@type': 'Brand',
+          name: 'Balikin',
+        },
         offers: offers.map((offer) => ({
           '@type': 'Offer',
           name: offer.name,
-          price: offer.price.replace(/[^0-9]/g, ''),
+          price: typeof offer.price === 'number' ? offer.price : offer.price.replace(/[^0-9]/g, ''),
           priceCurrency: 'IDR',
-          availability: 'https://schema.org/InStock',
           url: offer.url,
+          ...(offer.availability && { availability: offer.availability }),
           offeredBy: {
             '@type': 'Organization',
+            '@id': organizationId,
             name: 'Balikin',
           },
         })),
@@ -167,7 +266,7 @@ export function PersonJsonLd({
 }
 
 interface ContactPointJsonLdProps {
-  telephone: string;
+  telephone?: string;
   contactType?: string;
   areaServed?: string;
   availableLanguage?: string;
@@ -185,7 +284,7 @@ export function ContactPointJsonLd({
       data={{
         '@context': 'https://schema.org',
         '@type': 'ContactPoint',
-        telephone,
+        ...(telephone && !/^\+?62(?:XXX|81234567890)$/.test(telephone) && { telephone }),
         contactType,
         areaServed,
         availableLanguage,
@@ -205,8 +304,8 @@ interface OrganizationJsonLdProps {
 export function OrganizationJsonLd({
   name = 'Balikin',
   description = 'Platform smart lost and found Indonesia dengan teknologi QR Smart Tag untuk melindungi barang berharga Anda.',
-  url = 'https://balikin.online',
-  logo = 'https://balikin.online/balikin_logo.webp',
+  url = absoluteUrl('/'),
+  logo = absoluteUrl('/balikin_logo.webp'),
   sameAs = ['https://instagram.com/balikin.online'],
 }: OrganizationJsonLdProps) {
   return (
@@ -214,19 +313,25 @@ export function OrganizationJsonLd({
       id="organization-schema"
       data={{
         '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name,
-        description,
-        url,
-        logo,
-        sameAs,
-        contactPoint: {
-          '@type': 'ContactPoint',
-          contactType: 'Customer Service',
-          telephone: '+6281234567890',
-          areaServed: 'ID',
-          availableLanguage: 'Indonesian',
-        },
+        '@graph': [
+          {
+            '@type': 'Organization',
+            '@id': organizationId,
+            name,
+            description,
+            url,
+            logo,
+            sameAs,
+          },
+          {
+            '@type': 'WebSite',
+            '@id': websiteId,
+            url: absoluteUrl('/'),
+            name,
+            publisher: { '@id': organizationId },
+            inLanguage: 'id-ID',
+          },
+        ],
       }}
     />
   );

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { HomePage } from "@/components/home-page";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { faqItems } from "@/lib/site-content";
-import { JsonLd } from "@/components/json-ld";
+import { JsonLd, SiteGraphJsonLd } from "@/components/json-ld";
+import { PREMIUM_PRICE } from "@/lib/constants";
+import { PRODUCT_CATALOG } from "@/lib/product-catalog";
 
 export const metadata: Metadata = buildMetadata({
   title: "Balikin Smart Tag - QR Code Anti Hilang Indonesia dengan Notifikasi WhatsApp",
   description:
-    "Balikin Smart Tag: Platform Smart Lost and Found Indonesia dengan QR Code dinamis. Nomor HP tidak tercetak di barang. Lacak lokasi barang hilang, mode hilang darurat, kontak bisa diperbarui kapan saja. Sistem gantungan kunci anti hilang dengan teknologi QR code modern. Mulai gratis sekarang!",
+    "Balikin Smart Tag: platform smart lost and found Indonesia dengan QR Code dinamis. Nomor HP tidak tercetak di barang. Catat scan dan perkiraan lokasi jika tersedia, aktifkan mode hilang, dan perbarui kontak kapan saja. Mulai gratis sekarang!",
   path: "/",
   keywords: [
     // Branded keywords
@@ -48,38 +50,10 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
-// SEO Note: Comprehensive Schema Markup with SoftwareApplication, Organization, FAQPage, WebPage, Product, and LocalBusiness
+// Keep product and software offers tied to the same catalog used by checkout.
 const homeSchema = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "Organization",
-      "@id": absoluteUrl("/#organization"),
-      name: "Balikin",
-      alternateName: "Balikin Smart Tag",
-      url: absoluteUrl("/"),
-      description:
-        "Platform Smart Lost and Found Indonesia berbasis QR Code dinamis untuk menghubungkan barang hilang dengan pemiliknya melalui notifikasi WhatsApp dengan teknologi pelacakan lokasi real-time.",
-      logo: {
-        "@type": "ImageObject",
-        url: absoluteUrl("/balikin_logo.webp"),
-        width: 200,
-        height: 200,
-      },
-      sameAs: [],
-      contactPoint: {
-        "@type": "ContactPoint",
-        contactType: "customer service",
-        areaServed: "ID",
-        availableLanguage: "Indonesian",
-      },
-      knowsAbout: [
-        "Smart Lost and Found System",
-        "QR Code Technology",
-        "WhatsApp Notification System",
-        "Location Tracking System",
-      ],
-    },
     {
       "@type": "SoftwareApplication",
       "@id": absoluteUrl("/#software"),
@@ -93,38 +67,29 @@ const homeSchema = {
           "@type": "Offer",
           priceCurrency: "IDR",
           price: "0",
-          priceValidUntil: "2025-12-31",
           description: "Paket gratis selamanya dengan fitur dasar QR code pelacakan barang hilang",
           name: "Balikin Free",
         },
         {
           "@type": "Offer",
           priceCurrency: "IDR",
-          price: "35000",
-          priceValidUntil: "2025-12-31",
-          description: "Paket premium dengan fitur mode hilang darurat dan notifikasi real-time",
+          price: PREMIUM_PRICE,
+          description: "Tag fisik premium dengan fitur mode hilang dan notifikasi scan",
           name: "Balikin Premium",
         },
       ],
       featureList: [
         "QR Code dinamis untuk pelacakan barang hilang",
         "Notifikasi WhatsApp saat barang ditemukan",
-        "Live Scan Location Tracking dengan geo-lokasi akurat",
+        "Catatan scan dengan perkiraan lokasi jika tersedia",
         "Lost Mode Emergency Display dengan desain darurat merah",
-        "Real-time Alert System untuk notifikasi scan",
+        "Notifikasi dan riwayat scan sesuai konfigurasi layanan",
         "No App Required - berbasis web yang dapat diakses semua perangkat",
         "Sistem identifikasi barang dengan QR code modern",
         "Gantungan kunci QR code anti hilang berkualitas",
       ],
       description: "Sistem keamanan privasi untuk barang hilang dengan QR Code dinamis. Platform smart lost and found Indonesia yang menghubungkan penemu dengan pemilik barang secara aman tanpa nomor HP tercetak di tag.",
       keywords: "qr code barang hilang, qr code anti hilang, gantungan kunci qr code, smart lost and found, sistem pelacakan barang, whatsapp lost and found",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        reviewCount: "50",
-        bestRating: "5",
-        worstRating: "1",
-      },
       screenshot: {
         "@type": "ImageObject",
         url: absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp"),
@@ -141,15 +106,11 @@ const homeSchema = {
       },
       keywords: "gantungan kunci qr code, tag barang hilang, qr code anti hilang, smart tag untuk kunci",
       offers: {
-        "@type": "AggregateOffer",
+        "@type": "Offer",
         priceCurrency: "IDR",
-        lowPrice: "0",
-        highPrice: "150000",
-      },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        reviewCount: "50",
+        price: PRODUCT_CATALOG["armor-tag"].price,
+        availability: "https://schema.org/InStock",
+        url: absoluteUrl("/produk#akrilik"),
       },
     },
     {
@@ -165,67 +126,18 @@ const homeSchema = {
         keywords: item.question.toLowerCase().includes("hilang") ? "qr code barang hilang, mode hilang, sistem lost and found" : undefined,
       })),
     },
-    {
-      "@type": "WebPage",
-      "@id": absoluteUrl("/#webpage"),
-      url: absoluteUrl("/"),
-      name: "Balikin Smart Tag - QR Code Anti Hilang & Platform Smart Lost and Found Indonesia",
-      description: "Balikin Smart Tag: Sistem QR code dinamis untuk barang hilang dengan kontak fleksibel. Notifikasi WhatsApp, lacak lokasi scan, mode hilang darurat. Gantungan kunci QR code anti hilang gratis.",
-      inLanguage: "id-ID",
-      primaryImageOfPage: {
-        "@type": "ImageObject",
-        url: absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp"),
-      },
-      about: {
-        "@type": "Thing",
-        name: "Smart Lost and Found System dengan QR Code Pelacakan",
-        description: "Sistem modern untuk menemukan barang hilang menggunakan teknologi QR code dengan fitur lokasi real-time dan notifikasi WhatsApp",
-      },
-      mainEntity: {
-        "@type": "Thing",
-        name: "Balikin Smart Tag",
-        description: "Platform terpadu untuk sistem lost and found dengan QR code anti hilang dan teknologi notifikasi WhatsApp",
-      },
-      breadcrumb: {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Beranda",
-            item: absoluteUrl("/"),
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: "Bagaimana Cara Kerja",
-            item: absoluteUrl("/how-it-works"),
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: "Harga",
-            item: absoluteUrl("/pricing"),
-          },
-        ],
-      },
-    },
-    {
-      "@type": "LocalBusiness",
-      "@id": absoluteUrl("/#local-business"),
-      name: "Balikin Smart Tag Indonesia",
-      image: absoluteUrl("/balikin_logo.webp"),
-      description: "Platform smart lost and found Indonesia dengan sistem QR code pelacakan barang hilang terkemuka",
-      telephone: "+62XXX",
-      areaServed: "ID",
-      priceRange: "IDR 0 - IDR 150000",
-    },
   ],
 };
 
 export default function Page() {
   return (
     <>
+      <SiteGraphJsonLd
+        path="/"
+        name="Balikin Smart Tag - QR Code Anti Hilang & Platform Smart Lost and Found Indonesia"
+        description="Balikin Smart Tag: Sistem QR code dinamis untuk barang hilang dengan kontak fleksibel. Notifikasi WhatsApp, lacak lokasi scan, mode hilang darurat."
+        imageUrl={absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp")}
+      />
       <JsonLd id="home-schema" data={homeSchema} />
       <HomePage />
     </>

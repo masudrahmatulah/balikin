@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ChevronDown, MessageCircle, HelpCircle } from 'lucide-react';
+import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 
 const faqItems = [
   {
@@ -11,7 +12,7 @@ const faqItems = [
   },
   {
     question: "Apakah nomor WhatsApp saya aman?",
-    answer: "Ya, 100% aman. Nomor WhatsApp asli tidak pernah ditampilkan ke publik. Penemu hanya melihat tombol 'Hubungi Pemilik' yang dijembatani melalui server kami.",
+    answer: "Balikin berupaya mengurangi eksposur nomor WhatsApp. Nomor tidak dicetak pada tag dan penemu menggunakan tombol kontak yang tersedia; tetap hindari memasukkan data sensitif yang tidak diperlukan.",
   },
   {
     question: "Apa itu Premium Lifetime?",
@@ -19,7 +20,7 @@ const faqItems = [
   },
   {
     question: "Berapa harga QR Smart Tag?",
-    answer: "Stiker Vinyl mulai Rp35.000, Gantungan Kunci Akrilik mulai Rp45.000. Semua termasuk akses premium lifetime.",
+    answer: "Stiker Balikin saat ini mulai Rp59.000 per varian katalog, sedangkan Gantungan Kunci Akrilik mulai Rp45.000. Periksa halaman Produk untuk paket dan ketersediaan terbaru.",
   },
   {
     question: "Apakah penemu perlu aplikasi?",
@@ -101,7 +102,7 @@ export default function MobileFAQPage() {
             Tim support kami siap membantu menjawab pertanyaan Anda.
           </p>
           <a
-            href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_ORDER_NUMBER || '6281234567890'}`}
+            href={`https://wa.me/${WHATSAPP_ORDER_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="block"

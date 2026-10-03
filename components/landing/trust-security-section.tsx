@@ -207,7 +207,7 @@ export function TrustSecuritySection() {
             className="mt-12 p-4 bg-red-50 dark:bg-brand-red/10 border border-red-200 dark:border-brand-red/30 rounded-lg"
           >
             <p className="text-xs text-brand-red-dark dark:text-red-300">
-              <span className="font-bold">✓ Keamanan Terjamin:</span> Setiap aspek platform Balikin mematuhi standar keamanan internasional (ISO 27001) dan regulasi perlindungan data Indonesia.
+              <span className="font-bold">✓ Perlindungan Data:</span> Balikin menerapkan kontrol akses, HTTPS, dan kebijakan privasi untuk membantu melindungi data pengguna. Tidak ada sistem yang bebas risiko 100%.
             </p>
           </motion.div>
         </div>

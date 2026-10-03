@@ -36,6 +36,7 @@ export default function PrivacyPolicyPage() {
     <>
       <OrganizationJsonLd />
       <WebPageJsonLd
+        path="/privacy-policy"
         name="Kebijakan Privasi - Balikin"
         description="Kebijakan privasi Balikin.online – Perlindungan data pribadi Anda sesuai UU PDP Indonesia"
       />

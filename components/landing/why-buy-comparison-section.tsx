@@ -20,33 +20,33 @@ const comparisonRows = [
     aspect: 'Biaya Investasi',
     bluetooth: 'Sangat Mahal (Rp400rb – Rp600rb++ per satu barang).',
     phoneNumber: 'Gratis, tapi mengorbankan keamanan.',
-    balikin: 'Sangat Terjangkau (Hanya Rp35.000 sekali bayar).',
+    balikin: 'Mulai Rp35.000 untuk lisensi printable; produk fisik memiliki harga berbeda.',
   },
   {
     aspect: 'Biaya Perawatan',
     bluetooth: 'Harus ganti baterai secara berkala atau beli baru jika baterai tanam habis.',
     phoneNumber: 'Tidak ada.',
-    balikin: 'Rp0,- Seumur Hidup. Tidak pakai baterai, tidak perlu di-charge.',
+    balikin: 'Tidak memakai baterai atau perlu di-charge; harga dan masa aktif mengikuti paket.',
   },
   {
     aspect: 'Keamanan Privasi',
     bluetooth: 'Aman, tapi memicu risiko stalking jarak dekat jika disalahgunakan orang lain.',
     phoneNumber: 'Sangat Berbahaya. Nomor Anda bisa dicatat penjahat untuk penipuan, spam, atau teror WA.',
-    balikin: '100% Aman. Penemu menghubungi Anda via tombol WhatsApp — nomor HP Anda tidak tercetak di barang.',
+    balikin: 'Nomor HP tidak dicetak di barang; penemu menggunakan tombol kontak yang tersedia.',
   },
   {
     aspect: 'Radius Pelacakan',
     bluetooth: 'Terbatas radius Bluetooth (±10-120 meter). Tidak berguna jika barang terbawa ke luar kota/pulau.',
     phoneNumber: 'Tergantung niat baik penemu.',
-    balikin: 'Global & Unlimited. Selama penemu memiliki koneksi internet dan kamera HP, barang Anda bisa dilaporkan dari mana saja.',
+    balikin: 'Dapat digunakan dari mana saja selama penemu memiliki koneksi internet dan kamera HP.',
   },
 ];
 
 const logicPoints = [
   {
     icon: Wallet,
-    title: 'Rp35.000 vs Ribetnya Kehilangan Dompet',
-    desc: 'Harga satu lisensi pintar Balikin hanya Rp35.000. Bandingkan dengan biaya, waktu, dan kepanikan jika Anda harus mengurus ulang KTP, SIM, STNK di dalam dompet yang hilang, atau membeli kunci paspor dan kunci motor baru yang nilainya jutaan rupiah. Investasi Rp35.000 sekali ini jauh lebih ringan dibanding kerepotan mengurus dokumen atau membeli barang pengganti.',
+    title: 'Biaya Perlindungan Barang',
+    desc: 'Lisensi printable Balikin mulai Rp35.000. Bandingkan biaya tersebut dengan waktu dan kerepotan saat harus mengurus ulang dokumen atau mengganti barang yang hilang.',
   },
   {
     icon: ShieldAlert,

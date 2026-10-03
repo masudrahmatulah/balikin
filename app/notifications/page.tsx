@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { DashboardHeader } from '@/components/dashboard-header';
@@ -7,6 +8,14 @@ import { db } from '@/db';
 import { notificationLogs, tags } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { Badge } from '@/components/ui/badge';
+import { buildMetadata } from '@/lib/seo';
+
+export const metadata: Metadata = buildMetadata({
+  title: 'Notifikasi',
+  description: 'Lihat notifikasi aktivitas tag Balikin Anda.',
+  path: '/notifications',
+  noIndex: true,
+});
 
 export default async function NotificationsPage() {
   const session = await getSession();

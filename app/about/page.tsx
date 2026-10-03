@@ -46,6 +46,7 @@ export default function AboutPage() {
     <>
       <OrganizationJsonLd />
       <WebPageJsonLd
+        path="/about"
         name="Tentang Balikin - Solusi Pintar Amankan Barang Berharga"
         description="Tentang Balikin.online – Platform smart lost & found Indonesia dengan teknologi QR Smart Tag. Solusi aman melindungi barang hilang, kunci, dompet, laptop, hingga hewan peliharaan."
       />

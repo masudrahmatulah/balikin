@@ -234,7 +234,10 @@ export function ImageCropper({
               max={4}
               step={0.05}
               value={[zoom]}
-              onValueChange={([v]) => setZoom(v)}
+              onValueChange={(value) => {
+                const nextValue = Array.isArray(value) ? value[0] : value;
+                if (nextValue !== undefined) setZoom(nextValue);
+              }}
             />
           </div>
 

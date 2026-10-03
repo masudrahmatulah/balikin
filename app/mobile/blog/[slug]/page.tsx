@@ -11,6 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { buildBlogSchemas } from '@/lib/blog-jsonld';
 import { BlogHouseAd, shouldShowHouseAds, countWords, splitMarkdownBlocks } from '@/components/blog/blog-house-ad';
+import { absoluteUrl } from '@/lib/seo';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -20,6 +21,7 @@ async function getBlogPost(slug: string) {
   const post = await db.query.blogPosts.findFirst({
     where: and(
       eq(blogPosts.slug, slug),
+      eq(blogPosts.app_id, 'balikin_id'),
       eq(blogPosts.isPublished, true),
       isNull(blogPosts.deletedAt)
     ),
@@ -28,7 +30,10 @@ async function getBlogPost(slug: string) {
   if (!post) return null;
 
   const comments = await db.query.blogComments.findMany({
-    where: eq(blogComments.postId, post.id),
+    where: and(
+      eq(blogComments.postId, post.id),
+      eq(blogComments.app_id, 'balikin_id'),
+    ),
   });
 
   return { post, comments };
@@ -286,8 +291,7 @@ export async function generateMetadata({ params }: BlogPageProps) {
   }
 
   const { post } = data;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://balikin.online';
-  const canonicalUrl = `${baseUrl}/blog/${slug}`;
+  const canonicalUrl = absoluteUrl(`/blog/${slug}`);
   const description = post.metaDescription || post.summary;
 
   return {

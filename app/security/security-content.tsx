@@ -21,8 +21,8 @@ export function SecurityContent() {
           Keamanan Data Anda Adalah Prioritas Kami
         </h2>
         <p className="text-gray-700">
-          Balikin berkomitmen untuk melindungi privasi dan keamanan data Anda dengan standar
-          keamanan kelas dunia dan kepatuhan penuh terhadap regulasi Indonesia.
+          Balikin berkomitmen untuk menerapkan praktik yang wajar dalam melindungi privasi dan
+          keamanan data sesuai kebutuhan layanan serta kebijakan yang berlaku.
         </p>
       </section>
 
@@ -30,10 +30,16 @@ export function SecurityContent() {
       <section className="mb-12" aria-labelledby="certifications-heading">
         <h2 id="certifications-heading" className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
           <Award className="h-6 w-6 text-blue-600" aria-hidden="true" />
-          Sertifikasi & Kepatuhan
+          Praktik Keamanan
         </h2>
         <div className="grid gap-6 md:grid-cols-2">
-          {securityCertifications.map((cert, index) => (
+          {securityCertifications.map((cert, index) => {
+            const certImage =
+              "image" in cert && typeof cert.image === "string"
+                ? cert.image
+                : "/balikin_logo.webp";
+
+            return (
             <article
               key={cert.id}
               className="security-card rounded-lg border border-blue-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -45,7 +51,7 @@ export function SecurityContent() {
                     <Lock className="h-10 w-10 text-blue-600 mx-auto" aria-hidden="true" />
                   ) : (
                     <Image
-                      src={cert.image ?? ''}
+                      src={certImage}
                       alt={cert.title}
                       width={80}
                       height={80}
@@ -58,7 +64,8 @@ export function SecurityContent() {
               </div>
               <p className="text-sm text-gray-700 text-center">{cert.description}</p>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -70,10 +77,8 @@ export function SecurityContent() {
         </h2>
         <div className="rounded-lg border bg-white p-6">
           <p className="mb-4 text-gray-700">
-            Data Anda disimpan di pusat data kelas dunia yang diaudit secara rutin untuk
-            keamanan maksimal. Kami menggunakan infrastruktur cloud terpercaya dengan
-            lokasi server di Singapore dan Indonesia untuk performa optimal dan kepatuhan
-            regulasi setempat.
+            Data Anda diproses menggunakan infrastruktur cloud. Konfigurasi region, layanan,
+            dan retensi dapat berubah sesuai kebutuhan operasional dan provider yang digunakan.
           </p>
           <div className="mb-4">
             <h3 className="mb-2 font-semibold text-gray-900">Provider Penyimpanan:</h3>
@@ -106,8 +111,8 @@ export function SecurityContent() {
         </h2>
         <div className="rounded-lg border bg-white p-6">
           <p className="mb-4 text-gray-700">
-            Pesan dan data Anda dilindungi dengan enkripsi standar perbankan. Kami menerapkan
-            enkripsi berlapis untuk memastikan data Anda tetap aman:
+            Kami menerapkan kontrol teknis dan operasional yang wajar untuk membantu melindungi
+            data pengguna. Tidak ada sistem yang dapat dijamin bebas risiko 100%:
           </p>
           <ul className="mb-4 list-inside list-disc space-y-2 text-sm text-gray-700">
             {encryptionFeatures.map((feature) => (
@@ -122,16 +127,16 @@ export function SecurityContent() {
             </summary>
             <div className="mt-3 text-xs text-gray-600" aria-live="polite">
               <p className="mb-2">
-                <strong>Protokol:</strong> TLS 1.3 dengan cipher suites modern (AES-256-GCM,
-                ChaCha20-Poly1305)
+                <strong>Protokol:</strong> Akses web menggunakan HTTPS/TLS sesuai konfigurasi
+                hosting dan browser yang digunakan.
               </p>
               <p className="mb-2">
-                <strong>Key Management:</strong> Hardware Security Modules (HSM) untuk key
-                management
+                <strong>Akses:</strong> Fitur akun dilindungi autentikasi dan pemeriksaan izin
+                sesuai peran pengguna.
               </p>
               <p>
-                <strong>Compliance:</strong> Memenuhi standar NIST, FIPS 140-2 Level 3, dan
-                PCI DSS
+                <strong>Catatan:</strong> Sertifikasi provider tidak otomatis berarti Balikin
+                memiliki sertifikasi yang sama. Rujuk dokumentasi resmi provider.
               </p>
             </div>
           </details>
@@ -142,17 +147,17 @@ export function SecurityContent() {
       <section className="mb-12" aria-labelledby="pdp-compliance-heading">
         <h2 id="pdp-compliance-heading" className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900">
           <Scale className="h-6 w-6 text-blue-600" aria-hidden="true" />
-          Kepatuhan UU PDP No. 27 Tahun 2022
+            Pengelolaan Data dan Hak Pengguna
         </h2>
         <div className="rounded-lg border bg-white p-6">
           <p className="mb-4 text-gray-700">
-            Balikin berkomitmen penuh untuk mematuhi Undang-Undang Perlindungan Data Pribadi
-            No. 27 Tahun 2022. Berikut adalah checklist kepatuhan kami:
+            Berikut adalah area pengelolaan data yang dijelaskan dalam kebijakan dan dirancang
+            untuk membantu pengguna memahami hak serta pilihan mereka:
           </p>
           <div className="mb-4 grid gap-3 md:grid-cols-2">
             {pdpComplianceItems.map((item) => (
               <div key={item.title} className="flex items-start gap-2 rounded-lg bg-green-50 p-3">
-                <span className="text-green-600" aria-label="Compliant">✅</span>
+                <span className="text-green-600" aria-hidden="true">•</span>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{item.title}</p>
                   <p className="text-xs text-gray-600">{item.description}</p>
@@ -217,8 +222,8 @@ export function SecurityContent() {
         </h2>
         <div className="rounded-lg border bg-white p-6">
           <p className="mb-4 text-gray-700">
-            Kami bekerja sama dengan provider terpercaya yang memenuhi standar keamanan
-            tertinggi:
+            Balikin menggunakan provider infrastruktur untuk hosting dan database. Informasi
+            sertifikasi provider harus dibaca pada dokumentasi resmi masing-masing provider:
           </p>
           <div className="mb-4 space-y-4">
             {infrastructureProviders.map((provider) => (
@@ -273,7 +278,7 @@ export function SecurityContent() {
             </a>
           </li>
           <li>
-            <a href="/terms" className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 rounded">
+            <a href="/terms-of-service" className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 rounded">
               Syarat & Ketentuan
             </a>
           </li>

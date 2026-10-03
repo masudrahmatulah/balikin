@@ -3,13 +3,5 @@ export default function CampaignsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="id" suppressHydrationWarning>
-      <body className="bg-white dark:bg-slate-950 text-slate-950 dark:text-slate-50">
-        <div className="min-h-screen w-full">
-          {children}
-        </div>
-      </body>
-    </html>
-  );
+  return <div className="min-h-screen w-full bg-white text-slate-950 dark:bg-slate-950 dark:text-slate-50">{children}</div>;
 }

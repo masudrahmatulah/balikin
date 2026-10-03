@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     locale: "id_ID",
     type: "website",
-    images: [{ url: "/balikin_logo.webp", width: 400, height: 400, alt: "Balikin" }],
+    images: [{ url: absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp"), alt: "Balikin Smart Tag" }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteConfig.name} | Smart Lost & Found QR Tag`,
     description: siteConfig.description,
-    images: ["/balikin_logo.webp"],
+    images: [absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp")],
   },
   manifest: "/manifest.json",
   appleWebApp: {

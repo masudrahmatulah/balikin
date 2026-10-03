@@ -44,7 +44,7 @@ export const faqItems = [
   {
     question: "Berapa biaya menggunakan Balikin?",
     answer:
-      "Versi digital Balikin gratis selamanya dengan maksimal 1 tag. Jika ingin produk fisik premium dan fitur tambahan, Anda bisa upgrade ke Premium seharga Rp35.000 per tag.",
+      "Versi digital Balikin gratis selamanya dengan maksimal 1 tag. Produk fisik premium mulai dari Rp45.000 untuk akrilik, sedangkan paket stiker mulai dari Rp59.000.",
   },
   {
     question: "Apakah perlu install aplikasi?",
@@ -95,7 +95,7 @@ export const faqItems = [
   {
     question: "Berapa harga Smart Tag Balikin untuk paket keluarga?",
     answer:
-      "Versi digital gratis (maksimal 1 tag). Premium Rp 35.000/tag (termasuk hardware akrilik/stiker premium). Untuk keluarga, kami sarankan bundle pack agar lebih hemat.",
+      "Versi digital gratis (maksimal 1 tag). Gantungan akrilik mulai Rp45.000 dan paket stiker Rp59.000. Untuk keluarga, kami sarankan bundle pack agar lebih hemat.",
   },
 ];
 
@@ -192,66 +192,45 @@ export const contactSections = [
 
 export const securityCertifications = [
   {
-    id: "soc2",
-    title: "SOC 2® Type II",
-    image: "/logo_trust/soc2.png",
-    description:
-      "Audit keamanan yang ketat oleh pihak ketiga untuk memastikan kontrol keamanan yang memadai dalam melindungi data Anda.",
-  },
-  {
-    id: "iso27001",
-    title: "ISO 27001",
-    image: "/logo_trust/iso27001.png",
-    description:
-      "Sistem manajemen keamanan informasi yang terstandarisasi international untuk memastikan keamanan data berkelanjutan.",
-  },
-  {
-    id: "gdpr",
-    title: "GDPR Compliant",
-    image: "/logo_trust/gdpr.png",
-    description:
-      "Kepatuhan penuh terhadap General Data Protection Regulation Uni Eropa untuk perlindungan data pribadi yang komprehensif.",
-  },
-  {
-    id: "ssl",
-    title: "SSL/TLS Encryption",
+    id: "transport-security",
+    title: "Perlindungan Koneksi",
     icon: "lock",
     description:
-      "Enkripsi end-to-end untuk semua transmisi data dengan protokol SSL/TLS modern dan certificate yang valid.",
+      "Balikin menggunakan HTTPS/TLS untuk membantu melindungi data saat dikirim antara browser dan layanan.",
   },
 ];
 
 export const securityDataProviders = [
   {
     name: "Supabase (AWS)",
-    certifications: "SOC2, ISO 27001, dan GDPR compliant",
+    certifications: "Penyedia database dan storage yang digunakan Balikin. Detail kontrol mengikuti dokumentasi resmi provider.",
   },
   {
     name: "Vercel",
-    certifications: "SOC 2 Type II dan ISO 27001 certified",
+    certifications: "Penyedia hosting dan deployment aplikasi Balikin. Detail kontrol mengikuti dokumentasi resmi provider.",
   },
   {
     name: "Lokasi Server",
-    certifications: "Singapore (ap-southeast-1) dan Indonesia",
+    certifications: "Lokasi pemrosesan dapat bergantung pada konfigurasi layanan dan region deployment yang aktif.",
   },
 ];
 
 export const encryptionFeatures = [
   {
     label: "Enkripsi Transmisi",
-    description: "SSL/TLS 1.3 untuk semua data yang dikirim antara browser dan server",
+    description: "HTTPS/TLS untuk membantu melindungi data yang dikirim antara browser dan server",
   },
   {
-    label: "Enkripsi Database",
-    description: "Data dienkripsi saat disimpan (at-rest encryption) dengan AES-256",
+    label: "Kontrol Akses",
+    description: "Akses ke fitur akun dan data dibatasi melalui autentikasi dan pemeriksaan izin",
   },
   {
-    label: "Enkripsi Backup",
-    description: "Semua backup data dienkripsi dan disimpan secara aman",
+    label: "Pengelolaan Data",
+    description: "Data dikelola sesuai kebutuhan layanan dan kebijakan privasi yang berlaku",
   },
   {
-    label: "Secure Communication",
-    description: "WhatsApp dan Email terenkripsi untuk notifikasi OTP",
+    label: "Komunikasi Layanan",
+    description: "Notifikasi dan jalur kontak digunakan untuk membantu proses lost and found",
   },
 ];
 
@@ -294,19 +273,19 @@ export const userRights = [
 export const infrastructureProviders = [
   {
     name: "Vercel (Hosting Platform)",
-    certifications: ["SOC 2 Type II Certified", "ISO 27001 Certified", "GDPR Compliant", "Automated security updates & patching"],
+    certifications: ["Hosting dan deployment aplikasi", "Lihat dokumentasi keamanan resmi provider untuk detail kontrol"],
     link: "https://vercel.com/security",
     linkLabel: "Pelajari keamanan Vercel",
   },
   {
     name: "Supabase & AWS (Database)",
-    certifications: ["SOC 2, ISO 27001, and GDPR Compliant", "AES-256 encryption at rest", "Continuous security monitoring", "Regular penetration testing"],
+    certifications: ["Database dan storage aplikasi", "Lihat dokumentasi keamanan resmi provider untuk detail kontrol"],
     link: "https://supabase.com/security",
     linkLabel: "Pelajari keamanan Supabase",
   },
   {
     name: "AWS Compliance",
-    certifications: ["90+ security certifications and compliance programs", "ISO 27001, SOC 1/2/3, GDPR, HIPAA, PCI DSS", "24/7 security monitoring and incident response"],
+    certifications: ["Infrastruktur cloud provider", "Lihat dokumentasi resmi AWS untuk cakupan sertifikasi dan compliance provider"],
     link: "https://aws.amazon.com/compliance/",
     linkLabel: "Pelajari compliance AWS",
   },
