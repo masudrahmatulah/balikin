@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentClusters, blogContentPlans } from "@/db/schema";
 import { isAdmin } from "@/lib/admin";
-import { getWordTarget } from "@/lib/blog-content-strategy";
+import { getBrandPillarLabel, getSeedBrandPillar, getWordTarget } from "@/lib/blog-content-strategy";
 
 const APP_ID = "balikin_id";
 
@@ -82,47 +82,85 @@ const seedArticles = [
 export async function POST() {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const existing = await db.select({ id: blogContentClusters.id })
-    .from(blogContentClusters)
-    .where(eq(blogContentClusters.app_id, APP_ID));
-  if (existing.length > 0) return NextResponse.json({ error: "Content strategy sudah memiliki data." }, { status: 409 });
-
-  const clusters = await db.insert(blogContentClusters).values(seedClusters.map((cluster) => ({
+  const insertedClusters = await db.insert(blogContentClusters).values(seedClusters.map((cluster) => ({
     ...cluster,
     app_id: APP_ID,
     targetArticles: 10,
-  }))).returning();
+  }))).onConflictDoNothing().returning({ id: blogContentClusters.id });
+  const clusters = await db.select().from(blogContentClusters).where(eq(blogContentClusters.app_id, APP_ID));
+  const clusterBySlug = new Map(clusters.map((cluster) => [cluster.slug, cluster]));
+  const existingPlans = await db.select({
+    id: blogContentPlans.id,
+    clusterId: blogContentPlans.clusterId,
+    title: blogContentPlans.title,
+    articleType: blogContentPlans.articleType,
+    brandPillar: blogContentPlans.brandPillar,
+  }).from(blogContentPlans).where(eq(blogContentPlans.app_id, APP_ID));
+  const existingByKey = new Map(existingPlans.map((plan) => [`${plan.clusterId}:${plan.title}`, plan]));
+  const seedRows = seedArticles.map(([title, focusKeyword, articleType], index) => {
+    const cluster = clusterBySlug.get(seedClusters[Math.floor(index / 10)].slug);
+    return { title, focusKeyword, articleType, cluster };
+  }).filter((row) => row.cluster);
 
-  const plans = [];
-  for (let index = 0; index < seedArticles.length; index += 1) {
-    const cluster = clusters[Math.floor(index / 10)];
-    const [title, focusKeyword, articleType] = seedArticles[index];
-    const wordTarget = getWordTarget(articleType);
-    plans.push({
+  const newPlans = [];
+  let plansLabeled = 0;
+  for (const row of seedRows) {
+    const cluster = row.cluster!;
+    const key = `${cluster.id}:${row.title}`;
+    const existingPlan = existingByKey.get(key);
+    if (existingPlan) {
+      if (!existingPlan.brandPillar) {
+        await db.update(blogContentPlans)
+          .set({ brandPillar: getSeedBrandPillar(row.title, row.focusKeyword, row.articleType) })
+          .where(and(eq(blogContentPlans.id, existingPlan.id), eq(blogContentPlans.app_id, APP_ID)));
+        plansLabeled += 1;
+      }
+      continue;
+    }
+
+    const wordTarget = getWordTarget(row.articleType);
+    newPlans.push({
       app_id: APP_ID,
       clusterId: cluster.id,
-      title,
-      focusKeyword,
-      articleType,
+      title: row.title,
+      focusKeyword: row.focusKeyword,
+      articleType: row.articleType,
+      brandPillar: getSeedBrandPillar(row.title, row.focusKeyword, row.articleType),
       targetMinWords: wordTarget.min,
       targetMaxWords: wordTarget.max,
-      searchIntent: articleType === "commercial" ? "commercial" : "informational",
-      priority: articleType === "pillar" ? "high" : "medium",
+      searchIntent: row.articleType === "commercial" ? "commercial" : "informational",
+      priority: row.articleType === "pillar" ? "high" : "medium",
       status: "planned",
-      brief: `Bahas ${title.toLowerCase()} secara praktis untuk pembaca Indonesia dan arahkan secara natural ke solusi Balikin.`,
-      cta: articleType === "commercial" ? "Arahkan ke halaman produk Balikin yang paling relevan." : "Arahkan ke artikel pillar dan satu halaman produk yang relevan.",
+      brief: `Bahas ${row.title.toLowerCase()} secara praktis untuk pembaca Indonesia. Bangun tema brand “${getBrandPillarLabel(getSeedBrandPillar(row.title, row.focusKeyword, row.articleType))}” dengan nada hangat, jelas, dan tidak menggurui; arahkan secara natural ke solusi Balikin jika relevan.`,
+      cta: row.articleType === "commercial" ? "Arahkan ke halaman produk Balikin yang paling relevan." : "Arahkan ke artikel pillar dan satu halaman produk yang relevan.",
     });
   }
-  const insertedPlans = await db.insert(blogContentPlans).values(plans).returning();
-  for (let index = 0; index < insertedPlans.length; index += 1) {
-    if (index % 10 === 0) continue;
+
+  const insertedPlans = newPlans.length ? await db.insert(blogContentPlans).values(newPlans).returning() : [];
+  const rootPlanByCluster = new Map<string, string>();
+  for (const row of seedRows) {
+    if (row.articleType !== "pillar" || !row.cluster) continue;
+    const key = `${row.cluster.id}:${row.title}`;
+    const existingRoot = existingByKey.get(key);
+    const insertedRoot = insertedPlans.find((plan) => plan.clusterId === row.cluster!.id && plan.title === row.title);
+    const rootId = existingRoot?.id || insertedRoot?.id;
+    if (rootId) rootPlanByCluster.set(row.cluster.id, rootId);
+  }
+  for (const plan of insertedPlans) {
+    const parentPlanId = rootPlanByCluster.get(plan.clusterId);
+    if (!parentPlanId || plan.articleType === "pillar") continue;
     await db.update(blogContentPlans)
-      .set({ parentPlanId: insertedPlans[Math.floor(index / 10) * 10].id })
+      .set({ parentPlanId })
       .where(and(
-        eq(blogContentPlans.id, insertedPlans[index].id),
+        eq(blogContentPlans.id, plan.id),
         eq(blogContentPlans.app_id, APP_ID),
       ));
   }
 
-  return NextResponse.json({ clusters: clusters.length, plans: plans.length }, { status: 201 });
+  return NextResponse.json({
+    clustersAdded: insertedClusters.length,
+    plansAdded: insertedPlans.length,
+    plansLabeled,
+    totalSeedPlans: seedRows.length,
+  }, { status: insertedClusters.length || insertedPlans.length || plansLabeled ? 201 : 200 });
 }

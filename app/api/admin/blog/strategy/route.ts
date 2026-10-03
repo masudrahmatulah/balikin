@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
     secondaryKeywords: typeof body.secondaryKeywords === "string" ? body.secondaryKeywords.trim() : null,
     searchIntent: typeof body.searchIntent === "string" ? body.searchIntent : "informational",
     articleType,
+    brandPillar: typeof body.brandPillar === "string" && body.brandPillar ? body.brandPillar : null,
     targetMinWords,
     targetMaxWords,
     brief: typeof body.brief === "string" ? body.brief.trim() : null,

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getWordTarget } from "@/lib/blog-content-strategy";
+import { BRAND_PILLARS, getWordTarget } from "@/lib/blog-content-strategy";
 
 type Cluster = {
   id: string;
@@ -27,6 +27,7 @@ type Plan = {
   title: string;
   focusKeyword: string;
   articleType: string;
+  brandPillar: string | null;
   searchIntent: string;
   priority: string;
   status: string;
@@ -57,17 +58,19 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
   const [selectedCluster, setSelectedCluster] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [articleTypeFilter, setArticleTypeFilter] = useState("all");
+  const [brandPillarFilter, setBrandPillarFilter] = useState("all");
   const [showClusterForm, setShowClusterForm] = useState(false);
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [clusterForm, setClusterForm] = useState({ name: "", slug: "", primaryKeyword: "", description: "" });
-  const [planForm, setPlanForm] = useState({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
+  const [planForm, setPlanForm] = useState({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", brandPillar: "", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
 
   const visiblePlans = useMemo(() => plans.filter((plan) => (
     (selectedCluster === "all" || plan.clusterId === selectedCluster) &&
     (statusFilter === "all" || plan.status === statusFilter) &&
-    (articleTypeFilter === "all" || plan.articleType === articleTypeFilter)
-  )), [plans, selectedCluster, statusFilter, articleTypeFilter]);
+    (articleTypeFilter === "all" || plan.articleType === articleTypeFilter) &&
+    (brandPillarFilter === "all" || plan.brandPillar === brandPillarFilter)
+  )), [plans, selectedCluster, statusFilter, articleTypeFilter, brandPillarFilter]);
   const published = plans.filter((plan) => plan.status === "published" || plan.linkedPostId).length;
   const inProgress = plans.filter((plan) => !["planned", "published"].includes(plan.status) && !plan.linkedPostId).length;
 
@@ -86,7 +89,7 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Seed gagal dibuat");
       await refresh();
-      toast.success(`${data.plans} rencana artikel berhasil dibuat.`);
+      toast.success(`Seed selesai: ${data.plansAdded} artikel baru, ${data.plansLabeled} artikel diperbarui dengan Pilar Brand. Artikel lama tetap dipertahankan.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Seed gagal dibuat.");
     } finally {
@@ -117,7 +120,7 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
     const data = await response.json();
     if (!response.ok) return toast.error(data.error || "Rencana gagal dibuat.");
     setPlans((current) => [...current, data]);
-    setPlanForm({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
+    setPlanForm({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", brandPillar: "", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
     setShowPlanForm(false);
     toast.success("Rencana artikel berhasil dibuat.");
   };
@@ -143,9 +146,9 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
           <p className="text-muted-foreground">Kelola topic cluster, pillar, supporting article, dan target publikasi.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={seedStrategy} disabled={isSeeding || clusters.length > 0}>
+          <Button variant="outline" onClick={seedStrategy} disabled={isSeeding}>
             <Target className="mr-2 h-4 w-4" />
-            {isSeeding ? "Menyiapkan..." : "Seed 60 Artikel"}
+            {isSeeding ? "Menyinkronkan..." : "Seed / Sinkronkan 60 Artikel"}
           </Button>
           <Button variant="outline" onClick={() => setShowClusterForm((value) => !value)}><Plus className="mr-2 h-4 w-4" />Cluster</Button>
           <Button onClick={() => setShowPlanForm((value) => !value)}><ListPlus className="mr-2 h-4 w-4" />Rencana Artikel</Button>
@@ -194,6 +197,10 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="pillar">Pillar</SelectItem><SelectItem value="supporting">Supporting</SelectItem><SelectItem value="commercial">Commercial</SelectItem></SelectContent>
             </Select>
+            <Select value={planForm.brandPillar || "none"} onValueChange={(value) => setPlanForm({ ...planForm, brandPillar: value === "none" ? "" : value || "" })}>
+              <SelectTrigger><SelectValue placeholder="Pilih pilar brand (opsional)" /></SelectTrigger>
+              <SelectContent><SelectItem value="none">Tanpa pilar brand</SelectItem>{BRAND_PILLARS.map((pillar) => <SelectItem key={pillar.value} value={pillar.value}>{pillar.label}</SelectItem>)}</SelectContent>
+            </Select>
             <Input type="number" min={100} placeholder="Minimum kata" value={planForm.targetMinWords} onChange={(e) => setPlanForm({ ...planForm, targetMinWords: Number(e.target.value) })} />
             <Input type="number" min={100} placeholder="Maksimum kata" value={planForm.targetMaxWords} onChange={(e) => setPlanForm({ ...planForm, targetMaxWords: Number(e.target.value) })} />
           </div>
@@ -213,17 +220,18 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
       <div className="rounded-xl border bg-card">
         <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between">
           <div><h2 className="font-semibold">Editorial Roadmap</h2><p className="text-sm text-muted-foreground">Pilih rencana untuk dilanjutkan ke editor artikel.</p></div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={selectedCluster} onValueChange={(value) => setSelectedCluster(value || "all")}><SelectTrigger className="w-[190px]"><SelectValue placeholder="Semua cluster" /></SelectTrigger><SelectContent><SelectItem value="all">Semua cluster</SelectItem>{clusters.map((cluster) => <SelectItem key={cluster.id} value={cluster.id}>{cluster.name}</SelectItem>)}</SelectContent></Select>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value || "all")}><SelectTrigger className="w-[150px]"><SelectValue placeholder="Semua status" /></SelectTrigger><SelectContent><SelectItem value="all">Semua status</SelectItem>{Object.entries(statusLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select>
             <Select value={articleTypeFilter} onValueChange={(value) => setArticleTypeFilter(value || "all")}><SelectTrigger className="w-[150px]"><SelectValue placeholder="Semua jenis" /></SelectTrigger><SelectContent><SelectItem value="all">Semua jenis</SelectItem><SelectItem value="pillar">Pillar</SelectItem><SelectItem value="supporting">Supporting</SelectItem><SelectItem value="commercial">Commercial</SelectItem></SelectContent></Select>
+            <Select value={brandPillarFilter} onValueChange={(value) => setBrandPillarFilter(value || "all")}><SelectTrigger className="w-[220px]"><SelectValue placeholder="Semua pilar brand" /></SelectTrigger><SelectContent><SelectItem value="all">Semua pilar brand</SelectItem>{BRAND_PILLARS.map((pillar) => <SelectItem key={pillar.value} value={pillar.value}>{pillar.label}</SelectItem>)}</SelectContent></Select>
             <Button variant="ghost" size="icon" onClick={refresh} title="Refresh"><RefreshCw className="h-4 w-4" /></Button>
           </div>
         </div>
         <div className="divide-y">
           {visiblePlans.map((plan) => (
             <div key={plan.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><span className={`rounded px-2 py-0.5 text-[11px] font-medium ${plan.articleType === "pillar" ? "bg-violet-500/10 text-violet-700" : plan.articleType === "commercial" ? "bg-emerald-500/10 text-emerald-700" : "bg-blue-500/10 text-blue-700"}`}>{plan.articleType}</span><span className="text-xs text-muted-foreground">{clusterName(plan.clusterId)}</span></div><h3 className="font-medium">{plan.title}</h3><p className="text-sm text-muted-foreground">Keyword: <strong>{plan.focusKeyword}</strong>{plan.parentPlanId ? " · Supporting article" : ""} · Target: {plan.targetMinWords.toLocaleString("id-ID")}–{plan.targetMaxWords.toLocaleString("id-ID")} kata</p></div>
+              <div className="min-w-0 flex-1"><div className="mb-1 flex flex-wrap items-center gap-2"><span className={`rounded px-2 py-0.5 text-[11px] font-medium ${plan.articleType === "pillar" ? "bg-violet-500/10 text-violet-700" : plan.articleType === "commercial" ? "bg-emerald-500/10 text-emerald-700" : "bg-blue-500/10 text-blue-700"}`}>{plan.articleType}</span><span className="text-xs text-muted-foreground">{clusterName(plan.clusterId)}</span>{plan.brandPillar && <span className="rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-700">{BRAND_PILLARS.find((pillar) => pillar.value === plan.brandPillar)?.label || plan.brandPillar}</span>}</div><h3 className="font-medium">{plan.title}</h3><p className="text-sm text-muted-foreground">Keyword: <strong>{plan.focusKeyword}</strong>{plan.parentPlanId ? " · Supporting article" : ""} · Target: {plan.targetMinWords.toLocaleString("id-ID")}–{plan.targetMaxWords.toLocaleString("id-ID")} kata</p></div>
               <div className="flex flex-wrap items-center gap-2"><Select value={plan.status} onValueChange={(value) => updateStatus(plan.id, value || plan.status)}><SelectTrigger className="w-[145px]"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(statusLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select>{plan.linkedPostId && <Link href={`/admin/blog/${plan.linkedPostId}/edit`}><Button size="sm" variant="outline"><Pencil className="mr-1 h-3.5 w-3.5" />Edit Artikel</Button></Link>}{plan.status === "ai_drafted" && !plan.linkedPostId && <Link href={`/admin/blog/new?planId=${plan.id}`}><Button size="sm" variant="outline"><Pencil className="mr-1 h-3.5 w-3.5" />Lanjutkan ke Editor</Button></Link>}{plan.status === "planned" && <Link href={`/admin/blog/new?planId=${plan.id}`}><Button size="sm"><Sparkles className="mr-1 h-3.5 w-3.5" />Generate Draft</Button></Link>}{plan.targetPublishDate && <span className="text-xs text-muted-foreground"><CalendarDays className="mr-1 inline h-3.5 w-3.5" />{new Date(plan.targetPublishDate).toLocaleDateString("id-ID")}</span>}</div>
             </div>
           ))}

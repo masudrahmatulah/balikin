@@ -10,7 +10,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { blogContentPlans, blogPosts } from "@/db/schema";
 import { countKeywordOccurrences, ensureSlugContainsKeyword } from "@/lib/blog-seo";
-import { countContentWords, getWordTarget } from "@/lib/blog-content-strategy";
+import { countContentWords, getBrandPillarLabel, getWordTarget } from "@/lib/blog-content-strategy";
 
 export const runtime = "nodejs";
 
@@ -193,6 +193,8 @@ Buat satu artikel blog berbahasa Indonesia berdasarkan topik berikut.
 
 Topik: ${topic}
 Keyword utama: ${keyword || "tentukan keyword yang paling relevan"}
+${plan?.brandPillar ? `Pilar brand Balikin: ${getBrandPillarLabel(plan.brandPillar)}. Pastikan narasi artikel memperkuat tema ini secara alami.` : ""}
+${plan?.brief ? `Brief rencana artikel: ${plan.brief}` : ""}
 
 Aturan wajib:
 - Hasilkan artikel yang berguna, spesifik, dan mudah dipindai pembaca.

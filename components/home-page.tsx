@@ -17,7 +17,7 @@ export function HomePage() {
   return (
     <main id="main-content" className="min-h-screen bg-gradient-to-b from-red-50 via-white to-white dark:from-brand-navy dark:via-brand-navy-light dark:to-brand-navy">
       {/* Header - Auth-Aware Navigation */}
-      <SiteHeader />
+      <SiteHeader refinedLogo />
 
       {/* Hero: Balikin Smart License positioning */}
       <SmartLicenseHeroSection />

@@ -45,5 +45,8 @@ next-env.d.ts
 
 # drizzle
 /drizzle
+!/drizzle/
+/drizzle/*
+!/drizzle/0027_blog_content_plan_brand_pillar.sql
 .env.vercel.prod
 .env*

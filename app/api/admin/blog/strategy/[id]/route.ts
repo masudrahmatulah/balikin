@@ -14,7 +14,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const body = await request.json() as Record<string, unknown>;
   const updates: Record<string, unknown> = { updatedAt: new Date() };
 
-  for (const field of ["title", "focusKeyword", "secondaryKeywords", "searchIntent", "articleType", "brief", "cta", "priority", "status", "notes", "linkedPostId"]) {
+  for (const field of ["title", "focusKeyword", "secondaryKeywords", "searchIntent", "articleType", "brandPillar", "brief", "cta", "priority", "status", "notes", "linkedPostId"]) {
     if (body[field] !== undefined) updates[field] = typeof body[field] === "string" ? body[field].trim() : body[field];
   }
   if (typeof body.targetPublishDate === "string") updates.targetPublishDate = body.targetPublishDate ? new Date(body.targetPublishDate) : null;
