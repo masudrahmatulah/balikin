@@ -20,7 +20,7 @@ import { hashValue, generateActivationPin } from "@/lib/crypto";
 import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { getAppBaseUrl } from '@/lib/app-url';
-import { hasPermission } from '@/lib/admin-divisions';
+import { getDefaultDivision, hasPermission } from '@/lib/admin-divisions';
 
 // Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
 const STICKER_PRODUCT_CODE: Record<string, string> = {
@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!hasPermission(session.user.division, "vdp_tool")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasPermission(session.user.division || getDefaultDivision(), "vdp_tool")) {
+      return NextResponse.json({ error: "Akses VDP hanya tersedia untuk divisi Produksi atau Administrator." }, { status: 403 });
     }
 
     const { searchParams } = await request.nextUrl;
@@ -150,8 +150,8 @@ export async function DELETE(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!hasPermission(session.user.division, "vdp_tool")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasPermission(session.user.division || getDefaultDivision(), "vdp_tool")) {
+      return NextResponse.json({ error: "Akses VDP hanya tersedia untuk divisi Produksi atau Administrator." }, { status: 403 });
     }
 
     const { searchParams } = await request.nextUrl;
@@ -201,8 +201,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if (!hasPermission(session.user.division, "vdp_tool")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasPermission(session.user.division || getDefaultDivision(), "vdp_tool")) {
+      return NextResponse.json({ error: "Akses VDP hanya tersedia untuk divisi Produksi atau Administrator." }, { status: 403 });
     }
 
     const body = await request.json();

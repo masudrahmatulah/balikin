@@ -158,7 +158,10 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate batch");
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || `Gagal membuat batch (${response.status}).`);
+      }
 
       const data = await response.json();
 
@@ -193,7 +196,7 @@ export function BulkForm({ adminId, onGenerate, onDataChange }: BulkFormProps) {
       setPreviewImage(null);
     } catch (error) {
       console.error("Error generating batch:", error);
-      alert("Failed to generate batch. Please try again.");
+      alert(error instanceof Error ? error.message : "Gagal membuat batch VDP. Coba lagi.");
     } finally {
       setIsGenerating(false);
     }
