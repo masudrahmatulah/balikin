@@ -37,6 +37,21 @@ type Plan = {
   targetPublishDate: string | null;
 };
 
+type AIPlanSuggestion = {
+  suggestionId: string;
+  title: string;
+  focusKeyword: string;
+  secondaryKeywords: string[];
+  articleType: string;
+  searchIntent: string;
+  brandPillar: string;
+  brief: string;
+  cta: string;
+  targetMinWords: number;
+  targetMaxWords: number;
+  isDuplicate: boolean;
+};
+
 interface Props {
   initialClusters: (Cluster & { createdAt: string; updatedAt: string })[];
   initialPlans: (Plan & { createdAt: string; updatedAt: string })[];
@@ -61,7 +76,17 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
   const [brandPillarFilter, setBrandPillarFilter] = useState("all");
   const [showClusterForm, setShowClusterForm] = useState(false);
   const [showPlanForm, setShowPlanForm] = useState(false);
+  const [showAIPlanForm, setShowAIPlanForm] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isGeneratingPlans, setIsGeneratingPlans] = useState(false);
+  const [isSavingAIPlans, setIsSavingAIPlans] = useState(false);
+  const [aiClusterId, setAIClusterId] = useState(initialClusters[0]?.id || "");
+  const [aiParentPlanId, setAIParentPlanId] = useState(
+    initialPlans.find((plan) => plan.clusterId === initialClusters[0]?.id && plan.articleType === "pillar")?.id || "none",
+  );
+  const [aiSuggestionCount, setAISuggestionCount] = useState("5");
+  const [aiSuggestions, setAISuggestions] = useState<AIPlanSuggestion[]>([]);
+  const [selectedAISuggestionIds, setSelectedAISuggestionIds] = useState<string[]>([]);
   const [clusterForm, setClusterForm] = useState({ name: "", slug: "", primaryKeyword: "", description: "" });
   const [planForm, setPlanForm] = useState({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", brandPillar: "", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
 
@@ -71,6 +96,8 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
     (articleTypeFilter === "all" || plan.articleType === articleTypeFilter) &&
     (brandPillarFilter === "all" || plan.brandPillar === brandPillarFilter)
   )), [plans, selectedCluster, statusFilter, articleTypeFilter, brandPillarFilter]);
+  const AIParentPillars = plans.filter((plan) => plan.clusterId === aiClusterId && plan.articleType === "pillar");
+  const selectedAISuggestions = aiSuggestions.filter((suggestion) => selectedAISuggestionIds.includes(suggestion.suggestionId) && !suggestion.isDuplicate);
   const published = plans.filter((plan) => plan.status === "published" || plan.linkedPostId).length;
   const inProgress = plans.filter((plan) => !["planned", "published"].includes(plan.status) && !plan.linkedPostId).length;
 
@@ -106,6 +133,7 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
     const data = await response.json();
     if (!response.ok) return toast.error(data.error || "Cluster gagal dibuat.");
     setClusters((current) => [...current, data]);
+    if (!aiClusterId) setAIClusterId(data.id);
     setClusterForm({ name: "", slug: "", primaryKeyword: "", description: "" });
     setShowClusterForm(false);
     toast.success("Cluster berhasil dibuat.");
@@ -123,6 +151,63 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
     setPlanForm({ clusterId: "", title: "", focusKeyword: "", articleType: "supporting", brandPillar: "", targetMinWords: 800, targetMaxWords: 1500, searchIntent: "informational", priority: "medium", brief: "" });
     setShowPlanForm(false);
     toast.success("Rencana artikel berhasil dibuat.");
+  };
+
+  const generateAIPlans = async () => {
+    if (!aiClusterId) return toast.error("Pilih cluster terlebih dahulu.");
+    setIsGeneratingPlans(true);
+    setAISuggestions([]);
+    setSelectedAISuggestionIds([]);
+    try {
+      const response = await fetch("/api/admin/blog/strategy/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clusterId: aiClusterId,
+          count: Number(aiSuggestionCount),
+          parentPlanId: aiParentPlanId === "none" ? null : aiParentPlanId,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Usulan rencana gagal dibuat.");
+      const suggestions = (data.suggestions || []).map((suggestion: Omit<AIPlanSuggestion, "suggestionId">, index: number) => ({
+        ...suggestion,
+        suggestionId: `${Date.now()}-${index}`,
+      })) as AIPlanSuggestion[];
+      setAISuggestions(suggestions);
+      toast.success(`${suggestions.length} usulan dibuat. Tinjau dan pilih yang ingin ditambahkan.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Usulan rencana gagal dibuat.");
+    } finally {
+      setIsGeneratingPlans(false);
+    }
+  };
+
+  const saveSelectedAIPlans = async () => {
+    if (selectedAISuggestions.length === 0) return toast.error("Pilih minimal satu usulan yang tidak duplikat.");
+    setIsSavingAIPlans(true);
+    try {
+      const response = await fetch("/api/admin/blog/strategy/bulk-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clusterId: aiClusterId,
+          parentPlanId: aiParentPlanId === "none" ? null : aiParentPlanId,
+          suggestions: selectedAISuggestions.map(({ suggestionId: _suggestionId, targetMinWords: _targetMinWords, targetMaxWords: _targetMaxWords, isDuplicate: _isDuplicate, ...suggestion }) => suggestion),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Usulan gagal disimpan.");
+      if (data.created?.length) setPlans((current) => [...current, ...data.created]);
+      await refresh();
+      setAISuggestions([]);
+      setSelectedAISuggestionIds([]);
+      toast.success(`${data.created?.length || 0} rencana ditambahkan${data.skippedDuplicates ? `; ${data.skippedDuplicates} duplikat dilewati` : ""}.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Usulan gagal disimpan.");
+    } finally {
+      setIsSavingAIPlans(false);
+    }
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -150,6 +235,7 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
             <Target className="mr-2 h-4 w-4" />
             {isSeeding ? "Menyinkronkan..." : "Seed / Sinkronkan 60 Artikel"}
           </Button>
+          <Button variant="outline" onClick={() => setShowAIPlanForm((value) => !value)}><Sparkles className="mr-2 h-4 w-4" />Generate Rencana AI</Button>
           <Button variant="outline" onClick={() => setShowClusterForm((value) => !value)}><Plus className="mr-2 h-4 w-4" />Cluster</Button>
           <Button onClick={() => setShowPlanForm((value) => !value)}><ListPlus className="mr-2 h-4 w-4" />Rencana Artikel</Button>
         </div>
@@ -157,7 +243,7 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["Target Artikel", plans.length, "dari 60 rencana"],
+          ["Target Artikel", plans.length, "rencana di roadmap"],
           ["Published", published, "artikel selesai"],
           ["Dalam Proses", inProgress, "perlu ditindaklanjuti"],
           ["Topic Cluster", clusters.length, "cluster aktif"],
@@ -180,6 +266,86 @@ export function ContentStrategyClient({ initialClusters, initialPlans }: Props) 
             <Input placeholder="Deskripsi singkat" value={clusterForm.description} onChange={(e) => setClusterForm({ ...clusterForm, description: e.target.value })} />
           </div>
           <Button onClick={createCluster}>Simpan Cluster</Button>
+        </div>
+      )}
+
+      {showAIPlanForm && (
+        <div className="space-y-4 rounded-xl border border-violet-200 bg-violet-50/40 p-5 dark:border-violet-900/60 dark:bg-violet-950/10">
+          <div>
+            <h2 className="flex items-center gap-2 font-semibold"><Sparkles className="h-5 w-5 text-violet-600" />Generate Rencana Artikel dengan AI</h2>
+            <p className="mt-1 text-sm text-muted-foreground">AI membaca cluster dan rencana yang ada. Usulan baru tidak disimpan sampai Anda memilihnya.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <Select value={aiClusterId} onValueChange={(value) => {
+              const nextClusterId = value || "";
+              setAIClusterId(nextClusterId);
+              setAIParentPlanId(plans.find((plan) => plan.clusterId === nextClusterId && plan.articleType === "pillar")?.id || "none");
+              setAISuggestions([]);
+              setSelectedAISuggestionIds([]);
+            }}>
+              <SelectTrigger><SelectValue placeholder="Pilih cluster" /></SelectTrigger>
+              <SelectContent>{clusters.map((cluster) => <SelectItem key={cluster.id} value={cluster.id}>{cluster.name}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={aiParentPlanId} onValueChange={(value) => setAIParentPlanId(value || "none")}>
+              <SelectTrigger><SelectValue placeholder="Pillar induk (opsional)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Pilih otomatis / tanpa pillar induk</SelectItem>
+                {AIParentPillars.map((pillar) => <SelectItem key={pillar.id} value={pillar.id}>{pillar.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={aiSuggestionCount} onValueChange={(value) => setAISuggestionCount(value || "5")}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="3">3 usulan</SelectItem><SelectItem value="4">4 usulan</SelectItem><SelectItem value="5">5 usulan</SelectItem></SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={generateAIPlans} disabled={isGeneratingPlans || !aiClusterId}>
+              {isGeneratingPlans ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              {isGeneratingPlans ? "Menganalisis cluster..." : "Buat Usulan"}
+            </Button>
+            {aiSuggestions.length > 0 && <Button type="button" variant="outline" onClick={() => { setAISuggestions([]); setSelectedAISuggestionIds([]); }}>Hapus Pratinjau</Button>}
+          </div>
+
+          {aiSuggestions.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Tinjau usulan, lalu pilih yang akan masuk ke roadmap.</p>
+              {aiSuggestions.map((suggestion) => {
+                const brandPillarLabel = BRAND_PILLARS.find((pillar) => pillar.value === suggestion.brandPillar)?.label || suggestion.brandPillar;
+                const selected = selectedAISuggestionIds.includes(suggestion.suggestionId);
+                return (
+                  <label key={suggestion.suggestionId} className={`block rounded-lg border bg-card p-4 ${suggestion.isDuplicate ? "opacity-60" : "cursor-pointer hover:border-primary/50"}`}>
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-4 w-4 accent-primary"
+                        checked={selected}
+                        disabled={suggestion.isDuplicate}
+                        onChange={() => setSelectedAISuggestionIds((current) => selected ? current.filter((id) => id !== suggestion.suggestionId) : [...current, suggestion.suggestionId])}
+                      />
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium">{suggestion.articleType}</span>
+                          <span className="rounded bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-700">{brandPillarLabel}</span>
+                          {suggestion.isDuplicate && <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">Mirip dengan rencana yang sudah ada</span>}
+                        </div>
+                        <p className="font-semibold">{suggestion.title}</p>
+                        <p className="text-sm text-muted-foreground">Focus keyword: <strong>{suggestion.focusKeyword}</strong>{suggestion.secondaryKeywords.length > 0 && ` · Sekunder: ${suggestion.secondaryKeywords.join(", ")}`}</p>
+                        <p className="text-sm">{suggestion.brief}</p>
+                        <p className="text-xs text-muted-foreground">Search intent: {suggestion.searchIntent} · Target {suggestion.targetMinWords.toLocaleString("id-ID")}–{suggestion.targetMaxWords.toLocaleString("id-ID")} kata · CTA: {suggestion.cta}</p>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="button" onClick={saveSelectedAIPlans} disabled={isSavingAIPlans || selectedAISuggestions.length === 0}>
+                  {isSavingAIPlans ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+                  {isSavingAIPlans ? "Menyimpan..." : `Tambahkan ${selectedAISuggestions.length} ke Roadmap`}
+                </Button>
+                <span className="text-xs text-muted-foreground">Usulan duplikat tidak dapat dipilih.</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

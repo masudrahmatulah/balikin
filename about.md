@@ -323,6 +323,14 @@ Balikin menawarkan 9 produk yang dibagi menjadi 4 kategori dengan strategi harga
 - Database Mapping: Hubungan relasi Sheet_ID ↔ array tag_id disimpan di tabel `sticker_sheets`
 - Quality Control: Tim gudang scan barcode Sheet_ID untuk validasi integritas sebelum pengiriman
 
+**Manual & Activation Bundle:**
+- Setiap hasil generate VDP menyertakan `customer/manual-balikin.pdf` sebagai buku panduan full color ukuran saku.
+- Setiap hasil generate VDP menyertakan `customer/kartu-aktivasi.pdf` dengan kartu PIN personal per tag atau Master PIN per sticker sheet.
+- File produksi fisik berada di folder `production/`.
+- Manifest PIN internal berada di folder `admin/` dan tidak disertakan sebagai file customer.
+- Akrilik menggunakan satu PIN per tag; sticker menggunakan satu Master PIN untuk seluruh QR dalam satu sheet.
+- URL QR aktivasi menggunakan route batch, sedangkan PIN tetap divalidasi server-side melalui hash.
+
 **Benefit Operasional:**
 - Eliminasi desain manual → 80% lebih cepat
 - Risiko cetak rusak minimal via VDP koordinat grid

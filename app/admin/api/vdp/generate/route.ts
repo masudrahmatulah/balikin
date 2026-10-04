@@ -21,6 +21,7 @@ import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { getAppBaseUrl } from '@/lib/app-url';
 import { getDefaultDivision, hasPermission } from '@/lib/admin-divisions';
+import { buildActivationCardsPdf, buildBalikinManualPdf, type ActivationCardData } from '@/lib/vdp-manual-pdf';
 
 // Master PIN sheet code prefix per Sticker Product (see md for development/sticker_activate.md)
 const STICKER_PRODUCT_CODE: Record<string, string> = {
@@ -592,17 +593,30 @@ export async function POST(request: NextRequest) {
       console.log('[API] Total A5 sheets generated:', sheetBuffers.length);
 
       const pdfBuffer = await buildStickerSheetsPdf(sheetBuffers);
+      const manualPdf = await buildBalikinManualPdf(`${baseUrl}/help`);
 
       const zip = new JSZip();
-      zip.file(`${batchName}.pdf`, pdfBuffer);
+      zip.file(`production/${batchName}.pdf`, pdfBuffer);
 
       if (isStickerMaterial) {
-        // Master PIN manifest for printing the physical PIN insert per sheet
+        // One activation card is generated per sticker sheet because the sheet
+        // model intentionally uses one master PIN for all QR codes on that sheet.
         const sheets = await db.query.stickerSheets.findMany({
           where: and(eq(stickerSheets.batchId, batchId), eq(stickerSheets.app_id, APP_ID)),
-          columns: { sheetCode: true, activationPinPlain: true },
+          columns: { id: true, sheetCode: true, activationPinPlain: true },
           orderBy: [asc(stickerSheets.sheetCode)],
         });
+        const sheetTags = await db.query.tags.findMany({
+          where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
+          columns: { sheetId: true, serialNumber: true },
+          orderBy: [asc(tags.serialNumber)],
+        });
+        const activationCards: ActivationCardData[] = sheets.map((sheet) => ({
+          codeLabel: 'PIN MASTER SHEET',
+          code: sheet.activationPinPlain || '-',
+          scope: `${sheet.sheetCode} · ${sheetTags.filter((tag) => tag.sheetId === sheet.id).length} QR dalam satu sheet`,
+          activationUrl: `${baseUrl}/activate/batch/${batchId}`,
+        }));
         const manifestLines = [
           `Master PIN Manifest - ${batchName}`,
           `Dibuat: ${new Date().toISOString()}`,
@@ -612,7 +626,9 @@ export async function POST(request: NextRequest) {
           '',
           ...sheets.map((s) => `${s.sheetCode}\tPIN: ${s.activationPinPlain}`),
         ];
-        zip.file('master-pins.txt', manifestLines.join('\n'));
+        zip.file('customer/manual-balikin.pdf', manualPdf);
+        zip.file('customer/kartu-aktivasi.pdf', await buildActivationCardsPdf(activationCards));
+        zip.file('admin/master-pins.txt', manifestLines.join('\n'));
       }
 
       const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
@@ -626,7 +642,7 @@ export async function POST(request: NextRequest) {
       // BARU: Gunakan VDP Stream untuk generate 6-kolom PNG
       console.log('[API] Using VDP Stream path');
       // Fetch all tags yang baru dibuat using batchId
-      const allTags = await db.query.tags.findMany({
+       const allTags = await db.query.tags.findMany({
         where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
         columns: {
           id: true,
@@ -636,6 +652,7 @@ export async function POST(request: NextRequest) {
           customPhotoUrl: true,
           name: true,
           productType: true,
+          activationPinPlain: true,
         },
         orderBy: [asc(tags.slug)],
       });
@@ -674,10 +691,10 @@ export async function POST(request: NextRequest) {
       console.log('[API] Total rows generated:', rowBuffers.length);
 
       if (outputFormat === "png") {
-        // PNG: tiap baris sebagai file PNG dalam ZIP + manifest PIN kemasan
+        // PNG: tiap baris sebagai file PNG dalam ZIP + customer manual/cards + admin manifest
         const zip = new JSZip();
         rowBuffers.forEach((buf, i) => {
-          zip.file(`${batchName}-baris-${String(i + 1).padStart(2, "0")}.png`, buf);
+          zip.file(`production/${batchName}-baris-${String(i + 1).padStart(2, "0")}.png`, buf);
         });
         const claimTags = await db.query.tags.findMany({
           where: and(eq(tags.batchId, batchId), eq(tags.app_id, APP_ID)),
@@ -692,7 +709,15 @@ export async function POST(request: NextRequest) {
           '',
           ...claimTags.map((t) => `${t.serialNumber || t.slug}-${t.activationPinPlain || '-'}`),
         ];
-        zip.file('kode-klaim.txt', pinLines.join('\n'));
+        const activationCards: ActivationCardData[] = claimTags.map((tag) => ({
+          codeLabel: 'PIN TAG',
+          code: tag.activationPinPlain || '-',
+          scope: `${tag.serialNumber || tag.slug} · 1 tag`,
+          activationUrl: `${baseUrl}/activate/batch/${batchId}`,
+        }));
+        zip.file('customer/manual-balikin.pdf', await buildBalikinManualPdf(`${baseUrl}/help`));
+        zip.file('customer/kartu-aktivasi.pdf', await buildActivationCardsPdf(activationCards));
+        zip.file('admin/kode-klaim.txt', pinLines.join('\n'));
         const zipBuffer = await zip.generateAsync({ type: "nodebuffer" });
         artifactBuffer = zipBuffer;
         artifactContentType = "application/zip";
@@ -703,13 +728,32 @@ export async function POST(request: NextRequest) {
         console.log('[API] PNG ZIP base64 length:', zipBase64.length);
       } else {
         const pdfBuffer = await buildAcrylicRowsPdf(rowBuffers, paperSize as "a3" | "a4" | "a5");
-        artifactBuffer = pdfBuffer;
-        artifactContentType = "application/pdf";
-        artifactFilename = `${batchName}.pdf`;
-        const pdfBase64 = pdfBuffer.toString("base64");
-        downloadUrl = `data:application/pdf;base64,${pdfBase64}`;
-        downloadFormat = "pdf";
-        console.log('[API] PDF base64 length:', pdfBase64.length);
+        const activationCards: ActivationCardData[] = allTags.map((tag) => ({
+          codeLabel: 'PIN TAG',
+          code: tag.activationPinPlain || '-',
+          scope: `${tag.serialNumber || tag.slug} · 1 tag`,
+          activationUrl: `${baseUrl}/activate/batch/${batchId}`,
+        }));
+        const claimLines = [
+          `PIN Klaim Khusus - ${batchName}`,
+          `Dibuat: ${new Date().toISOString()}`,
+          '',
+          'Satu kode berlaku untuk 1 tag.',
+          '',
+          ...allTags.map((tag) => `${tag.serialNumber || tag.slug}\t${tag.activationPinPlain || '-'}`),
+        ];
+        const zip = new JSZip();
+        zip.file(`production/${batchName}.pdf`, pdfBuffer);
+        zip.file('customer/manual-balikin.pdf', await buildBalikinManualPdf(`${baseUrl}/help`));
+        zip.file('customer/kartu-aktivasi.pdf', await buildActivationCardsPdf(activationCards));
+        zip.file('admin/kode-klaim.txt', claimLines.join('\n'));
+        artifactBuffer = await zip.generateAsync({ type: "nodebuffer" });
+        artifactContentType = "application/zip";
+        artifactFilename = `${batchName}.zip`;
+        const zipBase64 = artifactBuffer.toString("base64");
+        downloadUrl = `data:application/zip;base64,${zipBase64}`;
+        downloadFormat = "zip";
+        console.log('[API] Acrylic ZIP base64 length:', zipBase64.length);
       }
     }
 
