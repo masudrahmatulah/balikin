@@ -25,7 +25,10 @@ export async function getAcrylicStock() {
 async function dbQuery() {
   const { db } = await import('@/db');
   return db.query.productInventory.findMany({
-    where: eq(productInventory.productKey, 'armor-tag'),
+    where: and(
+      eq(productInventory.app_id, 'balikin_id'),
+      eq(productInventory.productKey, 'armor-tag'),
+    ),
   });
 }
 

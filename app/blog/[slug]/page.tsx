@@ -20,6 +20,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import Image from 'next/image';
 import { SiteHeader } from '@/components/site-header';
 import { absoluteUrl, getSiteUrl } from '@/lib/seo';
+import Link from 'next/link';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
@@ -70,6 +71,31 @@ async function getBlogPost(slug: string, recordView = true) {
 
 function generateJSONLD(post: any, modules: BlogModule[], slug: string): string {
   return JSON.stringify(buildBlogSchemas(post, modules, slug));
+}
+
+function splitTravelArticle(markdown: string): string[] {
+  const blocks = markdown.split(/\n{2,}/);
+  const markerIndex = blocks.findIndex((block) => /identitas yang jelas pada koper/i.test(block));
+  let splitIndex = markerIndex >= 0 ? markerIndex + 1 : -1;
+
+  // If the expected passage changes, use the first complete section boundary.
+  if (splitIndex < 0) {
+    const headings = blocks
+      .map((block, index) => (/^#{1,3}\s+/.test(block.trim()) ? index : -1))
+      .filter((index) => index >= 0);
+    if (headings.length > 1) splitIndex = headings[1];
+    else if (blocks.length > 1) splitIndex = 1;
+  }
+
+  if (splitIndex <= 0 || splitIndex >= blocks.length) return [markdown];
+  return [blocks.slice(0, splitIndex).join('\n\n'), blocks.slice(splitIndex).join('\n\n')];
+}
+
+function rewriteTravelPricingLinks(markdown: string, href: string): string {
+  return markdown.replace(
+    /\[(?:katalog produk|pricing)\]\(\/pricing(?:\s+"[^"]*")?\)/gi,
+    `[lihat tag QR untuk koper](${href})`,
+  );
 }
 
 function renderModule(module: BlogModule, postId: string) {
@@ -186,16 +212,26 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   const { post, comments } = data;
   const modules = post.modules as BlogModule[];
+  const isTravelCase = slug === 'panduan-keamanan-koper-saat-traveling';
+  const campaignUrl = (source: 'article' | 'facebook_ads', placement: string) =>
+    `/koper-traveling?utm_source=${source}&utm_medium=${placement}&utm_campaign=koper_traveling`;
+  const articleContent = isTravelCase
+    ? rewriteTravelPricingLinks(post.content, campaignUrl('article', 'legacy_pricing_link'))
+    : post.content;
 
   // House-ad otomatis semua artikel (M1): <500 kata = akhir saja,
   // 500-1500 = atas+tengah+akhir, >1500 = atas+2 tengah+akhir.
   // Opt-out per-artikel: tambah modul `{ type: 'no_ads' }`.
-  const showAds = shouldShowHouseAds(modules as Array<{ type?: string }>);
+  const showAds = !isTravelCase && shouldShowHouseAds(modules as Array<{ type?: string }>);
+  const visibleModules = isTravelCase
+    ? modules.filter((module) => module.type !== 'ad_baris')
+    : modules;
   const wordCount = countWords(post.content);
   const isShort = wordCount < 500;
   const isLong = wordCount >= 1500;
-  const contentParts: string[] =
-    showAds && !isShort
+  const contentParts: string[] = isTravelCase
+    ? splitTravelArticle(articleContent)
+    : showAds && !isShort
       ? splitMarkdownBlocks(post.content, isLong ? 3 : 2)
       : [post.content];
 
@@ -293,6 +329,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                     {contentParts[0]}
                   </ReactMarkdown>
                 </div>
+                {isTravelCase && <TravelCampaignCTA href={campaignUrl('article', 'in_article')} />}
                 {showAds && <BlogHouseAd variant="mid" />}
                 <div className="blog-markdown prose prose-lg max-w-none mb-8">
                   <ReactMarkdown
@@ -321,10 +358,11 @@ export default async function BlogPage({ params }: BlogPageProps) {
             )}
 
             {/* Dynamic Modules (termasuk ad_baris manual bila ada) */}
-            {modules.map((module) => renderModule(module, post.id))}
+            {visibleModules.map((module) => renderModule(module, post.id))}
 
             {/* House-ad akhir (semua artikel, kecuali opt-out) */}
             {showAds && <BlogHouseAd variant="end" />}
+            {isTravelCase && <TravelCampaignCTA href={campaignUrl('article', 'article_end')} />}
 
             {/* Social Sharing */}
             <BlogSocialSharing
@@ -342,6 +380,19 @@ export default async function BlogPage({ params }: BlogPageProps) {
         </div>
       </article>
     </>
+  );
+}
+
+function TravelCampaignCTA({ href }: { href: string }) {
+  return (
+    <aside className="my-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-900">
+      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Identitas digital untuk koper Anda</p>
+      <h2 className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">Berikan koper jalur identitas dan kontak yang jelas.</h2>
+      <p className="mt-3 max-w-2xl leading-relaxed text-slate-700 dark:text-slate-300">Saat dipindai, QR membuka halaman tag Balikin dan menampilkan opsi kontak yang tersedia. Tag ini bukan GPS dan tidak mencegah pencurian.</p>
+      <Link href={href} className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200">
+        Kenali tag QR untuk traveling
+      </Link>
+    </aside>
   );
 }
 
