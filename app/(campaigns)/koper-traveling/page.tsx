@@ -62,14 +62,13 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
 
       <section className="mx-auto grid max-w-6xl items-center gap-8 px-5 pb-16 pt-5 sm:px-8 md:grid-cols-[1fr_0.9fr] md:gap-14 md:pb-24 md:pt-10">
         <div className="order-2 md:order-1">
-          <p className="mb-4 text-sm font-semibold text-blue-800 dark:text-blue-300">Untuk perjalanan yang lebih tenang</p>
-          <h1 className="max-w-xl text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">Koper Anda punya identitas. QR membuka halaman tag Balikin.</h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-700 dark:text-slate-300">Pasang tag QR Balikin pada koper. Jika dipindai, halaman tag menampilkan opsi kontak yang tersedia sesuai pengaturan pemilik.</p>
+          <p className="mb-4 text-sm font-semibold text-blue-800 dark:text-blue-300">Untuk koper yang tertinggal atau tertukar</p>
+          <h1 className="max-w-xl text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl">Bantu koper Anda dikenali dan pemiliknya dihubungi.</h1>
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-700 dark:text-slate-300">Tag akrilik QR Balikin membuka halaman tag dengan opsi kontak yang Anda atur saat dipindai.</p>
           <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
             <a href="#pilih-tag" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-blue-800 px-6 font-semibold text-white transition hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800">Pilih tag akrilik</a>
             <span className="text-sm text-slate-600 dark:text-slate-300">Akrilik QR · Rp{formatPrice(price)}</span>
           </div>
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-600 dark:text-slate-400">Bukan GPS atau alat pencegah pencurian. Informasi hanya dapat dibuka setelah QR dipindai.</p>
         </div>
         <div className="relative order-1 aspect-[4/3] overflow-hidden rounded-2xl bg-slate-100 md:order-2 dark:bg-slate-900">
           <Image src="/showcase/persegi panjang ok 1.webp" alt="Tag akrilik QR Balikin untuk dipasang pada koper" fill priority sizes="(max-width: 768px) 100vw, 50vw" className="object-contain p-5" />
@@ -79,14 +78,15 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
       <section className="border-y border-slate-200 bg-slate-50 py-16 dark:border-slate-800 dark:bg-slate-900/50">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 md:grid-cols-[0.8fr_1.2fr] md:items-center">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Satu scan membuka halaman tag.</h2>
-            <p className="mt-4 leading-relaxed text-slate-700 dark:text-slate-300">Tidak perlu aplikasi khusus untuk memindai. Penemu menggunakan kamera ponsel untuk membuka halaman tag Anda.</p>
+            <h2 className="text-3xl font-bold tracking-tight">Saat koper tertinggal, identitasnya tetap terbaca.</h2>
+            <p className="mt-4 leading-relaxed text-slate-700 dark:text-slate-300">Di area bagasi, hotel, atau kendaraan, koper yang serupa mudah tertukar. QR memberi penemu cara melihat halaman tag dan menghubungi Anda.</p>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400">Gunakan kamera ponsel untuk memindai. Tag tidak melacak lokasi dan tidak menjamin koper kembali.</p>
           </div>
           <ol className="grid gap-5 sm:grid-cols-3">
             {[
-              ['01', 'Pasang', 'Gantungkan tag QR pada koper.'],
-              ['02', 'Pindai', 'Penemu memindai QR dengan ponsel.'],
-              ['03', 'Lihat opsi kontak', 'Penemu dapat menggunakan opsi kontak yang tersedia pada halaman tag.'],
+              ['01', 'Pasang', 'Gantungkan tag QR pada koper Anda.'],
+              ['02', 'Pindai', 'Penemu memindai QR dengan kamera ponsel.'],
+              ['03', 'Hubungi pemilik', 'Halaman tag menampilkan opsi kontak yang Anda sediakan.'],
             ].map(([number, title, description]) => (
               <li key={number} className="border-t-2 border-blue-800 pt-4 dark:border-blue-400">
                 <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">{number}</span>
@@ -95,6 +95,20 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section aria-label="Contoh tag akrilik" className="overflow-hidden border-b border-slate-200 py-8 dark:border-slate-800">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+          <p className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Tag akrilik untuk menemani perjalanan Anda</p>
+          <div tabIndex={0} aria-label="Geser contoh bentuk tag akrilik" className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 dark:focus-visible:outline-blue-300">
+            {['/showcase/persegi panjang ok 1.webp', '/showcase/oval ok 1.webp', '/showcase/persegi delapan 1.webp'].map((src, index) => (
+              <div key={src} className="relative aspect-[4/3] w-[78vw] max-w-sm shrink-0 snap-start overflow-hidden rounded-xl bg-slate-100 sm:w-[32%] dark:bg-slate-900">
+                <Image src={src} alt={`Contoh tag akrilik QR Balikin, pilihan ${index + 1}`} fill sizes="(max-width: 640px) 78vw, 32vw" className="object-contain p-5" />
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-slate-600 dark:text-slate-400">Geser untuk melihat contoh bentuk. Foto menampilkan tag, bukan simulasi pelacakan koper.</p>
         </div>
       </section>
 
@@ -117,7 +131,7 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
                 <div className="p-4">
                   <h3 className="min-h-10 text-sm font-semibold">{shape.label}</h3>
                   <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Rp{formatPrice(price)}</p>
-                  <a href={checkoutFor(shape.key)} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-800 px-3 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800">Pilih bentuk</a>
+                  <a href={checkoutFor(shape.key)} className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-800 px-3 text-sm font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 dark:focus-visible:outline-blue-300">Pilih tag akrilik</a>
                 </div>
               </article>
             ))}
@@ -137,10 +151,13 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
           <h2 className="text-3xl font-bold tracking-tight">Yang perlu diketahui</h2>
           <div className="mt-6 divide-y divide-slate-200 dark:divide-slate-700">
             {[
-              ['Apakah tag dapat melacak lokasi koper?', 'Tidak. Tag QR tidak memiliki GPS dan tidak melacak lokasi secara otomatis.'],
+              ['Apakah tag dapat melacak lokasi koper?', 'Tidak. Tag QR bukan GPS dan tidak melacak lokasi secara otomatis.'],
               ['Kapan halaman kontak dapat dibuka?', 'Setelah seseorang memindai QR pada tag dengan kamera ponsel dan memiliki koneksi internet.'],
-              ['Apakah tag mencegah koper dicuri atau menjamin kembali?', 'Tidak. Tag adalah identitas digital dan jalur kontak; hasil pengembalian bergantung pada penemu dan situasi.'],
-              ['Apa yang terjadi setelah dipindai?', 'Pemindai membuka halaman tag. Dari sana, mereka dapat menggunakan opsi kontak yang tersedia untuk menghubungi pemilik.'],
+              ['Apakah tag mencegah pencurian atau menjamin koper kembali?', 'Tidak. Tag memberi identitas digital dan jalur kontak; pengembalian bergantung pada penemu dan situasi.'],
+              ['Apa yang terlihat setelah QR dipindai?', 'Pemindai membuka halaman tag. Opsi kontak yang tampil mengikuti pengaturan pemilik.'],
+              ['Apakah penemu perlu memasang aplikasi?', 'Tidak. QR dibuka menggunakan kamera ponsel; koneksi internet diperlukan untuk membuka halaman tag.'],
+              ['Berapa harga tag akrilik?', `Harga setiap tag akrilik QR adalah Rp${formatPrice(price)}. Bentuk yang dapat dipilih mengikuti stok saat ini.`],
+              ['Bagaimana memilih bentuk dan memesan?', 'Pilih salah satu bentuk yang tersedia di bagian pilihan tag. Tombol akan membawa Anda ke checkout dengan varian yang sesuai.'],
             ].map(([question, answer]) => (
               <details key={question} className="group py-5">
                 <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-800">{question}<span aria-hidden="true" className="text-xl text-blue-800 group-open:rotate-45 dark:text-blue-300">+</span></summary>
@@ -148,7 +165,7 @@ export default async function KoperTravelingPage({ searchParams }: CampaignPageP
               </details>
             ))}
           </div>
-          {availableShapes.length > 0 && <a href="#pilih-tag" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg bg-blue-800 px-6 font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800">Pilih tag akrilik</a>}
+          {availableShapes.length > 0 && <a href="#pilih-tag" className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg bg-blue-800 px-6 font-semibold text-white hover:bg-blue-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 dark:focus-visible:outline-blue-300">Pilih tag akrilik</a>}
         </div>
       </section>
 
