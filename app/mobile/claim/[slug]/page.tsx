@@ -77,9 +77,9 @@ export default async function MobileClaimPage({ params }: MobileClaimPageProps) 
     notFound();
   }
 
-  // Samakan dengan /p/[slug]: scan pertama tag ber-PIN (akrilik/stiker)
-  // wajib lewat /claim agar PIN diverifikasi sebelum konten tampil.
-  if (!tag.ownerId && tag.activationPinHash) {
+  // Unclaimed normal-mode scans converge on the account-gated claim flow;
+  // lost-mode scans remain public for finders.
+  if (!tag.ownerId && tag.status !== 'lost') {
     redirect(`/claim/${tag.id}`);
   }
 

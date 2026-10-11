@@ -137,7 +137,10 @@ function VerifyOTPContent() {
         new Promise<void>((resolve) => setTimeout(resolve, COOKIE_SETTLE_DELAY_MS)),
       ]);
 
-      const customRedirect = searchParams.get("redirect");
+      const requestedRedirect = searchParams.get("redirect");
+      const customRedirect = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//") && !requestedRedirect.includes("\\")
+        ? requestedRedirect
+        : null;
       const finalRedirectUrl = customRedirect || (isAdmin ? "/admin" : "/dashboard");
 
       window.location.href = finalRedirectUrl;

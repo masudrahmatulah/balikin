@@ -136,10 +136,9 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     );
   }
 
-  // Sticker & akrilik: scan pertama wajib lewat alur klaim PIN.
-  // QR hanya berisi /p/[slug] tanpa token, jadi tag unclaimed ber-PIN
-  // tidak boleh merender halaman publik sebelum PIN diverifikasi di /claim.
-  if (isUnclaimed && (isStickerTag || isAcrylicTag || tag.activationPinHash) && !isPreview) {
+  // Unclaimed normal-mode scans enter the account-gated claim flow. Lost-mode
+  // scans stay public so finders can always reach the owner's contact details.
+  if (isUnclaimed && !isLost && !isPreview) {
     redirect(`/claim/${tag.id}`);
   }
 

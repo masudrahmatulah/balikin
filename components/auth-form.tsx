@@ -15,6 +15,12 @@ type AuthMode = "sign-in" | "sign-up";
 type AuthMethod = "email" | "whatsapp";
 type LoginTab = "otp" | "password";
 
+function getSafeRedirect(value: string | null): string {
+  return value && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\")
+    ? value
+    : "";
+}
+
 interface AuthFormProps {
   mode?: AuthMode;
 }
@@ -37,6 +43,12 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const authSwitchUrl = (path: string) => {
+    const redirectParam = getSafeRedirect(searchParams.get("redirect"));
+    const params = new URLSearchParams();
+    if (redirectParam) params.set("redirect", redirectParam);
+    return `${path}${params.size ? `?${params.toString()}` : ""}`;
+  };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
@@ -44,7 +56,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
 
     try {
       const { signIn } = authClient;
-      const redirectParam = searchParams.get("redirect") || "/dashboard";
+      const redirectParam = getSafeRedirect(searchParams.get("redirect")) || "/dashboard";
 
       await signIn.social({
         provider: "google",
@@ -73,7 +85,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
     setIsPasswordLoading(true);
 
     try {
-      const redirectParam = searchParams.get("redirect") || "";
+      const redirectParam = getSafeRedirect(searchParams.get("redirect"));
       const { signIn, signUp } = authClient;
 
       if (mode === "sign-up") {
@@ -144,8 +156,7 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
 
       setSuccess(true);
 
-      const redirectParam = searchParams.get("redirect") || "";
-
+      const redirectParam = getSafeRedirect(searchParams.get("redirect"));
       const verifyUrl = new URL("/verify-otp", window.location.origin);
       verifyUrl.searchParams.set("identifier", identifier);
       verifyUrl.searchParams.set("display", displayIdentifier);
@@ -400,14 +411,14 @@ export function AuthForm({ mode = "sign-in" }: AuthFormProps) {
           {mode === "sign-in" ? (
             <>
               Belum punya akun?{" "}
-              <a href="/sign-up" className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
+              <a href={authSwitchUrl("/sign-up")} className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
                 Daftar sekarang
               </a>
             </>
           ) : (
             <>
               Sudah punya akun?{" "}
-              <a href="/sign-in" className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
+              <a href={authSwitchUrl("/sign-in")} className="text-brand-red hover:text-brand-red-dark hover:underline focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-2 rounded">
                 Masuk
               </a>
             </>

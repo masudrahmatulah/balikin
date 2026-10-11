@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { CheckCircle, Lock, ShieldAlert, Tag } from 'lucide-react';
 import { and, eq } from 'drizzle-orm';
 import { claimStickerTag, claimTag } from '@/app/actions/tag';
@@ -36,6 +37,13 @@ export default async function ClaimPage({ params, searchParams }: ClaimPageProps
         </Card>
       </div>
     );
+  }
+
+  // Claiming an unclaimed tag requires an account; keep the whole claim flow
+  // intact through auth and resume here after sign-in/sign-up.
+  if (!session?.user?.id && !tag.ownerId) {
+    const returnTo = `/claim/${encodeURIComponent(tagId)}`;
+    redirect(`/sign-up?redirect=${encodeURIComponent(returnTo)}`);
   }
 
   let stickerOrder = null;
