@@ -168,7 +168,7 @@ Saya lampirkan bukti transfernya di bawah ini ya.`
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
                   <div className="relative bg-white p-4 rounded-lg border-2 border-gray-200 shadow-inner group-hover:border-emerald-300 transition-colors duration-300">
                     <Image
-                      src="/images/qris-gopay.svg"
+                      src="/uploads/qris-gopay.jpeg"
                       alt="QRIS GoPay Balikin untuk Pembayaran Smart Tag"
                       width={400}
                       height={400}
@@ -291,7 +291,7 @@ Saya lampirkan bukti transfernya di bawah ini ya.`
                   "@type": "Product",
                   "name": "Smart Tag QR Code Balikin",
                   "description": "Gantungan kunci QR Code premium sebagai aplikasi pelacak barang hilang dan solusi mengamankan barang berharga.",
-                   "image": "https://balikin.online/images/qris-gopay.svg",
+                  "image": "https://balikin.online/uploads/qris-gopay.jpeg",
                   "category": "Security & Tracking",
                   "brand": {
                     "@type": "Brand",

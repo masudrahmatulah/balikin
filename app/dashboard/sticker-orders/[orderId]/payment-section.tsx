@@ -11,11 +11,12 @@ interface PaymentSectionProps {
   paymentStatus: string;
   totalAmount: number;
   paymentProofUrl?: string | null;
+  isManualPayment?: boolean;
   isPrintable?: boolean;
   activationBatchId?: string | null;
 }
 
-export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentProofUrl, isPrintable, activationBatchId }: PaymentSectionProps) {
+export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentProofUrl, isManualPayment, isPrintable, activationBatchId }: PaymentSectionProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [qrString, setQrString] = useState<string | null>(null);
@@ -63,7 +64,7 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentPro
     );
   }
 
-  if (isPrintable) {
+  if (isManualPayment || isPrintable) {
     async function uploadProof(file: File) {
       setUploading(true); setError(null);
       try {
@@ -78,10 +79,10 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentPro
 
     return (
       <div className="rounded-2xl border border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/40">
-        <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">Pembayaran QRIS Manual</p>
-        <img src="/images/qris-gopay.svg" alt="QRIS Balikin" className="mx-auto my-4 h-48 w-48 rounded-xl bg-white p-2" />
+        <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">Pembayaran QRIS GoPay</p>
+        <img src="/uploads/qris-gopay.jpeg" alt="QRIS GoPay Balikin" className="mx-auto my-4 max-h-[26rem] w-full max-w-xs rounded-xl bg-white object-contain p-2" />
         <p className="text-center text-sm font-semibold text-blue-950 dark:text-blue-100">Rp{totalAmount.toLocaleString('id-ID')}</p>
-        <p className="mt-2 text-xs leading-5 text-blue-900 dark:text-blue-200">Scan QRIS, lalu upload bukti pembayaran. Admin akan memverifikasi order Anda.</p>
+        <p className="mt-2 text-xs leading-5 text-blue-900 dark:text-blue-200">Scan QRIS di atas, masukkan nominal persis seperti total pesanan, lalu upload bukti pembayaran. Admin akan memverifikasi order Anda.</p>
         {error && <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
         <label className="mt-4 block cursor-pointer rounded-lg border border-blue-300 bg-white px-3 py-2 text-center text-sm font-medium text-blue-700">
           {uploading ? 'Mengupload...' : paymentProofUrl ? 'Ganti bukti pembayaran' : 'Upload bukti pembayaran'}

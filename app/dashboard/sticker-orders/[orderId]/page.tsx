@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
-import { STICKER_PAYMENT_LABEL } from '@/lib/constants';
+import { STICKER_PAYMENT_LABEL, STICKER_PAYMENT_METHOD } from '@/lib/constants';
 import { getProductDisplayName } from '@/lib/product-catalog';
 import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
 import { Button } from '@/components/ui/button';
@@ -123,6 +123,7 @@ export default async function StickerOrderDetailPage({
               paymentStatus={order.paymentStatus}
               totalAmount={order.totalAmount}
               paymentProofUrl={order.paymentProofUrl}
+              isManualPayment={order.paymentMethod === STICKER_PAYMENT_METHOD}
               isPrintable={order.productType === 'printable'}
               activationBatchId={activationBatchId}
             />

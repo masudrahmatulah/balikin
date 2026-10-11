@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: absoluteUrl('/images/qris-gopay.svg'),
+        url: absoluteUrl('/uploads/qris-gopay.jpeg'),
         width: 1200,
         height: 630,
         alt: 'QRIS GoPay Balikin untuk Pembayaran Smart Tag'
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pembayaran Smart Tag QR Code Balikin - QRIS GoPay Aman & Cepat',
     description: 'Selesaikan pembayaran Smart Tag QR Code Balikin Anda via QRIS GoPay. Transaksi aman dan terpercaya.',
-    images: [absoluteUrl('/images/qris-gopay.svg')]
+    images: [absoluteUrl('/uploads/qris-gopay.jpeg')]
   },
   alternates: {
     canonical: absoluteUrl('/payment')
