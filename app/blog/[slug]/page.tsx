@@ -24,6 +24,7 @@ import Link from 'next/link';
 
 interface BlogPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 async function getBlogPost(slug: string, recordView = true) {
@@ -73,9 +74,9 @@ function generateJSONLD(post: any, modules: BlogModule[], slug: string): string 
   return JSON.stringify(buildBlogSchemas(post, modules, slug));
 }
 
-function splitTravelArticle(markdown: string): string[] {
+function splitTravelArticle(markdown: string, marker: RegExp): string[] {
   const blocks = markdown.split(/\n{2,}/);
-  const markerIndex = blocks.findIndex((block) => /identitas yang jelas pada koper/i.test(block));
+  const markerIndex = blocks.findIndex((block) => marker.test(block));
   let splitIndex = markerIndex >= 0 ? markerIndex + 1 : -1;
 
   // If the expected passage changes, use the first complete section boundary.
@@ -95,6 +96,13 @@ function rewriteTravelPricingLinks(markdown: string, href: string): string {
   return markdown.replace(
     /\[(?:katalog produk|pricing)\]\(\/pricing(?:\s+"[^"]*")?\)/gi,
     `[lihat tag QR untuk koper](${href})`,
+  );
+}
+
+function rewriteTravelCheckoutLinks(markdown: string, href: string): string {
+  return markdown.replace(
+    /\[checkout\]\(\/stickers\/checkout(?:\?[^)]*)?\)/gi,
+    `[lihat tag QR untuk traveling](${href})`,
   );
 }
 
@@ -202,8 +210,8 @@ function renderModule(module: BlogModule, postId: string) {
   }
 }
 
-export default async function BlogPage({ params }: BlogPageProps) {
-  const { slug } = await params;
+export default async function BlogPage({ params, searchParams }: BlogPageProps) {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
   const data = await getBlogPost(slug);
 
   if (!data || !data.post) {
@@ -212,25 +220,46 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
   const { post, comments } = data;
   const modules = post.modules as BlogModule[];
-  const isTravelCase = slug === 'panduan-keamanan-koper-saat-traveling';
-  const campaignUrl = (source: 'article' | 'facebook_ads', placement: string) =>
-    `/koper-traveling?utm_source=${source}&utm_medium=${placement}&utm_campaign=koper_traveling`;
-  const articleContent = isTravelCase
-    ? rewriteTravelPricingLinks(post.content, campaignUrl('article', 'legacy_pricing_link'))
-    : post.content;
+  const isTravelPillar = slug === 'panduan-keamanan-koper-saat-traveling';
+  const isTravelSupporting = slug === 'tips-liburan-tenang-lindungi-koper-dan-paspor-tips-traveling-aman';
+  const isTravelCampaignArticle = isTravelPillar || isTravelSupporting;
+  const getQueryValue = (key: string) => {
+    const value = query[key];
+    return Array.isArray(value) ? value[0] : value;
+  };
+  const campaignUrl = (placement: 'mid_cta' | 'end_cta' | 'legacy_link') => {
+    const params = new URLSearchParams();
+    for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'fbclid', 'gclid']) {
+      const value = getQueryValue(key);
+      if (value) params.set(key, value);
+    }
+    params.set('utm_source', params.get('utm_source') || 'blog');
+    params.set('utm_medium', params.get('utm_medium') || (isTravelPillar ? 'pillar_article' : 'supporting_article'));
+    params.set('utm_campaign', params.get('utm_campaign') || 'koper_traveling');
+    params.set('utm_content', `${isTravelSupporting ? 'tips_liburan_tenang' : 'panduan_keamanan_koper'}_${placement}`);
+    return `/koper-traveling?${params.toString()}`;
+  };
+  const articleContent = isTravelPillar
+    ? rewriteTravelPricingLinks(post.content, campaignUrl('legacy_link'))
+    : isTravelSupporting
+      ? rewriteTravelCheckoutLinks(post.content, campaignUrl('legacy_link'))
+      : post.content;
 
   // House-ad otomatis semua artikel (M1): <500 kata = akhir saja,
   // 500-1500 = atas+tengah+akhir, >1500 = atas+2 tengah+akhir.
   // Opt-out per-artikel: tambah modul `{ type: 'no_ads' }`.
-  const showAds = !isTravelCase && shouldShowHouseAds(modules as Array<{ type?: string }>);
-  const visibleModules = isTravelCase
+  const showAds = !isTravelCampaignArticle && shouldShowHouseAds(modules as Array<{ type?: string }>);
+  const visibleModules = isTravelCampaignArticle
     ? modules.filter((module) => module.type !== 'ad_baris')
     : modules;
   const wordCount = countWords(post.content);
   const isShort = wordCount < 500;
   const isLong = wordCount >= 1500;
-  const contentParts: string[] = isTravelCase
-    ? splitTravelArticle(articleContent)
+  const contentParts: string[] = isTravelCampaignArticle
+    ? splitTravelArticle(
+        articleContent,
+        isTravelPillar ? /identitas yang jelas pada koper/i : /penemu dapat memindai QR code tersebut/i,
+      )
     : showAds && !isShort
       ? splitMarkdownBlocks(post.content, isLong ? 3 : 2)
       : [post.content];
@@ -329,7 +358,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                     {contentParts[0]}
                   </ReactMarkdown>
                 </div>
-                {isTravelCase && <TravelCampaignCTA href={campaignUrl('article', 'in_article')} />}
+                {isTravelCampaignArticle && contentParts.length > 1 && <TravelCampaignCTA href={campaignUrl('mid_cta')} />}
                 {showAds && <BlogHouseAd variant="mid" />}
                 <div className="blog-markdown prose prose-lg max-w-none mb-8">
                   <ReactMarkdown
@@ -362,7 +391,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
 
             {/* House-ad akhir (semua artikel, kecuali opt-out) */}
             {showAds && <BlogHouseAd variant="end" />}
-            {isTravelCase && <TravelCampaignCTA href={campaignUrl('article', 'article_end')} />}
+            {isTravelCampaignArticle && <TravelCampaignCTA href={campaignUrl('end_cta')} />}
 
             {/* Social Sharing */}
             <BlogSocialSharing
