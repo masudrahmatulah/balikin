@@ -12,7 +12,7 @@ export function FooterSection() {
             <div className="flex items-center gap-2 mb-4">
               <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-[#07101f] shadow-md shadow-red-600/20">
                 <Image
-                  src="/balikin_logo.webp"
+                  src="/balikin-mark-trust-navy.svg"
                   alt="Balikin Logo"
                   width={72}
                   height={72}

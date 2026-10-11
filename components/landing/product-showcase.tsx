@@ -128,7 +128,7 @@ export function ProductShowcase({ className = '' }: ProductShowcaseProps) {
           highlight: 'Gantungan kunci smart dan simple',
           category: 'physical',
           productKey: 'armor-tag',
-          images: ['/balikin_logo.webp'],
+          images: ['/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp'],
         },
         {
           name: 'Balikin Ultimate Pack',

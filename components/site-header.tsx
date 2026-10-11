@@ -17,7 +17,7 @@ const siteNavLinks = [
   { href: '/helpdesk', label: 'Helpdesk' },
 ];
 
-export function SiteHeader({ refinedLogo = false }: { refinedLogo?: boolean }) {
+export function SiteHeader() {
   const { data: session, isPending } = authClient.useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -65,7 +65,7 @@ export function SiteHeader({ refinedLogo = false }: { refinedLogo?: boolean }) {
               className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-[#14233B] shadow-md shadow-red-600/20"
             >
               <Image
-                src={refinedLogo ? '/balikin-mark-trust-navy.svg' : '/balikin_logo.webp'}
+                src="/balikin-mark-trust-navy.svg"
                 alt="Balikin Logo"
                 width={80}
                 height={80}

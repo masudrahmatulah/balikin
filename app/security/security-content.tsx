@@ -37,7 +37,7 @@ export function SecurityContent() {
             const certImage =
               "image" in cert && typeof cert.image === "string"
                 ? cert.image
-                : "/balikin_logo.webp";
+                : "/balikin-mark-trust-navy.svg";
 
             return (
             <article

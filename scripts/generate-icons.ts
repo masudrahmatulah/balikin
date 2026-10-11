@@ -2,7 +2,7 @@ import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 
-const SOURCE_IMAGE = '/tmp/balikin-logo.jpg';
+const SOURCE_IMAGE = path.join(process.cwd(), 'public', 'balikin-mark-trust-navy.svg');
 const ICONS_DIR = path.join(process.cwd(), 'public', 'icons');
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 
@@ -33,7 +33,7 @@ async function generateIcons() {
 
   // Pastikan source image ada
   if (!fs.existsSync(SOURCE_IMAGE)) {
-    console.error('❌ Source image not found:', SOURCE_IMAGE);
+    console.error('❌ New Balikin mark not found:', SOURCE_IMAGE);
     process.exit(1);
   }
 
@@ -61,6 +61,31 @@ async function generateIcons() {
 
       console.log(`✅ Generated ${name} (${size}x${size})`);
     }
+
+    const icoSizes = [16, 32];
+    const icoPngs = await Promise.all(
+      icoSizes.map((size) => image.clone().resize(size, size, { fit: 'cover', position: 'center' }).png().toBuffer()),
+    );
+    const icoHeader = Buffer.alloc(6);
+    icoHeader.writeUInt16LE(0, 0);
+    icoHeader.writeUInt16LE(1, 2);
+    icoHeader.writeUInt16LE(icoSizes.length, 4);
+    let imageOffset = 6 + icoSizes.length * 16;
+    const icoEntries = icoPngs.map((png, index) => {
+      const entry = Buffer.alloc(16);
+      entry.writeUInt8(icoSizes[index], 0);
+      entry.writeUInt8(icoSizes[index], 1);
+      entry.writeUInt8(0, 2);
+      entry.writeUInt8(0, 3);
+      entry.writeUInt16LE(1, 4);
+      entry.writeUInt16LE(32, 6);
+      entry.writeUInt32LE(png.length, 8);
+      entry.writeUInt32LE(imageOffset, 12);
+      imageOffset += png.length;
+      return entry;
+    });
+    fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), Buffer.concat([icoHeader, ...icoEntries, ...icoPngs]));
+    console.log('✅ Generated favicon.ico (16x16, 32x32)');
 
     // Generate logos untuk branding
     console.log('\n🎨 Generating branding logos...');

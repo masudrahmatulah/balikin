@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { SignOutButton } from '@/components/sign-out-button';
 import {
@@ -38,12 +39,12 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
           {/* Logo */}
           <Link href="/" className="group flex flex-shrink-0 items-center gap-2">
             <span className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-[#07101f] shadow-md shadow-red-600/20 transition-transform group-hover:scale-[1.03]">
-              <img
-                src="/balikin_logo.webp"
+              <Image
+                src="/balikin-mark-trust-navy.svg"
                 alt="Balikin Logo"
                 width={80}
                 height={80}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
               />
             </span>
             <span className="hidden text-xl font-black tracking-tight text-slate-900 sm:inline dark:text-white">

@@ -1,6 +1,6 @@
 # Balikin App Icons & Logo Guide
 
-Icon dan logo baru telah berhasil dibuat dari gambar yang Anda berikan.
+Icon dan logo aplikasi dibuat dari mark Balikin trust navy (`balikin-mark-trust-navy.svg`).
 
 ## 📱 Icons yang Tersedia
 
@@ -15,6 +15,7 @@ Icon dan logo baru telah berhasil dibuat dari gambar yang Anda berikan.
 - `icon-512x512.png` (512x512) - PWA icon besar
 
 ### Browser & OS Icons (di `public/`)
+- `favicon.ico` (16×16 dan 32×32) - kompatibilitas tab browser
 - `favicon-16x16.png` (16x16) - Favicon kecil
 - `favicon-32x32.png` (32x32) - Favicon standard
 - `apple-touch-icon.png` (180x180) - iOS home screen icon
@@ -22,9 +23,9 @@ Icon dan logo baru telah berhasil dibuat dari gambar yang Anda berikan.
 ## 🎨 Branding Logos (di `public/`)
 
 ### Logo Variants
-- `logo.png` (1024x1024, 298KB) - High-res untuk headers & branding
-- `logo-medium.png` (512x512, 92KB) - Medium-res untuk components
-- `logo-small.png` (256x256, 28KB) - Low-res untuk small UI elements
+- `logo.png` (1024x1024) - High-res mark untuk headers dan branding
+- `logo-medium.png` (512x512) - Mark untuk komponen ukuran sedang
+- `logo-small.png` (256x256) - Mark untuk elemen UI kecil
 
 ## 💡 Penggunaan di Code
 
@@ -44,8 +45,11 @@ import Image from 'next/image';
 
 ### Untuk External Links atau Meta Tags
 ```html
+<!-- SVG favicon -->
+<link rel="icon" href="/balikin-mark-trust-navy.svg" type="image/svg+xml" />
+
 <!-- Favicon -->
-<link rel="icon" href="/favicon-32x32.png" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
 
 <!-- Apple Touch Icon -->
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -57,7 +61,7 @@ import Image from 'next/image';
 ## 🔄 Re-generate Icons
 
 Jika Anda ingin mengubah icon di masa depan:
-1. Letakkan gambar baru di `/tmp/balikin-logo.jpg`
+1. Perbarui `public/balikin-mark-trust-navy.svg` dengan mark resmi terbaru.
 2. Jalankan: `npx tsx scripts/generate-icons.ts`
 
 Script akan otomatis membuat semua ukuran icon yang diperlukan.
@@ -75,4 +79,5 @@ Icon siap digunakan! Browser akan otomatis menggunakan icon yang sesuai:
 - Tab browser → `favicon-32x32.png`
 - Mobile homescreen → `apple-touch-icon.png`
 - PWA install → `icon-512x512.png`
-- Branding di UI → `logo.png`, `logo-medium.png`, atau `logo-small.png` sesuai kebutuhan
+- Branding di UI → `balikin-mark-trust-navy.svg` untuk mark, `balikin-acrylic-trust-navy.svg` untuk lockup lengkap
+- File raster icon dan logo dihasilkan dari `balikin-mark-trust-navy.svg` lewat `scripts/generate-icons.ts`

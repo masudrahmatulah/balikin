@@ -23,7 +23,7 @@ function getBlogBaseUrl(): string {
 }
 
 function toAbsoluteUrl(url: string | null | undefined, baseUrl: string): string {
-  if (!url) return `${baseUrl}/balikin_logo.webp`;
+  if (!url) return `${baseUrl}/balikin-acrylic-trust-navy.svg`;
   if (/^https?:\/\//.test(url)) return url;
   return `${baseUrl}${url.startsWith("/") ? url : `/${url}`}`;
 }
@@ -79,7 +79,7 @@ export function buildBlogSchemas(
       name: "Balikin",
       logo: {
         "@type": "ImageObject",
-        url: `${baseUrl}/balikin_logo.webp`,
+        url: `${baseUrl}/balikin-acrylic-trust-navy.svg`,
       },
     },
     mainEntityOfPage: {

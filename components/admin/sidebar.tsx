@@ -140,7 +140,7 @@ export function Sidebar({ userDivision, isAdmin = false, pendingHelpdeskQuestion
         <div className="mb-4 px-2">
           <Link href="/admin" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-black/40 transition-transform group-hover:scale-105">
-              <Image src="/balikin_logo.webp" alt="Balikin" width={40} height={40} className="w-full h-full object-cover" />
+              <Image src="/balikin-mark-trust-navy.svg" alt="Balikin" width={40} height={40} className="w-full h-full object-contain" />
             </div>
             <div>
               <h1 className="text-base font-display font-bold text-white leading-tight">Balikin</h1>

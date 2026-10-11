@@ -53,7 +53,7 @@ export function SiteGraphJsonLd({
             logo: {
               "@type": "ImageObject",
               "@id": absoluteUrl("/#logo"),
-              url: absoluteUrl("/balikin_logo.webp"),
+              url: absoluteUrl("/balikin-acrylic-trust-navy.svg"),
             },
             sameAs: ["https://instagram.com/balikin.online"],
           },
@@ -305,7 +305,7 @@ export function OrganizationJsonLd({
   name = 'Balikin',
   description = 'Platform smart lost and found Indonesia dengan teknologi QR Smart Tag untuk melindungi barang berharga Anda.',
   url = absoluteUrl('/'),
-  logo = absoluteUrl('/balikin_logo.webp'),
+  logo = absoluteUrl('/balikin-acrylic-trust-navy.svg'),
   sameAs = ['https://instagram.com/balikin.online'],
 }: OrganizationJsonLdProps) {
   return (
