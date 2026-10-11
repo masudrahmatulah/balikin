@@ -9,9 +9,8 @@ import { deriveAcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { db } from '@/db';
 import { tags, printBatches } from '@/db/schema';
 import { getAdminSession } from '@/lib/admin';
-import { hasPermission } from '@/lib/admin-divisions';
+import { getDefaultDivision, hasPermission } from '@/lib/admin-divisions';
 import { and, eq, inArray, asc } from 'drizzle-orm';
-import { Readable } from 'stream';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -58,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (!admin) {
       return new Response('Unauthorized', { status: 401 });
     }
-    if (!hasPermission(admin.user.division, 'vdp_tool')) {
+    if (!hasPermission(admin.user.division || getDefaultDivision(), 'vdp_tool')) {
       return new Response('Forbidden', { status: 403 });
     }
 
