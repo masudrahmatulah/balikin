@@ -7,7 +7,7 @@ import type { NextRequest } from 'next/server';
 import { generateVDPStream, generateBatchReprint, type TagVDPData } from '@/lib/vdp-engine';
 import { deriveAcrylicShapeKey } from '@/lib/acrylic-shapes';
 import { db } from '@/db';
-import { tags, printBatches } from '@/db/schema';
+import { tags } from '@/db/schema';
 import { getAdminSession } from '@/lib/admin';
 import { getDefaultDivision, hasPermission } from '@/lib/admin-divisions';
 import { and, eq, inArray, asc } from 'drizzle-orm';
@@ -63,21 +63,18 @@ export async function POST(request: NextRequest) {
 
     const body: GenerateRequest = await request.json();
 
-    // Handle batch reprint
+    // Handle batch reprint. The identifier is a print_batches.id for modern
+    // rows, or print_queue.batch_id for supported legacy rows.
     if (body.batchId) {
-      const batch = await db.query.printBatches.findFirst({
-        where: and(
-          eq(printBatches.id, body.batchId),
-          eq(printBatches.app_id, 'balikin_id'),
-        ),
-        columns: { id: true },
-      });
-      if (!batch) {
-        throw new Error('Batch not found');
-      }
-
       const generator = generateBatchReprint(body.batchId, db);
-      const stream = asyncGeneratorToReadable(generator);
+      // Prime one chunk before returning headers so lookup and initial render
+      // errors can be returned as readable HTTP errors rather than a broken PNG.
+      const first = await generator.next();
+      if (first.done) throw new Error('No printable tag data found for this batch');
+      const stream = asyncGeneratorToReadable((async function* () {
+        yield first.value;
+        yield* generator;
+      })());
 
       return new Response(stream, {
         headers: {

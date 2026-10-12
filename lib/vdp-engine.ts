@@ -11,6 +11,8 @@ import pLimit from 'p-limit';
 import { openSync as fontkitOpenSync } from 'fontkit';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { and, eq, or } from 'drizzle-orm';
+import { printBatches, printQueue, tags } from '@/db/schema';
 import {
   type AcrylicShapeKey,
   deriveAcrylicShapeKey,
@@ -786,41 +788,65 @@ export async function* generateBatchReprint(
   db: any
 ): AsyncGenerator<Buffer, void, unknown> {
   const batch = await db.query.printBatches.findFirst({
-    where: { id: batchId, app_id: 'balikin_id' },
-    with: {
-      tags: {
-        where: { app_id: 'balikin_id' },
-        columns: {
-          id: true,
-          slug: true,
-          serialNumber: true,
-          isCustom: true,
-          customPhotoUrl: true,
-          name: true,
-          productType: true
-        },
-         orderBy: (tags: { slug: unknown }, { asc }: { asc: (column: unknown) => unknown }) => [asc(tags.slug)]
-      }
-    }
+    where: and(eq(printBatches.id, batchId), eq(printBatches.app_id, 'balikin_id')),
+    columns: { id: true },
   });
 
-  if (!batch) {
-    throw new Error('Batch not found');
+  let batchTags: Array<Pick<TagVDPData, 'id' | 'slug' | 'serialNumber' | 'isCustom' | 'customPhotoUrl' | 'name' | 'productSlug'>>;
+  if (batch) {
+    batchTags = await db.query.tags.findMany({
+      where: and(eq(tags.batchId, batch.id), eq(tags.app_id, 'balikin_id')),
+      columns: {
+        id: true,
+        slug: true,
+        serialNumber: true,
+        isCustom: true,
+        customPhotoUrl: true,
+        name: true,
+        productType: true,
+      },
+      orderBy: (tagTable: { slug: unknown }, { asc }: { asc: (column: unknown) => unknown }) => [asc(tagTable.slug)],
+    }).then((rows: any[]) => rows.map((tag) => ({ ...tag, productSlug: tag.productType || '' })));
+  } else {
+    // Legacy printQueue.batchId may identify a single tag or a tag bundle.
+    // Never infer a modern batch from slugs: use persistent foreign-key data.
+    const legacyQueueItem = await db.query.printQueue.findFirst({
+      where: and(eq(printQueue.batchId, batchId), eq(printQueue.app_id, 'balikin_id')),
+      columns: { batchId: true },
+    });
+    if (!legacyQueueItem) throw new Error('Print queue batch not found');
+
+    const legacyTags = await db.query.tags.findMany({
+      where: and(
+        eq(tags.app_id, 'balikin_id'),
+        or(eq(tags.id, batchId), eq(tags.bundleId, batchId)),
+      ),
+      columns: {
+        id: true,
+        slug: true,
+        serialNumber: true,
+        isCustom: true,
+        customPhotoUrl: true,
+        name: true,
+        productType: true,
+      },
+      orderBy: (tagTable: { slug: unknown }, { asc }: { asc: (column: unknown) => unknown }) => [asc(tagTable.slug)],
+    });
+    batchTags = legacyTags.map((tag: any) => ({ ...tag, productSlug: tag.productType || '' }));
   }
 
-  const shapeKey = deriveAcrylicShapeKey(batch.tags[0]?.productType);
+  if (batchTags.length === 0) throw new Error('No persistent tags found for this print batch');
 
-  const tags: TagVDPData[] = batch.tags.map((tag: any) => ({
-    productSlug: tag.productType || '',
-    id: tag.id,
-    slug: tag.slug,
+  const shapeKey = deriveAcrylicShapeKey(batchTags[0]?.productSlug);
+  const vdpTags: TagVDPData[] = batchTags.map((tag) => ({
+    ...tag,
     serialNumber: tag.serialNumber || undefined,
     isCustom: tag.isCustom || false,
     customPhotoUrl: tag.customPhotoUrl || undefined,
-    name: tag.name
+    name: tag.name || '',
   }));
 
-  yield* generateVDPStream(tags, shapeKey, { isReprint: true });
+  yield* generateVDPStream(vdpTags, shapeKey, { isReprint: true });
 }
 
 // ============================================================================
