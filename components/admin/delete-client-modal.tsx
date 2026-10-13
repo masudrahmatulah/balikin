@@ -35,7 +35,6 @@ export function DeleteClientModal({ isOpen, onClose, user }: DeleteClientModalPr
 
       if (result.error) {
         setError(result.error);
-        setIsDeleting(false);
       } else {
         // Success - show brief success message before closing
         onClose();
@@ -44,6 +43,8 @@ export function DeleteClientModal({ isOpen, onClose, user }: DeleteClientModalPr
     } catch (error) {
       console.error("Error deleting client:", error);
       setError("Gagal menghapus klien. Silakan coba lagi.");
+      setIsDeleting(false);
+    } finally {
       setIsDeleting(false);
     }
   };

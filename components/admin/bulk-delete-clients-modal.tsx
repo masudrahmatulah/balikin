@@ -25,6 +25,7 @@ export function BulkDeleteClientsModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   const expectedConfirmText = `DELETE ${selectedUsers.length}`;
   const isConfirmed = confirmText === expectedConfirmText;
@@ -38,6 +39,7 @@ export function BulkDeleteClientsModal({
     }
 
     setIsSubmitting(true);
+    setError("");
 
     try {
       const userIds = selectedUsers.map((u) => u.id);
@@ -49,7 +51,8 @@ export function BulkDeleteClientsModal({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete clients");
+        const body = await response.json().catch(() => null) as { error?: unknown } | null;
+        throw new Error(typeof body?.error === "string" ? body.error : "Gagal menghapus klien. Silakan coba lagi.");
       }
 
       setSuccess(true);
@@ -61,7 +64,7 @@ export function BulkDeleteClientsModal({
       }, 1500);
     } catch (error) {
       console.error("Error deleting clients:", error);
-      alert("Gagal menghapus klien. Silakan coba lagi.");
+      setError(error instanceof Error ? error.message : "Gagal menghapus klien. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -92,6 +95,7 @@ export function BulkDeleteClientsModal({
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="p-6 space-y-4">
+              {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
               {/* Warning */}
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <p className="text-sm text-red-800 dark:text-red-400 font-medium">

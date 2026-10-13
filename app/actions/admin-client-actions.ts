@@ -12,6 +12,19 @@ const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function getDeleteDatabaseError(error: unknown) {
+  const direct = error && typeof error === 'object' ? error as { code?: unknown; constraint?: unknown; cause?: unknown } : {};
+  const cause = direct.cause && typeof direct.cause === 'object'
+    ? direct.cause as { code?: unknown; constraint?: unknown }
+    : {};
+  return {
+    code: typeof direct.code === 'string' ? direct.code : typeof cause.code === 'string' ? cause.code : 'UNKNOWN',
+    constraint: typeof direct.constraint === 'string'
+      ? direct.constraint
+      : typeof cause.constraint === 'string' ? cause.constraint : 'unknown',
+  };
+}
+
 /**
  * Validation helpers
  */
@@ -246,25 +259,19 @@ export async function deleteClient(userId: string) {
       return { error: 'User tidak ditemukan' };
     }
 
-    // Count tags owned by this user
-    const tagCount = await db.select({ count: count() })
-      .from(tags)
-      .where(and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')))
-      .then(rows => rows[0]?.count || 0);
-
-    // Cascade delete: delete all tags first (if any)
-    if (tagCount > 0) {
-      await db.delete(tags).where(and(
-        eq(tags.ownerId, userId),
-        eq(tags.app_id, 'balikin_id')
-      ));
-    }
-
-    // Then delete the user
-    await db.delete(user).where(and(eq(user.id, userId), eq(user.app_id, 'balikin_id')));
+    const tagCount = await db.transaction(async (tx) => {
+      const deletedTags = await tx.delete(tags).where(and(
+        eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')
+      )).returning({ id: tags.id });
+      const deletedUsers = await tx.delete(user).where(and(
+        eq(user.id, userId), eq(user.app_id, 'balikin_id')
+      )).returning({ id: user.id });
+      if (deletedUsers.length !== 1) throw new Error('CLIENT_DELETE_TARGET_MISSING');
+      return deletedTags.length;
+    });
 
     // Revalidate path
-    revalidatePath('/admin');
+    revalidatePath('/admin/clients');
 
     return {
       success: true,
@@ -272,6 +279,11 @@ export async function deleteClient(userId: string) {
       deletedTagCount: tagCount,
     };
   } catch (error) {
+    const dbError = getDeleteDatabaseError(error);
+    console.error('CLIENT_DELETE_FAILED', dbError);
+    if (dbError.code === '23503' || (dbError.code === '23502' && dbError.constraint === 'suspended_by')) {
+      return { error: 'Klien memiliki data terkait yang belum dapat dihapus. Periksa dependensi klien lalu coba lagi.' };
+    }
     return { error: 'Gagal menghapus klien. Silakan coba lagi.' };
   }
 }
