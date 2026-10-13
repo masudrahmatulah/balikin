@@ -57,7 +57,7 @@ export function AdminHeader({
     production: "Production",
     "customer_service": "Customer Service",
     marketing: "Marketing",
-  }[session.user.division || "admin"] || "Admin";
+  }[session.user.division || ""] || "Divisi belum diatur";
 
   return (
     <header className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-blue-100/80 bg-white/85 px-4 shadow-sm backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/85 sm:px-6 lg:left-sidebar-width">

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Check } from "lucide-react";
 import type { User } from "@/db/schema";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 interface UserWithTags extends User {
   tagCount: number;
@@ -46,6 +46,7 @@ export function BulkDeleteClientsModal({
 
       const response = await fetch("/api/admin/bulk-delete-clients", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userIds }),
       });
@@ -72,15 +73,15 @@ export function BulkDeleteClientsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md p-0 gap-0" aria-describedby="bulk-delete-clients-description">
+      <DialogContent className="sm:max-w-md p-0 gap-0">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
+          <DialogTitle className="text-lg font-semibold text-red-600 dark:text-red-400 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" aria-hidden="true" />
             Hapus {selectedUsers.length} Klien
-          </h3>
-          <p id="bulk-delete-clients-description" className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Tindakan ini tidak dapat dibatalkan
-          </p>
+          </DialogDescription>
         </div>
 
         {success ? (

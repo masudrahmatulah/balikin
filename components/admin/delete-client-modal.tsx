@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { deleteClient } from "@/app/actions/admin-client-actions";
 import type { User } from "@/db/schema";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AlertTriangle } from "lucide-react";
 
 interface DeleteClientModalProps {
@@ -62,12 +62,12 @@ export function DeleteClientModal({ isOpen, onClose, user }: DeleteClientModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-md p-0 gap-0" aria-describedby="delete-client-description">
+      <DialogContent className="sm:max-w-md p-0 gap-0">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
             Hapus Klien
-          </h3>
+          </DialogTitle>
         </div>
 
         {/* Content */}
@@ -80,13 +80,13 @@ export function DeleteClientModal({ isOpen, onClose, user }: DeleteClientModalPr
           </div>
 
           {/* Warning Message */}
-          <div id="delete-client-description" className="text-center mb-6">
+          <div className="text-center mb-6">
             <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Apakah Anda yakin?
             </h4>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <DialogDescription className="text-gray-600 dark:text-gray-400 mb-4">
               Anda akan menghapus klien:
-            </p>
+            </DialogDescription>
             <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 mb-4">
               <p className="font-medium text-gray-900 dark:text-white">
                 {displayName}

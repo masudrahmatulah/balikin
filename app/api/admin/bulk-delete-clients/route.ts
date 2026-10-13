@@ -23,15 +23,20 @@ function getDeleteDatabaseError(error: unknown) {
 
 export async function POST(req: NextRequest) {
   try {
-    // FIXED: Use centralized isAdmin() function for consistent authorization
     const adminSession = await getAdminSessionForAction();
-    if (!adminSession || !hasPermission(adminSession.user.division, 'client_management')) {
-      return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+    if (!adminSession) {
+      console.warn("BULK_CLIENT_DELETE_AUTH_DENIED", { reason: "admin_session_unavailable" });
+      return NextResponse.json({ error: "Sesi admin tidak ditemukan atau tidak valid. Silakan masuk kembali." }, { status: 401 });
     }
 
-    // Get current admin user from session for validation
-    const { getCurrentAdminUser } = await import("@/lib/admin");
-    const currentUser = await getCurrentAdminUser();
+    if (!hasPermission(adminSession.user.division, 'client_management')) {
+      console.warn("BULK_CLIENT_DELETE_AUTH_DENIED", {
+        reason: "permission_denied",
+        role: adminSession.user.role,
+        division: adminSession.user.division,
+      });
+      return NextResponse.json({ error: "Akun admin Anda tidak memiliki izin mengelola klien. Pastikan divisi akun diatur ke Super Admin atau hubungi administrator." }, { status: 403 });
+    }
 
     const body = await req.json();
     const { userIds } = body;
@@ -43,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     // Prevent deleting yourself
     const uniqueUserIds = [...new Set(userIds)];
-    if (currentUser && uniqueUserIds.includes(currentUser.id)) {
+    if (uniqueUserIds.includes(adminSession.user.id)) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
