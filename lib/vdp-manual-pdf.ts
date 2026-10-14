@@ -150,10 +150,11 @@ export async function buildActivationCardsPdf(cards: ActivationCardData[]): Prom
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.5);
     doc.text('Jangan bagikan PIN ini.', 10, 40);
-    doc.addImage(qr, 'PNG', 61, 21, 20, 20);
+    // Keep the QR inside the 80 mm card with a 5 mm right print margin.
+    doc.addImage(qr, 'PNG', 57, 22, 18, 18);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(5.5);
-    doc.text('Scan untuk mulai', 71, 46, { align: 'center' });
+    doc.text('Scan untuk mulai', 66, 46, { align: 'center' });
   }
   return Buffer.from(doc.output('arraybuffer'));
 }
