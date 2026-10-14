@@ -61,6 +61,7 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [reprinting, setReprinting] = useState<string | null>(null);
+  const [downloadingCards, setDownloadingCards] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { isRefreshing, nextRefreshIn, refresh } = useAutoRefresh({
@@ -211,6 +212,39 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
       setError(err instanceof Error ? err.message : 'Gagal reprint dari database');
     } finally {
       setReprinting(null);
+    }
+  };
+
+  const handleActivationCards = async (item: PrintQueueItem) => {
+    setDownloadingCards(item.id);
+    setError(null);
+    try {
+      const response = await fetch(`/admin/api/print-queue/${item.id}/activation-cards`);
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        let message = 'Gagal mengunduh kartu aktivasi.';
+        if (contentType.includes('application/json')) {
+          const data: unknown = await response.json();
+          if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') message = data.error;
+        } else if (contentType.startsWith('text/') && response.status < 500) {
+          const text = (await response.text()).trim();
+          if (text.length > 0 && text.length < 500) message = text;
+        }
+        throw new Error(message);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${item.batchName}-kartu-aktivasi.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal mengunduh kartu aktivasi.');
+    } finally {
+      setDownloadingCards(null);
     }
   };
 
@@ -461,6 +495,17 @@ export function PrintQueueTable({ items, stats = {}, adminId, currentPage, total
                         >
                           <Download className="w-3 h-3" aria-hidden="true" />
                           Download
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleActivationCards(item)}
+                          disabled={downloadingCards === item.id}
+                          className="gap-1"
+                          aria-label={`Unduh kartu aktivasi ${item.batchName}`}
+                        >
+                          <Download className="w-3 h-3" aria-hidden="true" />
+                          {downloadingCards === item.id ? 'Memuat...' : 'Kartu Aktivasi'}
                         </Button>
                         <Button
                           size="sm"
