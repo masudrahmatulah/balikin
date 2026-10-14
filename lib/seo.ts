@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { BRAND_DESCRIPTION } from "@/lib/brand";
 
 const fallbackSiteUrl = "https://balikin.online";
 
 export const siteConfig = {
   name: "Balikin",
-  description:
-    "Balikin adalah smart lost & found berbasis QR code untuk membantu barang hilang kembali ke pemilik dengan aman lewat WhatsApp.",
+  description: BRAND_DESCRIPTION,
   // SEO Note: Expanded keywords array covering branded, generic, tech, and commercial terms
   keywords: [
     // Branded (High Priority)

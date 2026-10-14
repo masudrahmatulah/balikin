@@ -1,12 +1,13 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, ReceiptText, Sticker, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Package, ReceiptText, Sticker } from 'lucide-react';
 import { eq } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
 import { stickerOrders } from '@/db/schema';
 import { WHATSAPP_ORDER_NUMBER } from '@/lib/constants';
 import { getProductDisplayName } from '@/lib/product-catalog';
+import { MobileQrisPayment } from '@/components/mobile/mobile-qris-payment';
 
 export default async function MobileStickerOrderDetailPage({
   params,
@@ -112,24 +113,13 @@ export default async function MobileStickerOrderDetailPage({
         </div>
 
         {/* Payment Instructions */}
-        {order.paymentStatus !== 'paid' && (
-          <div className="bg-mobile-warning-lighter border border-mobile-warning-lighter rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-mobile-warning mb-2">Instruksi Pembayaran</h3>
-            <p className="text-xs text-mobile-warning mb-4">
-              Lakukan pembayaran sesuai nominal order lalu kirim konfirmasi ke admin Balikin.
-            </p>
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full bg-mobile-success text-white py-3 rounded-xl text-center font-semibold btn-press"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                Konfirmasi via WhatsApp
-              </div>
-            </a>
-          </div>
+        {order.paymentStatus !== 'paid' && order.paymentMethod === 'manual_qris' && (
+          <MobileQrisPayment
+            orderId={order.id}
+            amount={order.totalAmount}
+            paymentProofUrl={order.paymentProofUrl}
+            whatsappHref={whatsappHref}
+          />
         )}
 
         {/* Bundle Section */}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, ZapOff, Infinity as InfinityIcon, Lock } from 'lucide-react';
 import { FloatingIcon } from '@/components/landing/floating-icon';
+import { BRAND_DESCRIPTION, BRAND_TAGLINE } from '@/lib/brand';
 
 const licenseHighlights = [
   { icon: Lock, label: 'Proteksi Data Diri' },
@@ -39,13 +40,11 @@ export function SmartLicenseHeroSection() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white"
         >
-          Perkenalkan <span className="gradient-text">Balikin Smart License</span>
-          <br className="hidden md:block" />{" "}
-          Ketenangan Jiwa untuk Barang Berharga Anda
+          {BRAND_TAGLINE}
         </motion.h1>
 
         <p className="mx-auto mb-4 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-300">
-          Balikin adalah platform smart lost and found berbasis QR code yang membantu pemilik dan penemu barang terhubung melalui halaman web dan jalur kontak yang tersedia.
+          {BRAND_DESCRIPTION}
         </p>
 
         <motion.p

@@ -133,7 +133,7 @@ Saya lampirkan bukti transfernya di bawah ini ya.`;
 
           <div className="bg-white p-4 rounded-xl border-2 border-gray-200 mb-4">
             <img
-              src="/uploads/qris-gopay.jpeg"
+              src="/images/qris-gopay-manual.jpeg"
               alt="QRIS GoPay"
               className="w-full h-auto"
             />

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { BRAND_DESCRIPTION, BRAND_TAGLINE } from '@/lib/brand';
 
 export function FooterSection() {
   return (
@@ -22,7 +23,8 @@ export function FooterSection() {
               <span className="text-xl font-black tracking-tight dark:text-white">BALIKIN</span>
             </div>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Platform Smart Lost & Found yang menghubungkan barang fisik dengan identitas digital. Karena kebaikan harus dimudahkan.
+              <strong className="block font-semibold">{BRAND_TAGLINE}</strong>
+              {BRAND_DESCRIPTION}
             </p>
           </div>
           <div>
@@ -47,7 +49,7 @@ export function FooterSection() {
           </div>
         </div>
         <div className="border-t dark:border-slate-700 pt-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-          <p>&copy; {new Date().getFullYear()} Balikin. Smart Lost & Found Platform Indonesia.</p>
+          <p>&copy; {new Date().getFullYear()} Balikin.</p>
           <p className="mt-2">Dibuat dengan ❤️ di Indonesia</p>
         </div>
       </div>

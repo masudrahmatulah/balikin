@@ -80,7 +80,7 @@ export function PaymentSection({ orderId, paymentStatus, totalAmount, paymentPro
     return (
       <div className="rounded-2xl border border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/40">
         <p className="text-sm font-semibold text-blue-950 dark:text-blue-100">Pembayaran QRIS GoPay</p>
-        <img src="/uploads/qris-gopay.jpeg" alt="QRIS GoPay Balikin" className="mx-auto my-4 max-h-[26rem] w-full max-w-xs rounded-xl bg-white object-contain p-2" />
+        <img src="/images/qris-gopay-manual.jpeg" alt="QRIS GoPay untuk pembayaran Balikin" className="mx-auto my-4 max-h-[26rem] w-full max-w-xs rounded-xl bg-white object-contain p-2" />
         <p className="text-center text-sm font-semibold text-blue-950 dark:text-blue-100">Rp{totalAmount.toLocaleString('id-ID')}</p>
         <p className="mt-2 text-xs leading-5 text-blue-900 dark:text-blue-200">Scan QRIS di atas, masukkan nominal persis seperti total pesanan, lalu upload bukti pembayaran. Admin akan memverifikasi order Anda.</p>
         {error && <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}

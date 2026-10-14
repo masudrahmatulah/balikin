@@ -1,3 +1,5 @@
+import { BRAND_DESCRIPTION } from '@/lib/brand';
+
 export const howItWorksSteps = [
   {
     step: 1,
@@ -28,8 +30,7 @@ export const howItWorksSteps = [
 export const faqItems = [
   {
     question: "Apa itu Balikin?",
-    answer:
-      "Balikin adalah platform smart lost & found yang menggunakan QR code untuk menghubungkan barang fisik dengan identitas digital. Jika barang Anda hilang dan ditemukan orang lain, mereka bisa scan QR code dan menghubungi Anda tanpa melihat privasi Anda.",
+    answer: BRAND_DESCRIPTION,
   },
   {
     question: "Bagaimana cara kerja Balikin?",

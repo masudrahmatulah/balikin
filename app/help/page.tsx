@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BRAND_TAGLINE } from "@/lib/brand";
 import { HelpCircle, MessageCircle, Mail, BookOpen, QrCode, Shield, AlertTriangle, ChevronRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { WHATSAPP_ORDER_NUMBER } from "@/lib/constants";
@@ -133,7 +134,7 @@ export default function HelpPage() {
         </section>
 
         <div className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
-          © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
+          © 2026 Balikin.online · {BRAND_TAGLINE}
         </div>
       </main>
     </div>

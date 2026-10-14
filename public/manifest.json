@@ -1,7 +1,7 @@
 {
   "name": "Balikin - Smart Lost & Found QR Tags",
   "short_name": "Balikin",
-  "description": "Platform smart lost & found berbasis QR code untuk barang hilang",
+  "description": "Inovasi QR Code pintar pengembali barang tertinggal dengan membuka jalur komunikasi aman antara penemu dan pemilik barang.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

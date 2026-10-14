@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, HelpCircle } from "lucide-react";
 import { HelpdeskChat } from "@/components/helpdesk-chat";
 import { SiteHeader } from "@/components/site-header";
+import { BRAND_TAGLINE } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: "Helpdesk Balikin | Bantuan Akun dan QR Tag",
@@ -33,7 +34,7 @@ export default function HelpdeskPage() {
           <HelpdeskChat />
         </section>
         <div className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
-          © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
+          © 2026 Balikin.online · {BRAND_TAGLINE}
         </div>
       </main>
     </div>

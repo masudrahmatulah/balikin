@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
+import { BRAND_TAGLINE } from '@/lib/brand';
 
 interface UserProfile {
   id: string;
@@ -299,7 +300,7 @@ export function MobileProfile() {
 
         <div className="text-center py-6 animate-fade-up-20">
           <p className="text-sm text-gray-500">Balikin v1.0.0</p>
-          <p className="text-xs text-gray-400 mt-1">Smart Lost & Found Platform Indonesia</p>
+          <p className="text-xs text-gray-400 mt-1">{BRAND_TAGLINE}</p>
         </div>
 
         <div className="h-8" />

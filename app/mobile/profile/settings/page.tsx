@@ -1,5 +1,6 @@
 'use client';
 
+import { BRAND_TAGLINE } from '@/lib/brand';
 import { MobileLayout } from '@/components/mobile/mobile-layout';
 import { useState } from 'react';
 import { useSession, signOut } from '@/lib/auth-client';
@@ -125,7 +126,7 @@ export default function MobileProfileSettingsPage() {
         {/* Version Info */}
         <div className="text-center py-6">
           <p className="text-sm text-gray-500">Balikin v1.0.0</p>
-          <p className="text-xs text-gray-400 mt-1">Smart Lost & Found Platform Indonesia</p>
+          <p className="text-xs text-gray-400 mt-1">{BRAND_TAGLINE}</p>
         </div>
 
         <div className="h-8" />

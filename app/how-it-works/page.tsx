@@ -3,6 +3,7 @@ import { HowToJsonLd } from "@/components/json-ld";
 import { buildMetadata } from "@/lib/seo";
 import { howItWorksSteps } from "@/lib/site-content";
 import { SiteHeader } from "@/components/site-header";
+import { BRAND_TAGLINE } from "@/lib/brand";
 
 export const metadata: Metadata = buildMetadata({
   title: "Cara Kerja Balikin",
@@ -45,7 +46,7 @@ export default function HowItWorksPage() {
           ))}
           </ol>
           <div className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
-            © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
+            © 2026 Balikin.online · {BRAND_TAGLINE}
           </div>
         </main>
       </div>

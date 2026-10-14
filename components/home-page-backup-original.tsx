@@ -43,6 +43,7 @@
 'use client';
 
 import Link from 'next/link';
+import { BRAND_DESCRIPTION, BRAND_TAGLINE } from '@/lib/brand';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -211,7 +212,7 @@ export function HomePage() {
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
           >
             <Shield className="h-4 w-4" />
-            Smart Lost & Found Platform Indonesia
+            {BRAND_TAGLINE}
           </motion.div>
 
           <motion.h1
@@ -1066,7 +1067,8 @@ export function HomePage() {
                 <span className="text-xl font-bold">Balikin</span>
               </div>
               <p className="text-gray-600 text-sm">
-                Platform Smart Lost & Found yang menghubungkan barang fisik dengan identitas digital. Karena kebaikan harus dimudahkan.
+                <strong className="block font-semibold">{BRAND_TAGLINE}</strong>
+                {BRAND_DESCRIPTION}
               </p>
             </div>
             <div>
@@ -1087,7 +1089,7 @@ export function HomePage() {
             </div>
           </div>
           <div className="border-t pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Balikin. Smart Lost & Found Platform Indonesia.</p>
+            <p>&copy; {new Date().getFullYear()} Balikin. {BRAND_TAGLINE}</p>
             <p className="mt-2">Dibuat dengan ❤️ di Indonesia</p>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { PREMIUM_PRICE, PRINTABLE_FIVE_PRICE, PRINTABLE_SINGLE_PRICE, PRINTABLE_
 import { buildMetadata, absoluteUrl } from "@/lib/seo";
 import { ProductJsonLd, SiteGraphJsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
+import { BRAND_TAGLINE } from "@/lib/brand";
 
 export const metadata: Metadata = buildMetadata({
   title: "Harga Balikin",
@@ -189,7 +190,7 @@ async function PricingPage() {
         </div>
       </section>
         <div className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
-          © 2026 Balikin.online · Smart Lost &amp; Found Platform Indonesia
+          © 2026 Balikin.online · {BRAND_TAGLINE}
         </div>
       </main>
       </div>

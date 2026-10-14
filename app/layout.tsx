@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
 import { Geist, Fraunces, Public_Sans, Space_Grotesk } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { BRAND_TAGLINE } from "@/lib/brand";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display" });
@@ -14,7 +15,7 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-label
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: `${siteConfig.name} | Smart Lost & Found QR Tag`,
+    default: `${siteConfig.name} | ${BRAND_TAGLINE}`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
     canonical: absoluteUrl("/"),
   },
   openGraph: {
-    title: `${siteConfig.name} | Smart Lost & Found QR Tag`,
+    title: `${siteConfig.name} | ${BRAND_TAGLINE}`,
     description: siteConfig.description,
     url: absoluteUrl("/"),
     siteName: siteConfig.name,
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Smart Lost & Found QR Tag`,
+    title: `${siteConfig.name} | ${BRAND_TAGLINE}`,
     description: siteConfig.description,
     images: [absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp")],
   },

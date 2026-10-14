@@ -1,6 +1,6 @@
 # Images Directory
 
-Place your QRIS GoPay image here as `qris-gopay.svg`
+The manual GoPay QRIS used for purchase payments is tracked as `qris-gopay-manual.jpeg`.
 
 This image should be:
 - PNG format

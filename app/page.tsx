@@ -5,11 +5,11 @@ import { faqItems } from "@/lib/site-content";
 import { JsonLd, SiteGraphJsonLd } from "@/components/json-ld";
 import { PREMIUM_PRICE } from "@/lib/constants";
 import { PRODUCT_CATALOG } from "@/lib/product-catalog";
+import { BRAND_DESCRIPTION, BRAND_TAGLINE } from "@/lib/brand";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Balikin Smart Tag - QR Code Anti Hilang Indonesia dengan Notifikasi WhatsApp",
-  description:
-    "Balikin Smart Tag: platform smart lost and found Indonesia dengan QR Code dinamis. Nomor HP tidak tercetak di barang. Catat scan dan perkiraan lokasi jika tersedia, aktifkan mode hilang, dan perbarui kontak kapan saja. Mulai gratis sekarang!",
+  title: BRAND_TAGLINE,
+  description: BRAND_DESCRIPTION,
   path: "/",
   keywords: [
     // Branded keywords
@@ -88,7 +88,7 @@ const homeSchema = {
         "Sistem identifikasi barang dengan QR code modern",
         "Gantungan kunci QR code anti hilang berkualitas",
       ],
-      description: "Sistem keamanan privasi untuk barang hilang dengan QR Code dinamis. Platform smart lost and found Indonesia yang menghubungkan penemu dengan pemilik barang secara aman tanpa nomor HP tercetak di tag.",
+      description: BRAND_DESCRIPTION,
       keywords: "qr code barang hilang, qr code anti hilang, gantungan kunci qr code, smart lost and found, sistem pelacakan barang, whatsapp lost and found",
       screenshot: {
         "@type": "ImageObject",
@@ -135,7 +135,7 @@ export default function Page() {
       <SiteGraphJsonLd
         path="/"
         name="Balikin Smart Tag - QR Code Anti Hilang & Platform Smart Lost and Found Indonesia"
-        description="Balikin Smart Tag: Sistem QR code dinamis untuk barang hilang dengan kontak fleksibel. Notifikasi WhatsApp, lacak lokasi scan, mode hilang darurat."
+        description={BRAND_DESCRIPTION}
         imageUrl={absoluteUrl("/gallery/Balikin Online Qr gantungan kunci temukan barang hilang (1).webp")}
       />
       <JsonLd id="home-schema" data={homeSchema} />

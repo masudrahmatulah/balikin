@@ -1,4 +1,5 @@
 import { absoluteUrl } from "@/lib/seo";
+import { BRAND_DESCRIPTION } from "@/lib/brand";
 
 interface JsonLdProps {
   data: Record<string, unknown>;
@@ -48,8 +49,7 @@ export function SiteGraphJsonLd({
             name: "Balikin",
             alternateName: "Balikin Smart Tag",
             url: absoluteUrl("/"),
-            description:
-              "Platform smart lost and found Indonesia berbasis QR code untuk membantu barang hilang kembali ke pemilik.",
+            description: BRAND_DESCRIPTION,
             logo: {
               "@type": "ImageObject",
               "@id": absoluteUrl("/#logo"),
@@ -62,6 +62,7 @@ export function SiteGraphJsonLd({
             "@id": websiteId,
             url: absoluteUrl("/"),
             name: "Balikin",
+            description: BRAND_DESCRIPTION,
             publisher: { "@id": organizationId },
             inLanguage: "id-ID",
           },

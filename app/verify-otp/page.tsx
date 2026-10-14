@@ -1,5 +1,6 @@
 "use client";
 
+import { BRAND_TAGLINE } from "@/lib/brand";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Phone, ArrowLeft, Loader2 } from "lucide-react";
@@ -238,7 +239,7 @@ function VerifyOTPContent() {
       </div>
 
       <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
-        &copy; {new Date().getFullYear()} Balikin. Smart Lost & Found QR Tag.
+        &copy; {new Date().getFullYear()} Balikin. {BRAND_TAGLINE}
       </p>
     </div>
   );
