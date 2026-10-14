@@ -15,6 +15,9 @@ export const user = pgTable('user', {
   image: text('image'),
   role: text('role').default('user').notNull(), // 'admin' | 'editor' | 'user'
   division: text('division'), // 'production' | 'customer_service' | 'marketing' | 'admin' | null
+  banned: boolean('banned').default(false),
+  banReason: text('ban_reason'),
+  banExpires: timestamp('ban_expires'),
   blogPermissions: jsonb('blog_permissions').default({ canCreatePosts: false, canEditOwnPosts: false, canPublishPosts: false, canModerateComments: false }).$type<{
     canCreatePosts?: boolean;
     canEditOwnPosts?: boolean;
@@ -36,6 +39,7 @@ export const session = pgTable('session', {
   token: text('token').notNull().unique(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
+  impersonatedBy: text('impersonated_by'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
