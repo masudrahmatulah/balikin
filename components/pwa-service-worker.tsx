@@ -51,12 +51,6 @@ export function PWAServiceWorker() {
             >
               Update Sekarang
             </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-700 text-white rounded-lg font-medium text-sm hover:bg-blue-800 transition-colors"
-            >
-              Nanti
-            </button>
           </div>
         </div>
       )}

@@ -87,6 +87,8 @@ export async function setBatchActivationSession(batchId: string, token: string):
  * Called after user completes registration and claims the tag
  */
 export async function clearActivationSession(): Promise<void> {
+  const cookieStore = await cookies();
+  if (!cookieStore.get(SESSION_COOKIE_NAME)) return;
   const session = await getActivationSession();
 
   session.slug = undefined;
@@ -103,6 +105,9 @@ export async function clearActivationSession(): Promise<void> {
  * Returns true if session exists and is within 30-minute window
  */
 export async function isValidActivationSession(): Promise<boolean> {
+  const cookieStore = await cookies();
+  if (!cookieStore.get(SESSION_COOKIE_NAME)) return false;
+
   const session = await getActivationSession();
 
   if ((!session.slug && !session.batchId) || !session.timestamp) {

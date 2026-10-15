@@ -105,15 +105,16 @@ export function QuickActionCard({
           <h3 className="text-base font-semibold text-slate-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300">
             {title}
           </h3>
-          <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {description}
           </p>
         </div>
 
         {/* Arrow Icon */}
         <div
+          aria-hidden="true"
           className={cn(
-            'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full opacity-0 transition-all duration-300',
+            'pointer-events-none absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full opacity-0 transition-all duration-300',
             variant.hoverBg,
             'group-hover:opacity-100'
           )}

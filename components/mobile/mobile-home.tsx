@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Search,
+  KeyRound,
   Bell,
   TrendingUp,
   Tag,
@@ -56,10 +57,17 @@ interface MobileHomeProps {
 const quickActions = [
   {
     title: 'Scan QR Code',
-    description: 'Scan untuk melihat info pemilik',
+    description: 'Scan QR tag Balikin',
     icon: Search,
     href: '/scan',
     color: 'from-cyan-400 to-mobile-primary',
+  },
+  {
+    title: 'Aktivasi Tag',
+    description: 'Aktifkan tag akrilik dengan kode',
+    icon: KeyRound,
+    href: '/claim',
+    color: 'from-mobile-warning-light to-mobile-warning',
   },
   {
     title: 'Riwayat Scan',

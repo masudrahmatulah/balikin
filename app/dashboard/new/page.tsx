@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { createTag } from '@/app/actions/tag';
 import { getSession } from '@/lib/session';
-import { ArrowLeft, QrCode } from 'lucide-react';
+import { ArrowLeft, QrCode, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/db';
 import { tags } from '@/db/schema';
@@ -38,8 +38,8 @@ export default async function NewTagPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+      <header className="border-b border-blue-100/80 bg-white/80 backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
         <div className="container mx-auto px-4 py-4">
           <Link href="/dashboard">
             <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">
@@ -51,11 +51,11 @@ export default async function NewTagPage() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden border-blue-100/80 shadow-xl shadow-blue-900/5 dark:border-slate-700">
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <QrCode className="h-6 w-6 text-blue-600" />
+              <div className="rounded-lg bg-brand-red/10 p-2">
+                <QrCode className="h-6 w-6 text-brand-red" />
               </div>
               <div>
                 <CardTitle>Buat Digital Tag Baru</CardTitle>
@@ -66,6 +66,11 @@ export default async function NewTagPage() {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-sm dark:border-slate-700 dark:bg-slate-800/60">
+              <p className="font-semibold text-slate-900 dark:text-white">Sudah memiliki tag akrilik Balikin?</p>
+              <p className="mt-1 text-slate-600 dark:text-slate-300">Aktifkan produk fisik dengan kode SERIAL-PIN—tidak memakai kuota tag digital.</p>
+              <Button asChild variant="outline" className="mt-3 border-brand-red/30 text-brand-red hover:bg-brand-red/5"><Link href="/claim"><KeyRound className="mr-2 h-4 w-4" />Aktivasi Tag Akrilik</Link></Button>
+            </div>
             <form action={async (formData) => {
               'use server';
               const name = String(formData.get('name') ?? '').trim();
@@ -110,7 +115,7 @@ export default async function NewTagPage() {
                   required
                   pattern="[0-9]+"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   Kontak ini dipakai penemu untuk menghubungi Anda. Gunakan format internasional tanpa + atau 0 di depan.
                 </p>
               </div>
@@ -132,7 +137,7 @@ export default async function NewTagPage() {
                   name="rewardNote"
                   placeholder="Contoh: Rp 50.000, Makan siang, dll"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   Field ini opsional dan hanya ditampilkan saat status barang berubah menjadi hilang.
                 </p>
               </div>

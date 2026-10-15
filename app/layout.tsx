@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { absoluteUrl, getSiteUrl, siteConfig } from "@/lib/seo";
@@ -92,8 +91,6 @@ export default function RootLayout({
             {children}
           </div>
         </Providers>
-        {/* Service Worker Cleanup Script - Removes old service workers that cause redirect errors */}
-        <Script src="/service-worker-cleanup.js" id="service-worker-cleanup" />
       </body>
     </html>
   );

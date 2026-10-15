@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { beginBatchActivation, processBatchActivation } from '@/app/actions/activate';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { processBatchActivation, resumeBatchActivation } from '@/app/actions/activate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,34 @@ export function BatchActivationClient({
   const [error, setError] = useState<string | null>(initialError || null);
   const [claimedCount, setClaimedCount] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isResuming, setIsResuming] = useState(isAuthenticated);
+  const resumePromise = useRef<{ batchId: string; promise: ReturnType<typeof resumeBatchActivation> } | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let active = true;
+    if (resumePromise.current?.batchId !== batchId) {
+      resumePromise.current = { batchId, promise: resumeBatchActivation(batchId) };
+    }
+    void resumePromise.current.promise.then((result) => {
+      if (!active) return;
+      setIsResuming(false);
+      if (!result) return;
+      if (result.success) {
+        const count = result.claimedCount || 1;
+        setClaimedCount(count);
+        setTimeout(() => router.push(`/dashboard?activatedBatch=${count}`), 1800);
+      } else {
+        setError(result.error || 'Aktivasi gagal. Periksa kembali kode klaim.');
+      }
+    }).catch(() => {
+      if (active) {
+        setIsResuming(false);
+        setError('Aktivasi belum dapat diproses. Masuk kembali lalu masukkan PIN paket, atau hubungi admin jika masalah berlanjut.');
+      }
+    });
+    return () => { active = false; };
+  }, [batchId, isAuthenticated, router]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,17 +63,22 @@ export function BatchActivationClient({
     }
 
     startTransition(async () => {
-      if (!isAuthenticated) {
-        await beginBatchActivation(batchId, code);
-        return;
-      }
+      try {
+        if (!isAuthenticated) {
+          setError('Silakan masuk terlebih dahulu untuk mengaktifkan paket.');
+          return;
+        }
 
-      const result = await processBatchActivation(batchId, code);
-      if (result.success) {
-        setClaimedCount(result.claimedCount || 1);
-        setTimeout(() => router.push(`/dashboard?activatedBatch=${result.claimedCount || 1}`), 1800);
-      } else {
-        setError(result.error || 'Aktivasi gagal. Periksa kembali kode klaim.');
+        const result = await processBatchActivation(batchId, code);
+        if (result.success) {
+          setClaimedCount(result.claimedCount || 1);
+          setTimeout(() => router.push(`/dashboard?activatedBatch=${result.claimedCount || 1}`), 1800);
+        } else {
+          setError(result.error || 'Aktivasi gagal. Periksa kembali kode klaim.');
+        }
+      } catch (cause) {
+        if (isRedirectError(cause)) throw cause;
+        setError('Aktivasi belum dapat diproses. Periksa koneksi dan konfigurasi, lalu coba kembali.');
       }
     });
   };
@@ -90,7 +124,7 @@ export function BatchActivationClient({
               autoComplete="one-time-code"
               autoCapitalize="characters"
               maxLength={9}
-              disabled={isPending}
+              disabled={isPending || isResuming}
               className="h-14 text-center font-mono text-2xl tracking-widest"
             />
           </div>
@@ -100,7 +134,7 @@ export function BatchActivationClient({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="h-12 w-full" disabled={isPending}>
+          <Button type="submit" className="h-12 w-full" disabled={isPending || isResuming}>
             {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Shield className="mr-2 h-5 w-5" />}
             {isPending ? 'Memverifikasi…' : isAuthenticated ? 'Aktifkan Seluruh Paket' : 'Lanjutkan ke Login'}
           </Button>

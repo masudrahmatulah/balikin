@@ -8,13 +8,11 @@
 // 3. Background sync untuk chat notifications
 // ============================================================================
 
-const CACHE_NAME = 'balikin-v1';
-const OFFLINE_CACHE = 'balikin-offline-v1';
+const CACHE_NAME = 'balikin-v2';
+const OFFLINE_CACHE = 'balikin-offline-v2';
 
 // Aset yang akan di-cache untuk offline access
 const STATIC_ASSETS = [
-  '/',
-  '/dashboard',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
@@ -33,7 +31,6 @@ self.addEventListener('install', (event) => {
     })
   );
 
-  self.skipWaiting();
 });
 
 // ============================================================================
@@ -44,19 +41,19 @@ self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker...');
 
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    Promise.all([
+      caches.keys().then((cacheNames) => Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== OFFLINE_CACHE) {
+          if (cacheName.startsWith('balikin-') && cacheName !== CACHE_NAME && cacheName !== OFFLINE_CACHE) {
             console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
-      );
-    })
+      )),
+      self.clients.claim(),
+    ])
   );
 
-  self.clients.claim();
 });
 
 // ============================================================================
@@ -67,12 +64,25 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+  const isNavigation = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
+  // Always fetch HTML navigations from the server: never persist authenticated,
+  // auth, callback, or API responses in Cache Storage.
+  if (isNavigation) return;
+
   // Skip caching for API routes and WebSocket
   if (
-    event.request.url.includes('/api/') ||
-    event.request.url.includes('/_next/') ||
-    event.request.url.includes('supabase')
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/auth/') ||
+    url.pathname.startsWith('/callback')
   ) {
+    return;
+  }
+
+  // Cache only known public static files, never app/RSC data or arbitrary URLs.
+  if (!/\.(?:css|js|png|jpe?g|svg|webp|ico|woff2?)$/i.test(url.pathname) && url.pathname !== '/manifest.json') {
     return;
   }
 
@@ -93,16 +103,11 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return response;
-      }).catch(() => {
-        // Return offline page for HTML requests
-        if (event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/') || new Response('Offline', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({ 'Content-Type': 'text/plain' })
-          });
-        }
-      });
+      }).catch(() => new Response('Offline', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers({ 'Content-Type': 'text/plain; charset=utf-8' })
+      }));
     })
   );
 });
@@ -237,15 +242,6 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    event.waitUntil(
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName))
-        );
-      })
-    );
-  }
 });
 
 // ============================================================================

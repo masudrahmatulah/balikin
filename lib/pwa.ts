@@ -2,7 +2,7 @@
 // FASE 5: PWA Service Worker Registration & Push Notifications
 // ============================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export interface PWAInstallPrompt {
   prompt: () => Promise<void>;
@@ -72,43 +72,53 @@ export function useServiceWorker() {
   const [registration, setRegistration] = useState<globalThis.ServiceWorkerRegistration | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
+  const reloadOnControllerChange = useRef(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      setIsSupported(true);
-
-      // Register service worker
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((reg) => {
-          console.log('[SW] Service worker registered:', reg);
-          setRegistration(reg);
-
-          // Check for updates
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  setIsUpdateAvailable(true);
-                  console.log('[SW] New content is available; please refresh.');
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          console.error('[SW] Service worker registration failed:', error);
-        });
-
-      // Listen for controlling service worker changes
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('[SW] Controller changed, reloading page...');
-        window.location.reload();
-      });
-    } else {
+    if (!('serviceWorker' in navigator)) {
       console.log('[SW] Service workers are not supported');
+      return;
     }
+
+    setIsSupported(true);
+    let disposed = false;
+    let hasReloaded = false;
+    let currentWorker: ServiceWorker | null = null;
+
+    const handleControllerChange = () => {
+      if (!reloadOnControllerChange.current || hasReloaded) return;
+      hasReloaded = true;
+      window.location.reload();
+    };
+    const handleUpdateFound = () => {
+      currentWorker?.removeEventListener('statechange', handleWorkerStateChange);
+      currentWorker = registration?.installing ?? null;
+      currentWorker?.addEventListener('statechange', handleWorkerStateChange);
+    };
+    const handleWorkerStateChange = () => {
+      if (currentWorker?.state === 'installed' && navigator.serviceWorker.controller) {
+        setIsUpdateAvailable(true);
+      }
+    };
+
+    let registration: ServiceWorkerRegistration | null = null;
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      if (disposed) return;
+      registration = reg;
+      setRegistration(reg);
+      reg.addEventListener('updatefound', handleUpdateFound);
+      if (reg.waiting && navigator.serviceWorker.controller) setIsUpdateAvailable(true);
+    }).catch((error) => {
+      console.error('[SW] Service worker registration failed:', error);
+    });
+
+    return () => {
+      disposed = true;
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      registration?.removeEventListener('updatefound', handleUpdateFound);
+      currentWorker?.removeEventListener('statechange', handleWorkerStateChange);
+    };
   }, []);
 
   const updateServiceWorker = async () => {
@@ -117,6 +127,8 @@ export function useServiceWorker() {
     }
 
     // Send message to waiting service worker to skip waiting
+    // Only an explicitly accepted update may cause one reload on controllerchange.
+    reloadOnControllerChange.current = true;
     registration.waiting.postMessage({ type: 'SKIP_WAITING' });
     setIsUpdateAvailable(false);
   };

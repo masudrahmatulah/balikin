@@ -6,9 +6,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { hashValue } from "@/lib/crypto";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { clearActivationSession, setBatchActivationSession } from "@/lib/activation-cookie";
+import { clearActivationSession, getActivationSession, isValidActivationSession } from "@/lib/activation-cookie";
 import { checkRateLimitByType } from '@/lib/rate-limit';
-import { redirect } from 'next/navigation';
 
 interface ActivateResult {
   success: boolean;
@@ -100,11 +99,13 @@ export async function processActivation(
   }
 }
 
-export async function beginBatchActivation(batchId: string, claimCode: string): Promise<never> {
-  if (!/^[0-9a-f-]{36}$/i.test(batchId)) redirect('/');
-  const normalizedCode = normalizeClaimCode(claimCode);
-  await setBatchActivationSession(batchId, normalizedCode);
-  redirect(`/sign-in?redirect=${encodeURIComponent(`/activate/batch/${batchId}`)}`);
+export async function resumeBatchActivation(batchId: string): Promise<(ActivateResult & { claimedCount?: number }) | null> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !(await isValidActivationSession())) return null;
+
+  const activation = await getActivationSession();
+  if (activation.batchId !== batchId || !activation.token) return null;
+  return processBatchActivation(batchId, activation.token);
 }
 
 function normalizeClaimCode(value: string): string {
@@ -118,7 +119,12 @@ export async function processBatchActivation(
   batchId: string,
   claimCode: string,
 ): Promise<ActivateResult & { claimedCount?: number }> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  let session;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch {
+    return { success: false, error: 'Sesi login tidak dapat diverifikasi. Silakan masuk kembali lalu coba lagi.' };
+  }
   if (!session) return { success: false, error: 'Silakan login terlebih dahulu.' };
   if (!/^[0-9a-f-]{36}$/i.test(batchId)) {
     return { success: false, error: 'Batch atau kode klaim tidak valid.' };
@@ -128,7 +134,12 @@ export async function processBatchActivation(
   if (!/^[0-9A-HJ-NP-Z]{4}-?[0-9A-HJ-NP-Z]{4}$/.test(normalizedCode)) {
     return { success: false, error: 'Kode klaim tidak cocok. Periksa kode pada buku petunjuk produk.' };
   }
-  const rateLimit = await checkRateLimitByType(`batch-claim:${session.user.id}`, 'auth');
+  let rateLimit;
+  try {
+    rateLimit = await checkRateLimitByType(`batch-claim:${session.user.id}`, 'auth');
+  } catch {
+    return { success: false, error: 'Verifikasi sementara tidak tersedia. Tunggu sebentar lalu coba lagi.' };
+  }
   if (!rateLimit.allowed) {
     return { success: false, error: 'Terlalu banyak percobaan. Coba kembali satu menit lagi.' };
   }
@@ -215,7 +226,14 @@ export async function processBatchActivation(
       return { success: true, serialNumber: tag.serial_number || undefined, claimedCount: 1 };
     });
 
-    if (result.success) await clearActivationSession();
+    if (result.success) {
+      try {
+        await clearActivationSession();
+      } catch (error) {
+        // Claim is already committed; cookie cleanup must not turn success into failure.
+        console.error('Batch activation cookie cleanup failed:', error);
+      }
+    }
     return result;
   } catch (error) {
     console.error('Batch activation error:', error);

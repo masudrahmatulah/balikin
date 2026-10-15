@@ -1,7 +1,5 @@
 import { redirect } from 'next/navigation';
 import { BatchActivationClient } from '@/components/activation/batch-activation-client';
-import { processBatchActivation } from '@/app/actions/activate';
-import { clearActivationSession, getActivationSession, isValidActivationSession } from '@/lib/activation-cookie';
 import { getSession } from '@/lib/session';
 
 export const metadata = {
@@ -18,23 +16,14 @@ export default async function BatchActivationPage({
   const { batchId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(batchId)) redirect('/');
   const session = await getSession();
-  let initialError: string | undefined;
-
-  if (session && await isValidActivationSession()) {
-    const activation = await getActivationSession();
-    if (activation.batchId === batchId && activation.token) {
-      const result = await processBatchActivation(batchId, activation.token);
-      if (result.success) {
-        redirect(`/dashboard?activatedBatch=${result.claimedCount || 1}`);
-      }
-      initialError = result.error;
-      await clearActivationSession();
-    }
+  if (!session) {
+    const returnTo = `/activate/batch/${batchId}`;
+    redirect(`/sign-in?redirect=${encodeURIComponent(returnTo)}`);
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-orange-50 to-amber-50 p-4">
-      <BatchActivationClient batchId={batchId} isAuthenticated={!!session} initialError={initialError} />
+      <BatchActivationClient batchId={batchId} isAuthenticated={!!session} />
     </div>
   );
 }
