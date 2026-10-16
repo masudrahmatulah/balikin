@@ -193,6 +193,7 @@ interface TagCardProps {
   scanCount?: number;
   hasTabTwoEnabled?: boolean | null;
   hasStudentKit?: boolean | null;
+  serialNumber?: string | null;
 }
 
 export const TagCard = memo(function TagCard({
@@ -214,6 +215,7 @@ export const TagCard = memo(function TagCard({
   scanCount = 0,
   hasTabTwoEnabled,
   hasStudentKit,
+  serialNumber,
 }: TagCardProps) {
   const router = useRouter();
   const isLost = status === 'lost';
@@ -502,6 +504,7 @@ export const TagCard = memo(function TagCard({
         {/* Expanded Content - Only Visible When Open */}
         <CollapsibleContent>
           <CardContent className="space-y-4">
+            {isAcrylicTag && serialNumber && <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"><span className="text-slate-600 dark:text-slate-300">Serial fisik</span><span className="ml-2 font-mono font-semibold tracking-wide text-slate-900 dark:text-white">{serialNumber}</span></div>}
             <InsightSection
               isLost={isLost}
               scanCount={scanCount}

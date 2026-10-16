@@ -1,10 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Package, ReceiptText, Sticker } from 'lucide-react';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { getSession } from '@/lib/session';
 import { db } from '@/db';
-import { stickerOrders } from '@/db/schema';
+import { stickerOrders, tagBundles, tags } from '@/db/schema';
 import { STICKER_PAYMENT_LABEL, STICKER_PAYMENT_METHOD } from '@/lib/constants';
 import { getProductDisplayName } from '@/lib/product-catalog';
 import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-color-themes';
@@ -26,11 +26,15 @@ export default async function StickerOrderDetailPage({
 
   const { orderId } = await params;
   const order = await db.query.stickerOrders.findFirst({
-    where: eq(stickerOrders.id, orderId),
+    where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, 'balikin_id')),
     with: {
       bundles: {
+        where: eq(tagBundles.app_id, 'balikin_id'),
         with: {
-          tags: true,
+          tags: {
+            where: eq(tags.app_id, 'balikin_id'),
+            columns: { id: true, name: true, slug: true, ownerId: true, serialNumber: true, productType: true, batchId: true },
+          },
         },
       },
     },
@@ -151,10 +155,11 @@ export default async function StickerOrderDetailPage({
                     <p className="text-sm font-semibold text-slate-950 dark:text-white">Bundle {bundle.id}</p>
                     <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">Status: {bundle.status}</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                       {bundle.tags.map((tag: { id: string; name: string; slug: string; ownerId: string | null }) => (
+                       {bundle.tags.map((tag: { id: string; name: string; slug: string; ownerId: string | null; serialNumber: string | null; productType: string }) => (
                         <div key={tag.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
                           <p className="font-medium text-slate-950 dark:text-white">{tag.name}</p>
                           <p className="break-all font-mono text-xs text-slate-700 dark:text-slate-300">/p/{tag.slug}</p>
+                          {/acrylic|akrilik/i.test(tag.productType) && tag.serialNumber && <p className="mt-1">Serial fisik: <span className="font-mono font-semibold">{tag.serialNumber}</span></p>}
                           <p className="mt-1">{tag.ownerId ? 'Sudah aktif' : 'Belum diaktivasi'}</p>
                         </div>
                       ))}

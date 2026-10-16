@@ -11,6 +11,12 @@ export async function getUserTags(userId: string) {
     async () => {
       return db.query.tags.findMany({
         where: and(eq(tags.ownerId, userId), eq(tags.app_id, 'balikin_id')),
+        columns: {
+          id: true, slug: true, name: true, status: true, contactWhatsapp: true,
+          customMessage: true, rewardNote: true, tier: true, productType: true,
+          isVerified: true, emailAlertsEnabled: true, whatsappAlertsEnabled: true,
+          createdAt: true, expiresAt: true, hasTabTwoEnabled: true, serialNumber: true,
+        },
         orderBy: [desc(tags.createdAt)],
       });
     },

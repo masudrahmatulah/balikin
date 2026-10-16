@@ -537,6 +537,8 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
     const maxAktivasiContentY = heightPx - displayHeightPx - BOTTOM_TEXT_RESERVE_PX;
     contentY = isAktivasi
       ? Math.max(topMarginPx, Math.min(verticalCenterPx, maxAktivasiContentY))
+      : serial
+        ? Math.max(topMarginPx, Math.round(heightPx * 0.1))
       : centerInCell
         ? verticalCenterPx
         : Math.max(topMarginPx, verticalCenterPx);
@@ -577,18 +579,37 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
         ? renderTextPaths(bottomLabel, widthPx / 2, Math.min(contentY + displayHeightPx + 16, heightPx - 8), 7, '#4b5563', false)
         : '';
 
-  const serialFontPx = config.maskType === 'heart' ? 9.5 : 11;
-  const serialBaselineY = config.maskType === 'heart' ? heightPx - 24 : heightPx - 8;
+  const baseSerialFontPx = config.maskType === 'heart' ? 9.5 : 11;
+  const safeWidthRatio = config.maskType === 'heart' ? 0.34 : config.maskType === 'circle' || config.maskType === 'ellipse' ? 0.58 : config.maskType === 'octagon' ? 0.38 : 0.72;
+  const safeSerialWidthPx = widthPx * safeWidthRatio;
+  const maxSerialLineWidth = Math.max(1, safeSerialWidthPx - 18);
+  let serialFontPx = baseSerialFontPx;
+  let serialLines = serial ? [serial] : [];
+  if (serial && measureTextWidth(serial, serialFontPx, true, 0, 'body') > maxSerialLineWidth) {
+    serialFontPx = 8;
+    let splitAt = Math.ceil(serial.length / 2);
+    const hyphen = serial.indexOf('-', 1);
+    if (hyphen > 0 && hyphen < serial.length - 1) splitAt = hyphen;
+    serialLines = [serial.slice(0, splitAt), serial.slice(splitAt)];
+    const widerLine = Math.max(...serialLines.map(line => measureTextWidth(line, serialFontPx, true, 0, 'body')));
+    if (widerLine > maxSerialLineWidth) serialFontPx = Math.max(6.5, serialFontPx * maxSerialLineWidth / widerLine);
+  } else if (serial) {
+    serialFontPx = Math.min(baseSerialFontPx, Math.max(8, baseSerialFontPx * maxSerialLineWidth / measureTextWidth(serial, baseSerialFontPx, true, 0, 'body')));
+  }
+  const serialCenterY = heightPx * (config.maskType === 'heart' ? 0.68 : config.maskType === 'circle' || config.maskType === 'ellipse' ? 0.74 : config.maskType === 'octagon' ? 0.78 : 0.8);
+  const serialLineHeight = serialFontPx + 1;
+  const serialStartBaselineY = serialCenterY - ((serialLines.length - 1) * serialLineHeight) / 2;
   // Give the production serial a high-contrast badge so it stays readable on
   // both the QR wash and full-bleed logo/photo cells.
   const serialPill = serial
     ? (() => {
-        const w = measureTextWidth(serial, serialFontPx, true, 0, 'body') + 18;
-        const h = serialFontPx + 9;
-        return `<rect x="${r2(widthPx / 2 - w / 2)}" y="${r2(serialBaselineY - serialFontPx - 4)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(h / 2)}" fill="#FFFFFF" opacity="0.94" stroke="#DC2626" stroke-width="1"/>`;
+        const textWidth = Math.max(...serialLines.map(line => measureTextWidth(line, serialFontPx, true, 0, 'body')));
+        const w = Math.min(safeSerialWidthPx, textWidth + 18);
+        const h = serialLines.length * serialLineHeight + 8;
+        return `<rect x="${r2(widthPx / 2 - w / 2)}" y="${r2(serialStartBaselineY - serialFontPx - 4)}" width="${r2(w)}" height="${r2(h)}" rx="${r2(Math.min(h / 2, 8))}" fill="#FFFFFF" opacity="0.96" stroke="#DC2626" stroke-width="1"/>`;
       })()
     : '';
-  const serialText = renderTextPaths(serial, widthPx / 2, serialBaselineY, serialFontPx, '#0F172A', true, 0, 'body');
+  const serialText = serialLines.map((line, index) => renderTextPaths(line, widthPx / 2, serialStartBaselineY + index * serialLineHeight, serialFontPx, '#0F172A', true, 0, 'body')).join('');
   const washDef = hasQrLabels
     ? `<linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#172033"/><stop offset="0.58" stop-color="#080D18"/><stop offset="1" stop-color="#02040A"/></linearGradient>` +
       `<pattern id="grid${gradId}" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#94A3B8" stroke-width="0.7" opacity="0.13"/></pattern>` +
@@ -703,7 +724,7 @@ export async function generateOneRowSticker(
       (config.logoHeightMm ?? 0) >= config.heightMm;
     const bleedInsetMm = isLogoFullBleed ? FULL_BLEED_INSET_MM : 0;
     const logoWidthMm = (config.logoWidthMm ?? config.qrSizeMm) - bleedInsetMm * 2;
-    const logoHeightMm = (config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2;
+    const logoHeightMm = Math.min((config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2, config.heightMm * 0.58);
     const logoWidthPx = mmToPx(logoWidthMm);
     const logoHeightPx = mmToPx(logoHeightMm);
     const hasCustomPhoto = tag.isCustom && !!tag.customPhotoUrl;
@@ -723,7 +744,9 @@ export async function generateOneRowSticker(
     const kotak2 = await sharp(buildKotakSvg({
       shapeKey,
       contentDataUri,
-      serial: '',
+      // Serial is printed on the logo side; it identifies the physical unit
+      // without crowding the QR caption or changing the QR payload.
+      serial: shapeKey ? tag.serialNumber || '' : '',
       isAktivasi: false,
       contentWidthMm: logoWidthMm,
       contentHeightMm: logoHeightMm,
@@ -840,7 +863,7 @@ export async function* generateBatchReprint(
   const shapeKey = deriveAcrylicShapeKey(batchTags[0]?.productSlug);
   const vdpTags: TagVDPData[] = batchTags.map((tag) => ({
     ...tag,
-    serialNumber: tag.serialNumber || undefined,
+    serialNumber: tag.serialNumber || '',
     isCustom: tag.isCustom || false,
     customPhotoUrl: tag.customPhotoUrl || undefined,
     name: tag.name || '',

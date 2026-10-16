@@ -1,0 +1,75 @@
+/* Adapt legacy panels only inside this route; exported QR assets stay untouched. */
+.composedPanel {
+  color: #0f172a;
+}
+
+.composedPanel :is([class~="text-gray-400"], [class~="text-gray-500"], [class~="text-slate-500"]) {
+  color: #475569;
+}
+
+.composedPanel [class~="text-emerald-600"] {
+  color: #047857;
+}
+
+.composedPanel [class~="bg-blue-600"] {
+  background-color: #d90f1d;
+}
+
+.composedPanel [class~="bg-blue-600"]:hover {
+  background-color: #b91c1c;
+}
+
+.composedPanel button:focus-visible {
+  outline: 2px solid #d90f1d;
+  outline-offset: 3px;
+}
+
+:global(.dark) .composedPanel {
+  color: #f1f5f9;
+}
+
+:global(.dark) .composedPanel :is([class~="bg-white"], [class~="bg-gray-50"], [class~="bg-blue-50"], [class~="bg-blue-50/70"]) {
+  background-color: #1e293b;
+}
+
+:global(.dark) .composedPanel :is([class~="border-gray-200"], [class~="border-blue-100"], [class~="border-blue-200"]) {
+  border-color: #334155;
+}
+
+:global(.dark) .composedPanel :is([class~="text-gray-800"], [class~="text-blue-900"], [class~="text-slate-950"]) {
+  color: #f1f5f9;
+}
+
+:global(.dark) .composedPanel :is([class~="text-gray-700"], [class~="text-slate-600"]) {
+  color: #cbd5e1;
+}
+
+:global(.dark) .composedPanel :is([class~="text-gray-400"], [class~="text-gray-500"], [class~="text-slate-500"]) {
+  color: #94a3b8;
+}
+
+:global(.dark) .composedPanel :is([class~="text-blue-600"], [class~="text-blue-700"]) {
+  color: #93c5fd;
+}
+
+:global(.dark) .composedPanel :is([class~="hover:bg-gray-50"], [class~="hover:bg-blue-50"]):hover {
+  background-color: #334155;
+}
+
+:global(.dark) .composedPanel [class~="hover:text-gray-600"]:hover {
+  color: #f1f5f9;
+}
+
+:global(.dark) .composedPanel [class~="bg-red-50"] {
+  background-color: #450a0a;
+  color: #fecaca;
+}
+
+:global(.dark) .composedPanel [class~="bg-green-50"] {
+  background-color: #052e16;
+  border-color: #166534;
+}
+
+:global(.dark) .composedPanel :is([class~="text-green-600"], [class~="text-green-800"], [class~="text-emerald-600"]) {
+  color: #86efac;
+}

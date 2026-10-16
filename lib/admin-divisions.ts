@@ -116,6 +116,7 @@ export const DivisionNavigation = {
   ],
   [Division.CUSTOMER_SERVICE]: [
     { title: 'Dashboard', href: '/admin/cs', icon: '📊' },
+    { title: 'Bantuan Serial Acrylic', href: '/admin/activation-support', icon: '🔎' },
     { title: 'Payments', href: '/admin/payments', icon: '💳' },
     { title: 'Manajemen User', href: '/admin/clients', icon: '👥' },
     { title: 'Tags', href: '/admin/tags', icon: '🏷️' },
@@ -143,6 +144,7 @@ export const DivisionNavigation = {
     // Admin sees all navigation items from all divisions
     ...[
       { title: 'Overview', href: '/admin', icon: '🏠' },
+      { title: 'Bantuan Serial Acrylic', href: '/admin/activation-support', icon: '🔎' },
       { title: 'Print Queue', href: '/admin/print-queue', icon: '🖨️' },
       { title: 'Stock Status', href: '/admin/production/stock', icon: '📊' },
       { title: 'Stok Produk Akrilik', href: '/admin/production/product-stock', icon: '🔖' },
