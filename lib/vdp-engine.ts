@@ -596,7 +596,9 @@ function buildKotakSvg({ shapeKey, contentDataUri, serial, pin, isAktivasi, topL
   } else if (serial) {
     serialFontPx = Math.min(baseSerialFontPx, Math.max(8, baseSerialFontPx * maxSerialLineWidth / measureTextWidth(serial, baseSerialFontPx, true, 0, 'body')));
   }
-  const serialCenterY = heightPx * (config.maskType === 'heart' ? 0.68 : config.maskType === 'circle' || config.maskType === 'ellipse' ? 0.74 : config.maskType === 'octagon' ? 0.78 : 0.8);
+  // Keep the overlay serial below the logo lettering while staying inside
+  // the printable contour of rounded/pointed shapes.
+  const serialCenterY = heightPx * (config.maskType === 'heart' ? 0.84 : config.maskType === 'circle' || config.maskType === 'ellipse' ? 0.92 : config.maskType === 'octagon' ? 0.88 : 0.9);
   const serialLineHeight = serialFontPx + 1;
   const serialStartBaselineY = serialCenterY - ((serialLines.length - 1) * serialLineHeight) / 2;
   // Give the production serial a high-contrast badge so it stays readable on
@@ -715,20 +717,23 @@ export async function generateOneRowSticker(
     })).png().toBuffer();
     layers.push({ input: kotak1, top: 0, left: offsetLeftPx });
 
-    // Kolom 2: Logo Balikin atau Foto Kustom. Selalu fit contain agar
-    // seluruh logo/foto nampak (tidak terpotong tepi). Sel full-bleed
-    // (logo seukuran canvas, mis. emboss 30x45) tetap diperkecil merata
-    // (FULL_BLEED_INSET_MM) agar ada margin dari garis potong.
-    const isLogoFullBleed =
-      (config.logoWidthMm ?? 0) >= config.widthMm &&
-      (config.logoHeightMm ?? 0) >= config.heightMm;
-    const bleedInsetMm = isLogoFullBleed ? FULL_BLEED_INSET_MM : 0;
-    const logoWidthMm = (config.logoWidthMm ?? config.qrSizeMm) - bleedInsetMm * 2;
-    const logoHeightMm = Math.min((config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2, config.heightMm * 0.58);
-    const logoWidthPx = mmToPx(logoWidthMm);
-    const logoHeightPx = mmToPx(logoHeightMm);
+    // Kolom 2 acrylic uses the complete cell as the logo canvas so the navy
+    // background fills it. The serial badge is drawn afterward as an overlay.
     const hasCustomPhoto = tag.isCustom && !!tag.customPhotoUrl;
     const useAcrylicBrandLogo = !!shapeKey && !hasCustomPhoto;
+    const isLogoFullBleed = useAcrylicBrandLogo || (
+      (config.logoWidthMm ?? 0) >= config.widthMm &&
+      (config.logoHeightMm ?? 0) >= config.heightMm
+    );
+    const bleedInsetMm = isLogoFullBleed && !useAcrylicBrandLogo ? FULL_BLEED_INSET_MM : 0;
+    const logoWidthMm = useAcrylicBrandLogo
+      ? config.widthMm
+      : (config.logoWidthMm ?? config.qrSizeMm) - bleedInsetMm * 2;
+    const logoHeightMm = useAcrylicBrandLogo
+      ? config.heightMm
+      : (config.logoHeightMm ?? config.qrSizeMm) - bleedInsetMm * 2;
+    const logoWidthPx = mmToPx(logoWidthMm);
+    const logoHeightPx = mmToPx(logoHeightMm);
     const rawContentBuffer = hasCustomPhoto
       ? await getCustomPhotoBuffer(tag.customPhotoUrl as string)
       : useAcrylicBrandLogo

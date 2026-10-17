@@ -62,6 +62,14 @@ assert.equal((pdfText.match(/\/Type\s*\/Page\b/g) || []).length, 1, 'support PDF
     assert.equal(metadata.width, mmToPx(config.widthMm) * 2, `${shapeKey} physical two-cell width`);
     assert.equal(metadata.height, mmToPx(config.heightMm), `${shapeKey} physical height`);
     assert.equal(metadata.format, 'png');
+    if (shapeKey === 'square') {
+      const { data, info } = await sharp(image).raw().toBuffer({ resolveWithObject: true });
+      const x = mmToPx(config.widthMm) + Math.round(mmToPx(config.widthMm) / 2);
+      const y = mmToPx(2);
+      const pixelIndex = (y * info.width + x) * info.channels;
+      const actualNavy = [...data.subarray(pixelIndex, pixelIndex + 3)];
+      assert.ok(actualNavy.every((channel, index) => Math.abs(channel - [20, 35, 59][index]) <= 2), `acrylic logo navy background must fill the second cell up to the top safe-print area (got ${actualNavy.join(',')})`);
+    }
   }
   for (const secretVariant of ['A3K7-M9P2', 'a3k7-m9p2', 'A3K7M9P2', 'A3K7 M9P2', 'A 3 K 7 - M 9 P 2']) {
     const auditText = redactAcrylicAuditNote(`proof ${secretVariant} ${'a'.repeat(64)} abcdefghijklmnopqrstuvwxyz123456`, 'A3K7-M9P2');
