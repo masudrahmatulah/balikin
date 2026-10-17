@@ -84,7 +84,11 @@ export async function buildBalikinManualPdf(helpUrl: string): Promise<Buffer> {
     { title: 'Apa itu Balikin?', intro: 'Balikin membantu menghubungkan barang yang ditemukan dengan pemiliknya melalui QR Code.', bullets: ['Penemu cukup scan QR.', 'Pemilik mendapat notifikasi scan.', 'Kontak dapat dilakukan dengan lebih aman.'] },
     { title: 'Isi Paket Anda', intro: 'Periksa isi paket sebelum mulai mengaktifkan tag.', bullets: ['Tag Balikin dengan QR Code.', 'Ring atau aksesori gantungan.', 'Buku panduan dan kartu aktivasi.'] },
     { title: 'Cara Klaim Kepemilikan', intro: 'Gunakan kartu aktivasi yang ikut di dalam paket.', bullets: ['Scan QR aktivasi pada kartu.', 'Login atau buat akun Balikin.', 'Masukkan PIN aktivasi.', 'Ikuti instruksi sampai selesai.'] },
-    { title: 'Lengkapi Profil Anda', intro: 'Data ini membantu penemu menghubungi Anda saat barang ditemukan.', bullets: ['Gunakan nama panggilan yang nyaman.', 'Isi nomor WhatsApp yang aktif.', 'Tulis pesan singkat untuk penemu.', 'Jangan masukkan data yang terlalu sensitif.'] },
+    { title: 'Aktivasi Akrilik di PC', intro: 'Tanpa smartphone atau kamera, tag akrilik dapat diklaim dengan serial dan PIN.', bullets: ['Buka balikin.online/claim di browser PC.', 'Daftar atau login dengan email dan OTP.', 'Gabungkan serial dan PIN dalam satu kolom Kode Klaim.', 'Klik Verifikasi & Klaim. Tag masuk ke dashboard.'] },
+    { title: 'Contoh Kode Klaim', intro: 'Khusus akrilik: gunakan serial tag dan PIN dari kartu dalam kemasan.', bullets: ['Serial contoh: B01-047-001', 'PIN contoh: A3K7-M9P2', 'Ketik dalam satu kolom:\nB01-047-001-A3K7-M9P2', 'Menu dashboard: Aktivasi Tag. Serial saja tidak cukup.'] },
+    { title: 'Aktivasi Stiker di PC', intro: 'Tidak perlu scan: alamat aktivasi paket tercetak pada kartu aktivasi.', bullets: ['Ketik alamat lengkap pada kartu di browser PC.', 'Daftar atau login dengan email dan OTP.', 'Masukkan Master PIN kartu, lalu klik Aktifkan Seluruh Paket.', 'Atur setiap tag di dashboard. SERIAL-PIN di /claim bukan untuk stiker.'] },
+    { title: 'Lengkapi Data Barang', intro: 'Di dashboard, pilih barang lalu klik Edit Tag. Lakukan untuk setiap tag.', bullets: ['Isi Nama Tag sesuai barang Anda.', 'Isi WhatsApp aktif dengan format 628...; boleh kontak keluarga.', 'Atur Pesan Default Penemu dan Janji Hadiah (opsional).', 'Klik Simpan. Pesan default terisi saat penemu menekan WhatsApp.'] },
+    { title: 'Periksa Hasil Setting', intro: 'Pastikan data tersimpan sebelum stiker ditempel atau gantungan dipasang.', bullets: ['Pastikan tag muncul di dashboard akun Anda.', 'Buka Halaman Publik dari detail tag untuk memeriksa tampilan.', 'Uji tombol WhatsApp dan nomor tujuannya.', 'Pastikan status Normal saat barang masih bersama Anda.'] },
     { title: 'Atur Status Barang', intro: 'Status menentukan informasi yang dilihat penemu saat QR dipindai.', bullets: ['Normal: barang masih bersama Anda.', 'Hilang: tampilkan pesan bantuan.', 'Perbarui status setelah barang kembali.'] },
     { title: 'Saat Barang Ditemukan', intro: 'Penemu tidak perlu memasang aplikasi khusus.', bullets: ['Penemu membuka kamera HP.', 'Penemu scan QR pada tag.', 'Halaman Balikin menampilkan jalur kontak.', 'Anda menindaklanjuti notifikasi yang masuk.'] },
     { title: 'Jaga QR Tetap Terbaca', intro: 'QR yang bersih dan tidak tertutup lebih mudah dipindai.', bullets: ['Jangan menutup QR dengan stiker lain.', 'Hindari menggores area QR.', 'Bersihkan dengan kain lembut.', 'Pasang tag di tempat yang mudah terlihat.'] },
@@ -95,7 +99,7 @@ export async function buildBalikinManualPdf(helpUrl: string): Promise<Buffer> {
 
   pages.forEach((page, index) => {
     doc.addPage(PAGE_SIZE, 'portrait');
-    addBrandHeader(doc, page.title, `${index + 1}/10`);
+    addBrandHeader(doc, page.title, `${index + 1}/${pages.length}`);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.text(page.title, 7, 36, { maxWidth: 66 });
@@ -107,7 +111,7 @@ export async function buildBalikinManualPdf(helpUrl: string): Promise<Buffer> {
   });
 
   doc.addPage(PAGE_SIZE, 'portrait');
-  addBrandHeader(doc, 'Bantuan & Kontak', '10/10');
+  addBrandHeader(doc, 'Bantuan & Kontak');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(17);
   doc.text('Simpan. Aktifkan.', 7, 38);
@@ -118,7 +122,7 @@ export async function buildBalikinManualPdf(helpUrl: string): Promise<Buffer> {
   doc.addImage(helpQr, 'PNG', 27, 68, 26, 26);
   doc.setFontSize(8);
   doc.text('balikin.online/help', 40, 99, { align: 'center' });
-  addPageNumber(doc, 12);
+  addPageNumber(doc, pages.length + 2);
 
   return Buffer.from(doc.output('arraybuffer'));
 }
@@ -140,21 +144,26 @@ export async function buildActivationCardsPdf(cards: ActivationCardData[]): Prom
     doc.setFontSize(6.5);
     doc.text(card.scope, 7, 15, { maxWidth: 47 });
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(7, 20, 49, 22, 2, 2, 'F');
+    doc.roundedRect(7, 18, 49, 19, 2, 2, 'F');
     doc.setTextColor(15, 31, 57);
     doc.setFontSize(6.5);
-    doc.text(card.codeLabel, 10, 27);
+    doc.text(card.codeLabel, 10, 23);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(card.code, 10, 36);
+    doc.text(card.code, 10, 30);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.5);
-    doc.text('Jangan bagikan PIN ini.', 10, 40);
+    doc.text('Jangan bagikan PIN ini.', 10, 35);
     // Keep the QR inside the 80 mm card with a 5 mm right print margin.
-    doc.addImage(qr, 'PNG', 57, 22, 18, 18);
+    doc.addImage(qr, 'PNG', 57, 18, 18, 18);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(5.5);
-    doc.text('Scan untuk mulai', 66, 46, { align: 'center' });
+    doc.text('Tanpa scan: ketik alamat ini, lalu masukkan PIN.', 7, 41);
+    const lastSlash = card.activationUrl.lastIndexOf('/');
+    const addressLines = doc.getTextWidth(card.activationUrl) > 66 && lastSlash > card.activationUrl.indexOf('://') + 2
+      ? [card.activationUrl.slice(0, lastSlash + 1), card.activationUrl.slice(lastSlash + 1)]
+      : [card.activationUrl];
+    doc.text(addressLines, 7, 44, { maxWidth: 66 });
   }
   return Buffer.from(doc.output('arraybuffer'));
 }
