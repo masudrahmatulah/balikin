@@ -34,15 +34,3 @@ export const SHIPPING_API_TIMEOUT_MS = 4000;
 export const RAJAONGKIR_BASE_URL = 'https://rajaongkir.komerce.id/api/v1';
 export const RAJAONGKIR_ORIGIN_CITY_ID = process.env.RAJAONGKIR_ORIGIN_CITY_ID ?? '153'; // Hulu Sungai Selatan / Kandangan
 export const STICKER_WEIGHT_GRAMS = 500; // Estimasi 1 pack stiker + packaging
-
-// Komerce Payment API (collaborator.komerce.id) — menggantikan Midtrans
-// API key sama seperti RajaOngkir (Developer > Settings > Api Key di https://collaborator.komerce.id)
-export const KOMERCE_ENV = process.env.KOMERCE_ENV ?? 'sandbox';
-export const KOMERCE_PAYMENT_BASE_URL = KOMERCE_ENV === 'production'
-  ? 'https://api.collaborator.komerce.id/user'
-  : 'https://api-sandbox.collaborator.komerce.id/user';
-export const KOMERCE_PAYMENT_PAGE_URL = KOMERCE_ENV === 'production'
-  ? 'https://pay.komerce.id'
-  : 'https://pay-sandbox.komerce.id';
-export const KOMERCE_PAYMENT_METHOD = 'qris'; // QRIS payment method
-export const KOMERCE_PAYMENT_CALLBACK_SECRET = process.env.KOMERCE_PAYMENT_CALLBACK_SECRET || '';

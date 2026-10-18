@@ -3,6 +3,24 @@ import { NextResponse } from 'next/server';
 import { getScheduleByShareCode } from '@/app/actions/modules';
 import { generateQRCodeDataURL } from '@/lib/qrcode-generator';
 import { absoluteUrl } from '@/lib/seo';
+import { NotFoundError, ValidationError } from '@/lib/errors';
+
+const HTML_HEADERS = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'X-Content-Type-Options': 'nosniff',
+  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; frame-ancestors 'none'",
+  'Cache-Control': 'no-store',
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[char]!);
+}
 
 /**
  * GET /api/student-kit/schedule/qr/[shareCode]
@@ -26,6 +44,10 @@ export async function GET(
       size: 400,
       margin: 2,
     });
+    if (!/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/.test(qrCodeDataUrl)) {
+      throw new Error('Unexpected QR code data URL format');
+    }
+    const safeShareCode = escapeHtml(shareCode);
 
     // Return HTML page with QR code image
     return new NextResponse(`
@@ -112,7 +134,7 @@ export async function GET(
             </div>
 
             <div class="share-code">
-              Kode: ${shareCode}
+              Kode: ${safeShareCode}
             </div>
 
             <div class="instructions">
@@ -121,19 +143,19 @@ export async function GET(
                 <li>Buka aplikasi Balikin di browser Anda</li>
                 <li>Navigasi ke menu Student Kit</li>
                 <li>Klik tombol "Import Jadwal"</li>
-                <li>Masukkan kode: <strong>${shareCode}</strong></li>
+                <li>Masukkan kode: <strong>${safeShareCode}</strong></li>
               </ol>
             </div>
           </div>
         </body>
       </html>
     `, {
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-      },
+      headers: HTML_HEADERS,
     });
   } catch (error) {
-    console.error('[API] Generate QR code error:', error);
+    console.error('[API] Generate schedule QR code failed', {
+      errorType: error instanceof Error ? error.name : typeof error,
+    });
 
     // Return error page
     return new NextResponse(`
@@ -167,15 +189,13 @@ export async function GET(
         <body>
           <div class="error">
             <h1>❌ Error</h1>
-            <p>${error instanceof Error ? error.message : 'QR Code tidak valid atau sudah kadaluarsa'}</p>
+            <p>Kode QR tidak valid atau tidak dapat dibuat. Silakan coba lagi.</p>
           </div>
         </body>
       </html>
     `, {
-      status: 404,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-      },
+      status: error instanceof NotFoundError ? 404 : error instanceof ValidationError ? 400 : 500,
+      headers: HTML_HEADERS,
     });
   }
 }

@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { getAdminSession } from '@/lib/admin';
+import { hasPermission } from '@/lib/admin-divisions';
 import { db } from '@/db';
 import { stickerOrders, user } from '@/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -19,15 +20,15 @@ const BASE_PRICE_BY_PRODUCT_TYPE: Record<string, number> = {
   bundle: 89000,
 };
 const ALLOWED_ORDER_STATUSES = ['pending_payment', 'pending_fulfillment', 'ready_to_ship', 'stock_unavailable', 'in_production', 'shipped', 'completed'] as const;
-const ALLOWED_PAYMENT_STATUSES = ['pending', 'paid'] as const;
 
 type OrderStatus = (typeof ALLOWED_ORDER_STATUSES)[number];
-type PaymentStatus = (typeof ALLOWED_PAYMENT_STATUSES)[number];
-
-async function verifyAdminSession() {
+async function verifyAdminSession(permission: 'payment_verification' | 'sticker_orders' = 'sticker_orders') {
   const session = await getAdminSession();
   if (!session) {
     redirect('/sign-in?redirect=/admin/sticker-orders');
+  }
+  if (!hasPermission(session.user.division, permission)) {
+    throw new Error('Unauthorized');
   }
   return session;
 }
@@ -103,7 +104,7 @@ function normalizeOrderIds(orderIds: unknown): string[] {
 // ─── Verify & status transitions (existing) ──────────────────────────────
 
 export async function verifyStickerOrder(orderId: string) {
-  await verifyAdminSession();
+  await verifyAdminSession('payment_verification');
 
   const result = await db.transaction(async (tx) => {
     const [order] = await tx
@@ -124,6 +125,9 @@ export async function verifyStickerOrder(orderId: string) {
     }
     if (order.paymentStatus !== 'pending') {
       throw new Error('Order sudah diproses');
+    }
+    if (!order.paymentProofUrl) {
+      throw new Error('Bukti pembayaran wajib diunggah sebelum verifikasi');
     }
 
     const stockAvailable = order.productType !== 'acrylic'
@@ -164,24 +168,22 @@ export async function updateStickerOrderStatus(
 ) {
   await verifyAdminSession();
 
-  const order = await db.query.stickerOrders.findFirst({
-    where: and(
+  const updated = await db.update(stickerOrders)
+    .set({ status, updatedAt: new Date() })
+    .where(and(
       eq(stickerOrders.id, orderId),
-      eq(stickerOrders.app_id, APP_ID)
-    ),
-  });
-
-  if (!order) {
-    throw new Error('Order tidak ditemukan');
+      eq(stickerOrders.app_id, APP_ID),
+      eq(stickerOrders.paymentStatus, 'paid'),
+    ))
+    .returning({ id: stickerOrders.id });
+  if (updated.length === 0) {
+    const order = await db.query.stickerOrders.findFirst({
+      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)),
+      columns: { id: true, paymentStatus: true },
+    });
+    if (!order) throw new Error('Order tidak ditemukan');
+    throw new Error('Order belum diverifikasi pembayarannya');
   }
-
-  await db
-    .update(stickerOrders)
-    .set({ status })
-      .where(and(
-        eq(stickerOrders.id, orderId),
-        eq(stickerOrders.app_id, APP_ID)
-      ));
 
   await revalidateStickerOrdersCache();
 }
@@ -358,30 +360,6 @@ export async function deleteStickerOrderById(orderId: string) {
 
 // ─── Bulk actions ────────────────────────────────────────────────────────
 
-export async function bulkSetPaymentStatus(orderIds: string[], paymentStatus: string) {
-  await verifyAdminSession();
-  const ids = normalizeOrderIds(orderIds);
-
-  const status = String(paymentStatus).trim() as PaymentStatus;
-  if (!ALLOWED_PAYMENT_STATUSES.includes(status)) {
-    throw new Error('Status pembayaran tidak valid');
-  }
-
-  await db
-    .update(stickerOrders)
-    .set({
-      paymentStatus: status,
-      ...(status === 'paid' ? { verifiedAt: new Date() } : {}),
-      updatedAt: new Date(),
-    })
-    .where(and(
-      inArray(stickerOrders.id, ids),
-      eq(stickerOrders.app_id, APP_ID)
-    ));
-
-  await revalidateStickerOrdersCache();
-}
-
 export async function bulkSetOrderStatus(orderIds: string[], status: string) {
   await verifyAdminSession();
   const ids = normalizeOrderIds(orderIds);
@@ -391,13 +369,33 @@ export async function bulkSetOrderStatus(orderIds: string[], status: string) {
     throw new Error('Status order tidak valid');
   }
 
-  await db
-    .update(stickerOrders)
-    .set({ status: nextStatus, updatedAt: new Date() })
-    .where(and(
-      inArray(stickerOrders.id, ids),
-      eq(stickerOrders.app_id, APP_ID)
-    ));
+  await db.transaction(async (tx) => {
+    const orders = await tx.select({ id: stickerOrders.id, status: stickerOrders.status, paymentStatus: stickerOrders.paymentStatus })
+      .from(stickerOrders)
+      .where(and(inArray(stickerOrders.id, ids), eq(stickerOrders.app_id, APP_ID)))
+      .for('update');
+    if (orders.length !== ids.length) throw new Error('Satu atau beberapa order tidak ditemukan');
+
+    const isPendingPayment = nextStatus === 'pending_payment';
+    const invalid = orders.some((order) => isPendingPayment
+      ? order.paymentStatus !== 'pending' || order.status !== 'pending_payment'
+      : order.paymentStatus !== 'paid');
+    if (invalid) {
+      throw new Error(isPendingPayment
+        ? 'Hanya order belum dibayar yang masih pending yang dapat berstatus pending_payment'
+        : 'Semua order harus sudah dibayar sebelum diproses');
+    }
+
+    const updated = await tx.update(stickerOrders)
+      .set({ status: nextStatus, updatedAt: new Date() })
+      .where(and(
+        inArray(stickerOrders.id, ids),
+        eq(stickerOrders.app_id, APP_ID),
+        ...(isPendingPayment ? [eq(stickerOrders.paymentStatus, 'pending'), eq(stickerOrders.status, 'pending_payment')] : [eq(stickerOrders.paymentStatus, 'paid')]),
+      ))
+      .returning({ id: stickerOrders.id });
+    if (updated.length !== ids.length) throw new Error('Order berubah selama pembaruan; tidak ada order yang diubah');
+  });
 
   await revalidateStickerOrdersCache();
 }

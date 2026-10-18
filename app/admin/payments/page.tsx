@@ -42,7 +42,7 @@ export default async function AdminPaymentsPage({
             Manajemen Pembayaran QRIS
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Semua pembayaran otomatis Komerce (upgrade tag &amp; sticker order), termasuk konfirmasi manual bila webhook terlewat.
+            Semua pembayaran menggunakan QRIS GoPay statis dan diverifikasi manual berdasarkan bukti pembayaran.
           </p>
         </div>
         <Link href="/admin">

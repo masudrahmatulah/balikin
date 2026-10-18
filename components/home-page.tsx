@@ -1,5 +1,3 @@
-'use client';
-
 import { SiteHeader } from '@/components/site-header';
 import { SmartLicenseHeroSection } from '@/components/landing/smart-license-hero-section';
 import { ProductShowcaseSection } from '@/components/landing/product-showcase-section';

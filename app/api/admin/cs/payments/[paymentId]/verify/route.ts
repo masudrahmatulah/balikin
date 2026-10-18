@@ -85,7 +85,7 @@ export async function POST(
         return { kind: "changed" as const, payment, action };
       }
 
-      if (payment.productType === "printable" && !payment.paymentProofUrl) {
+      if (!payment.paymentProofUrl) {
         return { kind: "invalid" as const, message: "Payment proof is required" };
       }
 

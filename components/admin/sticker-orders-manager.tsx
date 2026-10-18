@@ -40,7 +40,6 @@ import { STICKER_COLOR_THEMES, normalizeStickerColorTheme } from '@/lib/sticker-
 import {
   bulkDeleteStickerOrders,
   bulkSetOrderStatus,
-  bulkSetPaymentStatus,
   createStickerOrderByAdmin,
   deleteStickerOrderById,
   getStickerOrderForAdmin,
@@ -140,9 +139,6 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
     runAction(() => updateStickerOrderStatus(orderId, status));
 
   // ─── Bulk handlers ──────────────────────────────────────────────────────
-  const handleBulkVerify = () =>
-    runAction(() => bulkSetPaymentStatus(selectedIds, 'paid'), { clearSelection: true });
-
   const handleBulkStatus = (status: string) =>
     runAction(() => bulkSetOrderStatus(selectedIds, status), { clearSelection: true });
 
@@ -185,9 +181,6 @@ export function StickerOrdersManager({ orders }: { orders: StickerOrderRow[] }) 
           <span className="mr-1 text-sm font-medium text-indigo-900 dark:text-indigo-200">
             {selected.size} order dipilih:
           </span>
-          <Button size="sm" variant="outline" disabled={isPending} onClick={handleBulkVerify}>
-            Tandai Bayar (Paid)
-          </Button>
           {ORDER_STATUS_OPTIONS.filter((s) => s.value !== 'pending_payment').map((s) => (
             <Button key={s.value} size="sm" variant="outline" disabled={isPending} onClick={() => handleBulkStatus(s.value)}>
               Set {s.label}

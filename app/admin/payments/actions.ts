@@ -21,8 +21,7 @@ async function requireAdmin() {
 }
 
 /**
- * Konfirmasi pembayaran upgrade tag secara manual (fallback jika webhook terlewat).
- * Menaikkan tier tag ke premium dengan efek yang sama seperti webhook Komerce.
+ * Konfirmasi pembayaran upgrade tag setelah verifikasi bukti QRIS secara manual.
  */
 export async function verifyTagUpgradePayment(orderId: string) {
   const session = await requireAdmin();
@@ -45,6 +44,9 @@ export async function verifyTagUpgradePayment(orderId: string) {
     }
     if (order.paymentStatus !== 'pending') {
       throw new Error('Order sudah diproses');
+    }
+    if (!order.paymentProofUrl) {
+      throw new Error('Bukti pembayaran upgrade belum diupload');
     }
 
     const [tag] = await tx
@@ -138,7 +140,7 @@ export async function markTagUpgradeFailed(orderId: string) {
 }
 
 /**
- * Konfirmasi pembayaran sticker order secara manual (fallback jika webhook terlewat).
+ * Konfirmasi pembayaran sticker order setelah verifikasi bukti secara manual.
  */
 export async function verifyStickerOrderPayment(orderId: string) {
   const session = await requireAdmin();
@@ -164,8 +166,8 @@ export async function verifyStickerOrderPayment(orderId: string) {
       throw new Error('Order sudah diproses');
     }
 
-    if (order.productType === 'printable' && !order.paymentProofUrl) {
-      throw new Error('Bukti pembayaran printable belum diupload');
+    if (!order.paymentProofUrl) {
+      throw new Error('Bukti pembayaran belum diupload');
     }
 
     const stockAvailable = order.productType !== 'acrylic'

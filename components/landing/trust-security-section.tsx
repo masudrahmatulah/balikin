@@ -28,10 +28,10 @@ const securityPillars = [
   {
     id: 'payment',
     icon: CreditCard,
-    title: 'Gerbang Pembayaran Resmi',
-    subtitle: 'Powered by Komerce',
+    title: 'Pembayaran QRIS Manual',
+    subtitle: 'QRIS GoPay',
     description:
-      'Setiap transaksi lunas via QRIS diproses langsung oleh Komerce Payment API. QRIS berstandar Bank Indonesia dan Balikin tidak pernah menyimpan data keuangan Anda.',
+      'Bayar dengan QRIS GoPay statis, unggah bukti pembayaran, lalu admin/CS memverifikasi secara manual sebelum pesanan diproses.',
     color: 'from-[#ff8a3d] to-brand-red-dark',
   },
 ];
@@ -52,8 +52,8 @@ const trustLogos = [
     type: 'image',
   },
   {
-    name: 'Komerce',
-    label: 'Payment Gateway',
+    name: 'GoPay',
+    label: 'QRIS Manual',
     bgColor: 'bg-white',
     textColor: 'text-green-600',
     emoji: 'K',

@@ -41,9 +41,11 @@ export async function GET() {
       isAdmin: dbUser.role === 'admin',
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Failed to retrieve authenticated user role', {
+      errorType: error instanceof Error ? error.name : typeof error,
+    });
     return NextResponse.json({
-      error: message,
+      error: 'Unable to retrieve user role',
     }, { status: 500 });
   }
 }

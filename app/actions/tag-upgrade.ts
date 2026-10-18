@@ -7,7 +7,6 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { tags, tagUpgradeOrders } from '@/db/schema';
 import { PREMIUM_UPGRADE_PRICE } from '@/lib/constants';
-import { buildKomercePaymentResult, createKomercePayment } from '@/lib/komerce-payment';
 
 export async function initiateTagUpgradePayment(tagId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -15,7 +14,7 @@ export async function initiateTagUpgradePayment(tagId: string) {
     redirect('/sign-in');
   }
 
-  const { tag, order } = await db.transaction(async (tx) => {
+  const order = await db.transaction(async (tx) => {
     const [tag] = await tx
       .select()
       .from(tags)
@@ -45,9 +44,7 @@ export async function initiateTagUpgradePayment(tagId: string) {
       ))
       .limit(1);
 
-    if (pendingOrder) {
-      throw new Error('Upgrade order masih menunggu pembayaran');
-    }
+    if (pendingOrder) return pendingOrder;
 
     const [order] = await tx
       .insert(tagUpgradeOrders)
@@ -60,37 +57,14 @@ export async function initiateTagUpgradePayment(tagId: string) {
       })
       .returning();
 
-    return { tag, order };
+    return order;
   });
-
-  const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/payment/webhook`;
-
-  const data = await createKomercePayment({
-    orderId: `upg_${order.id}`,
-    amount: order.amount,
-    customer: {
-      name: session.user.name || 'Balikin User',
-      email: session.user.email || 'user@balikin.app',
-      phone: tag.contactWhatsapp || '081234567890',
-    },
-    items: [
-      {
-        name: `Upgrade Tag "${tag.name}" ke Premium`,
-        quantity: 1,
-        price: order.amount,
-      },
-    ],
-    callbackUrl,
-  });
-
-  const result = buildKomercePaymentResult(data);
 
   return {
     success: true,
     orderId: order.id,
-    paymentId: result.paymentId,
-    paymentUrl: result.paymentUrl,
-    qrString: result.qrString,
+    amount: order.amount,
+    paymentProofUrl: order.paymentProofUrl,
   };
 }
 
@@ -111,5 +85,5 @@ export async function getTagUpgradeOrderStatus(orderId: string) {
     throw new Error('Order tidak ditemukan');
   }
 
-  return { paymentStatus: order.paymentStatus };
+  return { paymentStatus: order.paymentStatus, amount: order.amount, paymentProofUrl: order.paymentProofUrl };
 }

@@ -272,6 +272,7 @@ export const tagUpgradeOrders = pgTable('tag_upgrade_orders', {
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   amount: integer('amount').notNull(),
   paymentStatus: text('payment_status').default('pending').notNull(), // 'pending' | 'paid' | 'failed'
+  paymentProofUrl: text('payment_proof_url'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

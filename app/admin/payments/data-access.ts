@@ -17,6 +17,7 @@ async function getUpgradePaymentsCore(status?: PaymentStatus) {
       status ? eq(tagUpgradeOrders.paymentStatus, status) : undefined
     ),
     orderBy: [desc(tagUpgradeOrders.createdAt)],
+    columns: { id: true, amount: true, paymentStatus: true, paymentProofUrl: true, createdAt: true },
     with: {
       tag: {
         columns: { id: true, slug: true, name: true, tier: true },
@@ -38,6 +39,7 @@ async function getStickerPaymentOrdersCore(status?: PaymentStatus) {
       status ? eq(stickerOrders.paymentStatus, status) : undefined
     ),
     orderBy: [desc(stickerOrders.createdAt)],
+    columns: { id: true, totalAmount: true, paymentStatus: true, paymentProofUrl: true, recipientName: true, city: true, createdAt: true },
     with: {
       user: {
         columns: { id: true, email: true, name: true },

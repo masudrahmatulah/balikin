@@ -1,13 +1,12 @@
 import { db } from '@/db';
 import { rateLimit } from '@/db/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, lt } from 'drizzle-orm';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const WINDOW_MS = 60 * 1000; // 1 minute window
-const MAX_REQUESTS = 5;
 const MAX_SCAN_REQUESTS = 10;
 const MAX_API_REQUESTS = 100;
 const MAX_QR_REQUESTS = 50;
@@ -61,6 +60,7 @@ async function checkRateLimit(
   try {
     const existing = await db.query.rateLimit.findFirst({
       where: and(
+        eq(rateLimit.app_id, 'balikin_id'),
         eq(rateLimit.identifier, identifier),
         eq(rateLimit.actionType, actionType),
         gt(rateLimit.windowEnd, windowStart)
@@ -89,7 +89,12 @@ async function checkRateLimit(
           windowEnd,
           updatedAt: now,
         })
-        .where(eq(rateLimit.id, existing.id));
+        .where(
+          and(
+            eq(rateLimit.app_id, 'balikin_id'),
+            eq(rateLimit.id, existing.id)
+          )
+        );
 
       return {
         allowed: true,
@@ -219,11 +224,16 @@ export function getRateLimitHeaders(result: RateLimitResult): HeadersInit {
  */
 export async function cleanupOldRateLimits(): Promise<number> {
   try {
-    const cutoff = new Date(Date.now() - WINDOW_MS * 2);
+    const cutoff = new Date(Date.now() - WINDOW_HOUR_MS * 2);
 
     const result = await db
       .delete(rateLimit)
-      .where(gt(rateLimit.windowEnd, cutoff))
+      .where(
+        and(
+          eq(rateLimit.app_id, 'balikin_id'),
+          lt(rateLimit.windowEnd, cutoff)
+        )
+      )
       .returning();
 
     return result.length;

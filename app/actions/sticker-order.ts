@@ -12,7 +12,9 @@ import {
   STICKER_PACK_SIZE,
   STICKER_PAYMENT_METHOD,
 } from '@/lib/constants';
-import { isAdmin } from '@/lib/admin';
+import { getAdminSessionForAction } from '@/lib/admin';
+import { hasPermission } from '@/lib/admin-divisions';
+import type { StickerShape, StickerSize } from '@/lib/sticker-template';
 
 // ============================================================================
 // CONSTANTS
@@ -87,6 +89,14 @@ async function requireSession() {
     redirect('/sign-in');
   }
 
+  return session;
+}
+
+async function requireStickerOrderPermission(permission: 'payment_verification' | 'sticker_orders') {
+  const session = await getAdminSessionForAction();
+  if (!session || !hasPermission(session.user.division, permission)) {
+    throw new Error('Unauthorized');
+  }
   return session;
 }
 
@@ -181,20 +191,22 @@ export async function verifyStickerOrder(orderId: string) {
     throw new Error('Invalid order ID');
   }
 
-  const admin = await isAdmin();
-  if (!admin) {
-    throw new Error('Unauthorized');
-  }
+  await requireStickerOrderPermission('payment_verification');
 
-  await db.update(stickerOrders)
-    .set({
-      paymentStatus: 'paid',
-      status: 'paid',
-      verifiedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
+  await db.transaction(async (tx) => {
+    const [order] = await tx.select().from(stickerOrders)
+      .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)))
+      .for('update');
+    if (!order) throw new Error('Order tidak ditemukan');
+    if (order.paymentStatus !== 'pending') throw new Error('Order sudah diproses');
+    if (!order.paymentProofUrl) throw new Error('Bukti pembayaran wajib diunggah sebelum verifikasi');
 
+    const updated = await tx.update(stickerOrders)
+      .set({ paymentStatus: 'paid', status: 'paid', verifiedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID), eq(stickerOrders.paymentStatus, 'pending')))
+      .returning({ id: stickerOrders.id });
+    if (updated.length === 0) throw new Error('Order sudah diproses');
+  });
 }
 
 export async function updateStickerOrderStatus(orderId: string, status: 'in_production' | 'shipped' | 'completed') {
@@ -202,17 +214,24 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
     throw new Error('Invalid order ID');
   }
 
-  const admin = await isAdmin();
-  if (!admin) {
-    throw new Error('Unauthorized');
-  }
+  await requireStickerOrderPermission('sticker_orders');
 
-  await db.update(stickerOrders)
-    .set({
-      status,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)));
+  const updated = await db.update(stickerOrders)
+    .set({ status, updatedAt: new Date() })
+    .where(and(
+      eq(stickerOrders.id, orderId),
+      eq(stickerOrders.app_id, APP_ID),
+      eq(stickerOrders.paymentStatus, 'paid'),
+    ))
+    .returning({ id: stickerOrders.id });
+  if (updated.length === 0) {
+    const order = await db.query.stickerOrders.findFirst({
+      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.app_id, APP_ID)),
+      columns: { id: true },
+    });
+    if (!order) throw new Error('Order tidak ditemukan');
+    throw new Error('Order belum diverifikasi pembayarannya');
+  }
 
 }
 
@@ -222,17 +241,14 @@ export async function updateStickerOrderStatus(orderId: string, status: 'in_prod
 
 export async function generateStickerBundle(
   orderId: string,
-  stickerShape: import('@/lib/sticker-template').StickerShape = 'circle',
-  stickerSize: import('@/lib/sticker-template').StickerSize = 'medium'
+  stickerShape: StickerShape = 'circle',
+  stickerSize: StickerSize = 'medium'
 ) {
   if (!validateOrderId(orderId)) {
     throw new Error('Invalid order ID');
   }
 
-  const admin = await isAdmin();
-  if (!admin) {
-    throw new Error('Unauthorized');
-  }
+  await requireStickerOrderPermission('sticker_orders');
 
   const bundle = await db.transaction(async (tx) => {
     const [order] = await tx

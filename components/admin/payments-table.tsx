@@ -25,6 +25,7 @@ interface UpgradeRow {
   totalAmount?: number;
   paymentStatus: string;
   createdAt: Date | null;
+  paymentProofUrl: string | null;
   tag: { id: string; slug: string; name: string | null; tier: string | null } | null;
   user: { id: string; email: string | null; name: string | null } | null;
 }
@@ -35,6 +36,7 @@ interface StickerRow {
   totalAmount: number;
   paymentStatus: string;
   createdAt: Date | null;
+  paymentProofUrl: string | null;
   recipientName: string;
   city: string;
   user: { id: string; email: string | null; name: string | null } | null;
@@ -109,7 +111,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
           <CardHeader>
             <CardTitle className="text-lg">Upgrade Tag Premium</CardTitle>
             <CardDescription>
-              Pembayaran upgrade tag free → premium via QRIS (Komerce).
+              Pembayaran manual QRIS GoPay; verifikasi berdasarkan bukti yang diunggah.
             </CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto">
@@ -119,6 +121,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
                   <th className="pb-2 pr-4">Tag</th>
                   <th className="pb-2 pr-4">Pemilik</th>
                   <th className="pb-2 pr-4">Jumlah</th>
+                  <th className="pb-2 pr-4">Bukti</th>
                   <th className="pb-2 pr-4">Status</th>
                   <th className="pb-2 pr-4">Waktu</th>
                   <th className="pb-2">Aksi</th>
@@ -138,6 +141,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
                     <td className="py-3 pr-4 text-gray-900">
                       Rp{(row.amount ?? row.totalAmount ?? 0).toLocaleString('id-ID')}
                     </td>
+                    <td className="py-3 pr-4">{row.paymentProofUrl ? <a className="text-blue-600 underline" href={row.paymentProofUrl} target="_blank" rel="noreferrer">Lihat bukti</a> : 'Belum ada bukti'}</td>
                     <td className="py-3 pr-4">
                       <StatusBadge status={row.paymentStatus} />
                     </td>
@@ -152,7 +156,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
                                 verifyTagUpgradePayment(row.id)
                               )
                             }
-                            disabled={isPending && pendingAction === `upgrade-paid-${row.id}`}
+                            disabled={!row.paymentProofUrl || (isPending && pendingAction === `upgrade-paid-${row.id}`)}
                           >
                             {isPending && pendingAction === `upgrade-paid-${row.id}` ? (
                               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -190,7 +194,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
           <CardHeader>
             <CardTitle className="text-lg">Sticker Order</CardTitle>
             <CardDescription>
-              Pembayaran order sticker pack via QRIS (Komerce / manual).
+              Pembayaran manual QRIS GoPay; verifikasi berdasarkan bukti yang diunggah.
             </CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto">
@@ -200,6 +204,7 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
                   <th className="pb-2 pr-4">Order</th>
                   <th className="pb-2 pr-4">Pemesan</th>
                   <th className="pb-2 pr-4">Jumlah</th>
+                  <th className="pb-2 pr-4">Bukti</th>
                   <th className="pb-2 pr-4">Status</th>
                   <th className="pb-2 pr-4">Waktu</th>
                   <th className="pb-2">Aksi</th>
@@ -219,13 +224,14 @@ export function PaymentsTable({ upgrades, stickers }: PaymentsTableProps) {
                     <td className="py-3 pr-4 text-gray-900">
                       Rp{(row.amount ?? row.totalAmount ?? 0).toLocaleString('id-ID')}
                     </td>
+                    <td className="py-3 pr-4">{row.paymentProofUrl ? <a className="text-blue-600 underline" href={row.paymentProofUrl} target="_blank" rel="noreferrer">Lihat bukti</a> : 'Belum ada bukti'}</td>
                     <td className="py-3 pr-4">
                       <StatusBadge status={row.paymentStatus} />
                     </td>
                     <td className="py-3 pr-4 text-gray-600">{formatDate(row.createdAt)}</td>
                     <td className="py-3">
                       <div className="flex flex-wrap gap-2">
-                        {row.paymentStatus === 'pending' && (
+                        {row.paymentStatus === 'pending' && row.paymentProofUrl && (
                           <Button
                             size="sm"
                             onClick={() =>

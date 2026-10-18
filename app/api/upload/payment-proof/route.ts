@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { uploadR2Object, r2Configured } from '@/lib/r2-storage';
 import { nanoid } from 'nanoid';
 import { db } from '@/db';
-import { modulePurchaseOrders, stickerOrders } from '@/db/schema';
+import { modulePurchaseOrders, stickerOrders, tagUpgradeOrders } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 const MAX_FILE_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '5', 10) * 1024 * 1024;
@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file');
     const orderId = String(formData.get('orderId') || '').trim();
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
@@ -67,19 +67,29 @@ export async function POST(request: NextRequest) {
         eq(modulePurchaseOrders.id, orderId),
         eq(modulePurchaseOrders.userId, session.user.id),
         eq(modulePurchaseOrders.app_id, 'balikin_id'),
+        eq(modulePurchaseOrders.status, 'pending_payment'),
       ),
-      columns: { id: true, status: true },
+      columns: { id: true },
+    });
+    const upgradeOrder = await db.query.tagUpgradeOrders.findFirst({
+      where: and(eq(tagUpgradeOrders.id, orderId), eq(tagUpgradeOrders.userId, session.user.id), eq(tagUpgradeOrders.app_id, 'balikin_id'), eq(tagUpgradeOrders.paymentStatus, 'pending')),
+      columns: { id: true },
     });
     const stickerOrder = await db.query.stickerOrders.findFirst({
-      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.userId, session.user.id), eq(stickerOrders.app_id, 'balikin_id')),
-      columns: { id: true, status: true, productType: true },
+      where: and(eq(stickerOrders.id, orderId), eq(stickerOrders.userId, session.user.id), eq(stickerOrders.app_id, 'balikin_id'), eq(stickerOrders.status, 'pending_payment'), eq(stickerOrders.paymentStatus, 'pending')),
+      columns: { id: true },
     });
-    const validOrder = moduleOrder || stickerOrder;
-    if (!validOrder || (moduleOrder ? moduleOrder.status !== 'pending_payment' : stickerOrder?.status !== 'pending_payment')) {
+    const candidates = [
+      moduleOrder && { type: 'module' as const, order: moduleOrder },
+      stickerOrder && { type: 'sticker' as const, order: stickerOrder },
+      upgradeOrder && { type: 'upgrade' as const, order: upgradeOrder },
+    ].filter((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate));
+    if (candidates.length !== 1) {
       return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
     }
+    const [candidate] = candidates;
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: `File size must be less than ${MAX_FILE_SIZE / 1024 / 1024}MB` },
         { status: 400 }
@@ -109,7 +119,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const filename = `${session.user.id}/${validOrder.id}/${Date.now()}-${nanoid(8)}${ext}`;
+    const filename = `${session.user.id}/${candidate.order.id}/${Date.now()}-${nanoid(8)}${ext}`;
     const blob = await uploadR2Object({
       key: `payment-proofs/${filename}`,
       body: Buffer.from(await file.arrayBuffer()),
@@ -117,22 +127,32 @@ export async function POST(request: NextRequest) {
       privateObject: true,
     });
 
-    if (stickerOrder) {
-      await db.update(stickerOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
+    if (candidate.type === 'upgrade') {
+      const updated = await db.update(tagUpgradeOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
+        and(eq(tagUpgradeOrders.id, candidate.order.id), eq(tagUpgradeOrders.userId, session.user.id), eq(tagUpgradeOrders.app_id, 'balikin_id'), eq(tagUpgradeOrders.paymentStatus, 'pending'))
+      ).returning({ id: tagUpgradeOrders.id });
+      if (!updated.length) return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
+    } else if (candidate.type === 'sticker') {
+      const updated = await db.update(stickerOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
         and(
-          eq(stickerOrders.id, stickerOrder.id),
+          eq(stickerOrders.id, candidate.order.id),
           eq(stickerOrders.userId, session.user.id),
           eq(stickerOrders.app_id, 'balikin_id'),
+          eq(stickerOrders.paymentStatus, 'pending'),
+          eq(stickerOrders.status, 'pending_payment'),
         )
-      );
-    } else if (moduleOrder) {
-      await db.update(modulePurchaseOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
+      ).returning({ id: stickerOrders.id });
+      if (!updated.length) return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
+    } else {
+      const updated = await db.update(modulePurchaseOrders).set({ paymentProofUrl: blob.url, updatedAt: new Date() }).where(
         and(
-          eq(modulePurchaseOrders.id, moduleOrder.id),
+          eq(modulePurchaseOrders.id, candidate.order.id),
           eq(modulePurchaseOrders.userId, session.user.id),
           eq(modulePurchaseOrders.app_id, 'balikin_id'),
+          eq(modulePurchaseOrders.status, 'pending_payment'),
         )
-      );
+      ).returning({ id: modulePurchaseOrders.id });
+      if (!updated.length) return NextResponse.json({ error: 'Order pembayaran tidak valid.' }, { status: 403 });
     }
     return NextResponse.json({ url: blob.url });
   } catch (error) {

@@ -273,7 +273,7 @@ export async function updateTag(
   tagId: string,
   data: Partial<CreateTagInput> & { tier?: 'free' | 'premium'; isVerified?: boolean }
 ) {
-  const userId = await requireTagOwnership(tagId);
+  await requireTagOwnership(tagId);
 
   const tag = await db.query.tags.findFirst({
     where: and(eq(tags.id, tagId), eq(tags.app_id, 'balikin_id')),
@@ -490,7 +490,7 @@ export async function claimStickerTag(tagId: string, name: string, pin?: string)
   const updatedTags = await db.update(tags)
     .set({
       ownerId: session.user.id,
-      name: name.trim(),
+      name: validateTagName(name),
       claimedAt: new Date(),
       contactWhatsapp: tag.contactWhatsapp || order.phone,
       status: 'normal',
