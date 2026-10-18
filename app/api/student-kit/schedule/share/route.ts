@@ -20,7 +20,7 @@ import { absoluteUrl } from '@/lib/seo';
  * POST /api/student-kit/schedule/share
  * Generate a share code for the current user's schedule
  */
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const result = await shareSchedule();
 
     // Generate share URL and QR code URL
-    const shareUrl = absoluteUrl(`/api/student-kit/schedule/import/${result.shareCode}`);
+    const shareUrl = absoluteUrl(`/share/student-kit/${result.shareCode}`);
     const qrCodeUrl = absoluteUrl(`/api/student-kit/schedule/qr/${result.shareCode}`);
 
     return NextResponse.json({

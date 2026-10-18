@@ -37,7 +37,7 @@ export async function GET(
     await getScheduleByShareCode(shareCode);
 
     // Generate share URL
-    const shareUrl = absoluteUrl(`/api/student-kit/schedule/import/${shareCode}`);
+    const shareUrl = absoluteUrl(`/share/student-kit/${shareCode}`);
 
     // Generate QR code
     const qrCodeDataUrl = await generateQRCodeDataURL(shareUrl, {

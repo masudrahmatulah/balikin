@@ -1,10 +1,6 @@
-'use client';
-
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, ZapOff, Infinity as InfinityIcon, Lock } from 'lucide-react';
-import { FloatingIcon } from '@/components/landing/floating-icon';
 import { BRAND_DESCRIPTION, BRAND_TAGLINE } from '@/lib/brand';
 
 const licenseHighlights = [
@@ -18,60 +14,35 @@ export function SmartLicenseHeroSection() {
     <section className="container mx-auto px-4 py-16 md:py-24 text-center relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute left-1/2 top-0 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-brand-red/10 blur-3xl dark:bg-brand-red/20" />
-        <FloatingIcon icon={ShieldCheck} delay={0} className="absolute top-20 left-10 opacity-10 h-24 w-24 text-brand-red" />
-        <FloatingIcon icon={Lock} delay={1} duration={5} className="absolute top-40 right-20 opacity-10 h-32 w-32 text-brand-red" />
-        <FloatingIcon icon={InfinityIcon} delay={2} duration={7} className="absolute bottom-20 left-1/4 opacity-10 h-28 w-28 text-brand-navy dark:text-white" />
+        <div className="absolute top-20 left-10 opacity-10 h-24 w-24 text-brand-red" aria-hidden="true"><ShieldCheck /></div>
+        <div className="absolute top-40 right-20 opacity-10 h-32 w-32 text-brand-red" aria-hidden="true"><Lock /></div>
+        <div className="absolute bottom-20 left-1/4 opacity-10 h-28 w-28 text-brand-navy dark:text-white" aria-hidden="true"><InfinityIcon /></div>
       </div>
 
       <div className="max-w-4xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-red-50 text-brand-red-dark px-4 py-2 rounded-full text-sm font-medium mb-6 dark:from-brand-red/20 dark:to-brand-red/5 dark:text-red-300 border border-brand-red/20"
-        >
+        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-red-100 to-red-50 text-brand-red-dark px-4 py-2 rounded-full text-sm font-medium mb-6 dark:from-brand-red/20 dark:to-brand-red/5 dark:text-red-300 border border-brand-red/20">
           <ShieldCheck className="h-4 w-4" />
           Bukan Gantungan Kunci. Ini Sistem Proteksi Digital.
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white"
-        >
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight dark:text-white">
           {BRAND_TAGLINE}
-        </motion.h1>
+        </h1>
 
         <p className="mx-auto mb-4 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-300">
           {BRAND_DESCRIPTION}
         </p>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto dark:text-gray-300"
-        >
+        <p className="text-xl md:text-2xl text-gray-600 mb-4 max-w-2xl mx-auto dark:text-gray-300">
           Anda tidak sedang membeli akrilik atau stiker. Anda mengaktifkan{' '}
           <span className="font-semibold text-gray-800 dark:text-gray-200">lisensi proteksi digital</span> — nomor HP Anda tidak tercetak di barang, tanpa baterai, dan berlaku seumur hidup.
-        </motion.p>
+        </p>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="text-lg text-gray-500 mb-8 max-w-xl mx-auto dark:text-gray-400"
-        >
+        <p className="text-lg text-gray-500 mb-8 max-w-xl mx-auto dark:text-gray-400">
           Gantungan akrilik, logam, atau stiker hanyalah <span className="font-semibold text-gray-700 dark:text-gray-300">media fisik</span> — wadah yang membawa teknologi digital ini ke mana pun barang Anda pergi.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
-        >
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
           <div className="max-w-md mx-auto text-center">
             <Link href="/produk">
               <Button
@@ -86,14 +57,9 @@ export function SmartLicenseHeroSection() {
           <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-2 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all" asChild>
             <Link href="#simulator-qr">Lihat Cara Kerjanya</Link>
           </Button>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="flex flex-wrap gap-3 justify-center"
-        >
+        <div className="flex flex-wrap gap-3 justify-center">
           {licenseHighlights.map(({ icon: Icon, label }) => (
             <div
               key={label}
@@ -103,7 +69,7 @@ export function SmartLicenseHeroSection() {
               {label}
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

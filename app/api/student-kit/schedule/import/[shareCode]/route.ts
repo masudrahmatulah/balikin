@@ -1,6 +1,8 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { getScheduleByShareCode } from '@/app/actions/modules';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 /**
  * GET /api/student-kit/schedule/import/[shareCode]
@@ -11,6 +13,11 @@ export async function GET(
   { params }: { params: Promise<{ shareCode: string }> }
 ) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { shareCode } = await params;
 
     const data = await getScheduleByShareCode(shareCode);

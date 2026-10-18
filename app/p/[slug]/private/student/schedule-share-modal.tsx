@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Check, Download, Share2 } from 'lucide-react';
+import { Copy, Check, Share2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ScheduleShareModalProps {
   isOpen: boolean;
@@ -28,15 +29,6 @@ export function ScheduleShareModal({
   expiresAt,
 }: ScheduleShareModalProps) {
   const [copied, setCopied] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
-
-  useEffect(() => {
-    if (isOpen && shareCode) {
-      // Set QR code URL
-      const baseUrl = window.location.origin;
-      setQrCodeUrl(`${baseUrl}/api/student-kit/schedule/qr/${shareCode}`);
-    }
-  }, [isOpen, shareCode]);
 
   const handleCopyLink = async () => {
     try {
@@ -78,21 +70,19 @@ export function ScheduleShareModal({
             Bagikan Jadwal Kuliah
           </DialogTitle>
           <DialogDescription>
-            Bagikan jadwal Anda dengan teman satu kelas
+            Bagikan data Student Kit Anda dengan teman satu kelas
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-left text-xs leading-5 text-amber-900">
+            Siapa pun yang memiliki QR atau kode ini dapat mengakses jadwal kuliah, tenggat tugas, dan tautan Drive yang tersimpan hingga 7 hari. Bagikan hanya kepada orang tepercaya.
+          </div>
+
           {/* QR Code */}
-          {qrCodeUrl && (
-            <div className="flex justify-center p-4 bg-white rounded-lg border">
-              <img
-                src={qrCodeUrl}
-                alt="QR Code untuk Import Jadwal"
-                className="w-64 h-64 object-contain"
-              />
-            </div>
-          )}
+          <div className="flex justify-center rounded-lg border bg-white p-4">
+            <QRCodeSVG value={shareUrl} size={256} includeMargin title="QR Code untuk mengimpor data Student Kit" />
+          </div>
 
           {/* Share Code */}
           <div>
